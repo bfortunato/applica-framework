@@ -1,0 +1,31 @@
+<script type="text/javascript">
+    window.BASE = "$wwwBase";
+    window.FILES_BASE = "$filesBase";
+    window.STATIC_BASE = "$staticBase";
+    window.COUNTRY_CODE = "$countryCode";
+</script>
+
+<link rel="shortcut icon" href="${wwwBase}framework-resources/favicon.ico">
+
+<link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800'>
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Roboto:400,500,700,300">
+
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/plugins/datepicker/css/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/plugins/daterange/daterangepicker.css">
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/assets/skin/default_skin/css/theme.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/assets/admin-tools/admin-forms/css/admin-forms.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/assets/admin-tools/admin-plugins/admin-panels/adminpanels.css">
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/plugins/datatables/media/css/dataTables.bootstrap.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/plugins/colorpicker/css/bootstrap-colorpicker.min.css">
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/editors/summernote/summernote.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/vendor/editors/summernote/summernote-bs3.css">
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/lib/flag-icon/css/flag-icon.min.css">
+
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/styles/plugins.css">
+<link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/styles/framework.css">
+<link rel="stylesheet" type="text/css" href="${staticBase}styles/admin.css">

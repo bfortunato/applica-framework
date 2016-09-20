@@ -1,0 +1,12 @@
+<div
+        data-form-id="$formId"
+        data-component="auto_form"
+        data-url="$url"
+        #if($action)
+            data-action="$action"
+        #end
+        #if($ajax)
+            data-ajax="$ajax"
+        #end
+        >
+</div>

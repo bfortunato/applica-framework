@@ -1,0 +1,37 @@
+#parse("shared/framework.vm")
+#parse("shared/header.vm")
+
+<!-- Start: Content-Wrapper -->
+<section id="content_wrapper">
+
+    <!-- Start: Topbar -->
+    <header id="topbar">
+        <div class="topbar-left">
+            <ol class="breadcrumb framework-breadcrumbs" id="breadcrumbs">
+                <li class="crumb-active">
+                    <a href="${wwwBase}">_APPNAME_</a>
+                </li>
+                <li class="crumb-icon">
+                    <a href="${wwwBase}">
+                        <span class="glyphicon glyphicon-home"></span>
+                    </a>
+                </li>
+                <li class="crumb-link">
+                    <a href="${wwwBase}">Home</a>
+                </li>
+                <li class="crumb-trail">#_("label.welcome")</li>
+            </ol>
+        </div>
+        <div class="topbar-right framework-toolbar" id="toolbar"></div>
+    </header>
+    <!-- End: Topbar -->
+
+    <!-- Begin: Content -->
+    <section id="spa-container" class="animated fadeIn"></section>
+
+</section>
+<!-- End: Content -->
+
+</section>
+
+#parse("/shared/footer.vm")

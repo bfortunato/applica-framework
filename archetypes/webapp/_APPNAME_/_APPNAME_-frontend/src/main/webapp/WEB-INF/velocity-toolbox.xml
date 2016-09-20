@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<toolbox>
+    <tool>
+        <key>framework</key>
+        <scope>application</scope>
+        <class>applica.framework.library.velocity.tools.FrameworkTools</class>
+    </tool>
+    <tool>
+        <key>security</key>
+        <scope>application</scope>
+        <class>applica.framework.security.Security</class>
+    </tool>
+</toolbox>

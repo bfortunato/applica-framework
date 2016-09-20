@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>applica.framework</groupId>
+    <artifactId>framework</artifactId>
+    <version>1.6-RELEASE</version>
+    <packaging>pom</packaging>
+
+    <url>http://www.applicaframework.com</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <applica.framework.version>1.6-RELEASE</applica.framework.version>
+        <spring.version>4.1.6.RELEASE</spring.version>
+        <spring.security.version>4.0.1.RELEASE</spring.security.version>
+    </properties>
+
+    <modules>
+        <module>framework-core</module>
+        <module>framework-widgets</module>
+        <module>framework-library</module>
+        <module>framework-resources</module>
+        <module>framework-security</module>
+        <module>framework-fileserver</module>
+        <module>framework-data-mongodb</module>
+        <module>framework-data-hibernate</module>
+        <module>framework-data-security</module>
+        <module>framework-licensing</module>
+        <module>scripts</module>
+        <module>framework-tracking</module>
+
+    </modules>
+
+    <name>framework</name>
+
+</project>

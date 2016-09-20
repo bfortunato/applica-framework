@@ -1,0 +1,5 @@
+#set($_type = "decimal_number")
+#set($_component = "decimal_number")
+#set($_icon = "imoon imoon-calculate")
+
+#parse("/templates/fields/text.vm")

@@ -1,0 +1,129 @@
+#parse("/shared/framework.vm")
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Applica: sign in</title>
+
+    #parse("/shared/resources.vm")
+
+    <script type="text/javascript">
+        require(["main/login"], function(main) { main(); })
+    </script>
+
+    <style type="text/css">
+        body {
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #eee;
+        }
+
+        .form-signin {
+            max-width: 330px;
+            padding: 15px;
+            margin: 0 auto;
+        }
+        .form-signin .form-signin-heading,
+        .form-signin .checkbox {
+            margin-bottom: 10px;
+        }
+        .form-signin .checkbox {
+            font-weight: normal;
+        }
+        .form-signin .form-control {
+            position: relative;
+            font-size: 16px;
+            height: auto;
+            padding: 10px;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        .form-signin .form-control:focus {
+            z-index: 2;
+        }
+        .form-signin input[type="text"] {
+            margin-bottom: -1px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .form-signin input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <form class="form-signin" action="${wwwBase}auth/process" method="post">
+        <h2 class="form-signin-heading">#_("msg.please_sign_in")</h2>
+
+        #if($loginError)
+            <div class="alert alert-warning">$loginError</div>
+        #end
+
+        #if($registrationOk)
+            <div class="alert alert-info">
+                #_("msg.registration_ok")
+            </div>
+        #end
+
+        #if($activationOk)
+            <div class="alert alert-info">
+                #_("msg.activation_ok")
+            </div>
+        #end
+
+        <input type="text" class="form-control" name="j_username" placeholder="#_("label.mail_address")" autofocus>
+        <input type="password" class="form-control" name="j_password" placeholder="#_("label.password")">
+        <label class="checkbox">
+            <input type="checkbox" name="_spring_security_remember_me" value="1"> #_("msg.remember_me")
+        </label>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">#_("label.sign_in")</button>
+        <a href="${wwwBase}account/register" class="btn btn-lg btn-default btn-block">#_("label.register")</a>
+
+        <button type="button" class="btn btn-link" data-toggle="modal" data-target="#reset-password-modal">#_("msg.do_you_lose_password")</button>
+    </form>
+
+</div> <!-- /container -->
+
+<div class="modal fade" id="reset-password-modal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Recover password</h4>
+            </div>
+            <div class="modal-body reset-password-form-container">
+                <form role="form">
+                    <label class="control-label">#_("msg.recover_password_help")</label>
+                    <div class="input-group">
+                        <input
+                                placeholder="#_("label.mail_address")"
+                                class="form-control"
+                                type="email"
+                                name="mail" />
+                        <span class="input-group-addon">@</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary recover-dialog-ok-button">Recover</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+</body>
+</html>
+

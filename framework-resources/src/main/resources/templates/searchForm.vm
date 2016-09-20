@@ -1,0 +1,39 @@
+
+<div class="panel panel-dark">
+    <div class="panel-heading">
+        <span class="panel-title"><i class="glyphicon glyphicon-search"></i> $localization.m("msg.search")</span>
+    </div>
+
+    <form action="javascript:;" method="POST" data-component="form" class="form-horizontal">
+        <div class="panel-body p20">
+            <input type="hidden" data-component="criterias" value='$criterias' />
+
+            #if($hasTabs)
+                <div class="tab-content admin-form">
+                    #foreach($tab in $tabs)
+                        <div id="$ru.tabId($tab)" class="tab-pane #if($foreach.first)active#end">
+                            #foreach($fieldSetName in $ru.getFieldSetsInTab($form, $tab))
+                                #set($fieldSet = $form.getFieldSet($fieldSetName))
+                                #set($fields = $ru.getFieldsForSetInTab($form, $fieldSetName, $tab))
+                                #parse("/templates/form_fieldSet.inc.vm")
+                            #end
+                        </div>
+                    #end
+                </div>
+            #else
+                <div class="tab-content admin-form">
+                    #foreach ($fieldSet in $form.fieldSets)
+                        #set($fields = $fieldSet.fields)
+                        #parse("/templates/form_fieldSet.inc.vm")
+                    #end
+                </div>
+            #end
+        </div>
+
+        <div class="panel-footer">
+            <input type="submit" class="btn btn-sm btn-dark" data-component="search" value="$localization.m('label.search')"/>
+            <input type="button" class="btn btn-sm btn-default" data-component="cancel_search" value="$localization.m('label.cancel')"/>
+        </div>
+    </form>
+
+</div>

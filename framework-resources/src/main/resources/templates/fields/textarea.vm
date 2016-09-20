@@ -1,0 +1,66 @@
+#if ($field.params.inputExtraClass)
+    #set($_inputExtraClass = $field.params.inputExtraClass)
+#elseif(!$_inputExtraClass)
+    #set($_inputExtraClass = "")
+#end
+
+#if ($field.params.fieldExtraClass)
+    #set($_fieldExtraClass = $field.params.fieldExtraClass)
+#elseif(!$_fieldExtraClass)
+    #set($_fieldExtraClass = "")
+#end
+
+#if ($field.params.cols)
+    #set($_colsClass = "col-md-" + $field.params.cols)
+#elseif(!$_colsClass)
+    #set($_colsClass = "col-md-12")
+#end
+
+#if ($field.description && $field.description != "")
+    #set($_description = $localization.m($field.description))
+#else
+    #set($_description = false)
+#end
+
+#if ($field.params.placeholder)
+    #set($_placeholder = $localization.m($field.params.placeholder))
+#else
+    #set($_placeholder = "")
+#end
+
+#set($_domId = "id_" + $field.property)
+
+<div class="$_fieldExtraClass $_colsClass" data-component="field" data-property="$field.property">
+    <div class="row">
+        #if ($_description)
+             #set($_fieldColClass = "col-md-10")
+
+            <div class="col-md-2 field-label text-right">
+                <label for="$_domId">
+                    $_description
+                </label>
+            </div>
+        #else
+            #set($_fieldColClass = "col-md-12")
+        #end
+
+        <div class="$_fieldColClass">
+            <div data-component="error_state" data-error-property="$field.property">
+            <textarea
+                    name="$field.property"
+                    id="$_domId"
+                    data-component="textarea"
+                    class="gui-textarea $_inputExtraClass"
+                    placeholder="$_placeholder">$value</textarea>
+
+            </div>
+            <em
+                    for="$_domId"
+                    class="state-error"
+                    data-component="error"
+                    data-error-property="$field.property">
+            </em>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,20 @@
+Gentile <b>${mail}</b>
+<br/>
+grazie per la Tua registrazione.
+<br/>
+La password che hai selezionato è <b>$password</b>
+<br/>
+
+Per confermare la tua iscrizione devi attivare il tuo account cliccando: <a href="${activationUrl}">Qui</a>
+<br/>
+<br/>
+
+P.s.:
+Se non riesci ad attivare l'account cliccando sul pulsante, copia ed incolla il seguente link nella barra degli indirizzi del tuo browser:
+<br/>
+${activationUrl}
+<br/>
+<br/>
+questa mail e' stata generata in automatico, si prega di non rispondere.
+
+<a href="www.applica.guru">Applica</a>

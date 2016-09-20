@@ -1,0 +1,96 @@
+<div class="p10 framework-grid">
+    #if ($searchForm)
+        #if (!$grid.searched)
+            #set ($visible = "style='display: none;'")
+        #else
+            #set ($visible = "")
+        #end
+
+        <div data-component="search_form_container" class="searchFormContainer" $visible>$searchForm</div>
+    #end
+
+    #if ($rows.size() == 0)
+        <div class="alert alert-info">$localization.m("msg.no_records")</div>
+    #else
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-icon"><span class="glyphicons glyphicons-table"></span></span>
+                <span class="panel-title" data-component="title">$grid.title</span>
+            </div>
+            <div class="panel-body pn">
+                <table class="table table-hover table-striped admin-form">
+                    <thead>
+                    <tr>
+                        <th style="width: 1%;"><!--input type="checkbox" data-component="select_all_checkbox" /--></th>
+                        #foreach($column in $descriptor.visibleColumns)
+                            #set($thClass = "")
+                            #if($grid.sortBy)
+                                #if($grid.sortBy.property == $column.property)
+                                    #if($grid.sortBy.descending)
+                                        #set($thClass = "sorting_desc")
+                                    #else
+                                        #set($thClass = "sorting_asc")
+                                    #end
+                                #else
+                                    #set($thClass = "sorting")
+                                #end
+                            #end
+
+                            <th class="$thClass">
+                                #if ($grid.sortable)
+                                    <a href="javascript:;" class="grid-sort-button" data-property="$column.property" data-component="sort_button" data-sort-descending="true">
+                                        $localization.m($column.header)
+                                    </a>
+                                #else
+                                    $localization.m($column.header)
+                                #end
+                            </th>
+                        #end
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                        #foreach($row in $rows)
+                        <tr data-component="row" data-entity-id="$row.get('id')">
+
+                            <td class="text-center">
+                                <label class="option block mn" data-component="select_checkbox_label">
+                                    <input type="checkbox" data-component="select_checkbox" data-entity-id="$row.get('id')">
+                                    <span class="checkbox mn"></span>
+                                </label>
+                            </td>
+
+                            #foreach($column in $descriptor.visibleColumns)
+                                <td class="dbClickSensitive">$column.writeToString($row.get($column.property))</td>
+                            #end
+                        </tr>
+                        #end
+                    </tbody>
+                </table>
+            </div>
+
+            #if ($grid.pages > 1)
+                <div class="panel-footer">
+                    <div class="pull-left pt10">
+                        Showing page $grid.currentPage of $grid.pages
+                    </div>
+                    <div class="pull-right">
+                        <ul class="pagination mn">
+                            <li
+                                #if($grid.currentPage == 1)
+                                        class="disabled"
+                                #end><a href="javascript:;" data-component="prev_button">«</a></li>
+                            <li><a href="javascript:;" data_component="current_page">$grid.currentPage</a></li>
+                            <li  #if($grid.pages <= $grid.currentPage)
+                                    class="disabled"
+                            #end><a href="javascript:;" data-component="next_button">»</a></li>
+                        </ul>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            #end
+        </div>
+
+    #end
+</div>

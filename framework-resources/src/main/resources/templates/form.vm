@@ -1,0 +1,61 @@
+#set($ru = $framework.renderUtils)
+#set($hasTabs = $ru.hasTabs($form))
+#set($tabs = $ru.getTabs($form))
+
+<div class="p10 framework-form">
+    <form action="$form.action" method="$form.method" data-component="form">
+        <div class="panel panel-default">
+            #if($form.editMode)
+                <input type="hidden" name="id" value="$data.get('id')" data-component="entity_id"/>
+                <input type="hidden" name="mode" value="edit"/>
+            #else
+                <input type="hidden" name="mode" value="create"/>
+            #end
+
+            <div class="panel-heading">
+                <span class="panel-icon"><span class="fa fa-edit"></span></span>
+                <span class="panel-title" data-component="title">$form.title</span>
+
+                #if ($hasTabs)
+                    <ul class="nav panel-tabs-border panel-tabs">
+                        #foreach($tab in $tabs)
+                            <li #if($foreach.first)class="active"#end>
+                                <a href="#$ru.tabId($tab)" data-toggle="tab">$localization.m($tab)</a>
+                            </li>
+                        #end
+                    </ul>
+                #end
+            </div>
+
+            <div class="panel-body p20">
+                #if($hasTabs)
+                    <div class="tab-content admin-form">
+                    #foreach($tab in $tabs)
+                        <div id="$ru.tabId($tab)" class="tab-pane #if($foreach.first)active#end">
+                            #foreach($fieldSetName in $ru.getFieldSetsInTab($form, $tab))
+                                #set($fieldSet = $form.getFieldSet($fieldSetName))
+                                #set($fields = $ru.getFieldsForSetInTab($form, $fieldSetName, $tab))
+                                #parse("/templates/form_fieldSet.inc.vm")
+                            #end
+                        </div>
+                    #end
+                    </div>
+                #else
+                    <div class="tab-content admin-form">
+                        #foreach ($fieldSet in $form.visibleFieldSets)
+                            #set($fields = $fieldSet.fields)
+                            #parse("/templates/form_fieldSet.inc.vm")
+                        #end
+                    </div>
+                #end
+            </div>
+
+            <div class="panel-footer">
+                <div class="section align-right text-right">
+                    <button class="btn btn-default mr5" type="button" data-component="cancel_button"><i class="glyphicon glyphicon-arrow-left pr5"></i>$localization.m("label.cancel")</button>
+                    <button class="btn btn-primary mrn" type="submit" data-component="submit_button"><i class="glyphicon glyphicon-save pr5"></i> $localization.m("label.save")</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

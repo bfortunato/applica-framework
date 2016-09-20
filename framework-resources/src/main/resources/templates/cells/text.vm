@@ -1,0 +1,6 @@
+#if($column.linked)
+<a href="javascript:;" data-property="$column.property" data-property-value="$value" data-component="linked_cell"
+   class="linked"><span>$value</span></a>
+#else
+<span data-property="$column.property" data-property-value="$value">$value</span>
+#end

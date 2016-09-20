@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+
+    <global-method-security pre-post-annotations="enabled" />
+
+    <http use-expressions="true">
+        <intercept-url pattern="/static/**" access="permitAll" />
+        <intercept-url pattern="/setup/**" access="permitAll" />
+        <intercept-url pattern="/auth/**" access="permitAll" />
+        <intercept-url pattern="/account/register" access="permitAll" />
+        <intercept-url pattern="/account/resetPassword" access="permitAll" />
+        <intercept-url pattern="/account/activate" access="permitAll" />
+        <intercept-url pattern="/framework-resources/**" access="permitAll" />
+        <intercept-url pattern="/framework-dynamic-resources/**" access="permitAll" />
+        <intercept-url pattern="/files/**" access="permitAll" />
+        <intercept-url pattern="/images/**" access="permitAll" />
+        <intercept-url pattern="/**" access="isAuthenticated()" />
+
+        <logout logout-url="/auth/logout" logout-success-url="/" />
+        <form-login
+                username-parameter="j_username"
+                password-parameter="j_password"
+                login-page="/auth/login"
+                login-processing-url="/auth/process"
+                authentication-failure-url="/auth/fail" />
+        <remember-me/>
+        <csrf disabled="true" />
+    </http>
+
+    <beans:bean id="userService" class="applica.framework.security.UserService" />
+
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider user-service-ref="userService">
+            <password-encoder hash="md5" />
+        </authentication-provider>
+    </authentication-manager>
+
+    <beans:bean class="applica.framework.security.Security" />
+    <beans:bean class="applica.framework.security.authorization.BaseAuthorizationService" />
+
+</beans:beans>

@@ -1,0 +1,5 @@
+<ul>
+    #foreach($i in $value)
+        <li>$i</li>
+    #end
+</ul>

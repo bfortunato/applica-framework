@@ -1,0 +1,92 @@
+#if ($field.params.inputExtraClass)
+    #set($_inputExtraClass = $field.params.inputExtraClass)
+#elseif(!$_inputExtraClass)
+    #set($_inputExtraClass = "")
+#end
+
+#if ($field.params.fieldExtraClass)
+    #set($_fieldExtraClass = $field.params.fieldExtraClass)
+#elseif(!$_fieldExtraClass)
+    #set($_fieldExtraClass = "")
+#end
+
+#if ($field.params.width)
+    #set($_colsClass = "col-md-" + $field.params.width)
+#elseif(!$_colsClass)
+    #set($_colsClass = "col-md-12")
+#end
+
+#if ($field.params.onCheckText)
+    #set($_onCheckText = $field.params.onCheckText)
+#elseif(!$_onCheckText)
+    #set($_onCheckText = "YES")
+#end
+
+#if ($field.params.offCheckText)
+    #set($_offCheckText = $field.params.offCheckText)
+#elseif(!$_offCheckText)
+    #set($_offCheckText = "NO")
+#end
+
+#if ($field.description && $field.description != "")
+    #set($_description = $localization.m($field.description))
+#else
+    #set($_description = false)
+#end
+
+#if ($field.params.placeholder)
+    #set($_placeholder = $localization.m($field.params.placeholder))
+#else
+    #set($_placeholder = "")
+#end
+
+#if($value && $value != "")
+    #set($_checked = "checked='checked'")
+#else
+    #set($_checked = "")
+#end
+
+
+
+#set($_domId = "id_" + $field.property)
+
+<div class="$_fieldExtraClass $_colsClass" data-component="check" data-property="$field.property">
+    <div class="row">
+        #if ($_description)
+             #set($_fieldColClass = "col-md-10")
+
+            <div class="col-md-2 field-label text-right">
+                <label for="$_domId">
+                    $_description
+                </label>
+            </div>
+        #else
+            #set($_fieldColClass = "col-md-12")
+        #end
+
+        <div class="$_fieldColClass" data-component="state_error" data-error-property="$field.property">
+            #foreach($item in $items)
+                <label class="block mt15 option option-primary">
+                    <input
+                            type="checkbox"
+                            name="$field.property"
+                            data-sub-component="checkbox"
+                            value="$item.value"
+                        #if($item.selected)
+                            checked="checked"
+                        #end
+                            />
+                    <span class="checkbox"></span>
+                    $localization.m($field.description)
+                </label>
+            #end
+        </div>
+        <em
+                for="$_domId"
+                class="state-error"
+                data-component="error"
+                data-error-property="$field.property">
+        </em>
+    </div>
+</div>
+

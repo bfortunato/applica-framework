@@ -1,0 +1,5 @@
+#set($_type = "readonly")
+#set($_component = "readonly")
+#set($_icon = false)
+
+#parse("/templates/fields/text.vm")

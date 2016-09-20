@@ -1,0 +1,7 @@
+#set($wwwBase = $request.contextPath + "/")
+#set($staticBase = $wwwBase + "static/")
+#set($localization = $framework.localization)
+#set($countryCode = $localization.code)
+
+#macro(_ $message)$localization.m($message)#end
+

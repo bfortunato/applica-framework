@@ -1,0 +1,157 @@
+.selectList .selectionContainer {
+    overflow: auto;
+}
+
+.selectList .selectionContainer .selection-container-auto-height {
+    min-height: 100px;
+    height: auto;
+}
+
+.selectList .selectionContainer a.group:link,
+.selectList .selectionContainer a.selection:link,
+.selectList .selectionContainer a.group:visited,
+.selectList .selectionContainer a.selection:visited {
+    display: block;
+    padding: 5px;
+    clear: both;
+    font-weight: normal;
+    line-height: 20px;
+    color: #333333;
+    white-space: nowrap;
+    text-decoration: none;
+    border: 0px;
+}
+
+.selectList .selectionContainer a.group:hover,
+.selectList .selectionContainer a.selection:hover {
+    background-color: #f5f5f5;
+}
+
+.selectList .selectionContainer a.selected:link {
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #4a89dc;
+}
+
+.selectList .gui-input {
+    padding: 0px;
+}
+
+.selectList .selectionContainer {
+    height: 310px;
+}
+
+.searchableInput {
+    white-space: nowrap;
+}
+
+.selectList .selectionContainer a.group:link {
+    background-color: #d3d3d3;
+}
+
+.searchableInputDialog .keyword {
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.searchableInputMulti .buttonsContainer {
+
+}
+
+.searchableInputSingle {
+    cursor: pointer;
+}
+
+.searchableInputSingle .btn {
+    margin-top: -2px;
+    margin-right: -2px;
+}
+
+.searchableInputSingle:hover {
+    background-color: #F5F5F5 !important;
+}
+
+.masterDetail .selectionContainer {
+    float: left;
+}
+
+.masterDetail .buttonsContainer {
+    float: left;
+    padding-left: 5px;
+}
+
+.masterDetail .buttonsContainer input[type=button] {
+    display: block;
+    margin-bottom: 3px;
+    width: 100px;
+}
+
+.modalOverlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100px;
+    width: 100px;
+    background-color: #000000;
+    z-index: 1000;
+    display: none;
+}
+
+
+@-webkit-keyframes loading_rotate {
+    from {
+        -webkit-transform: rotateY(0deg);
+    }
+    to {
+        -webkit-transform: rotateY(360deg);
+    }
+}
+@keyframes loading_rotate {
+    from {
+        transform: rotateY(0deg);
+    }
+    to {
+        transform: rotateY(360deg);
+    }
+}
+
+.loader {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 30px;
+    width: 30px;
+    background-image: url("../images/loader.png");
+    z-index: 1300;
+    display: none;
+
+    -webkit-animation-name:             loading_rotate;
+    -webkit-animation-duration:         1s;
+    -webkit-animation-iteration-count:  infinite;
+    -webkit-transition-timing-function: linear;
+
+    animation-name:             loading_rotate;
+    animation-duration:         1s;
+    animation-iteration-count:  infinite;
+    transition-timing-function: linear;
+}
+
+.framework-modal {
+    margin-left: 0px;
+    position: fixed;
+    width: auto;
+    display: none;
+    z-index: 10000;
+}
+
+.framework-modal .panel {
+    border: 0px;
+}
+
+.framework-modal .panel-body {
+    overflow-y: auto;
+}
+
+.framework-modal .panel-heading {
+    padding: 15px 5px 0px 10px !important;
+}

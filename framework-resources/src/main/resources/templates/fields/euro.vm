@@ -1,0 +1,43 @@
+<script>
+
+##todo: spostare al più presto nel plugins.js
+
+    $(document).ready(function() {
+        function round2Fixed(value) {
+            value = +value;
+
+            if (isNaN(value))
+                return NaN;
+
+            // Shift
+            value = value.toString().split('e');
+            value = Math.round(+(value[0] + 'e' + (value[1] ? (+value[1] + 2) : 2)));
+
+            // Shift back
+            value = value.toString().split('e');
+            return (+(value[0] + 'e' + (value[1] ? (+value[1] - 2) : -2))).toFixed(2);
+        }
+        var name = "$field.property";
+
+        var number = $("input[name=" + name +"]").val();
+        if (number) {
+            $("input[name=" + name +"]").val(round2Fixed(number))
+        }
+
+        $("input[name=" + name +"]").on("blur", function(){
+            var value = $(this).val()
+            if (value) {
+
+                $(this).val(round2Fixed(value))
+            }
+        })
+
+    })
+</script>
+#set($_icon = "fa fa-euro")
+#set($_type = "decimal_number")
+#set($_component = "decimal_number")
+#set($_defaultValue ="0.00")
+
+
+#parse("/templates/fields/text.vm")

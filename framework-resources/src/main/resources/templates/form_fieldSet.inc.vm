@@ -1,0 +1,31 @@
+#if ($_lastFieldSetName != $fieldSet.name)
+    #if ($fieldSet.name && $fieldSet.name != "" && $fieldSet.name != "*")
+        <div class="section-divider mt10 mb40">
+            <span>$localization.m($fieldSet.name)</span>
+        </div>
+    #end
+    #set($_lastFieldSetName = $fieldSet.name)
+#end
+
+#set($_lastRow = "")
+#set($_currentRow = "")
+#set($_opened = false)
+
+#foreach ($field in $fields)
+    #set($_currentRow = $field.getParam("row"))
+    #if(!$_currentRow || $_currentRow == "" || $_lastRow != $_currentRow)
+        #if($_opened)
+            </div #if($_currentRow)data-row="$_currentRow"#end>
+        #end
+        #set($_opened = true)
+        <div class="section row" #if($_currentRow)data-row="$_currentRow"#end>
+    #end
+
+    $field.writeToString($data)
+
+    #set($_lastRow = $field.getParam("row"))
+#end
+
+#if($_opened)
+</div #if($_currentRow)data-row="$_currentRow"#end>
+#end

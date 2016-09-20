@@ -1,0 +1,21 @@
+<div class="form-group" data-component="field" data-property="$field.property">
+    <label class="control-label col-md-2">$localization.m($field.description)</label>
+    <div class="col-md-10">
+        <select multiple
+                class="form-control"
+                name="$field.property"
+                data-component="select"
+                data-property="$field.property">
+
+            #foreach($item in $items)
+                <option value="$item.value" #if($item.selected)selected="selected"#end>$item.label</option>
+            #end
+
+        </select>
+
+        <span
+                class="help-block col-md-offset-2 col-md-10 hidden"
+                data-component="error"
+                data-error-property="$field.property" />
+    </div>
+</div>

@@ -1,0 +1,167 @@
+#parse("/shared/framework.vm")
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <title>_APPNAME_: Administration</title>
+    <meta name="keywords" content="_APPNAME_ Administration" />
+    <meta name="description" content="_APPNAME_ administration page">
+    <meta name="author" content="Applica">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <!-- Font CSS (Via CDN) -->
+    <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800'>
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Roboto:400,500,700,300">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/assets/skin/default_skin/css/theme.css">
+
+    <!-- Admin Forms CSS -->
+    <link rel="stylesheet" type="text/css" href="${wwwBase}framework-resources/admin/theme/assets/admin-tools/admin-forms/css/admin-forms.css">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="${wwwBase}framework-resources/favicon.ico">
+
+    <style>
+        #main {
+            background: none !important;
+        }
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="external-page sb-l-c sb-r-c">
+
+<!-- Start: Main -->
+<div id="main" class="animated fadeIn">
+
+    <!-- Start: Content-Wrapper -->
+    <section id="content_wrapper">
+
+        <!-- Begin: Content -->
+        <section id="content">
+
+            <div class="admin-form theme-info" id="login1">
+
+                <div class="row mb15 table-layout">
+                    <div class="col-xs-12 va-m pln">
+                        <a href="${wwwBase}" title="Return to Dashboard">
+                            <img src="${wwwBase}framework-resources/images/applica.png" title="Applica" class="img-responsive w250">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="panel panel-dark mt10 br-n">
+
+                    <div class="panel-heading heading-border bg-white">
+                        <span class="panel-title pl10">
+                            <i class="fa fa-sign-in"></i>_APPNAME_ Login
+                        </span>
+                    </div>
+
+                    <!-- end .form-header section -->
+                    <form method="post" action="${wwwBase}auth/process">
+                        <div class="panel-body bg-light p30">
+                            <div class="row">
+                                <div class="col-sm-7 pr30">
+
+                                    <div class="section row hidden">
+                                        <h1>Welcome to _APPNAME <small>sign in</small></h1>
+                                    </div>
+
+                                    <div class="section">
+                                        <label for="username" class="field-label text-muted fs18 mb10">Username</label>
+                                        <label for="username" class="field prepend-icon">
+                                            <input type="text" name="j_username" id="username" class="gui-input" placeholder="Enter username">
+                                            <label for="username" class="field-icon"><i class="fa fa-user"></i>
+                                            </label>
+                                        </label>
+                                    </div>
+                                    <!-- end section -->
+
+                                    <div class="section">
+                                        <label for="username" class="field-label text-muted fs18 mb10">Password</label>
+                                        <label for="password" class="field prepend-icon">
+                                            <input type="password" name="j_password" id="password" class="gui-input" placeholder="Enter password">
+                                            <label for="password" class="field-icon"><i class="fa fa-lock"></i>
+                                            </label>
+                                        </label>
+                                    </div>
+                                    <!-- end section -->
+
+                                </div>
+                                <div class="col-sm-5 br-l br-grey pl30">
+                                    <h3 class="mb25"> You'll Have Access To Your:</h3>
+                                    <p class="mb15">
+                                        <span class="fa fa-check text-success pr5"></span> Unlimited Email Storage</p>
+                                    <p class="mb15">
+                                        <span class="fa fa-check text-success pr5"></span> Unlimited Photo Sharing/Storage</p>
+                                    <p class="mb15">
+                                        <span class="fa fa-check text-success pr5"></span> Unlimited Downloads</p>
+                                    <p class="mb15">
+                                        <span class="fa fa-check text-success pr5"></span> Unlimited Service Tickets</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end .form-body section -->
+                        <div class="panel-footer clearfix p10 ph15">
+                            <button type="submit" class="button btn-dark mr10 pull-right">Enter</button>
+                            <label class="switch block switch-dark pull-left input-align mt10">
+                                <input type="checkbox" name="_spring_security_remember_me" id="remember" checked>
+                                <label for="remember" data-on="YES" data-off="NO"></label>
+                                <span>Remember me</span>
+                            </label>
+                        </div>
+                        <!-- end .form-footer section -->
+                    </form>
+                </div>
+            </div>
+
+        </section>
+        <!-- End: Content -->
+
+    </section>
+    <!-- End: Content-Wrapper -->
+
+</div>
+<!-- End: Main -->
+
+<!-- BEGIN: PAGE SCRIPTS -->
+
+<!-- jQuery -->
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/vendor/jquery/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/vendor/jquery/jquery_ui/jquery-ui.min.js"></script>
+
+<!-- Bootstrap -->
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/bootstrap/bootstrap.min.js"></script>
+
+<!-- Theme Javascript -->
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/utility/utility.js"></script>
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/main.js"></script>
+
+<!-- Page Javascript -->
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+
+        "use strict";
+
+        // Init Theme Core
+        Core.init();
+
+    });
+</script>
+
+<!-- END: PAGE SCRIPTS -->
+
+</body>
+
+</html>

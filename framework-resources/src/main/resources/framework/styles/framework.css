@@ -1,0 +1,47 @@
+.framework-form-image-container {
+    border: solid 1px #bfbfbf;
+    height: 152px;
+    width: 152px;
+    position: relative;
+
+}
+
+.framework-form-image-container.thumbnail {
+     margin-bottom: 0px;
+ }
+
+.framework-form-image {
+    height: 150px;
+    width: 150px;
+
+}
+
+.framework-form-image {
+    height: 150px;
+    width: 150px;
+}
+
+.form-actions {
+    border-top: solid 1px #EAEAEA;
+    padding-top: 20px;
+}
+
+.framework-form-image-container .framework-form-image-button {
+    -webkit-transition: opacity 0.5s;
+    transition: opacity 0.5s;
+    opacity: 0;
+    position: absolute;
+    width: 128px;
+    left: 10px;
+    bottom: 10px;
+}
+
+.framework-form-image-container:hover .framework-form-image-button {
+    -webkit-transition: opacity 0.5s;
+    transition: opacity 0.5s;
+    opacity: 1;
+}
+
+.clearfix {
+    clear: both;
+}

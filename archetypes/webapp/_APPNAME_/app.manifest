@@ -1,0 +1,22 @@
+<applica>
+    <appname>_APPNAME_</appname>
+    <archetype>webapp</archetype>
+
+    <webapps>
+        <webapp name="_APPNAME_-admin">
+            <mappings>
+                <includes>
+                    <include>_APPNAME_-domain</include>
+                </includes>
+            </mappings>
+        </webapp>
+
+        <webapp name="_APPNAME_-frontend">
+            <mappings>
+                <includes>
+                    <include>_APPNAME_-domain</include>
+                </includes>
+            </mappings>
+        </webapp>
+    </webapps>
+</applica>

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+FRAMEWORK_VERSION="1.6-RELEASE"
+
+if [ -z "$JAVA_HOME" ]; then
+    echo "Please set JAVA_HOME"
+    exit
+fi
+
+if [ -z "$M2_HOME" ]; then
+    echo "Please set M2_HOME"
+    exit
+fi
+
+if [ -z "$APPLICAFRAMEWORK_HOME" ]; then
+    echo "Please set APPLICAFRAMEWORK_HOME"
+    exit
+fi
+
+JAVA="$JAVA_HOME/bin/java"
+JAR="${APPLICAFRAMEWORK_HOME}/scripts/target/scripts-$FRAMEWORK_VERSION.jar"
+$JAVA -classpath "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@

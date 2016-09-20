@@ -1,0 +1,5 @@
+#set($_type = "mail")
+#set($_component = "mail")
+#set($_icon = "fa fa-envelope")
+
+#parse("/templates/fields/text.vm")
