@@ -6,7 +6,11 @@ import applica.framework.security.authorization.AuthorizationService;
 import applica.framework.security.authorization.BaseAuthorizationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,18 +22,34 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserService();
-    }
-
-    @Bean
     public AuthorizationService authorizationService() {
         return new BaseAuthorizationService();
     }
 
     @Override
+    public void init(WebSecurity web) throws Exception {
+        web
+                .ignoring()
+                .antMatchers("/public/**", "/static/**", "/auth/**")
+        ;
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(new UserService());
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
-        super.configure(http);
+        http
+                .authorizeRequests()
+                    .antMatchers("/api").authenticated()
+                    .and()
+                .formLogin()
+                    .loginProcessingUrl("/auth/login/process")
+                    .loginPage("/auth/login")
+        ;
+
     }
 
 }
