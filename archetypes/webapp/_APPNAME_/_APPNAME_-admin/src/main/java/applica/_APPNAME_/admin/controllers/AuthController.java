@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,19 +29,15 @@ import java.util.Date;
  * Date: 3/19/2016
  * Time: 4:22 PM
  */
+@RestController
 @RequestMapping("/auth")
 public class AuthController extends LocalizedController {
-
-    @Autowired
-    private RequestCache requestCache;
 
     @Autowired
     private UsersRepository usersRepository;
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public Response login(String mail, String password, String deviceType, String deviceUdid, HttpServletRequest request, HttpServletResponse response) {
-        requestCache.removeRequest(request, response);
-
         if (StringUtils.isEmpty(mail) || StringUtils.isEmpty(password)) {
             return new ErrorResponse("error.login.missing");
         }
@@ -53,7 +50,7 @@ public class AuthController extends LocalizedController {
 
         try {
             Security.manualLogin(mail.toLowerCase().trim(), password);
-        } catch (AuthenticationException e) {
+        } catch (Exception e) {
             return new ErrorResponse("error.login.bad");
         }
 
