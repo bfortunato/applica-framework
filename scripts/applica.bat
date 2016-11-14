@@ -12,7 +12,7 @@
 
 @echo off
 
-set APPLICAFRAMEWORK_VERSION="1.6-RELEASE"
+set APPLICAFRAMEWORK_VERSION="2.0-SNAPSHOT"
 
 
 @REM set %HOME% to equivalent of $HOME

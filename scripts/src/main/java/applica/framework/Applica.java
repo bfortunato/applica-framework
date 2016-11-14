@@ -6,7 +6,7 @@ import org.springframework.util.StringUtils;
 
 public class Applica {
 
-    public static final String VERSION = "1.6-RELEASE";
+    public static final String VERSION = "2.0-SNAPSHOT";
 
     public static String frameworkHome = null;
     public static String javaHome = null;

@@ -37,6 +37,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import applica.framework.library.utils.NullableDateConverter;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScans;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Date;
 
@@ -46,6 +52,11 @@ import java.util.Date;
  * Date: 2/21/13
  * Time: 3:37 PM
  */
+@EnableAutoConfiguration
+@EnableWebMvc
+@ComponentScan("applica._APPNAME_.domain")
+@ComponentScan("applica._APPNAME_.data.mongodb")
+@ComponentScan("applica._APPNAME_.admin")
 public class Bootstrapper {
 
     static {
@@ -56,10 +67,10 @@ public class Bootstrapper {
 
     @Autowired
     private OptionsManager options;
-
+/*
     @Autowired
     private CrudFactory crudFactory;
-
+*/
     public void init() {
         LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
         LicenseManager.instance().mustBeValid();
@@ -70,7 +81,7 @@ public class Bootstrapper {
         dateConverter.setPatterns(new String[] { "dd/MM/yyyy HH:mm", "MM/dd/yyyy HH:mm", "yyyy-MM-dd HH:mm", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "HH:mm" });
         ConvertUtils.register(dateConverter, Date.class);
 
-        CrudConfiguration.instance().setCrudFactory(crudFactory);
+        /*CrudConfiguration.instance().setCrudFactory(crudFactory);
 
         Package pack = Bootstrapper.class.getPackage();
         try {
@@ -91,6 +102,7 @@ public class Bootstrapper {
         registerGrids();
         registerForms();
         configureCrudSecurity();
+        */
     }
 
     private void configureCrudSecurity() {
@@ -151,5 +163,9 @@ public class Bootstrapper {
                 .searchForm(RoleSearchForm.class)
                 .column("role", "label.name", true);
 
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Bootstrapper.class, args);
     }
 }

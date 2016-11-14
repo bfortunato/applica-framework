@@ -10,15 +10,15 @@
 
     <groupId>applica.framework</groupId>
     <artifactId>_APPNAME_-admin</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <url>http://www.applica.guru</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <applica.framework.version>1.6-RELEASE</applica.framework.version>
-        <spring.version>4.1.6.RELEASE</spring.version>
-        <spring.security.version>4.0.1.RELEASE</spring.security.version>
+        <applica.framework.version>2.0-SNAPSHOT</applica.framework.version>
+        <spring.version>4.3.3.RELEASE</spring.version>
+        <spring.security.version>4.1.3.RELEASE</spring.security.version>
     </properties>
 
     <dependencies>
@@ -86,6 +86,19 @@
             <version>2.2.2</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>1.4.2.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <version>1.4.2.RELEASE</version>
+        </dependency>
+
     </dependencies>
 
 

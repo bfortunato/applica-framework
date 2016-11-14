@@ -21,7 +21,7 @@ public class PropertiesOptionManager implements OptionsManager {
     private Properties properties;
     private Map<String, String> cache = new HashMap<>();
 
-    private String path = "/WEB-INF/options.properties";
+    private String path = "classpath:options.properties";
 
     @Autowired
     private ResourceLoader resourceLoader;

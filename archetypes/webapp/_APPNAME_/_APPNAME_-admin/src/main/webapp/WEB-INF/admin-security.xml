@@ -41,7 +41,6 @@
         </authentication-provider>
     </authentication-manager>
 
-    <beans:bean class="applica.framework.security.Security" />
     <beans:bean class="applica.framework.security.authorization.BaseAuthorizationService" />
 
 </beans:beans>
