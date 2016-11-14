@@ -10,7 +10,7 @@ import applica.framework.LoadRequest;
 import applica.framework.library.i18n.Localization;
 import applica.framework.library.responses.FormResponse;
 import applica.framework.library.responses.GridResponse;
-import applica.framework.library.responses.SimpleResponse;
+import applica.framework.library.responses.Response;
 import applica.framework.widgets.mapping.*;
 import applica.framework.widgets.processors.FormProcessor;
 import applica.framework.library.utils.Paginator;
@@ -35,7 +35,7 @@ public class CrudUtils {
      * @param identifier Form identifier
      * @return A FormResponse of created form
      */
-    public static SimpleResponse createFormResponse(Entity entity, String identifier) {
+    public static Response createFormResponse(Entity entity, String identifier) {
         FormResponse response = new FormResponse();
 
         try {
@@ -44,22 +44,22 @@ public class CrudUtils {
             form.setData(toMap(identifier, entity));
 
             response.setContent(form.writeToString());
-            response.setError(false);
+            //response.setError(false);
         } catch (FormCreationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error creating form: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Error creating form: " + e.getMessage());
         } catch (CrudConfigurationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Crud configuration error: " + e.getMessage());
         } catch (FormProcessException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error processing form: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Error processing form: " + e.getMessage());
         }
 
         return response;
@@ -82,22 +82,22 @@ public class CrudUtils {
             form.setData(toMap(identifier, entity));
 
             response.setContent(form.writeToString());
-            response.setError(false);
+//            response.setError(false);
         } catch (FormCreationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error creating form: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Error creating form: " + e.getMessage());
         } catch (CrudConfigurationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Crud configuration error: " + e.getMessage());
         } catch (FormProcessException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error processing form: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Error processing form: " + e.getMessage());
         } catch (ValidationException e) {
             //not handled
         }
@@ -163,17 +163,17 @@ public class CrudUtils {
                 grid.getSearchForm().setData(loadRequest.filtersMap());
             }
             response.setContent(grid.writeToString());
-            response.setError(false);
+//            response.setError(false);
         } catch (GridCreationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error creating grid: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Error creating grid: " + e.getMessage());
         } catch (CrudConfigurationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Crud configuration error: " + e.getMessage());
         }
 
         return response;
@@ -203,17 +203,17 @@ public class CrudUtils {
             setGridData(grid, paginator.getEntities());
 
             response.setContent(grid.writeToString());
-            response.setError(false);
+//            response.setError(false);
         } catch (GridCreationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Error creating grid: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Error creating grid: " + e.getMessage());
         } catch (CrudConfigurationException e) {
             e.printStackTrace();
 
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+//            response.setError(true);
+//            response.setMessage("Crud configuration error: " + e.getMessage());
         }
 
         return response;

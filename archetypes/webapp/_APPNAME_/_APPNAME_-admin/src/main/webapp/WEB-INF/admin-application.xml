@@ -34,7 +34,7 @@
 	    </bean>
 	</mvc:interceptors>
 
-    <bean class="applica._APPNAME_.admin.Bootstrapper" init-method="init" />
+    <bean class="applica._APPNAME_.admin.Application" init-method="init" />
 
     <!-- framework general beans -->
     <bean class="applica.framework.ApplicationContextProvider" />

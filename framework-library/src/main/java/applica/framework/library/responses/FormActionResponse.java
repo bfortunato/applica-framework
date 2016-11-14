@@ -2,7 +2,7 @@ package applica.framework.library.responses;
 
 import applica.framework.ValidationResult;
 
-public class FormActionResponse extends SimpleResponse {
+public class FormActionResponse extends Response {
     private boolean valid;
     private ValidationResult validationResult;
     private String after;

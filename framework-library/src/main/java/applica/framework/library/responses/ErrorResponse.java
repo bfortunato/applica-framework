@@ -1,12 +1,12 @@
 package applica.framework.library.responses;
 
-public class ErrorResponse extends SimpleResponse {
+public class ErrorResponse extends Response {
 
-    public ErrorResponse(String error) {
-        super();
+    private String message;
 
-        setError(true);
-        setMessage(error);
+    public ErrorResponse(String message) {
+        super(Response.ERROR);
+        this.message = message;
     }
 
 }

@@ -34,7 +34,8 @@ public class CrudController extends LocalizedController {
     private CrudGuard crudGuard;
 
     @RequestMapping(value="/grid/{entity}")
-    public @ResponseBody SimpleResponse grid(@PathVariable String entity, String loadRequest) {
+    public @ResponseBody
+    Response grid(@PathVariable String entity, String loadRequest) {
         if(crudGuard != null) {
             try {
                 crudGuard.check(CrudPermission.LIST, entity);
@@ -61,13 +62,13 @@ public class CrudController extends LocalizedController {
             response.setFormIdentifier(grid.getFormIdentifier());
             response.setCurrentPage(grid.getCurrentPage());
             response.setPages(grid.getPages());
-            response.setError(false);
+            //response.setError(false);
         } catch (CrudConfigurationException e) {
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Crud configuration error: " + e.getMessage());
         } catch (GridCreationException e) {
-            response.setError(true);
-            response.setMessage("Error creating grid: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Error creating grid: " + e.getMessage());
         }
 
         response.setContent(writer.toString());
@@ -75,7 +76,8 @@ public class CrudController extends LocalizedController {
     }
 
     @RequestMapping(value="/grid/{entity}/delete", method= RequestMethod.POST)
-    public @ResponseBody SimpleResponse gridDelete(@PathVariable String entity, @RequestParam String ids) {
+    public @ResponseBody
+    Response gridDelete(@PathVariable String entity, @RequestParam String ids) {
         if(crudGuard != null) {
             try {
                 crudGuard.check(CrudPermission.DELETE, entity);
@@ -84,23 +86,24 @@ public class CrudController extends LocalizedController {
             }
         }
 
-        SimpleResponse response = new SimpleResponse();
+        Response response = new Response();
 
         DeleteOperation deleteOperation;
         try {
             deleteOperation = DeleteOperationBuilder.instance().build(entity);
             deleteOperation.delete(ids.split(","));
-            response.setError(false);
+            //response.setError(false);
         } catch (CrudConfigurationException e) {
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Crud configuration error: " + e.getMessage());
         }
 
         return response;
     }
 
     @RequestMapping(value="/form/{entity}", method=RequestMethod.GET)
-    public @ResponseBody SimpleResponse form(@PathVariable String entity, String id) {
+    public @ResponseBody
+    Response form(@PathVariable String entity, String id) {
         if(crudGuard != null) {
             try {
                 String crudPermission = StringUtils.hasLength(id) ? CrudPermission.EDIT : CrudPermission.NEW;
@@ -133,16 +136,16 @@ public class CrudController extends LocalizedController {
 
             response.setTitle(form.getTitle());
             response.setAction("javascript:;");
-            response.setError(false);
+            //response.setError(false);
         } catch (FormProcessException e) {
-            response.setError(true);
-            response.setMessage("Error processing form: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Error processing form: " + e.getMessage());
         } catch (CrudConfigurationException e) {
-            response.setError(true);
-            response.setMessage("Crud configuration error: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Crud configuration error: " + e.getMessage());
         } catch (FormCreationException e) {
-            response.setError(true);
-            response.setMessage("Error creating form: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Error creating form: " + e.getMessage());
         }
 
         response.setContent(writer.toString());
@@ -151,7 +154,8 @@ public class CrudController extends LocalizedController {
     }
 
     @RequestMapping(value="/form/{entity}/save", method=RequestMethod.POST)
-    public @ResponseBody SimpleResponse save(@PathVariable String entity, HttpServletRequest request) {
+    public @ResponseBody
+    Response save(@PathVariable String entity, HttpServletRequest request) {
         if(crudGuard != null) {
             try {
                 crudGuard.check(CrudPermission.SAVE, entity);
@@ -168,16 +172,16 @@ public class CrudController extends LocalizedController {
             saveOperation.save(form, request.getParameterMap());
             response.setValid(true);
         } catch(ValidationException e) {
-            response.setError(false);
+            //response.setError(false);
             response.setValid(false);
-            response.setMessage("Validation error");
+            //response.setMessage("Validation error");
             response.setValidationResult(e.getValidationResult());
         } catch (FormProcessException e) {
-            response.setError(true);
-            response.setMessage("Error processing form");
+            //response.setError(true);
+            //response.setMessage("Error processing form");
         } catch (Exception e) {
-            response.setError(true);
-            response.setMessage("Error saving entity: " + e.getMessage());
+            //response.setError(true);
+            //response.setMessage("Error saving entity: " + e.getMessage());
             e.printStackTrace();
         }
 

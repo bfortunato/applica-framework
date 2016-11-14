@@ -1,6 +1,6 @@
 package applica.framework.library.responses;
 
-public class UploadResponse extends SimpleResponse {
+public class UploadResponse extends Response {
     String filename;
     String path;
 

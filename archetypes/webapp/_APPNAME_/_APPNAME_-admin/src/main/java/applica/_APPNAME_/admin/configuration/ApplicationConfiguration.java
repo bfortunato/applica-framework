@@ -9,12 +9,13 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.options.PropertiesOptionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 /**
  * Created by bimbobruno on 14/11/2016.
  */
 @Configuration
-public class ApplicationConfiguration {
+public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
 
     // FRAMEWORK GENERAL BEANS
 

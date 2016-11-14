@@ -27,18 +27,18 @@ public abstract class EntityFormAction implements FormAction {
             Entity entity = CrudUtils.toEntityWithValidation(identifier, request.getParameterMap());
             performEntity(result, entity, identifier, request, response);
         } catch (FormCreationException e) {
-            result.setError(true);
-            result.setMessage("Error creating form");
+            //result.setError(true);
+            //result.setMessage("Error creating form");
         } catch (CrudConfigurationException e) {
-            result.setError(true);
-            result.setMessage("Crud configuration error");
+            //result.setError(true);
+            //result.setMessage("Crud configuration error");
         } catch (FormProcessException e) {
-            result.setError(true);
-            result.setMessage("Error processing form");
+            //result.setError(true);
+            //result.setMessage("Error processing form");
         } catch (ValidationException e) {
             result.setValidationResult(e.getValidationResult());
             result.setValid(false);
-            result.setMessage("Validation error");
+            //result.setMessage("Validation error");
         }
 
         return result;

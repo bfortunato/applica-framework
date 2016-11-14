@@ -6,7 +6,7 @@ import applica.framework.fileserver.viewmodel.UIFileUpload;
 import applica.framework.fileserver.viewmodel.UIImageUpload;
 import applica.framework.library.i18n.controllers.LocalizedController;
 import applica.framework.library.responses.ErrorResponse;
-import applica.framework.library.responses.SimpleResponse;
+import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +27,8 @@ public class UploadController extends LocalizedController {
     private UploadFacade uploadFacade;
 
     @RequestMapping("/image")
-    public @ResponseBody SimpleResponse uploadImage(UIImageUpload data) {
+    public @ResponseBody
+    Response uploadImage(UIImageUpload data) {
 
         try {
             String path = uploadFacade.uploadImage(data);
@@ -43,13 +44,14 @@ public class UploadController extends LocalizedController {
     }
 
     @RequestMapping("/file")
-    public @ResponseBody SimpleResponse uploadFile(UIFileUpload data) {
+    public @ResponseBody
+    Response uploadFile(UIFileUpload data) {
 
         try {
             String path = uploadFacade.uploadFile(data);
             String originalFileName = data.getFile().getOriginalFilename();
             ValueResponse r =  new ValueResponse(path);
-            r.setMessage(originalFileName);
+            r.setValue(originalFileName);
             return r;
         } catch (EmptyFileException e) {
             e.printStackTrace();

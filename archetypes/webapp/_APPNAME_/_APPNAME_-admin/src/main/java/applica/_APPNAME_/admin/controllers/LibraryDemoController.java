@@ -11,7 +11,7 @@ import applica.framework.widgets.fields.renderers.*;
 import applica.framework.widgets.forms.renderers.DefaultFormRenderer;
 import applica.framework.library.responses.ErrorResponse;
 import applica.framework.library.responses.FormResponse;
-import applica.framework.library.responses.SimpleResponse;
+import applica.framework.library.responses.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
@@ -34,7 +34,8 @@ public class LibraryDemoController {
     @Autowired ApplicationContext context;
 
     @RequestMapping("/form")
-    public @ResponseBody SimpleResponse form() {
+    public @ResponseBody
+    Response form() {
         try {
             FormResponse formResponse = new FormResponse();
 

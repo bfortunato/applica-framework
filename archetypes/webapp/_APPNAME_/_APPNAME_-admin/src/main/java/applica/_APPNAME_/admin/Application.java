@@ -13,35 +13,23 @@ import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.licensing.LicenseManager;
-import applica.framework.widgets.CrudConfiguration;
-import applica.framework.widgets.CrudConstants;
-import applica.framework.widgets.CrudFactory;
-import applica.framework.widgets.Grid;
 import applica.framework.widgets.builders.FormConfigurator;
 import applica.framework.widgets.builders.GridConfigurator;
-import applica.framework.widgets.cells.renderers.DefaultCellRenderer;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.acl.CrudSecurityConfigurer;
 import applica.framework.widgets.fields.Params;
 import applica.framework.widgets.fields.renderers.DatePickerRenderer;
-import applica.framework.widgets.fields.renderers.DefaultFieldRenderer;
 import applica.framework.widgets.fields.renderers.MailFieldRenderer;
 import applica.framework.widgets.fields.renderers.PasswordFieldRenderer;
-import applica.framework.widgets.forms.processors.DefaultFormProcessor;
-import applica.framework.widgets.forms.renderers.DefaultFormRenderer;
-import applica.framework.widgets.grids.renderers.DefaultGridRenderer;
 import applica.framework.security.authorization.Permissions;
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import applica.framework.library.utils.NullableDateConverter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScans;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Date;
@@ -57,7 +45,7 @@ import java.util.Date;
 @ComponentScan("applica._APPNAME_.domain")
 @ComponentScan("applica._APPNAME_.data.mongodb")
 @ComponentScan("applica._APPNAME_.admin")
-public class Bootstrapper {
+public class Application {
 
     static {
         AEntity.strategy = AEntity.IdStrategy.String;
@@ -83,7 +71,7 @@ public class Bootstrapper {
 
         /*CrudConfiguration.instance().setCrudFactory(crudFactory);
 
-        Package pack = Bootstrapper.class.getPackage();
+        Package pack = Application.class.getPackage();
         try {
             CrudConfiguration.instance().scan(pack);
         } catch (Exception e) {
@@ -166,6 +154,6 @@ public class Bootstrapper {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(Bootstrapper.class, args);
+        SpringApplication.run(Application.class, args);
     }
 }

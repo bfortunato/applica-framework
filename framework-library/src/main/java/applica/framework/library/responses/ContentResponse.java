@@ -1,8 +1,12 @@
 package applica.framework.library.responses;
 
 
-public class ContentResponse extends SimpleResponse {
+public class ContentResponse extends Response {
     private String content;
+
+    public ContentResponse() {
+        super(Response.OK);
+    }
 
     public String getContent() {
         return content;

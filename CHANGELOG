@@ -1,0 +1,8 @@
+# Changes in version 2.0
+
+- **Default packaging is not war, but jar. Application is executed using spring boot**
+
+- **SimpleResponse renamed to Response**
+Error and messages properties removed. responseCode int property added.
+
+- ****

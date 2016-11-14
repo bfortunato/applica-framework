@@ -23,6 +23,7 @@ public class User extends AEntity implements applica.framework.security.User {
     private Date registrationDate;
     private String activationCode;
     private String image;
+    private Date lastLogin;
 
     @ManyToMany
     private List<applica._APPNAME_.domain.model.Role> roles;
@@ -104,4 +105,11 @@ public class User extends AEntity implements applica.framework.security.User {
         return mail;
     }
 
+    public Date getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Date lastLogin) {
+        this.lastLogin = lastLogin;
+    }
 }

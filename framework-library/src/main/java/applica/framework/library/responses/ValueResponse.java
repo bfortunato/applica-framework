@@ -1,10 +1,10 @@
 package applica.framework.library.responses;
 
-public class ValueResponse extends SimpleResponse {
+public class ValueResponse extends Response {
     private Object value;
 
     public ValueResponse() {
-        setError(false);
+        super(Response.OK);
     }
 
     public ValueResponse(Object value) {

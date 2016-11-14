@@ -1,7 +1,7 @@
 package applica.framework.widgets.controllers;
 
 import applica.framework.library.responses.FormActionResponse;
-import applica.framework.library.responses.SimpleResponse;
+import applica.framework.library.responses.Response;
 import applica.framework.widgets.actions.FormAction;
 import applica.framework.widgets.utils.CrudUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +26,14 @@ public class FormsController {
     private ApplicationContext applicationContext;
 
     @RequestMapping("/{identifier}")
-    public @ResponseBody SimpleResponse buildFormResponse(@PathVariable String identifier, HttpServletRequest request) {
+    public @ResponseBody
+    Response buildFormResponse(@PathVariable String identifier, HttpServletRequest request) {
         return CrudUtils.createFormResponse(request, identifier);
     }
 
     @RequestMapping("/process/{identifier}")
-    public @ResponseBody SimpleResponse processForm(@PathVariable String identifier, HttpServletRequest request, HttpServletResponse response) {
+    public @ResponseBody
+    Response processForm(@PathVariable String identifier, HttpServletRequest request, HttpServletResponse response) {
         FormAction formAction = (FormAction) applicationContext.getBean(String.format("action-%s", identifier));
         FormActionResponse formActionResponse = formAction.perform(identifier, request, response);
 
