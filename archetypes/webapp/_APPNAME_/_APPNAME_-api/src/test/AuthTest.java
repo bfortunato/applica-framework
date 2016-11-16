@@ -2,6 +2,7 @@ import applica._APPNAME_.Application;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.User;
+import applica._APPNAME_.responses.ResponseCode;
 import applica._APPNAME_.services.AccountService;
 import applica.framework.Query;
 import applica.framework.library.responses.Response;
@@ -14,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.web.context.WebApplicationContext;
 
 
@@ -91,7 +90,16 @@ public class AuthTest {
                 .andExpect(jsonPath("$.responseCode", is(Response.OK)));
 
 
-        accountService.destroy(user.getId());
+        accountService.delete(user.getId());
+
+        mvc
+                .perform(
+                        post("/auth/login")
+                                .param("mail", "bimbobruno@gmail.com")
+                                .param("password", "ciccio")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseCode", is(ResponseCode.ERROR_BAD_CREDENTIALS)));
     }
 
 }

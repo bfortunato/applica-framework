@@ -1,9 +1,6 @@
 package applica._APPNAME_.services;
 
-import applica._APPNAME_.services.exceptions.MailAlreadyExistsException;
-import applica._APPNAME_.services.exceptions.MailNotFoundException;
-import applica._APPNAME_.services.exceptions.MailNotValidException;
-import applica._APPNAME_.services.exceptions.PasswordNotValidException;
+import applica._APPNAME_.services.exceptions.*;
 
 /**
  * Created by bimbobruno on 15/11/2016.
@@ -30,5 +27,9 @@ public interface AccountService {
      */
     void resetPassword(String mail) throws MailNotFoundException;
 
-    void destroy(Object id);
+    /**
+     * Removes user from system, included related entities
+     * @param id
+     */
+    void delete(Object id) throws UserNotFoundException;
 }

@@ -6,10 +6,7 @@ import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.domain.model.User;
 import applica._APPNAME_.services.AccountService;
-import applica._APPNAME_.services.exceptions.MailAlreadyExistsException;
-import applica._APPNAME_.services.exceptions.MailNotFoundException;
-import applica._APPNAME_.services.exceptions.MailNotValidException;
-import applica._APPNAME_.services.exceptions.PasswordNotValidException;
+import applica._APPNAME_.services.exceptions.*;
 import applica.framework.Query;
 import applica.framework.library.mail.MailUtils;
 import applica.framework.library.mail.TemplatedMail;
@@ -116,6 +113,12 @@ public class AccountServiceImpl implements AccountService {
         sendTemplatedMail(templatedMail);
     }
 
+    @Override
+    public void delete(Object id) throws UserNotFoundException {
+        User user = usersRepository.get(id).orElseThrow(UserNotFoundException::new);
+        usersRepository.delete(id);
+    }
+
     private void sendTemplatedMail(TemplatedMail templatedMail) {
         new Thread(() -> {
             try {
@@ -137,5 +140,7 @@ public class AccountServiceImpl implements AccountService {
                     return newRole;
                 });
     }
+
+
 
 }
