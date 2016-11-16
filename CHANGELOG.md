@@ -18,4 +18,8 @@
 
 - **Added Log utility class to wrap logging**
 
+- **Updated mongo driver**
+
+- **Added possibility to force environment in options**
+
 - ****

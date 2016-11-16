@@ -1,7 +1,7 @@
 package applica._APPNAME_.data.mongodb.constraints;
 
-import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
+import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
 import applica.framework.data.mongodb.constraints.ForeignKeyConstraint;

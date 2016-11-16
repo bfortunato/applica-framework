@@ -1,9 +1,9 @@
 package applica._APPNAME_.data.hibernate;
 
-import applica.framework.Sort;
-import applica.framework.data.hibernate.HibernateRepository;
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.model.Role;
+import applica.framework.Sort;
+import applica.framework.data.hibernate.HibernateRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;

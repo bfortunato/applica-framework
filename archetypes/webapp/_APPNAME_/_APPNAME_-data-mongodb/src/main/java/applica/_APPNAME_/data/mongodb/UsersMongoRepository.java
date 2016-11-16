@@ -1,6 +1,5 @@
 package applica._APPNAME_.data.mongodb;
 
-import applica.framework.Entity;
 import applica.framework.Sort;
 import applica.framework.data.mongodb.MongoRepository;
 import applica._APPNAME_.domain.data.UsersRepository;

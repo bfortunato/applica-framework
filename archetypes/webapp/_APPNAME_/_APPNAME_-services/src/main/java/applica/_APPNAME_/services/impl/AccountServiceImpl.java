@@ -1,12 +1,12 @@
 package applica._APPNAME_.services.impl;
 
 import applica._APPNAME_.domain.data.RolesRepository;
-import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
-import applica._APPNAME_.domain.model.User;
 import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.exceptions.*;
+import applica._APPNAME_.domain.data.UsersRepository;
+import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
 import applica.framework.library.mail.MailUtils;
 import applica.framework.library.mail.TemplatedMail;
@@ -16,6 +16,7 @@ import applica.framework.security.PasswordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -24,6 +25,7 @@ import java.util.UUID;
 /**
  * Created by bimbobruno on 15/11/2016.
  */
+@Service
 public class AccountServiceImpl implements AccountService {
 
     @Autowired

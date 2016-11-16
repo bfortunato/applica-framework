@@ -2,10 +2,7 @@ package applica._APPNAME_.domain.model;
 
 import applica.framework.AEntity;
 import applica.framework.Entity;
-import applica.framework.SEntity;
-import applica.framework.StringIdEntity;
 import applica.framework.security.*;
-import org.apache.http.entity.StringEntity;
 
 /**
  * Applica (www.applica.guru)

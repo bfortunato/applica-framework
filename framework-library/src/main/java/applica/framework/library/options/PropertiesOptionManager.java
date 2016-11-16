@@ -22,6 +22,7 @@ public class PropertiesOptionManager implements OptionsManager {
     private Map<String, String> cache = new HashMap<>();
 
     private String path = "classpath:/config/options.properties";
+    private String forcedEnvironment;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -54,6 +55,9 @@ public class PropertiesOptionManager implements OptionsManager {
     @Override
     public String get(String key) {
         String environment = properties.getProperty("environment", "");
+        if (StringUtils.isNotEmpty(forcedEnvironment)) {
+            environment = forcedEnvironment;
+        }
         String fullKey = String.format("%s.%s", environment, key);
         String value = getFromCache(fullKey);
         if (value == null) {
@@ -98,5 +102,9 @@ public class PropertiesOptionManager implements OptionsManager {
         }
 
         return null;
+    }
+
+    public void forceEnvironment(String environment) {
+        forcedEnvironment = environment;
     }
 }

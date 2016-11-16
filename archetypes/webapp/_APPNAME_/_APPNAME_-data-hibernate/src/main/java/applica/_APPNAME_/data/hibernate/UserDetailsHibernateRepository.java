@@ -1,8 +1,8 @@
 package applica._APPNAME_.data.hibernate;
 
-import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.UserDetails;
+import applica._APPNAME_.domain.data.UsersRepository;
 import applica.framework.Query;
 import applica.framework.security.UserDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;

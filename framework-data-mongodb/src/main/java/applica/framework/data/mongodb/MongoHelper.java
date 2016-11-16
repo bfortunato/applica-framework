@@ -82,8 +82,6 @@ public class MongoHelper {
                 } else {
 					ds.mongo = new MongoClient(host);
                 }
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
 			} catch (MongoException e) {
 				e.printStackTrace();
 			}

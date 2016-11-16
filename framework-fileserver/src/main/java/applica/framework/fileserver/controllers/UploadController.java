@@ -5,7 +5,6 @@ import applica.framework.fileserver.facade.UploadFacade;
 import applica.framework.fileserver.viewmodel.UIFileUpload;
 import applica.framework.fileserver.viewmodel.UIImageUpload;
 import applica.framework.library.i18n.controllers.LocalizedController;
-import applica.framework.library.responses.ErrorResponse;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +34,10 @@ public class UploadController extends LocalizedController {
             return new ValueResponse(path);
         } catch (EmptyFileException e) {
             e.printStackTrace();
-            return new ErrorResponse(localization.getMessage("msg.no_file_uploaded"));
+            return new Response(Response.ERROR);
         } catch (IOException e) {
             e.printStackTrace();
-            return new ErrorResponse(localization.getMessage("msg.image_upload_error_generic"));
+            return new Response(Response.ERROR);
         }
 
     }
@@ -55,10 +54,10 @@ public class UploadController extends LocalizedController {
             return r;
         } catch (EmptyFileException e) {
             e.printStackTrace();
-            return new ErrorResponse(localization.getMessage("msg.no_file_uploaded"));
+            return new Response(Response.ERROR);
         } catch (IOException e) {
             e.printStackTrace();
-            return new ErrorResponse(localization.getMessage("msg.upload_error_generic"));
+            return new Response(Response.ERROR);
         }
 
     }
