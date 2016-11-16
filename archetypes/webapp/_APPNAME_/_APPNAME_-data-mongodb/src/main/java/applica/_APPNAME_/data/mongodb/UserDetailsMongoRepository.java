@@ -3,7 +3,7 @@ package applica._APPNAME_.data.mongodb;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.UserDetails;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.security.UserDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -24,7 +24,7 @@ public class UserDetailsMongoRepository implements UserDetailsRepository {
     public org.springframework.security.core.userdetails.UserDetails getByMail(String mail) {
         try {
             return usersRepository
-                    .find(LoadRequest.build().eq(Filters.USER_MAIL, mail))
+                    .find(Query.build().eq(Filters.USER_MAIL, mail))
                     .findFirst()
                     .map(UserDetails::new)
                     .orElse(null);

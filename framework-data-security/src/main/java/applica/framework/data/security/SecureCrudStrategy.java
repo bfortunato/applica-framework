@@ -48,7 +48,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         checkAttributes();
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
-            Optional<T> entity = super.find(LoadRequest.build().eq(getOwnerPropertyName(), getOwnerId()).id(id), repository).findFirst();
+            Optional<T> entity = super.find(Query.build().eq(getOwnerPropertyName(), getOwnerId()).id(id), repository).findFirst();
             return entity.orElse(null);
         } else {
             return super.get(id, repository);
@@ -56,15 +56,15 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(LoadRequest loadRequest, Repository<T> repository) {
+    public <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository) {
         checkAttributes();
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
             Filter filter = new Filter(getOwnerPropertyName(), getOwnerId());
-            loadRequest.getFilters().add(filter);
+            query.getFilters().add(filter);
         }
 
-        return super.find(loadRequest, repository);
+        return super.find(query, repository);
     }
 
     @Override

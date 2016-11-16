@@ -3,7 +3,7 @@ package applica._APPNAME_.data.hibernate;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.UserDetails;
-import applica.framework.builders.LoadRequestBuilder;
+import applica.framework.Query;
 import applica.framework.security.UserDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -24,7 +24,7 @@ public class UserDetailsHibernateRepository implements UserDetailsRepository {
     public org.springframework.security.core.userdetails.UserDetails getByMail(String mail) {
         try {
             return usersRepository
-                    .find(LoadRequestBuilder.build().eq(Filters.USER_MAIL, mail))
+                    .find(Query.build().eq(Filters.USER_MAIL, mail))
                     .findFirst()
                     .map(u -> new UserDetails(u))
                     .orElse(null);

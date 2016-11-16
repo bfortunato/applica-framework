@@ -23,36 +23,36 @@ public class GridDataProvider {
         this.repository = repository;
     }
 
-    public void load(Grid grid, LoadRequest loadRequest) throws CrudConfigurationException {
+    public void load(Grid grid, Query query) throws CrudConfigurationException {
         if (repository == null) throw new CrudConfigurationException("Missing repository");
 
-        loadRequest.setRowsPerPage(grid.getRowsPerPage());
-        if (loadRequest.getSorts() == null) {
+        query.setRowsPerPage(grid.getRowsPerPage());
+        if (query.getSorts() == null) {
             Sort defaultSort = grid.getDefaultSort();
             if (defaultSort != null) {
-                loadRequest.setSorts(Arrays.asList(defaultSort));
+                query.setSorts(Arrays.asList(defaultSort));
             }
         }
 
-        grid.setSearched(loadRequest.getFilters().size() > 0);
+        grid.setSearched(query.getFilters().size() > 0);
 
         List<Map<String, Object>> data = new ArrayList<>();
-        LoadResponse response = repository.find(loadRequest);
+        LoadResponse response = repository.find(query);
         List<? extends Entity> entities = response.getRows();
         GridDataMapper mapper = new SimpleGridDataMapper();
         mapper.mapGridDataFromEntities(grid.getDescriptor(), data, entities);
 
         grid.setData(data);
-        grid.setCurrentPage(loadRequest.getPage());
+        grid.setCurrentPage(query.getPage());
         grid.setPages((int) Math.ceil((double) response.getTotalRows() / grid.getRowsPerPage()));
 
         //grid now supports only 1 sort
-        if (loadRequest.getSorts() != null && loadRequest.getSorts().size() > 0) {
-            grid.setSortBy(loadRequest.getSorts().get(0));
+        if (query.getSorts() != null && query.getSorts().size() > 0) {
+            grid.setSortBy(query.getSorts().get(0));
         }
 
         if (grid.getSearchForm() != null) {
-            grid.getSearchForm().setData(loadRequest.filtersMap());
+            grid.getSearchForm().setData(query.filtersMap());
         }
     }
 }

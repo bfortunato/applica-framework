@@ -1,7 +1,7 @@
 package applica.framework.library.tests.data;
 
 import applica.framework.Entity;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.LoadResponse;
 import applica.framework.Repository;
 
@@ -25,7 +25,7 @@ public abstract class MockRepository<T extends Entity> implements Repository<T> 
     }
 
     @Override
-    public LoadResponse<T> find(LoadRequest request) {
+    public LoadResponse<T> find(Query request) {
         LoadResponse<T> response = new LoadResponse<>();
         response.setTotalRows(entities.size());
         response.setRows(entities);

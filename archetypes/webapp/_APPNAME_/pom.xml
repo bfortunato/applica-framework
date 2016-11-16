@@ -12,10 +12,10 @@
 
     <modules>
         <module>_APPNAME_-domain</module>
-        <module>_APPNAME_-admin</module>
-        <module>_APPNAME_-frontend</module>
         <module>_APPNAME_-data-mongodb</module>
         <module>_APPNAME_-data-hibernate</module>
+        <module>_APPNAME_-services</module>
+        <module>_APPNAME_-api</module>
     </modules>
 
 </project>

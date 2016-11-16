@@ -2,11 +2,9 @@ package applica._APPNAME_.data.mongodb.constraints;
 
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.User;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.data.mongodb.constraints.UniqueConstraint;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Function;
 
 /**
  * Applica (www.applicamobile.com)
@@ -28,7 +26,7 @@ public class UserMailUniqueConstraint extends UniqueConstraint<User> {
     }
 
     @Override
-    protected LoadRequest getOptimizedLoadRequest(User entity) {
-        return LoadRequest.build().eq(Filters.USER_MAIL, entity.getMail());
+    protected Query getOptimizedQuery(User entity) {
+        return Query.build().eq(Filters.USER_MAIL, entity.getMail());
     }
 }

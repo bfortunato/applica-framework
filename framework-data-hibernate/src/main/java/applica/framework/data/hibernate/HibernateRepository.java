@@ -57,10 +57,10 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     }
 
     @Override
-    public LoadResponse<T> find(LoadRequest loadRequest) {
-        if(loadRequest == null) loadRequest = new LoadRequest();
+    public LoadResponse<T> find(Query query) {
+        if(query == null) query = new Query();
 
-        LoadResponse response = crudStrategy.find(loadRequest, this);
+        LoadResponse response = crudStrategy.find(query, this);
 
         return response;
     }
@@ -150,7 +150,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
 //        }
 //    }
 //
-//    public Criteria createCriteria(Session session, LoadRequest loadRequest) {
+//    public Criteria createCriteria(Session session, Query loadRequest) {
 //        Criteria criteria = session.createCriteria(getEntityType());
 //
 //        for(Filter filter : loadRequest.getFilters()) {
@@ -179,9 +179,9 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         }
     }
 
-    public Criteria createCriteria(Session session, LoadRequest loadRequest) {
+    public Criteria createCriteria(Session session, Query query) {
         Criteria criteria = session.createCriteria(this.getEntityType());
-        Iterator iterator = loadRequest.getFilters().iterator();
+        Iterator iterator = query.getFilters().iterator();
 
         while(iterator.hasNext()) {
             Filter filter = (Filter)iterator.next();

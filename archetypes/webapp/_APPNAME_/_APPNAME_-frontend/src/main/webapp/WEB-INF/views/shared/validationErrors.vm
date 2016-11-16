@@ -1,9 +1,0 @@
-#if($validation)
-<div class="alert alert-warning">
-    <ul>
-        #foreach($error in $validation.errors)
-            <li>$error.message</li>
-        #end
-    </ul>
-</div>
-#end

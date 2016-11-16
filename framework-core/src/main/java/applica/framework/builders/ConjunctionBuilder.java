@@ -7,19 +7,19 @@ import applica.framework.Filter;
  */
 public class ConjunctionBuilder extends CriteriaBuilder {
 
-    public ConjunctionBuilder(LoadRequestBuilder loadRequestBuilder) {
+    public ConjunctionBuilder(QueryBuilder loadRequestBuilder) {
         super(Filter.AND, loadRequestBuilder, null);
     }
 
-    public ConjunctionBuilder(LoadRequestBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
+    public ConjunctionBuilder(QueryBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
         super(Filter.AND, loadRequestBuilder, parentBuilder);
     }
 
-    public static ConjunctionBuilder begin(LoadRequestBuilder loadRequestBuilder) {
+    public static ConjunctionBuilder begin(QueryBuilder loadRequestBuilder) {
         return new ConjunctionBuilder(loadRequestBuilder);
     }
 
-    public static ConjunctionBuilder begin(LoadRequestBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
+    public static ConjunctionBuilder begin(QueryBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
         return new ConjunctionBuilder(loadRequestBuilder, parentBuilder);
     }
 

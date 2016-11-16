@@ -61,7 +61,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	}
 
 	@Override
-	public LoadResponse find(LoadRequest loadRequest) {
+	public LoadResponse find(applica.framework.Query query) {
         init();
 
 		if(collection == null) { 
@@ -69,9 +69,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 			return null;
 		}
 		
-		if(loadRequest == null) loadRequest = new LoadRequest();
+		if(query == null) query = new applica.framework.Query();
 		
-		LoadResponse response = crudStrategy.find(loadRequest, this);
+		LoadResponse response = crudStrategy.find(query, this);
 		
 		return response;
 	}
@@ -131,7 +131,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
     }
 
-	public Query createQuery(LoadRequest loadRequest) {
+	public Query createQuery(applica.framework.Query loadRequest) {
 		Query query = query();
 
         for (Filter filter : loadRequest.getFilters()) {
@@ -173,7 +173,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	}
 
     public Query query() {
-        return Query.mk();
+        return applica.framework.data.mongodb.Query.mk();
     }
 
     public String getDataSource() {

@@ -7,7 +7,7 @@ public interface CrudStrategy {
 
     <T extends Entity> T get(Object id, Repository<T> repository);
 
-    <T extends Entity> LoadResponse<T> find(LoadRequest loadRequest, Repository<T> repository);
+    <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository);
 
     <T extends Entity> void save(T entity, Repository<T> repository);
 

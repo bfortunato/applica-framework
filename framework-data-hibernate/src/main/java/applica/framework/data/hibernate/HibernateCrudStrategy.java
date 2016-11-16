@@ -42,7 +42,7 @@ public class HibernateCrudStrategy implements CrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(LoadRequest loadRequest, Repository<T> repository) {
+    public <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository) {
         HibernateRepository<T> hibernateRepository = ((HibernateRepository<T>) repository);
         Assert.notNull(hibernateRepository, "Specified repository is not HibernateRepository");
 
@@ -51,24 +51,24 @@ public class HibernateCrudStrategy implements CrudStrategy {
         Session session = hibernateRepository.getSession();
         Transaction transaction = session.beginTransaction();
         try {
-            Criteria countCriteria = hibernateRepository.createCriteria(session, loadRequest);
-            Criteria criteria = hibernateRepository.createCriteria(session, loadRequest);
+            Criteria countCriteria = hibernateRepository.createCriteria(session, query);
+            Criteria criteria = hibernateRepository.createCriteria(session, query);
 
             Object countObject = countCriteria.setProjection(Projections.rowCount()).uniqueResult();
             long count = countObject != null ? (Long) countObject : 0;
-            int limit = loadRequest.getRowsPerPage();
-            int skip = loadRequest.getRowsPerPage() * (loadRequest.getPage() - 1);
+            int limit = query.getRowsPerPage();
+            int skip = query.getRowsPerPage() * (query.getPage() - 1);
 
             if (limit != 0) criteria.setMaxResults(limit);
             if (skip != 0) criteria.setFirstResult(skip);
 
-            List<Sort> sorts = loadRequest.getSorts();
+            List<Sort> sorts = query.getSorts();
             if (sorts == null) {
                 sorts = hibernateRepository.getDefaultSorts();
             }
             // if there is a restriction sort are superfluous
-            if( loadRequest.getRestriction() != null){
-                criteria.add(Restrictions.sqlRestriction(loadRequest.getRestriction().getSqlResriction()));
+            if( query.getRestriction() != null){
+                criteria.add(Restrictions.sqlRestriction(query.getRestriction().getSqlResriction()));
             }else {
                 if (sorts != null) {
                     for (Sort sort : sorts) {

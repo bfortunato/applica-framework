@@ -37,14 +37,14 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
     }
 
     /**
-     * Returns a LoadRequest for check in checkPrimary() function.
+     * Returns a Query for check in checkPrimary() function.
      * By default, entire entity collection was loaded.
      * You can specify an optimized query to load optimized data.
-     * LoadRequest is user by foreign repository. Primary type entity was passed as parameter of builder
+     * Query is user by foreign repository. Primary type entity was passed as parameter of builder
      * @return
      */
-    protected LoadRequest getOptimizedLoadRequest(T1 primaryEntity) {
-        return LoadRequest.build();
+    protected Query getOptimizedQuery(T1 primaryEntity) {
+        return Query.build();
     }
 /*
     public Cascade getCascade() {
@@ -67,7 +67,7 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
         try {
             if (id != null) {
                 Repository<? extends Entity> foreignRepository = repositoriesFactory.createForEntity(getForeignType());
-                for (Entity foreignEntity : foreignRepository.find(getOptimizedLoadRequest(entity)).getRows()) {
+                for (Entity foreignEntity : foreignRepository.find(getOptimizedQuery(entity)).getRows()) {
                     Field foreignValueField = TypeUtils.getField(getForeignType(), getForeignProperty());
                     Object foreignValue = PropertyUtils.getProperty(foreignEntity, getForeignProperty());
                     if (foreignValue != null) {

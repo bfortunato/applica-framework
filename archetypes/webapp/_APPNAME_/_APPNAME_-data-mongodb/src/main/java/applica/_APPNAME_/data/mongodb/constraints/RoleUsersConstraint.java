@@ -3,11 +3,9 @@ package applica._APPNAME_.data.mongodb.constraints;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.domain.model.User;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.data.mongodb.constraints.ForeignKeyConstraint;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Function;
 
 /**
  * Applica (www.applicamobile.com)
@@ -34,7 +32,7 @@ public class RoleUsersConstraint extends ForeignKeyConstraint<Role, User> {
     }
 
     @Override
-    protected LoadRequest getOptimizedLoadRequest(Role primaryEntity) {
-        return LoadRequest.build().eq(Filters.USER_ROLES_ID, primaryEntity.getId());
+    protected Query getOptimizedQuery(Role primaryEntity) {
+        return Query.build().eq(Filters.USER_ROLES_ID, primaryEntity.getId());
     }
 }

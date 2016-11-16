@@ -1,7 +1,7 @@
 package applica.framework.widgets.fields.renderers;
 
 import applica.framework.Entity;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.RepositoriesFactory;
 import applica.framework.library.SelectableItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public abstract class EntityMultiSelectFieldRenderer extends MultiSelectFieldRen
     @Override
     public List<SelectableItem> getItems(List<? extends Entity> selectedItems) {
         return (List<SelectableItem>) repositoriesFactory.createForEntity(getEntityType())
-                .find(LoadRequest.build())
+                .find(Query.build())
                 .getRows()
                 .stream()
                 .map(e -> new SelectableItem(

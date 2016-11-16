@@ -30,7 +30,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
         if(id != null) {
-            BasicDBObject document = (BasicDBObject) mongoRepository.getCollection().findOne(Query.mk().id(String.valueOf(id)));
+            BasicDBObject document = (BasicDBObject) mongoRepository.getCollection().findOne(applica.framework.data.mongodb.Query.mk().id(String.valueOf(id)));
             if(document != null) {
                 entity = (T) mongoMapper.loadObject(document, repository.getEntityType());
             }
@@ -40,7 +40,7 @@ public class MongoCrudStrategy implements CrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(LoadRequest loadRequest, Repository<T> repository) {
+    public <T extends Entity> LoadResponse<T> find(applica.framework.Query loadRequest, Repository<T> repository) {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
@@ -107,7 +107,7 @@ public class MongoCrudStrategy implements CrudStrategy {
                 repository.get(id).ifPresent(constraintsChecker::checkPrimary);
             }
 
-            mongoRepository.getCollection().remove(Query.mk().id(String.valueOf(id)));
+            mongoRepository.getCollection().remove(applica.framework.data.mongodb.Query.mk().id(String.valueOf(id)));
         }
     }
 

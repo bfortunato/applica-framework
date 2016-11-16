@@ -6,7 +6,7 @@ import applica.framework.widgets.builders.FormBuilder;
 import applica.framework.widgets.builders.FormProcessorBuilder;
 import applica.framework.widgets.builders.GridBuilder;
 import applica.framework.Entity;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.library.i18n.Localization;
 import applica.framework.library.responses.FormResponse;
 import applica.framework.library.responses.GridResponse;
@@ -117,14 +117,14 @@ public class CrudUtils {
 
     /**
      * Creates a grid with data specified in entities list.
-     * LoadRequest can be specified if some filters are applied in a related search form
+     * Query can be specified if some filters are applied in a related search form
      * @param entities Grid data
      * @param identifier Grid identifier
-     * @param loadRequest Load request used to load grid data
+     * @param query Load request used to load grid data
      * @return Returns GridResponse of created grid
      */
-    public static GridResponse createGridResponse(List<? extends Entity> entities, String identifier, LoadRequest loadRequest) {
-        return createGridResponse(entities, identifier, null, loadRequest);
+    public static GridResponse createGridResponse(List<? extends Entity> entities, String identifier, Query query) {
+        return createGridResponse(entities, identifier, null, query);
     }
 
     /**
@@ -140,14 +140,14 @@ public class CrudUtils {
 
     /**
      * Creates a grid with data specified in entities list
-     * LoadRequest can be specified if some filters are applied in a related search form
+     * Query can be specified if some filters are applied in a related search form
      * @param entities Grid data
      * @param identifier Grid identifier
      * @param initializer Custom code to execute after grid creation
-     * @param loadRequest Load request used to load grid data
+     * @param query Load request used to load grid data
      * @return Returns GridResponse of created grid
      */
-    public static GridResponse createGridResponse(List<? extends Entity> entities, String identifier, GridInitializer initializer, LoadRequest loadRequest) {
+    public static GridResponse createGridResponse(List<? extends Entity> entities, String identifier, GridInitializer initializer, Query query) {
         GridResponse response = new GridResponse();
 
         try {
@@ -158,9 +158,9 @@ public class CrudUtils {
                 initializer.initialize(grid);
             }
 
-            if (grid.getSearchForm() != null && loadRequest != null) {
-                grid.setSearched(loadRequest.getFilters().size() > 0);
-                grid.getSearchForm().setData(loadRequest.filtersMap());
+            if (grid.getSearchForm() != null && query != null) {
+                grid.setSearched(query.getFilters().size() > 0);
+                grid.getSearchForm().setData(query.filtersMap());
             }
             response.setContent(grid.writeToString());
 //            response.setError(false);
@@ -195,7 +195,7 @@ public class CrudUtils {
                 grid.setCurrentPage(paginator.getPage());
             }
 
-            paginator.getLoadRequest().setRowsPerPage(grid.getRowsPerPage());
+            paginator.getQuery().setRowsPerPage(grid.getRowsPerPage());
             paginator.paginate();
             grid.setPages(paginator.getPages());
             grid.setCurrentPage(paginator.getPage());

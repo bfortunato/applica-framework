@@ -27,6 +27,7 @@ public class User extends AEntity implements applica.framework.security.User {
 
     @ManyToMany
     private List<applica._APPNAME_.domain.model.Role> roles;
+    private String name;
 
     public String getUsername() {
         return username;
@@ -111,5 +112,13 @@ public class User extends AEntity implements applica.framework.security.User {
 
     public void setLastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

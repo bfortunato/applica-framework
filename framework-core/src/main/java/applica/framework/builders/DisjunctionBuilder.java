@@ -10,19 +10,19 @@ import applica.framework.Filter;
  */
 public class DisjunctionBuilder extends CriteriaBuilder {
 
-    public DisjunctionBuilder(LoadRequestBuilder loadRequestBuilder) {
+    public DisjunctionBuilder(QueryBuilder loadRequestBuilder) {
         super(Filter.OR, loadRequestBuilder, null);
     }
 
-    public DisjunctionBuilder(LoadRequestBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
+    public DisjunctionBuilder(QueryBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
         super(Filter.OR, loadRequestBuilder, parentBuilder);
     }
 
-    public static DisjunctionBuilder begin(LoadRequestBuilder loadRequestBuilder) {
+    public static DisjunctionBuilder begin(QueryBuilder loadRequestBuilder) {
         return new DisjunctionBuilder(loadRequestBuilder);
     }
 
-    public static DisjunctionBuilder begin(LoadRequestBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
+    public static DisjunctionBuilder begin(QueryBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
         return new DisjunctionBuilder(loadRequestBuilder, parentBuilder);
     }
 

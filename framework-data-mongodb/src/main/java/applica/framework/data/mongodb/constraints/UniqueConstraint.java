@@ -1,7 +1,7 @@
 package applica.framework.data.mongodb.constraints;
 
 import applica.framework.Entity;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -21,13 +21,13 @@ public abstract class UniqueConstraint<T extends Entity> implements Constraint<T
     private RepositoriesFactory repositoriesFactory;
 
     /**
-     * Returns a LoadRequest builder for check in check() function.
+     * Returns a Query builder for check in check() function.
      * By default, entire entity collection was loaded.
      * You can specify an optimized query to load optimized data
      * @return
      */
-    protected LoadRequest getOptimizedLoadRequest(T entity) {
-        return LoadRequest.build();
+    protected Query getOptimizedQuery(T entity) {
+        return Query.build();
     }
 
     public RepositoriesFactory getRepositoriesFactory() {
@@ -50,7 +50,7 @@ public abstract class UniqueConstraint<T extends Entity> implements Constraint<T
             throw new RuntimeException(e);
         }
         if (value != null) {
-            for (Entity checkEntity : repository.find(getOptimizedLoadRequest(entity)).getRows()) {
+            for (Entity checkEntity : repository.find(getOptimizedQuery(entity)).getRows()) {
                 if (!checkEntity.getId().equals(entity.getId())) {
                     Object checkValue = null;
                     try {

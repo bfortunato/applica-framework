@@ -11,12 +11,12 @@ import java.util.List;
 public class CriteriaBuilder extends Filter {
 
 
-    protected final LoadRequestBuilder loadRequestBuilder;
+    protected final QueryBuilder loadRequestBuilder;
     //campo per individuare il criterio padre
     //serve per gestire operazioni logiche annidate e puo essere Conjunction o disjunction
     protected final CriteriaBuilder parentBuilder;
 
-    public CriteriaBuilder(String filterType, LoadRequestBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
+    public CriteriaBuilder(String filterType, QueryBuilder loadRequestBuilder, CriteriaBuilder parentBuilder) {
         setType(filterType);
         setValue(new ArrayList<Filter>());
 
@@ -42,7 +42,7 @@ public class CriteriaBuilder extends Filter {
     }
 
 
-    public LoadRequestBuilder finish() {
+    public QueryBuilder finish() {
         loadRequestBuilder.getFilters().add(this);
 
         return loadRequestBuilder;

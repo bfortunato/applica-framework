@@ -7,10 +7,13 @@ package applica.framework.widgets.controllers;
  * Time: 4:30 PM
  */
 
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.ValidationException;
 import applica.framework.library.i18n.controllers.LocalizedController;
-import applica.framework.library.responses.*;
+import applica.framework.library.responses.FormActionResponse;
+import applica.framework.library.responses.FormResponse;
+import applica.framework.library.responses.GridResponse;
+import applica.framework.library.responses.Response;
 import applica.framework.widgets.*;
 import applica.framework.widgets.acl.CrudAuthorizationException;
 import applica.framework.widgets.acl.CrudGuard;
@@ -27,6 +30,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 
+import static applica.framework.library.responses.Response.UNAUTHORIZED;
+
 @RequestMapping("/crud")
 public class CrudController extends LocalizedController {
 
@@ -40,7 +45,7 @@ public class CrudController extends LocalizedController {
             try {
                 crudGuard.check(CrudPermission.LIST, entity);
             } catch (CrudAuthorizationException e) {
-                return new ErrorResponse(localization.getMessage("crud.unauthorized"));
+                return new Response(UNAUTHORIZED);
             }
         }
 
@@ -52,7 +57,7 @@ public class CrudController extends LocalizedController {
         try {
             grid = GridBuilder.instance().build(entity);
             dataProvider = GridDataProviderBuilder.instance().build(entity);
-            dataProvider.load(grid, LoadRequest.fromJSON(loadRequest));
+            dataProvider.load(grid, Query.fromJSON(loadRequest));
             grid.write(writer);
             if (StringUtils.isEmpty(grid.getTitle())) {
                 grid.setTitle(localization.getMessage("crud.grid.title." + entity));
@@ -82,7 +87,7 @@ public class CrudController extends LocalizedController {
             try {
                 crudGuard.check(CrudPermission.DELETE, entity);
             } catch (CrudAuthorizationException e) {
-                return new ErrorResponse(localization.getMessage("crud.unauthorized"));
+                return new Response(UNAUTHORIZED);
             }
         }
 
@@ -109,7 +114,7 @@ public class CrudController extends LocalizedController {
                 String crudPermission = StringUtils.hasLength(id) ? CrudPermission.EDIT : CrudPermission.NEW;
                 crudGuard.check(crudPermission, entity);
             } catch (CrudAuthorizationException e) {
-                 return new ErrorResponse(localization.getMessage("crud.unauthorized"));
+                return new Response(UNAUTHORIZED);
             }
         }
 
@@ -160,7 +165,7 @@ public class CrudController extends LocalizedController {
             try {
                 crudGuard.check(CrudPermission.SAVE, entity);
             } catch (CrudAuthorizationException e) {
-                 return new ErrorResponse(localization.getMessage("crud.unauthorized"));
+                 return new Response(UNAUTHORIZED);
             }
         }
 

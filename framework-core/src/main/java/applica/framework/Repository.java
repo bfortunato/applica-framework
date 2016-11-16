@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface Repository<T extends Entity> {
 
     Optional<T> get(Object id);
-    LoadResponse<T> find(LoadRequest request);
+    LoadResponse<T> find(Query request);
     void save(T entity);
     void delete(Object id);
     Class<T> getEntityType();

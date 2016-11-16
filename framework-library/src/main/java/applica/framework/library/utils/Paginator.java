@@ -1,7 +1,7 @@
 package applica.framework.library.utils;
 
 import applica.framework.Entity;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +12,12 @@ public class Paginator {
     private int page;
     private int rowsPerPage;
     private List<? extends Entity> entities;
-    private LoadRequest loadRequest;
+    private Query query;
 
-    public Paginator(List<? extends Entity> entities, LoadRequest loadRequest) {
+    public Paginator(List<? extends Entity> entities, Query query) {
         super();
         this.entities = entities;
-        this.loadRequest = loadRequest;
+        this.query = query;
     }
 
     public int getPages() {
@@ -52,24 +52,24 @@ public class Paginator {
         this.entities = entities;
     }
 
-    public LoadRequest getLoadRequest() {
-        return loadRequest;
+    public Query getQuery() {
+        return query;
     }
 
-    public void setLoadRequest(LoadRequest loadRequest) {
-        this.loadRequest = loadRequest;
+    public void setQuery(Query query) {
+        this.query = query;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void paginate() {
-        pages = (int) Math.ceil((double) entities.size() / (double) loadRequest.getRowsPerPage());
-        page = loadRequest.getPage();
-        rowsPerPage = loadRequest.getRowsPerPage();
+        pages = (int) Math.ceil((double) entities.size() / (double) query.getRowsPerPage());
+        page = query.getPage();
+        rowsPerPage = query.getRowsPerPage();
 
         List removableItems = new ArrayList();
         int row = 0;
-        int start = (loadRequest.getPage() - 1) * loadRequest.getRowsPerPage();
-        int stop = start + loadRequest.getRowsPerPage();
+        int start = (query.getPage() - 1) * query.getRowsPerPage();
+        int stop = start + query.getRowsPerPage();
         for (Object o : entities) {
             if (!(row >= start && row < stop)) {
                 removableItems.add(o);

@@ -2,11 +2,9 @@ package applica._APPNAME_.data.mongodb.constraints;
 
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
-import applica.framework.LoadRequest;
+import applica.framework.Query;
 import applica.framework.data.mongodb.constraints.UniqueConstraint;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Function;
 
 /**
  * Applica (www.applicamobile.com)
@@ -28,7 +26,7 @@ public class RoleNameUniqueConstraint extends UniqueConstraint<Role> {
     }
 
     @Override
-    protected LoadRequest getOptimizedLoadRequest(Role entity) {
-        return LoadRequest.build().eq(Filters.ROLE_NAME, entity.getRole());
+    protected Query getOptimizedQuery(Role entity) {
+        return Query.build().eq(Filters.ROLE_NAME, entity.getRole());
     }
 }
