@@ -193,7 +193,6 @@ public class TemplatedMail {
         }
 
         Transport.send(message);
-        System.out.println("Sent message successfully....");
     }
 
     private static void addAttachment(Multipart multipart, String attachment) throws MessagingException {

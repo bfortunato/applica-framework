@@ -1,5 +1,6 @@
 package applica.framework.library.velocity;
 
+import applica.framework.library.utils.ProgramException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -18,6 +19,9 @@ public class VelocityBuilderProvider {
     }
 
     public static VelocityBuilder provide() {
+        if (velocityBuilder == null) {
+            throw new ProgramException("Please configure velocity builder in Spring Application Context");
+        }
         return velocityBuilder;
     }
 

@@ -93,6 +93,8 @@ public class AccountServiceImpl implements AccountService {
     public void confirm(String activationCode) throws MailNotFoundException {
         User user = usersRepository.find(Query.build().eq(Filters.USER_ACTIVATION_CODE, activationCode)).findFirst().orElseThrow(MailNotFoundException::new);
         user.setActive(true);
+
+        usersRepository.save(user);
     }
 
     @Override
@@ -117,7 +119,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void delete(Object id) throws UserNotFoundException {
-        User user = usersRepository.get(id).orElseThrow(UserNotFoundException::new);
         usersRepository.delete(id);
     }
 

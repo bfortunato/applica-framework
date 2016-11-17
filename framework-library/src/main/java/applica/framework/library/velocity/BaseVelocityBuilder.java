@@ -6,7 +6,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,8 +16,8 @@ import java.util.Properties;
 /**
  * Applica (www.applica.guru)
  * User: bimbobruno
- * Date: 2/22/13
- * Time: 8:44 AM
+ * Date: 11/17/2016
+ * Time: 11:14 AM
  */
 public class BaseVelocityBuilder implements VelocityBuilder {
     private VelocityEngine engine;
@@ -24,7 +25,7 @@ public class BaseVelocityBuilder implements VelocityBuilder {
     private Log logger = LogFactory.getLog(getClass());
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private ApplicationContext context;
 
     public VelocityEngine engine() {
         if(engine == null) {
@@ -33,16 +34,17 @@ public class BaseVelocityBuilder implements VelocityBuilder {
             Properties properties = new Properties();
             InputStream in = null;
             try {
-                in = webApplicationContext.getServletContext().getResourceAsStream("/WEB-INF/velocity.properties");
+                Resource resource = context.getResource("classpath:/config/velocity.properties");
+                in = resource.getInputStream();
                 properties.load(in);
                 engine.init(properties);
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.error("Error loading velocity engine properties");
                 throw new ProgramException("Cannot load velocity engine properties");
+            } finally {
+                IOUtils.closeQuietly(in);
             }
-
-            IOUtils.closeQuietly(in);
         }
 
         return engine;
