@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+    <!--[if IE 9 ]><html class="ie9"><![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Material Admin</title>
+
+        <!-- Vendor CSS -->
+        <link href="vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css" rel="stylesheet">
+        <link href="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet">
+
+        <!-- CSS -->
+        <link href="css/app_1.min.css" rel="stylesheet">
+        <link href="css/demo.css" rel="stylesheet">
+
+    </head>
+    <body>
+        <header id="header" class="clearfix" data-ma-theme="blue">
+            <ul class="h-inner">
+                <li class="hi-trigger ma-trigger" data-ma-action="sidebar-open" data-ma-target="#sidebar">
+                    <div class="line-wrap">
+                        <div class="line top"></div>
+                        <div class="line center"></div>
+                        <div class="line bottom"></div>
+                    </div>
+                </li>
+
+                <li class="hi-logo hidden-xs">
+                    <a href="index.html">Material Admin</a>
+                </li>
+
+                <li class="pull-right">
+                    <ul class="hi-menu">
+
+                        <li data-ma-action="search-open">
+                            <a href=""><i class="him-icon zmdi zmdi-search"></i></a>
+                        </li>
+
+                        <li class="dropdown">
+                            <a data-toggle="dropdown" href=""><i class="him-icon zmdi zmdi-more-vert"></i></a>
+                            <ul class="dropdown-menu pull-right">
+                                <li class="hidden-xs">
+                                    <a data-ma-action="fullscreen" href="">Toggle Fullscreen</a>
+                                </li>
+                                <li>
+                                    <a href="">Privacy Settings</a>
+                                </li>
+                                <li>
+                                    <a href="">Other Settings</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Top Search Content -->
+            <div class="h-search-wrap">
+                <div class="hsw-inner">
+                    <i class="hsw-close zmdi zmdi-arrow-left" data-ma-action="search-close"></i>
+                    <input type="text">
+                </div>
+            </div>
+        </header>
+
+        <section id="main">
+            <aside id="sidebar" class="sidebar c-overflow">
+                <div class="s-profile">
+                    <a href="" data-ma-action="profile-menu-toggle">
+                        <div class="sp-pic">
+                            <img src="img/demo/profile-pics/1.jpg" alt="">
+                        </div>
+
+                        <div class="sp-info">
+                            Malinda Hollaway
+
+                            <i class="zmdi zmdi-caret-down"></i>
+                        </div>
+                    </a>
+
+                    <ul class="main-menu">
+                        <li>
+                            <a href=""><i class="zmdi zmdi-account"></i> View Profile</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-settings"></i> Settings</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-time-restore"></i> Logout</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <ul class="main-menu">
+                    <li><a href="index.html"><i class="zmdi zmdi-home"></i> Home</a></li>
+                    <li><a href="typography.html"><i class="zmdi zmdi-format-underlined"></i> Typography</a></li>
+                    <li><a href="tables.html"><i class="zmdi zmdi-view-list"></i> Tables</a></li>
+                    <li><a href="form-elements.html"><i class="zmdi zmdi-collection-text"></i> Form Elements</a></li>
+                    <li class="active"><a href="buttons.html"><i class="zmdi zmdi-crop-16-9"></i> Buttons</a></li>
+                    <li><a href="icons.html"><i class="zmdi zmdi-airplane"></i>Icons</a></li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-collection-item"></i> Sample Pages</a>
+                        <ul>
+                            <li><a href="login.html">Login and Sign Up</a></li>
+                            <li><a href="lockscreen.html">Lockscreen</a></li>
+                            <li><a href="404.html">Error 404</a></li>
+                        </ul>
+                    </li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-menu"></i> 3 Level Menu</a>
+
+                        <ul>
+                            <li><a href="form-elements.html">Level 2 link</a></li>
+                            <li class="sub-menu">
+                                <a href="" data-ma-action="submenu-toggle">I have children too</a>
+
+                                <ul>
+                                    <li><a href="">Level 3 link</a></li>
+                                    <li><a href="">Another Level 3 link</a></li>
+                                    <li><a href="">Third one</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="">One more 2</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </aside>
+
+            <section id="content">
+                <div class="container">
+                    <div class="block-header">
+                        <h2>Buttons</h2>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Basic Examples
+                                <small>Use any of the available button classes to quickly create a styled button.
+                                </small>
+                            </h2>
+                        </div>
+
+                        <div class="card-body card-padding">
+                            <div class="btn-demo">
+                                <button class="btn btn-default">Default</button>
+                                <button class="btn btn-info">Info</button>
+                                <button class="btn btn-primary">Primary</button>
+                                <button class="btn btn-success">Success</button>
+                                <button class="btn btn-warning">Warning</button>
+                                <button class="btn btn-danger">Danger</button>
+                            </div>
+
+                            <br/>
+                            <br/>
+
+                            <p>Button Sizes</p>
+
+                            <div class="btn-demo">
+                                <button class="btn btn-primary btn-lg">Large</button>
+                                <button class="btn btn-primary">Default</button>
+                                <button class="btn btn-primary btn-sm">Small</button>
+                                <button class="btn btn-primary btn-xs">Extra Small</button>
+                            </div>
+
+                            <br/>
+                            <br/>
+
+                            <p>Disable Stat</p>
+
+                            <div class="btn-demo">
+                                <button class="btn btn-default" disabled="disabled">Default</button>
+                                <button class="btn btn-info" disabled="disabled">Info</button>
+                                <button class="btn btn-primary" disabled="disabled">Primary</button>
+                                <button class="btn btn-success" disabled="disabled">Success</button>
+                                <button class="btn btn-warning" disabled="disabled">Warning</button>
+                                <button class="btn btn-danger" disabled="disabled">Danger</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+        
+        <footer id="footer">
+            Copyright &copy; 2015 Material Admin
+            
+            <ul class="f-menu">
+                <li><a href="">Home</a></li>
+                <li><a href="">Dashboard</a></li>
+                <li><a href="">Reports</a></li>
+                <li><a href="">Support</a></li>
+                <li><a href="">Contact</a></li>
+            </ul>
+        </footer>
+    
+        <!-- Javascript Libraries -->
+        <script src="vendors/bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+        <script src="vendors/bower_components/Waves/dist/waves.min.js"></script>
+
+        <script src="js/app.min.js"></script>
+    </body>
+</html>

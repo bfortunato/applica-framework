@@ -1,0 +1,41 @@
+.card {
+    position: relative;
+    background: #fff;
+    box-shadow: @card-shadow;
+    margin-bottom: @grid-gutter-width;
+    border-radius: 2px;
+
+    .card-header {
+        position: relative;
+        display: block;
+        padding: 26px 30px;
+        border-radius: 2px 2px 0 0;
+
+        h2 {
+            margin: 0;
+            line-height: 100%;
+            font-size: 16px;
+            font-weight: 400;
+
+            small {
+                display: block;
+                margin-top: 8px;
+                color: #AEAEAE;
+                line-height: 160%;
+            }
+        }
+
+        .actions {
+            position: absolute;
+            right: 10px;
+            z-index: 2;
+            top: 15px;
+        }
+    }
+
+    .card-body {
+        &.card-padding {
+            padding: 26px 30px;
+        }
+    }
+}

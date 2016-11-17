@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<!--[if IE 9 ]><html class="ie9"><![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Material Admin</title>
+
+        <!-- Vendor CSS -->
+        <link href="vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css" rel="stylesheet">
+        <link href="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css" rel="stylesheet">
+
+        <!-- CSS -->
+        <link href="css/app_1.min.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <header id="header" class="clearfix" data-ma-theme="blue">
+            <ul class="h-inner">
+                <li class="hi-trigger ma-trigger" data-ma-action="sidebar-open" data-ma-target="#sidebar">
+                    <div class="line-wrap">
+                        <div class="line top"></div>
+                        <div class="line center"></div>
+                        <div class="line bottom"></div>
+                    </div>
+                </li>
+
+                <li class="hi-logo hidden-xs">
+                    <a href="index.html">Material Admin</a>
+                </li>
+
+                <li class="pull-right">
+                    <ul class="hi-menu">
+
+                        <li data-ma-action="search-open">
+                            <a href=""><i class="him-icon zmdi zmdi-search"></i></a>
+                        </li>
+
+                        <li class="dropdown">
+                            <a data-toggle="dropdown" href=""><i class="him-icon zmdi zmdi-more-vert"></i></a>
+                            <ul class="dropdown-menu pull-right">
+                                <li class="hidden-xs">
+                                    <a data-ma-action="fullscreen" href="">Toggle Fullscreen</a>
+                                </li>
+                                <li>
+                                    <a href="">Privacy Settings</a>
+                                </li>
+                                <li>
+                                    <a href="">Other Settings</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Top Search Content -->
+            <div class="h-search-wrap">
+                <div class="hsw-inner">
+                    <i class="hsw-close zmdi zmdi-arrow-left" data-ma-action="search-close"></i>
+                    <input type="text">
+                </div>
+            </div>
+        </header>
+
+        <section id="main">
+            <aside id="sidebar" class="sidebar c-overflow">
+                <div class="s-profile">
+                    <a href="" data-ma-action="profile-menu-toggle">
+                        <div class="sp-pic">
+                            <img src="img/demo/profile-pics/1.jpg" alt="">
+                        </div>
+
+                        <div class="sp-info">
+                            Malinda Hollaway
+
+                            <i class="zmdi zmdi-caret-down"></i>
+                        </div>
+                    </a>
+
+                    <ul class="main-menu">
+                        <li>
+                            <a href=""><i class="zmdi zmdi-account"></i> View Profile</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-settings"></i> Settings</a>
+                        </li>
+                        <li>
+                            <a href=""><i class="zmdi zmdi-time-restore"></i> Logout</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <ul class="main-menu">
+                    <li class="active"><a href="index.html"><i class="zmdi zmdi-home"></i> Home</a></li>
+                    <li><a href="typography.html"><i class="zmdi zmdi-format-underlined"></i> Typography</a></li>
+                    <li><a href="tables.html"><i class="zmdi zmdi-view-list"></i> Tables</a></li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-collection-text"></i> Forms</a>
+
+                        <ul>
+                            <li><a href="form-elements.html">Basic Form Elements</a></li>
+                            <li><a href="form-examples.html">Form Examples</a></li>
+                            <li><a href="form-validations.html">Form Validation</a></li>
+                        </ul>
+                    </li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-swap-alt"></i>User Interface</a>
+                        <ul>
+                            <li><a href="colors.html">Colors</a></li>
+                            <li><a href="buttons.html">Buttons</a></li>
+                            <li><a href="icons.html">Icons</a></li>
+                            <li><a href="components.html">Components</a></li>
+                        </ul>
+                    </li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-collection-item"></i> Sample Pages</a>
+                        <ul>
+                            <li><a href="login.html">Login and Sign Up</a></li>
+                            <li><a href="lockscreen.html">Lockscreen</a></li>
+                            <li><a href="404.html">Error 404</a></li>
+                        </ul>
+                    </li>
+                    <li class="sub-menu">
+                        <a href="" data-ma-action="submenu-toggle"><i class="zmdi zmdi-menu"></i> 3 Level Menu</a>
+
+                        <ul>
+                            <li><a href="form-elements.html">Level 2 link</a></li>
+                            <li class="sub-menu">
+                                <a href="" data-ma-action="submenu-toggle">I have children too</a>
+
+                                <ul>
+                                    <li><a href="">Level 3 link</a></li>
+                                    <li><a href="">Another Level 3 link</a></li>
+                                    <li><a href="">Third one</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="">One more 2</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </aside>
+
+            <section id="content">
+                <div class="container">
+                    <div class="block-header">
+                        <h2>Table</h2>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Basic Table
+                                <small>Basic example without any additional modification classes</small>
+                            </h2>
+                        </div>
+
+                        <div class="card-body table-responsive">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Alexandra</td>
+                                    <td>Christopher</td>
+                                    <td>@makinton</td>
+                                    <td>Ducky</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Madeleine</td>
+                                    <td>Hollaway</td>
+                                    <td>@hollway</td>
+                                    <td>Cheese</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Sebastian</td>
+                                    <td>Johnston</td>
+                                    <td>@sebastian</td>
+                                    <td>Jaycee</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Mitchell</td>
+                                    <td>Christin</td>
+                                    <td>@mitchell4u</td>
+                                    <td>AdskiDeAnus</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Elizabeth</td>
+                                    <td>Belkitt</td>
+                                    <td>@belkitt</td>
+                                    <td>Goat</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Benjamin</td>
+                                    <td>Parnell</td>
+                                    <td>@wayne234</td>
+                                    <td>Pokie</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Katherine</td>
+                                    <td>Buckland</td>
+                                    <td>@anitabelle</td>
+                                    <td>Wokie</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Nicholas</td>
+                                    <td>Walmart</td>
+                                    <td>@mwalmart</td>
+                                    <td>Spike</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Striped rows
+                                <small>Add zebra-striping to any table row within the tbody</small>
+                            </h2>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Alexandra</td>
+                                    <td>Christopher</td>
+                                    <td>@makinton</td>
+                                    <td>Ducky</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Madeleine</td>
+                                    <td>Hollaway</td>
+                                    <td>@hollway</td>
+                                    <td>Cheese</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Sebastian</td>
+                                    <td>Johnston</td>
+                                    <td>@sebastian</td>
+                                    <td>Jaycee</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Mitchell</td>
+                                    <td>Christin</td>
+                                    <td>@mitchell4u</td>
+                                    <td>AdskiDeAnus</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Elizabeth</td>
+                                    <td>Belkitt</td>
+                                    <td>@belkitt</td>
+                                    <td>Goat</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Benjamin</td>
+                                    <td>Parnell</td>
+                                    <td>@wayne234</td>
+                                    <td>Pokie</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Katherine</td>
+                                    <td>Buckland</td>
+                                    <td>@anitabelle</td>
+                                    <td>Wokie</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Nicholas</td>
+                                    <td>Walmart</td>
+                                    <td>@mwalmart</td>
+                                    <td>Spike</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Bordered table
+                                <small>Tables with borders on all possible sides of the Table and Cells</small>
+                            </h2>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Alexandra</td>
+                                    <td>Christopher</td>
+                                    <td>@makinton</td>
+                                    <td>Ducky</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Madeleine</td>
+                                    <td>Hollaway</td>
+                                    <td>@hollway</td>
+                                    <td>Cheese</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Sebastian</td>
+                                    <td>Johnston</td>
+                                    <td>@sebastian</td>
+                                    <td>Jaycee</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Mitchell</td>
+                                    <td>Christin</td>
+                                    <td>@mitchell4u</td>
+                                    <td>AdskiDeAnus</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Elizabeth</td>
+                                    <td>Belkitt</td>
+                                    <td>@belkitt</td>
+                                    <td>Goat</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Benjamin</td>
+                                    <td>Parnell</td>
+                                    <td>@wayne234</td>
+                                    <td>Pokie</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Katherine</td>
+                                    <td>Buckland</td>
+                                    <td>@anitabelle</td>
+                                    <td>Wokie</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Nicholas</td>
+                                    <td>Walmart</td>
+                                    <td>@mwalmart</td>
+                                    <td>Spike</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Hover Row
+                                <small>Enable a hover state on table rows within a tbody</small>
+                            </h2>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Alexandra</td>
+                                    <td>Christopher</td>
+                                    <td>@makinton</td>
+                                    <td>Ducky</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Madeleine</td>
+                                    <td>Hollaway</td>
+                                    <td>@hollway</td>
+                                    <td>Cheese</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Sebastian</td>
+                                    <td>Johnston</td>
+                                    <td>@sebastian</td>
+                                    <td>Jaycee</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Mitchell</td>
+                                    <td>Christin</td>
+                                    <td>@mitchell4u</td>
+                                    <td>AdskiDeAnus</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Elizabeth</td>
+                                    <td>Belkitt</td>
+                                    <td>@belkitt</td>
+                                    <td>Goat</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Benjamin</td>
+                                    <td>Parnell</td>
+                                    <td>@wayne234</td>
+                                    <td>Pokie</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Katherine</td>
+                                    <td>Buckland</td>
+                                    <td>@anitabelle</td>
+                                    <td>Wokie</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Nicholas</td>
+                                    <td>Walmart</td>
+                                    <td>@mwalmart</td>
+                                    <td>Spike</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Table Condensed
+                                <small>Make tables more compact by cutting cell padding in half.</small>
+                            </h2>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-condensed">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Username</th>
+                                    <th>Nickname</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Alexandra</td>
+                                    <td>Christopher</td>
+                                    <td>@makinton</td>
+                                    <td>Ducky</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Madeleine</td>
+                                    <td>Hollaway</td>
+                                    <td>@hollway</td>
+                                    <td>Cheese</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Sebastian</td>
+                                    <td>Johnston</td>
+                                    <td>@sebastian</td>
+                                    <td>Jaycee</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Mitchell</td>
+                                    <td>Christin</td>
+                                    <td>@mitchell4u</td>
+                                    <td>AdskiDeAnus</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Elizabeth</td>
+                                    <td>Belkitt</td>
+                                    <td>@belkitt</td>
+                                    <td>Goat</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Benjamin</td>
+                                    <td>Parnell</td>
+                                    <td>@wayne234</td>
+                                    <td>Pokie</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Katherine</td>
+                                    <td>Buckland</td>
+                                    <td>@anitabelle</td>
+                                    <td>Wokie</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Nicholas</td>
+                                    <td>Walmart</td>
+                                    <td>@mwalmart</td>
+                                    <td>Spike</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+        
+        <footer id="footer">
+            Copyright &copy; 2015 Material Admin
+            
+            <ul class="f-menu">
+                <li><a href="">Home</a></li>
+                <li><a href="">Dashboard</a></li>
+                <li><a href="">Reports</a></li>
+                <li><a href="">Support</a></li>
+                <li><a href="">Contact</a></li>
+            </ul>
+        </footer>
+        
+        <!-- Javascript Libraries -->
+        <script src="vendors/bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="vendors/bower_components/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
+        <script src="vendors/bower_components/Waves/dist/waves.min.js"></script>
+
+        <script src="js/app.min.js"></script>
+    </body>
+  </html>
