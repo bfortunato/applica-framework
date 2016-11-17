@@ -16,8 +16,6 @@
     Each controller action use only service module to perform business logic.
     user <-> controller <-> services <-> data and domain
 
-- **Added Log utility class to wrap logging**
-
 - **Updated mongo driver**
 
 - **Added possibility to force environment in options**

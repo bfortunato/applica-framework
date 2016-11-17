@@ -2,9 +2,9 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/archetypes/webapp/_APPNAME_/_APPNAME_-api" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/archetypes/webapp/_APPNAME_/_APPNAME_-data-mongodb" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/archetypes/webapp/_APPNAME_/_APPNAME_-domain" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/archetypes/api/_APPNAME_/_APPNAME_-api" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/archetypes/api/_APPNAME_/_APPNAME_-data-mongodb" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/archetypes/api/_APPNAME_/_APPNAME_-domain" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-core" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-data-hibernate" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-data-mongodb" charset="UTF-8" />

@@ -20,3 +20,4 @@ fi
 JAVA="$JAVA_HOME/bin/java"
 JAR="${APPLICAFRAMEWORK_HOME}/scripts/target/scripts-$FRAMEWORK_VERSION.jar"
 $JAVA -classpath "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
+echo $JAVA -classpath "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
