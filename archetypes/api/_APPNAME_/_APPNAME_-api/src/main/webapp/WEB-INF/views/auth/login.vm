@@ -146,7 +146,7 @@
 
 <!-- Theme Javascript -->
 <script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/utility/utility.js"></script>
-<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/main.js"></script>
+<script type="text/javascript" src="${wwwBase}framework-resources/admin/theme/assets/js/main.jsx"></script>
 
 <!-- Page Javascript -->
 <script type="text/javascript">

@@ -1,13 +1,5 @@
-var aj = require("aj");
-var HomeStore = require("stores").home;
-var getMessage = require("actions").getMessage;
+"use strict";
 
-$(document).ready(function() {
+var _index = require("components/index");
 
-    HomeStore.subscribe(this, function(state) {
-        $(".message").text(state.message);
-    });
-
-    getMessage();
-
-});
+ReactDOM.render(React.createElement(_index.Index, null), document.getElementById("entry-point"));

@@ -6,7 +6,7 @@ before_install:
     - cd Socket.IO-Test-Server/
     - npm install
     - cd ..
-install: node Socket.IO-Test-Server/main.js &
+install: node Socket.IO-Test-Server/main.jsx &
 script: xctool -project Socket.IO-Client-Swift.xcodeproj -scheme SocketIO-Mac build test -parallelize
 cache:
   directories:
