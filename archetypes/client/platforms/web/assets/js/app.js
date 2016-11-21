@@ -4,7 +4,7 @@ define('actions/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.getMessage = undefined;
+exports.hideLoading = exports.showLoading = exports.getMessage = undefined;
 
 var _types = require("./types");
 
@@ -22,6 +22,20 @@ var getMessage = exports.getMessage = aj.createAction(types.GET_MESSAGE, functio
         message: "Hello World"
     });
 });
+
+var showLoading = exports.showLoading = aj.createAction(types.SHOW_LOADING, function (data) {
+    aj.dispatch({
+        type: types.SHOW_LOADING,
+        loading: true
+    });
+});
+
+var hideLoading = exports.hideLoading = aj.createAction(types.HIDE_LOADING, function (data) {
+    aj.dispatch({
+        type: types.HIDE_LOADING,
+        loading: false
+    });
+});
 });
 define('actions/types.js', function(module, exports) {
 "use strict";
@@ -29,6 +43,9 @@ define('actions/types.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+var SHOW_LOADING = exports.SHOW_LOADING = "SHOW_LOADING";
+var HIDE_LOADING = exports.HIDE_LOADING = "HIDE_LOADING";
+
 var GET_MESSAGE = exports.GET_MESSAGE = "GET_MESSAGE";
 });
 define('aj/assets.js', function(module, exports) {
@@ -22404,7 +22421,7 @@ define('stores/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.home = undefined;
+exports.ui = exports.home = undefined;
 
 var _aj = require("../aj");
 
@@ -22438,6 +22455,18 @@ var home = exports.home = aj.createStore(types.HOME, function () {
             return _.assign(state, { message: action.message });
     }
 });
+
+var ui = exports.ui = aj.createStore(types.UI, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { loading: false };
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.SHOW_LOADING:
+        case actions.HIDE_LOADING:
+            return _.assign(state, { loading: action.loading });
+    }
+});
 });
 define('stores/types.js', function(module, exports) {
 "use strict";
@@ -22445,6 +22474,7 @@ define('stores/types.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+var UI = exports.UI = "UI";
 var HOME = exports.HOME = "HOME";
 });
 

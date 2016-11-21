@@ -1,12 +1,13 @@
-alert("index");
-
 "use strict"
 
-define("components/index", (module, exports) => {
+define("components/layout", (module, exports) => {
 
     const HomeStore = require("../stores").home;
     const getMessage = require("../actions").getMessage;
     const ui = require("../utils/ui");
+    const Loader = require("loader");
+
+    const {showLoading, hideLoading} = require("../actions");
 
     class Header extends React.Component {
         render() {
@@ -133,19 +134,6 @@ define("components/index", (module, exports) => {
     }
 
 
-    class Content extends React.Component {
-        render() {
-            return (
-                <section id="content">
-                    <div className="container">
-                        {this.props.content}
-                    </div>
-                </section>
-            )
-        }
-    }
-
-
     class Footer extends React.Component {
         render() {
             return (
@@ -167,24 +155,30 @@ define("components/index", (module, exports) => {
 
     class Layout extends React.Component {
         render() {
-            <div>
-                <Header/>
+            return (
+                <div>
+                    <Header/>
 
-                <section id="main">
-                    <SideBar/>
+                    <section id="main">
+                        <SideBar/>
 
-                    <Content content={this.props.children}/>
-                </section>
+                        <section id="content">
+                            <div className="container">
+                                {this.props.children}
+                            </div>
+                        </section>
+                    </section>
 
-                <Footer />
-            </div>
+                    <Footer />
+                </div>
+            )
         }
     }
 
 
     class FullScreenLayout extends React.Component {
         render() {
-            <Content content={this.props.children}/>
+            return <div>{this.props.children}</div>
         }
     }
 
@@ -200,12 +194,17 @@ define("components/index", (module, exports) => {
 
         componentDidMount() {
             ui.addScreenChangeListener(screen => {
+                showLoading()
                 this.setState(_.assign(this.state, {currentScreen: screen}))
+                hideLoading()
             })
         }
 
         render() {
-            return <div>{this.state.currentScreen}</div>
+            if (_.isEmpty(this.state.currentScreen)) {
+                return <div />
+            }
+            return this.state.currentScreen
         }
     }
 
@@ -236,7 +235,10 @@ define("components/index", (module, exports) => {
         
         render() {
             return (
-                <ScreenContainer/>
+                <div>
+                    <Loader />
+                    <ScreenContainer />
+                </div>
             )
         }
     }
@@ -246,6 +248,5 @@ define("components/index", (module, exports) => {
     exports.FullScreenLayout = FullScreenLayout;
     exports.Layout = Layout;
     exports.Header = Header;
-    exports.Content = Content;
     exports.Footer = Footer;
 });

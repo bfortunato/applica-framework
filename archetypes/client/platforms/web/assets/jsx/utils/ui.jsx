@@ -1,8 +1,8 @@
 "use strict";
 
-import { Observable } from "utils/events"
-
 define("utils/ui", (module, exports) => {
+
+	const { Observable } = require("./events");
 
 	let router = new RouteRecognizer();
 	let base = null;
@@ -10,7 +10,7 @@ define("utils/ui", (module, exports) => {
 	let screens = new Observable();
 
 	function _handleRoute(fragment) {
-		var route = this.router.recognize(fragment);
+		var route = router.recognize(fragment);
 		if (route) {
 			var params = _.extend(route[0].params, route.queryParams || {});
 			route[0].handler(params);
@@ -25,8 +25,8 @@ define("utils/ui", (module, exports) => {
 		router.add([{path: path, handler: handler}]);
 	};
 
-	exports.start = function(base) {
-		base = base;
+	exports.startNavigation = function(_base) {
+		base = _base || "#";
 
 		var loop = () => {
 			var fragment = "/";
@@ -46,7 +46,7 @@ define("utils/ui", (module, exports) => {
 	};
 
 	exports.navigate = function(path) {
-		history.pushState(null, null, this._clearSlashes(this.base + path));
+		history.pushState(null, null, _clearSlashes(base + path));
 	};
 
 	exports.changeScreen = function(screen) {

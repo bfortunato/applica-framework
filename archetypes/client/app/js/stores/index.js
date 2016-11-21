@@ -16,3 +16,14 @@ export const home = aj.createStore(types.HOME, (state = initialState, action) =>
     }
 
 });
+
+
+export const ui = aj.createStore(types.UI, (state = {loading: false}, action) => {
+
+    switch (action.type) {
+        case actions.SHOW_LOADING:
+        case actions.HIDE_LOADING:
+            return _.assign(state, {loading: action.loading});
+    }
+
+});

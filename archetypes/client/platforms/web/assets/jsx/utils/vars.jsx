@@ -1,6 +1,4 @@
-define(function() {
-    var exports = {};
+define("utils/vars", (module, exports) => {
 
 
-    return exports;
 });

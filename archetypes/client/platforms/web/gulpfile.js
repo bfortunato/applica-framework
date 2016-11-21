@@ -2,6 +2,7 @@
 
 var argv = require('yargs').argv;
 var gulp = require("gulp");
+var gulpIf = require("gulp-if");
 var sass = require("gulp-sass");
 var concat = require('gulp-concat');
 var uglify = require("gulp-uglify");
@@ -20,20 +21,17 @@ gulp.task("styles", function() {
 
 gulp.task("scripts", function() {
     try {
-        if (argv.debug) {
-            gulp.src(["assets/jsx/**/*.jsx", "!assets/jsx/main.jsx"])
-                .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
-                .pipe(gulp.dest("assets/js/"));
-        } else {
-            gulp.src(["assets/jsx/**/*.jsx", "!assets/jsx/main.jsx"])
-                .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
-                .pipe(concat("combined.min.js"))
-                .pipe(uglify())
-                .pipe(gulp.dest("assets/js/"));
-        }
+        var debug = argv.debug ? true : false;
+
+        gulp.src(["assets/jsx/**/*.jsx", "!assets/jsx/main.jsx"])
+            .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
+            .pipe(concat("combined.min.js"))
+            .pipe(gulpIf(!argv.debug, uglify()))
+            .pipe(gulp.dest("assets/js/"));
 
         gulp.src("assets/jsx/main.jsx")
             .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
+            .pipe(gulpIf(!argv.debug, uglify()))
             .pipe(gulp.dest("assets/js/"));
 
     } catch (e) {
