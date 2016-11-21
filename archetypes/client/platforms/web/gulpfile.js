@@ -21,16 +21,20 @@ gulp.task("styles", function() {
 gulp.task("scripts", function() {
     try {
         if (argv.debug) {
-            gulp.src(["assets/jsx/**/*.jsx", "jsx/**/main.jsx"])
+            gulp.src(["assets/jsx/**/*.jsx", "!assets/jsx/main.jsx"])
                 .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
                 .pipe(gulp.dest("assets/js/"));
         } else {
-            gulp.src(["assets/jsx/**/*.jsx", "jsx/**/main.jsx"])
+            gulp.src(["assets/jsx/**/*.jsx", "!assets/jsx/main.jsx"])
                 .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
                 .pipe(concat("combined.min.js"))
                 .pipe(uglify())
                 .pipe(gulp.dest("assets/js/"));
         }
+
+        gulp.src("assets/jsx/main.jsx")
+            .pipe(babel({presets: "es2015,react"}).on("error", function (e) {console.log(e.stack); }))
+            .pipe(gulp.dest("assets/js/"));
 
     } catch (e) {
         console.error(e);
@@ -58,7 +62,7 @@ gulp.task("run", ["build", "watch", "server"], function () {
 gulp.task("build", ["styles", "scripts"]);
 
 gulp.task("watch", ["build"], function() {
-	gulp.watch(["assets/jsx/**/*.jsx", "assets/jsx/**/main.jsx"], ["scripts"]);
+	gulp.watch(["assets/jsx/**/*.jsx"], ["scripts"]);
 	gulp.watch("sass/**/*.scss", ["styles"]);
 });
 

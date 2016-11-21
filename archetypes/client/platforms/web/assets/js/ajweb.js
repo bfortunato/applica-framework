@@ -288,6 +288,8 @@
 
         function define(module, builder) {
             builders[module] = builder;
+
+            console.log("Module defined: " + module);
         }
 
         function require(_path) {
@@ -297,6 +299,7 @@
             var moduleName = path.name(moduleBase);
             var possibilities = [
                 moduleName,
+                moduleBase,
                 moduleBase + "." + moduleExt,
                 path.join(moduleBase, "index.js"),
                 path.join(moduleBase, moduleName) + "." + moduleExt
