@@ -37,6 +37,11 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     // FRAMEWORK GENERAL BEANS
 
     @Bean
+    public OptionsManager optionsManager() {
+        return new PropertiesOptionManager();
+    }
+
+    @Bean
     public ApplicationContextProvider applicationContextProvider() {
         return new ApplicationContextProvider();
     }

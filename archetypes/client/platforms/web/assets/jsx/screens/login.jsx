@@ -2,52 +2,83 @@
 
 define("screens/login", (module, exports) => {
 
+    const SessionStore = require("../stores").session;
     const { FullScreenLayout, Screen } = require("../components/layout");
     const ui = require("../utils/ui");
+    const { login } = require("../actions");
+    const forms = require("../utils/forms");
+    const { Preloader } = require("../components/loader");
 
     class Login extends Screen {
         constructor(props) {
             super(props)
+
+            this.state = {
+                loading: false
+            }
         }
 
         login() {
-            ui.navigate("/");
+            let data = forms.serialize(this.refs.login_form);
+            login(data)
+        }
+
+        componentDidMount() {
+            SessionStore.subscribe(this, state => {
+                this.setState(state);
+            })
+        }
+
+        componentWillUnmount() {
+            SessionStore.unsubscribe(this);
+        }
+
+        componentDidUpdate() {
+            if (this.state.error) {
+                swal("Oooops...", "Cannot login. Please check your email or password", "error");
+            }
         }
 
         render() {
+            let loginButtonClass = this.state.loading ? "animated fadeOutLeft" : "animated fadeInLeft"
+
             return (
                 <FullScreenLayout>
                     <div className="login-content">
                         <div className="lc-block toggled" id="l-login">
-                            <div className="lcb-form">
-                                <div className="form-group">
+                            <form action="javascript:;" className="lcb-form" onSubmit={this.login.bind(this)} ref="login_form">
+                                <div className="input-group m-b-20">
+                                    <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                     <div className="fg-line">
-                                        <input type="text" className="form-control" placeholder="Username" />
+                                        <input type="email" name="mail" className="form-control" placeholder="Email Address" />
                                     </div>
                                 </div>
 
-                                <div className="form-group">
+                                <div className="input-group m-b-20">
+                                    <span className="input-group-addon"><i className="zmdi zmdi-male"></i></span>
                                     <div className="fg-line">
-                                        <input type="password" className="form-control" placeholder="Password" />
+                                        <input type="password" name="password" className="form-control" placeholder="Password" />
                                     </div>
                                 </div>
 
                                 <div className="checkbox">
                                     <label>
-                                        <input type="checkbox" value="" />
+                                        <input type="checkbox" name="remember_me" value="1" />
                                             <i className="input-helper"></i>
                                             Keep me signed in
                                     </label>
                                 </div>
 
-                                <a href="javascript:;" className="btn btn-login btn-success" onClick={this.login.bind(this)}><i className="zmdi zmdi-arrow-forward"></i></a>
-                            </div>
+                                <button type="submit" className={"btn btn-login btn-success btn-float " + loginButtonClass}><i className="zmdi zmdi-arrow-forward"></i></button>
+                            </form>
 
                             <div className="lcb-navigation">
-                                <a href="" data-ma-action="login-switch" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>Register</span></a>
-                                <a href="" data-ma-action="login-switch" data-ma-block="#l-forget-password"><i>?</i> <span>Forgot Password</span></a>
+                                <a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>Register</span></a>
+                                <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>Forgot Password</span></a>
                             </div>
                         </div>
+
+                        <div className="m-10"><Preloader visible={this.state.loading}/></div>
                     </div>
                 </FullScreenLayout>
             )

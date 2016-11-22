@@ -1,6 +1,7 @@
 package applica._APPNAME_.api;
 
 import applica._APPNAME_.api.configuration.ApplicationConfiguration;
+import applica._APPNAME_.api.configuration.ApplicationInitializer;
 import applica._APPNAME_.api.configuration.MongoConfiguration;
 import applica._APPNAME_.api.configuration.SecurityConfiguration;
 import applica.framework.AEntity;
@@ -18,9 +19,11 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 
 /**
@@ -38,32 +41,19 @@ import java.util.Date;
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class, MongoAutoConfiguration.class})
 public class Application {
 
-    @Bean
-    public OptionsManager optionsManager() {
-        return new PropertiesOptionManager();
-    }
-
     static {
         AEntity.strategy = AEntity.IdStrategy.String;
     }
 
-    private Log logger = LogFactory.getLog(getClass());
-
     @Autowired
-    private OptionsManager options;
+    private ApplicationInitializer applicationInitializer;
 /*
     @Autowired
     private CrudFactory crudFactory;
 */
+    @PostConstruct
     public void init() {
-        LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
-        LicenseManager.instance().mustBeValid();
-
-        logger.info("Applica Framework app started");
-
-        NullableDateConverter dateConverter = new NullableDateConverter();
-        dateConverter.setPatterns(new String[] { "dd/MM/yyyy HH:mm", "MM/dd/yyyy HH:mm", "yyyy-MM-dd HH:mm", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "HH:mm" });
-        ConvertUtils.register(dateConverter, Date.class);
+        applicationInitializer.init();
 
         /*CrudConfiguration.instance().setCrudFactory(crudFactory);
 

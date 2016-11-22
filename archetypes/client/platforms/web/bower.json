@@ -18,6 +18,7 @@
     "underscore": "^1.8.3",
     "jquery": "^3.1.1",
     "react": "^15.3.2",
-    "route-recognizer": "^0.2.8"
+    "route-recognizer": "^0.2.8",
+    "animate.css": "^3.5.2"
   }
 }

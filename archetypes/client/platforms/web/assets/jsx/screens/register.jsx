@@ -19,39 +19,34 @@ define("screens/register", (module, exports) => {
                 <FullScreenLayout>
                     <div className="login-content">
                         <div className="lc-block toggled" id="l-register">
-                            <div className="lcb-form">
-                                <div className="form-group">
+                            <form action="javascript:;" className="lcb-form" onSubmit={this.register.bind(this)} ref="register_form">
+                                <div className="input-group m-b-20">
+                                    <span className="input-group-addon"><i className="zmdi zmdi-account"></i></span>
                                     <div className="fg-line">
-                                        <input type="text" className="form-control" placeholder="Username" />
+                                        <input type="text" name="name" className="form-control" placeholder="Name" />
                                     </div>
                                 </div>
 
-                                <div className="form-group">
+                                <div className="input-group m-b-20">
+                                    <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                     <div className="fg-line">
-                                        <input type="text" className="form-control" placeholder="Email Address" />
+                                        <input type="email" name="mail" className="form-control" placeholder="Email Address" />
                                     </div>
                                 </div>
 
-                                <div className="form-group">
+                                <div className="input-group m-b-20">
+                                    <span className="input-group-addon"><i className="zmdi zmdi-male"></i></span>
                                     <div className="fg-line">
-                                        <input type="password" className="form-control" placeholder="Password" />
+                                        <input type="password" name="password" className="form-control" placeholder="Password" />
                                     </div>
                                 </div>
 
-                                <div className="checkbox">
-                                    <label>
-                                        <input type="checkbox" value="" />
-                                            <i className="input-helper"></i>
-                                            Terms and Condition
-                                    </label>
-                                </div>
-
-                                <a href="" className="btn btn-login btn-success"><i className="zmdi zmdi-check"></i></a>
-                            </div>
+                                <a href="" className="btn btn-login btn-success btn-float"><i className="zmdi zmdi-check"></i></a>
+                            </form>
 
                             <div className="lcb-navigation">
-                                <a href="" data-ma-action="login-switch" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>Sign in</span></a>
-                                <a href="" data-ma-action="login-switch" data-ma-block="#l-forget-password"><i>?</i> <span>Forgot Password</span></a>
+                                <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>Sign in</span></a>
+                                <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>Forgot Password</span></a>
                             </div>
                         </div>
                     </div>

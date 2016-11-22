@@ -18,6 +18,19 @@ export const home = aj.createStore(types.HOME, (state = initialState, action) =>
 });
 
 
+export const session = aj.createStore(types.SESSION, (state = {}, action) => {
+
+    switch (action.type) {
+        case actions.LOGIN:
+            return _.assign(state, { action: action.type, user: action.user, error: action.error, message: action.message, loggedIn: action.user != null });
+
+        case actions.RESUME_SESSION:
+            return _.assign(state, { action: action.type, user: action.user, error: action.error, message: action.message, loggedIn: action.user != null });
+    }
+
+});
+
+
 export const ui = aj.createStore(types.UI, (state = {loading: false}, action) => {
 
     switch (action.type) {

@@ -4,7 +4,7 @@ define("components/loader", (module, exports) => {
 
     const UiStore = require("../stores").ui;
 
-    class Loader extends React.Component {
+    class PageLoader extends React.Component {
 
         constructor(props) {
             super(props);
@@ -12,6 +12,7 @@ define("components/loader", (module, exports) => {
             this.state = {
                 loading: false
             }
+
         }
 
         componentDidMount() {
@@ -20,30 +21,48 @@ define("components/loader", (module, exports) => {
             })
         }
 
+        componentDidUpdate() {
+            if (this.state.loading) {
+                $(this.refs.page_loader).show()
+            } else {
+                $(this.refs.page_loader).fadeOut(500);
+            }
+        }
+
         componentWillUnmount() {
             UiStore.unsubscribe(this);
         }
 
         render() {
             return (
-                (this.state.loading ?
-                    <div className="page-loader">
-                        <div className="preloader pls-amber">
-                            <svg className="pl-circular" viewBox="25 25 50 50">
-                                <circle className="plc-path" cx="50" cy="50" r="20" />
-                            </svg>
+                <div className="page-loader" ref="page_loader">
+                    <div className="preloader">
+                        <svg className="pl-circular" viewBox="25 25 50 50">
+                            <circle className="plc-path" cx="50" cy="50" r="20" />
+                        </svg>
 
-                            <p>Please wait...</p>
-                        </div>
+                        <p>Please wait...</p>
                     </div>
-                :
-                    <div></div>
-                )
+                </div>
             )
         }
-
     }
 
-    module.exports = Loader;
+    class Preloader extends React.Component {
+        render() {
+            return ((this.props.visible || true) ?
+                <div className="preloader">
+                    <svg className="pl-circular" viewBox="25 25 50 50">
+                        <circle className="plc-path" cx="50" cy="50" r="20" />
+                    </svg>
+                </div>
+                :
+                null
+            )
+        }
+    }
+
+    exports.PageLoader = PageLoader;
+    exports.Preloader = Preloader;
 
 })

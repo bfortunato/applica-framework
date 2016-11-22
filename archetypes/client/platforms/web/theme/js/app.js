@@ -135,20 +135,6 @@ if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
    $('html').addClass('ismobile');
 }
 
-$(window).load(function () {
-    /*----------------------------------------------------------
-        Page Loader
-     -----------------------------------------------------------*/
-    if(!$('html').hasClass('ismobile')) {
-        if($('.page-loader')[0]) {
-            setTimeout (function () {
-                $('.page-loader').fadeOut();
-            }, 500);
-
-        }
-    }
-})
-
 $(document).ready(function(){
     /*----------------------------------------------------------
         Scrollbar
