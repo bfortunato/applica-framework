@@ -22,10 +22,10 @@ export const session = aj.createStore(types.SESSION, (state = {}, action) => {
 
     switch (action.type) {
         case actions.LOGIN:
-            return _.assign(state, { action: action.type, user: action.user, error: action.error, message: action.message, loggedIn: action.user != null });
+            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
 
         case actions.RESUME_SESSION:
-            return _.assign(state, { action: action.type, user: action.user, error: action.error, message: action.message, loggedIn: action.user != null });
+            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
     }
 
 });

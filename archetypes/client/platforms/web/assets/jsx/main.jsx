@@ -1,9 +1,13 @@
-import { Index } from "components/layout"
-import Login from "screens/login"
-import Register from "screens/register"
-import Recover from "screens/recover"
-import Home from "screens/home"
-import * as ui from "utils/ui"
+import { Index } from "./components/layout"
+import Login from "./screens/login"
+import Register from "./screens/register"
+import Recover from "./screens/recover"
+import Home from "./screens/home"
+import * as ui from "./utils/ui"
+import * as plugins from "./pluginsimpl"
+
+/* Register plugins */
+plugins.register()
 
 /* Login routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))

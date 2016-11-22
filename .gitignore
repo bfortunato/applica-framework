@@ -3,3 +3,7 @@
 *.iml
 target
 /.idea/
+.DS_Store
+archetypes/.DS_Store
+archetypes/client/platforms/web/assets/js/combined.min.js
+archetypes/client/platforms/web/css/

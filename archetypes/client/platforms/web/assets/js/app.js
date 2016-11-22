@@ -4,7 +4,7 @@ define('actions/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.hideLoading = exports.showLoading = exports.getMessage = undefined;
+exports.hideLoading = exports.recover = exports.register = exports.resumeSession = exports.login = exports.showLoading = exports.getMessage = undefined;
 
 var _types = require("./types");
 
@@ -13,6 +13,12 @@ var types = _interopRequireWildcard(_types);
 var _aj = require("../aj");
 
 var aj = _interopRequireWildcard(_aj);
+
+var _auth = require("../framework/auth");
+
+var auth = _interopRequireWildcard(_auth);
+
+var _plugins = require("../plugins");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -26,6 +32,66 @@ var getMessage = exports.getMessage = aj.createAction(types.GET_MESSAGE, functio
 var showLoading = exports.showLoading = aj.createAction(types.SHOW_LOADING, function (data) {
     aj.dispatch({
         type: types.SHOW_LOADING,
+        loading: true
+    });
+});
+
+var login = exports.login = aj.createAction(types.LOGIN, function (data) {
+    if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
+        return;
+    }
+
+    (0, _plugins.showLoader)();
+    auth.start(data.mail, data.password).then(function (user) {
+        (0, _plugins.hideLoader)();
+
+        aj.dispatch({
+            type: types.LOGIN,
+            user: user,
+            loggedIn: true
+        });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        logger.e(e);
+
+        (0, _plugins.alert)("Oooops...", "Cannot login! Please check your email address or password!");
+
+        aj.dispatch({
+            type: types.LOGIN,
+            user: null,
+            loggedIn: false
+        });
+    });
+});
+
+var resumeSession = exports.resumeSession = aj.createAction(types.RESUME_SESSION, function (data) {
+    auth.resume().then(function (user) {
+        aj.dispatch({
+            type: types.RESUME_SESSION,
+            user: user,
+            error: false,
+            message: null
+        });
+    }).catch(function (e) {
+        aj.dispatch({
+            type: types.RESUME_SESSION,
+            user: null,
+            error: true,
+            message: null
+        });
+    });
+});
+
+var register = exports.register = aj.createAction(types.REGISTER, function (data) {
+    aj.dispatch({
+        type: types.REGISTER,
+        loading: true
+    });
+});
+
+var recover = exports.recover = aj.createAction(types.RECOVER, function (data) {
+    aj.dispatch({
+        type: types.RECOVER,
         loading: true
     });
 });
@@ -45,6 +111,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 var SHOW_LOADING = exports.SHOW_LOADING = "SHOW_LOADING";
 var HIDE_LOADING = exports.HIDE_LOADING = "HIDE_LOADING";
+
+var LOGIN = exports.LOGIN = "LOGIN";
+var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
+var REGISTER = exports.REGISTER = "REGISTER";
+var RECOVER = exports.RECOVER = "RECOVER";
 
 var GET_MESSAGE = exports.GET_MESSAGE = "GET_MESSAGE";
 });
@@ -1277,16 +1348,11 @@ define('framework/auth.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 exports.start = start;
 exports.resume = resume;
 exports.getLoggedUser = getLoggedUser;
 exports.isLoggedIn = isLoggedIn;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
+exports.getSessionToken = getSessionToken;
 var aj = require("../aj");
 var http = require("../aj/http");
 
@@ -1294,97 +1360,114 @@ var services = require("./services");
 var preferences = require("./preferences");
 var config = require("./config");
 
-var loggedUser = null;
+var _loggedUser = void 0;
+var _sessionToken = void 0;
 
 var TYPE_MAIL = exports.TYPE_MAIL = "MAIL";
 var TYPE_FACEBOOK = exports.TYPE_FACEBOOK = "FACEBOOK";
 
-var RestSessionService = function () {
-    function RestSessionService() {
-        _classCallCheck(this, RestSessionService);
+var STOP_OBJ = {};
+
+function stop() {
+    return STOP_OBJ;
+}
+
+function wrap(r, fn) {
+    if (r == STOP_OBJ) {
+        return STOP_OBJ;
+    } else {
+        return fn(r);
     }
-
-    _createClass(RestSessionService, [{
-        key: "login",
-        value: function login(mail, password) {
-            return new Promise(function (resolve, reject) {
-                http.post(config.get("login.url"), { mail: mail, password: password }).then(function (response) {
-                    if (response.error) {
-                        throw new Error(response.message);
-                    }
-
-                    resolve(response.value);
-                }).catch(function (e) {
-                    reject(e);
-                });
-            });
-        }
-    }]);
-
-    return RestSessionService;
-}();
+}
 
 function start(mail, password) {
     return new Promise(function (resolve, reject) {
-        loggedUser = null;
+        _loggedUser = null;
+        _sessionToken = null;
 
-        var sessionService = services.get("SessionService");
-        sessionService.login(mail, password).then(function (response) {
-            preferences.load().then(function () {
-                preferences.set("session.type", TYPE_MAIL);
-                preferences.set("session.mail", mail);
-                preferences.set("session.password", password);
-                preferences.save();
-            });
+        var data = {};
 
-            loggedUser = {
+        var login = services.get("login");
+        if (!login) {
+            reject("Login service not defined");
+            return;
+        }
+
+        preferences.load().then(function () {
+            return login(mail, password);
+        }).then(function (token) {
+            preferences.set("session.type", TYPE_MAIL);
+            preferences.set("session.mail", mail);
+            preferences.set("session.password", password);
+
+            _sessionToken = token;
+            _loggedUser = {
                 type: TYPE_MAIL,
                 mail: mail,
-                data: response
+                data: data
             };
-        }).catch(function () {
-            loggedUser = null;
+
+            return preferences.save();
+        }).then(function (r) {
+            resolve(_loggedUser);
+        }).catch(function (e) {
+            _loggedUser = null;
+            _sessionToken = null;
+
+            logger.e(e);
 
             preferences.load().then(function () {
                 preferences.set("session.type", false);
                 preferences.set("session.mail", false);
                 preferences.set("session.password", false);
-                preferences.save();
+                return preferences.save();
+            }).then(function () {
+                reject("Bad username or password");
             });
-            reject("Cannot login");
         });
     });
 }
 
 function resume() {
-    var _this = this;
-
     return new Promise(function (resolve, reject) {
-        loggedUser = null;
+        _loggedUser = null;
+        _sessionToken = null;
 
-        preferences.load().then(function (preferences) {
+        preferences.load().then(function () {
             var type = preferences.get("session.type");
             var mail = preferences.get("session.mail");
             var password = preferences.get("session.password");
 
-            if (type == Session.TYPE_MAIL && mail && password) {
-                return _this.start(mail, password);
+            if (type == TYPE_MAIL && mail && password) {
+                return start(mail, password);
             } else {
                 reject("Cannot resume session");
+                return stop();
             }
+        }).then(function (r) {
+            return wrap(r, function () {
+                resolve(r);
+            });
+        }).catch(function (e) {
+            reject(e);
         });
     });
 }
 
 function getLoggedUser() {
-    return loggedUser;
+    return _loggedUser;
 }
 
 function isLoggedIn() {
-    return loggedUser != null;
+    return _loggedUser != null;
 }
 
-exports.RestSessionService = RestSessionService;
+function getSessionToken() {
+    logger.i("Current session token: ", _sessionToken);
+    logger.i("Current user: ", _loggedUser);
+
+    return _sessionToken;
+}
 });
 define('framework/base64.js', function(module, exports) {
 'use strict';
@@ -1752,9 +1835,14 @@ exports.clear = function () {
 define('framework/services.js', function(module, exports) {
 "use strict";
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.get = get;
+exports.register = register;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1782,14 +1870,14 @@ var ServiceLocator = function () {
 
     _createClass(ServiceLocator, [{
         key: "register",
-        value: function register(type, builder) {
-            this.services[type] = builder;
+        value: function register(type, fn) {
+            this.services[type] = fn;
         }
     }, {
         key: "getService",
         value: function getService(type) {
-            if (this.services[type] && _typeof(this.services[type] == "function")) {
-                return this.services[type]();
+            if (this.services[type]) {
+                return this.services[type];
             }
 
             throw new Error("Service not registered: " + type);
@@ -1799,11 +1887,13 @@ var ServiceLocator = function () {
     return ServiceLocator;
 }();
 
-exports.ServiceLocator = ServiceLocator;
-
-exports.get = function (type) {
+function get(type) {
     return ServiceLocator.instance().getService(type);
-};
+}
+
+function register(type, fn) {
+    ServiceLocator.instance().register(type, fn);
+}
 });
 define('framework/utils.js', function(module, exports) {
 "use strict";
@@ -14103,7 +14193,7 @@ if (global._babelPolyfill) {
 global._babelPolyfill = true;
 
 var DEFINE_PROPERTY = "defineProperty";
-function define(O, key, value) {
+function polyfill_define(O, key, value) {
   O[key] || Object[DEFINE_PROPERTY](O, key, {
     writable: true,
     configurable: true,
@@ -14111,11 +14201,11 @@ function define(O, key, value) {
   });
 }
 
-define(String.prototype, "padLeft", "".padStart);
-define(String.prototype, "padRight", "".padEnd);
+polyfill_define(String.prototype, "padLeft", "".padStart);
+polyfill_define(String.prototype, "padRight", "".padEnd);
 
 "pop,reverse,shift,keys,values,entries,indexOf,every,some,forEach,map,filter,find,findIndex,includes,join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill".split(",").forEach(function (key) {
-  [][key] && define(Array, key, Function.call.bind([][key]));
+  [][key] && polyfill_define(Array, key, Function.call.bind([][key]));
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"2":2,"295":295,"296":296}],2:[function(_dereq_,module,exports){
@@ -18643,14 +18733,14 @@ var define = function(fn){
 
 // 21.2.5.14 RegExp.prototype.toString()
 if(_dereq_(34)(function(){ return $toString.call({source: 'a', flags: 'b'}) != '/a/b'; })){
-  define(function toString(){
+  polyfill_define(function toString(){
     var R = anObject(this);
     return '/'.concat(R.source, '/',
       'flags' in R ? R.flags : !DESCRIPTORS && R instanceof RegExp ? $flags.call(R) : undefined);
   });
 // FF44- RegExp#toString has a wrong name
 } else if($toString.name != TO_STRING){
-  define(function toString(){
+  polyfill_define(function toString(){
     return $toString.call(this);
   });
 }
@@ -22411,9 +22501,125 @@ require("./stores");
 
 require("./actions");
 
+var _services = require("./framework/services");
+
+var services = _interopRequireWildcard(_services);
+
+var _services2 = require("./services");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 var main = exports.main = function main() {
-    //application entry point
+    services.register("login", _services2.login);
 };
+});
+define('plugins.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.alert = alert;
+exports.confirm = confirm;
+exports.showLoader = showLoader;
+exports.hideLoader = hideLoader;
+exports.toast = toast;
+
+var _aj = require("../aj");
+
+var aj = _interopRequireWildcard(_aj);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function alert(title, message, type) {
+    return aj.exec("Alert", "alert", { title: title, message: message, type: type });
+}
+
+function confirm() {
+    return new Promise(function (resolve, reject) {
+        var callback = function callback(confirmed) {
+            if (confirmed) {
+                resolve();
+            } else {
+                reject();
+            }
+        };
+
+        aj.exec("Alert", "confirm", { callback: callback }).catch(function () {
+            return reject();
+        });
+    });
+}
+
+function showLoader() {
+    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+    aj.exec("Loader", "show", { message: message });
+}
+
+function hideLoader() {
+    aj.exec("Loader", "hide");
+}
+
+function toast(message) {
+    aj.exec("Toast", "show", { message: message });
+}
+});
+define('services.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.login = login;
+exports.fakeLogin = fakeLogin;
+
+var _http = require("./aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _config = require("./framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+var _underscore = require("./libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function login(mail, password) {
+    return new Promise(function (resolve, reject) {
+        http.post(config.get("login.url"), { mail: mail, password: password }).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject("Could not login");
+            } else {
+                var response = JSON.parse(json);
+
+                if (response.error) {
+                    reject(response.message);
+                }
+
+                resolve(response.value);
+            }
+        }).catch(function (e) {
+            logger.e("Error logging in:", e);
+            reject(e);
+        });
+    });
+}
+
+function fakeLogin(mail, password) {
+    return new Promise(function (resolve, reject) {
+        setTimeout(function () {
+            if (Math.random() > 0.6) {
+                reject("Random error generated");
+            } else {
+                resolve({ id: 1, mail: mail, name: "Bruno Fortunato" });
+            }
+        }, 1500);
+    });
+}
 });
 define('stores/index.js', function(module, exports) {
 "use strict";
@@ -22421,7 +22627,7 @@ define('stores/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ui = exports.home = undefined;
+exports.ui = exports.session = exports.home = undefined;
 
 var _aj = require("../aj");
 
@@ -22456,6 +22662,20 @@ var home = exports.home = aj.createStore(types.HOME, function () {
     }
 });
 
+var session = exports.session = aj.createStore(types.SESSION, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.LOGIN:
+            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
+
+        case actions.RESUME_SESSION:
+            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
+    }
+});
+
 var ui = exports.ui = aj.createStore(types.UI, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { loading: false };
     var action = arguments[1];
@@ -22475,7 +22695,10 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var UI = exports.UI = "UI";
+var SESSION = exports.SESSION = "SESSION";
 var HOME = exports.HOME = "HOME";
+var $ACTION_NAME = exports.$ACTION_NAME = "";
 });
 
 require('./aj').createRuntime();
+require('./main').main();

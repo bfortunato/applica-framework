@@ -15,7 +15,7 @@ var fs = require("fs");
 gulp.task("styles", function() {
     gulp.src("resources/sass/**/*.scss")
         .pipe(sass().on("error", sass.logError))
-        .pipe(gulp.dest("css/"))
+        .pipe(gulp.dest("resources/css/"))
     ;
 });
 
@@ -61,7 +61,7 @@ gulp.task("build", ["styles", "scripts"]);
 
 gulp.task("watch", ["build"], function() {
 	gulp.watch(["assets/jsx/**/*.jsx"], ["scripts"]);
-	gulp.watch("sass/**/*.scss", ["styles"]);
+	gulp.watch("resources/sass/**/*.scss", ["styles"]);
 });
 
 

@@ -46,6 +46,8 @@ define("screens/login", (module, exports) => {
                 <FullScreenLayout>
                     <div className="login-content">
                         <div className="lc-block toggled" id="l-login">
+                            <div className="text-center m-b-10"><img src="resources/images/logo.png" /></div>
+
                             <form action="javascript:;" className="lcb-form" onSubmit={this.login.bind(this)} ref="login_form">
                                 <div className="input-group m-b-20">
                                     <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
@@ -77,8 +79,6 @@ define("screens/login", (module, exports) => {
                                 <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>Forgot Password</span></a>
                             </div>
                         </div>
-
-                        <div className="m-10"><Preloader visible={this.state.loading}/></div>
                     </div>
                 </FullScreenLayout>
             )

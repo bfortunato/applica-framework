@@ -5,7 +5,7 @@ define("components/layout", (module, exports) => {
     const HomeStore = require("../stores").home;
     const getMessage = require("../actions").getMessage;
     const ui = require("../utils/ui");
-    const PageLoader = require("loader").PageLoader;
+    const { PageLoader, GlobalLoader } = require("loader");
 
     const {showLoading, hideLoading} = require("../actions");
 
@@ -237,6 +237,7 @@ define("components/layout", (module, exports) => {
             return (
                 <div>
                     <PageLoader />
+                    <GlobalLoader />
                     <ScreenContainer />
                 </div>
             )

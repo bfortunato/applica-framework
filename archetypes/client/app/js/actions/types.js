@@ -7,3 +7,4 @@ export const REGISTER = "REGISTER";
 export const RECOVER = "RECOVER";
 
 export const GET_MESSAGE = "GET_MESSAGE";
+
