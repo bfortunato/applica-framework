@@ -47,7 +47,7 @@ public class MongoHelper {
 		}
 	}
 
-	private List<String> getDataSources(OptionsManager options) {
+	public static List<String> getDataSources(OptionsManager options) {
 		String dataSourcesValue = options.get("applica.framework.data.mongodb.dataSources");
 		String[] split = dataSourcesValue.split(",");
 		List<String> dataSources = new ArrayList<>();
@@ -73,10 +73,11 @@ public class MongoHelper {
                 String password = options.get(String.format("applica.framework.data.mongodb.%s.password", dataSource));
                 String db = getDbName(dataSource);
                 String host = options.get(String.format("applica.framework.data.mongodb.%s.host", dataSource));
+				Integer port = Integer.parseInt(options.get(String.format("applica.framework.data.mongodb.%s.port", dataSource)));
                 if (StringUtils.isNotEmpty(username)) {
                     MongoCredential mongoCredential = MongoCredential.createMongoCRCredential(username, db, password.toCharArray());
 					ds.mongo = new MongoClient(
-                            new ServerAddress(host),
+                            new ServerAddress(host, port != null ? port : 27017),
                             Arrays.asList(mongoCredential)
                     );
                 } else {

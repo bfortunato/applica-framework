@@ -72,9 +72,10 @@ export function start(mail, password) {
                         preferences.set("session.password", false);
                         return preferences.save();
                     })
-                    .then(() => {
+                    .catch((e) => {
+                        logger.e(e);
                         reject("Bad username or password");
-                    });
+                    })
 
             })
     })

@@ -18,7 +18,6 @@ import org.springframework.core.annotation.Order;
 
 
 //@Configuration
-//@Order(4)
 public class HibernateConfiguration {
 /*
     @Bean

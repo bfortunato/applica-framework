@@ -10,6 +10,5 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
  * Created by bimbobruno on 17/11/2016.
  */
 @Configuration
-@Order(2)
 public class SecurityConfigurationInitializer extends WebSecurityConfigurerAdapter {
 }

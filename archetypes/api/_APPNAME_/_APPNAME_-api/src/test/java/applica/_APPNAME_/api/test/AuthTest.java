@@ -56,13 +56,17 @@ public class AuthTest {
     @Autowired
     private UsersRepository usersRepository;
 
+    private OptionsManager optionsManager;
+
     @Autowired
-    private OptionsManager propertiesOptionManager;
+    public void setOptionsManager(OptionsManager optionsManager) {
+        this.optionsManager = optionsManager;
+    }
 
     @Before
     public void setup() {
         logger.info("Forcing options environment to test");
-        ((PropertiesOptionManager) propertiesOptionManager).forceEnvironment("test");
+        ((PropertiesOptionManager) optionsManager).forceEnvironment("test");
         mvc = webAppContextSetup(webApplicationContext).build();
     }
 

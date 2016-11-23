@@ -9,9 +9,7 @@ import applica.framework.security.token.TokenFormatException;
 import applica.framework.security.token.TokenGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,7 +29,7 @@ public class AuthController extends LocalizedController {
     @Autowired
     private AuthService authService;
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping("/login")
     public Response login(String mail, String password) {
         try {
             String token = authService.token(mail, password);
@@ -45,7 +43,7 @@ public class AuthController extends LocalizedController {
         }
     }
 
-    @RequestMapping(value = "/freshToken", method = RequestMethod.GET)
+    @GetMapping("/freshToken")
     @PreAuthorize("isAuthenticated()")
     public Response freshToken(HttpServletRequest request) {
         try {

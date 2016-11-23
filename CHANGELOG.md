@@ -20,4 +20,4 @@
 
 - **Added possibility to force environment in options**
 
-- ****
+- **MongoEmbedded server added (testing purposes?)**

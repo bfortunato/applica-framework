@@ -1306,11 +1306,13 @@ exports.exists = function (path) {
 define('config.js', function(module, exports) {
 "use strict";
 
-var serviceBase = "http://192.168.0.45:3000/";
+var serviceBase = "http://localhost:8080/";
 
 module.exports = {
     "service.url": "" + serviceBase,
-    "login.url": serviceBase + "auth/login"
+    "login.url": serviceBase + "auth/login",
+    "account.register.url": serviceBase + "account/register",
+    "account.recover.url": serviceBase + "account/recover"
 };
 });
 define('framework/assert.js', function(module, exports) {
@@ -1421,7 +1423,8 @@ function start(mail, password) {
                 preferences.set("session.mail", false);
                 preferences.set("session.password", false);
                 return preferences.save();
-            }).then(function () {
+            }).catch(function (e) {
+                logger.e(e);
                 reject("Bad username or password");
             });
         });
