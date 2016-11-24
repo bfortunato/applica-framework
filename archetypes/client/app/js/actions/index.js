@@ -1,98 +1,98 @@
-import * as types from "./types"
 import * as aj from "../aj"
-import * as auth from "../framework/auth"
-import { alert, confirm, showLoader, hideLoader } from "../plugins"
+import * as session from "../api/session"
+import * as responses from "../api/responses"
+import { alert, confirm, showLoader, hideLoader, toast } from "../plugins"
 
-export const getMessage = aj.createAction(types.GET_MESSAGE, data => {
-    aj.dispatch({
-        type: types.GET_MESSAGE,
-        message: "Hello World"
-    })
-});
+export const LOGIN = "LOGIN";
+export const RESUME_SESSION = "RESUME_SESSION";
+export const LOGOUT = "LOGOUT";
+export const REGISTER = "REGISTER";
+export const RECOVER = "RECOVER";
 
-
-export const showLoading = aj.createAction(types.SHOW_LOADING, data => {
-    aj.dispatch({
-        type: types.SHOW_LOADING,
-        loading: true
-    })
-});
-
-
-export const login = aj.createAction(types.LOGIN, data => {
+export const login = aj.createAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
+        alert("Cannot login", "Email and password are required", "warning");
         return;
     }
 
     showLoader()
-    auth.start(data.mail, data.password)
+    session.start(data.mail, data.password)
         .then(user => {
             hideLoader()
 
             aj.dispatch({
-                type: types.LOGIN,
+                type: LOGIN,
                 user: user,
-                loggedIn: true
+                isLoggedIn: true
             })
+
+            toast("Welcome " + user.mail);
         })
         .catch(e => {
             hideLoader()
-            logger.e(e);
-
-            alert("Oooops...", "Cannot login! Please check your email address or password!")
 
             aj.dispatch({
-                type: types.LOGIN,
+                type: LOGIN,
                 user: null,
-                loggedIn: false
+                isLoggedIn: false
+            })
+
+            alert("Oooops...", "Cannot login! Please check your email address or password!", "error")
+        })
+});
+
+
+export const resumeSession = aj.createAction(RESUME_SESSION, data => {
+    session.resume()
+        .then(user => {
+            hideLoader()
+
+            aj.dispatch({
+                type: RESUME_SESSION,
+                user: user,
+                isLoggedIn: true
+            })
+
+            toast("Welcome " + user.mail);
+        })
+        .catch(e => {
+            hideLoader()
+
+            aj.dispatch({
+                type: RESUME_SESSION,
+                user: null,
+                isLoggedIn: false
+            })
+        })
+
+});
+
+
+export const logout = aj.createAction(LOGOUT, data => {
+    session.destroy()
+        .then(() => {
+            aj.dispatch({
+                type: LOGOUT
             })
         })
 });
 
 
-export const resumeSession = aj.createAction(types.RESUME_SESSION, data => {
-    auth.resume()
-        .then(user => {
-            aj.dispatch({
-                type: types.RESUME_SESSION,
-                user: user,
-                error: false,
-                message: null
-            })
-        })
-        .catch(e => {
-            aj.dispatch({
-                type: types.RESUME_SESSION,
-                user: null,
-                error: true,
-                message: null
-            })
-        })
-
-});
+export const register = aj.createAction(REGISTER, data => {
 
 
-
-
-export const register = aj.createAction(types.REGISTER, data => {
     aj.dispatch({
-        type: types.REGISTER,
+        type: REGISTER,
         loading: true
     })
 });
 
 
-export const recover = aj.createAction(types.RECOVER, data => {
+export const recover = aj.createAction(RECOVER, data => {
     aj.dispatch({
-        type: types.RECOVER,
+        type: RECOVER,
         loading: true
     })
 });
 
 
-export const hideLoading = aj.createAction(types.HIDE_LOADING, data => {
-    aj.dispatch({
-        type: types.HIDE_LOADING,
-        loading: false
-    })
-});

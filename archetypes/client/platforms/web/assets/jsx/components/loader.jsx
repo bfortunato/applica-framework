@@ -2,24 +2,7 @@
 
 define("components/loader", (module, exports) => {
 
-    const UiStore = require("../stores").ui;
-
     class PageLoader extends React.Component {
-
-        constructor(props) {
-            super(props);
-
-            this.state = {
-                loading: false
-            }
-
-        }
-
-        componentDidMount() {
-            UiStore.subscribe(this, state => {
-                this.setState(state)
-            })
-        }
 
         componentDidUpdate() {
             if (this.state.loading) {
@@ -29,13 +12,9 @@ define("components/loader", (module, exports) => {
             }
         }
 
-        componentWillUnmount() {
-            UiStore.unsubscribe(this);
-        }
-
         render() {
             return (
-                <div className="page-loader" ref="page_loader">
+                <div className="page-loader" style={{display: "block"}}>
                     <div className="preloader">
                         <svg className="pl-circular" viewBox="25 25 50 50">
                             <circle className="plc-path" cx="50" cy="50" r="20" />
@@ -52,7 +31,7 @@ define("components/loader", (module, exports) => {
 
         render() {
             return (
-                <div className="global-loader" ref="page_loader" style={{display: "none"}}>
+                <div className="global-loader" style={{display: "none"}}>
                     <div className="layer"></div>
                     <div className="preloader">
                         <svg className="pl-circular" viewBox="25 25 50 50">

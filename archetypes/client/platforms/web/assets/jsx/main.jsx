@@ -3,8 +3,10 @@ import Login from "./screens/login"
 import Register from "./screens/register"
 import Recover from "./screens/recover"
 import Home from "./screens/home"
+import RegistrationOk from "./screens/registrationOk"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
+import { resumeSession } from "./actions"
 
 /* Register plugins */
 plugins.register()
@@ -13,10 +15,13 @@ plugins.register()
 ui.addRoute("/login", params => ui.changeScreen(<Login />))
 ui.addRoute("/register", params => ui.changeScreen(<Register />))
 ui.addRoute("/recover", params => ui.changeScreen(<Recover />))
+ui.addRoute("/registrationOk", params => ui.changeScreen(<RegistrationOk />))
 
 /* home route */
 ui.addRoute("/", params => ui.changeScreen(<Home />))
 
 ReactDOM.render(<Index />, document.getElementById("entry-point"))
 
-ui.startNavigation()
+resumeSession();
+
+ui.startNavigation();

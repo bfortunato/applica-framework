@@ -4,120 +4,104 @@ define('actions/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.hideLoading = exports.recover = exports.register = exports.resumeSession = exports.login = exports.showLoading = exports.getMessage = undefined;
-
-var _types = require("./types");
-
-var types = _interopRequireWildcard(_types);
+exports.recover = exports.register = exports.logout = exports.resumeSession = exports.login = exports.RECOVER = exports.REGISTER = exports.LOGOUT = exports.RESUME_SESSION = exports.LOGIN = undefined;
 
 var _aj = require("../aj");
 
 var aj = _interopRequireWildcard(_aj);
 
-var _auth = require("../framework/auth");
+var _session = require("../api/session");
 
-var auth = _interopRequireWildcard(_auth);
+var session = _interopRequireWildcard(_session);
+
+var _responses = require("../api/responses");
+
+var responses = _interopRequireWildcard(_responses);
 
 var _plugins = require("../plugins");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var getMessage = exports.getMessage = aj.createAction(types.GET_MESSAGE, function (data) {
-    aj.dispatch({
-        type: types.GET_MESSAGE,
-        message: "Hello World"
-    });
-});
+var LOGIN = exports.LOGIN = "LOGIN";
+var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
+var LOGOUT = exports.LOGOUT = "LOGOUT";
+var REGISTER = exports.REGISTER = "REGISTER";
+var RECOVER = exports.RECOVER = "RECOVER";
 
-var showLoading = exports.showLoading = aj.createAction(types.SHOW_LOADING, function (data) {
-    aj.dispatch({
-        type: types.SHOW_LOADING,
-        loading: true
-    });
-});
-
-var login = exports.login = aj.createAction(types.LOGIN, function (data) {
+var login = exports.login = aj.createAction(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
+        (0, _plugins.alert)("Cannot login", "Email and password are required", "warning");
         return;
     }
 
     (0, _plugins.showLoader)();
-    auth.start(data.mail, data.password).then(function (user) {
+    session.start(data.mail, data.password).then(function (user) {
         (0, _plugins.hideLoader)();
 
         aj.dispatch({
-            type: types.LOGIN,
+            type: LOGIN,
             user: user,
-            loggedIn: true
+            isLoggedIn: true
         });
+
+        (0, _plugins.toast)("Welcome " + user.mail);
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        logger.e(e);
-
-        (0, _plugins.alert)("Oooops...", "Cannot login! Please check your email address or password!");
 
         aj.dispatch({
-            type: types.LOGIN,
+            type: LOGIN,
             user: null,
-            loggedIn: false
+            isLoggedIn: false
+        });
+
+        (0, _plugins.alert)("Oooops...", "Cannot login! Please check your email address or password!", "error");
+    });
+});
+
+var resumeSession = exports.resumeSession = aj.createAction(RESUME_SESSION, function (data) {
+    session.resume().then(function (user) {
+        (0, _plugins.hideLoader)();
+
+        aj.dispatch({
+            type: RESUME_SESSION,
+            user: user,
+            isLoggedIn: true
+        });
+
+        (0, _plugins.toast)("Welcome " + user.mail);
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+
+        aj.dispatch({
+            type: RESUME_SESSION,
+            user: null,
+            isLoggedIn: false
         });
     });
 });
 
-var resumeSession = exports.resumeSession = aj.createAction(types.RESUME_SESSION, function (data) {
-    auth.resume().then(function (user) {
+var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
+    session.destroy().then(function () {
         aj.dispatch({
-            type: types.RESUME_SESSION,
-            user: user,
-            error: false,
-            message: null
-        });
-    }).catch(function (e) {
-        aj.dispatch({
-            type: types.RESUME_SESSION,
-            user: null,
-            error: true,
-            message: null
+            type: LOGOUT
         });
     });
 });
 
-var register = exports.register = aj.createAction(types.REGISTER, function (data) {
+var register = exports.register = aj.createAction(REGISTER, function (data) {
+
     aj.dispatch({
-        type: types.REGISTER,
+        type: REGISTER,
         loading: true
     });
 });
 
-var recover = exports.recover = aj.createAction(types.RECOVER, function (data) {
+var recover = exports.recover = aj.createAction(RECOVER, function (data) {
     aj.dispatch({
-        type: types.RECOVER,
+        type: RECOVER,
         loading: true
     });
 });
-
-var hideLoading = exports.hideLoading = aj.createAction(types.HIDE_LOADING, function (data) {
-    aj.dispatch({
-        type: types.HIDE_LOADING,
-        loading: false
-    });
-});
-});
-define('actions/types.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var SHOW_LOADING = exports.SHOW_LOADING = "SHOW_LOADING";
-var HIDE_LOADING = exports.HIDE_LOADING = "HIDE_LOADING";
-
-var LOGIN = exports.LOGIN = "LOGIN";
-var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
-var REGISTER = exports.REGISTER = "REGISTER";
-var RECOVER = exports.RECOVER = "RECOVER";
-
-var GET_MESSAGE = exports.GET_MESSAGE = "GET_MESSAGE";
 });
 define('aj/assets.js', function(module, exports) {
 /**
@@ -1303,6 +1287,234 @@ exports.exists = function (path) {
     return instance.exists(path);
 };
 });
+define('api/account.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.register = register;
+
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function register(name, mail, password) {
+    return new Promise(function (resolve, reject) {
+        http.post(config.get("account.register.url"), { name: name, mail: mail, password: password }).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK == response.responseCode) {
+                    reject(response.responseCode);
+                }
+
+                resolve();
+            }
+        }).catch(function (e) {
+            logger.e("Error registering user:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+});
+define('api/responses.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var OK = exports.OK = 0;
+var ERROR = exports.ERROR = 1;
+var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
+
+var ERROR_MAIL_ALREADY_EXISTS = exports.ERROR_MAIL_ALREADY_EXISTS = 1001;
+var ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_NOT_FOUND = 1002;
+var ERROR_BAD_CREDENTIALS = exports.ERROR_BAD_CREDENTIALS = 1003;
+var ERROR_TOKEN_GENERATION = exports.ERROR_TOKEN_GENERATION = 1004;
+var ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_FORMAT = 1005;
+var ERROR_MAIL_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = 1006;
+var ERROR_PASSWORD_NOT_VALID = exports.ERROR_PASSWORD_NOT_VALID = 1007;
+});
+define('api/session.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.TYPE_FACEBOOK = exports.TYPE_MAIL = undefined;
+exports.login = login;
+exports.start = start;
+exports.resume = resume;
+exports.destroy = destroy;
+exports.getLoggedUser = getLoggedUser;
+exports.isLoggedIn = isLoggedIn;
+exports.getSessionToken = getSessionToken;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var aj = require("../aj");
+var http = require("../aj/http");
+
+var preferences = require("../framework/preferences");
+var config = require("../framework/config");
+
+
+var _loggedUser = void 0;
+var _sessionToken = void 0;
+
+var TYPE_MAIL = exports.TYPE_MAIL = "MAIL";
+var TYPE_FACEBOOK = exports.TYPE_FACEBOOK = "FACEBOOK";
+
+var STOP_OBJ = {};
+
+function stop() {
+    return STOP_OBJ;
+}
+
+function wrap(r, fn) {
+    if (r == STOP_OBJ) {
+        return STOP_OBJ;
+    } else {
+        return fn(r);
+    }
+}
+
+function login(mail, password) {
+    return new Promise(function (resolve, reject) {
+        http.post(config.get("login.url"), { mail: mail, password: password }).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK == response.responseCode) {
+                    reject(response.responseCode);
+                }
+
+                resolve(response.token);
+            }
+        }).catch(function (e) {
+            logger.e("Error logging in:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function start(mail, password) {
+    return new Promise(function (resolve, reject) {
+        _loggedUser = null;
+        _sessionToken = null;
+
+        var data = {};
+
+        preferences.load().then(function () {
+            return login(mail, password);
+        }).then(function (token) {
+            preferences.set("session.type", TYPE_MAIL);
+            preferences.set("session.mail", mail);
+            preferences.set("session.password", password);
+
+            _sessionToken = token;
+            _loggedUser = {
+                type: TYPE_MAIL,
+                mail: mail,
+                data: data
+            };
+
+            return preferences.save();
+        }).then(function (r) {
+            resolve(_loggedUser);
+        }).catch(function (e) {
+            _loggedUser = null;
+            _sessionToken = null;
+
+            preferences.load().then(function () {
+                preferences.set("session.type", null);
+                preferences.set("session.mail", null);
+                preferences.set("session.password", null);
+                return preferences.save();
+            }).catch(function (e) {
+                logger.e(e);
+            });
+
+            reject(e);
+        });
+    });
+}
+
+function resume() {
+    return new Promise(function (resolve, reject) {
+        _loggedUser = null;
+        _sessionToken = null;
+
+        preferences.load().then(function () {
+            var type = preferences.get("session.type");
+            var mail = preferences.get("session.mail");
+            var password = preferences.get("session.password");
+
+            if (type == TYPE_MAIL && mail && password) {
+                return start(mail, password);
+            } else {
+                reject(responses.ERROR);
+                return stop();
+            }
+        }).then(function (r) {
+            return wrap(r, function () {
+                resolve(r);
+            });
+        }).catch(function (e) {
+            reject(e);
+        });
+    });
+}
+
+function destroy() {
+    _loggedUser = null;
+    _sessionToken = null;
+
+    return preferences.load().then(function () {
+        preferences.set("session.type", null);
+        preferences.set("session.mail", null);
+        preferences.set("session.password", null);
+        return preferences.save();
+    }).catch(function (e) {
+        logger.e(e);
+    });
+}
+
+function getLoggedUser() {
+    return _loggedUser;
+}
+
+function isLoggedIn() {
+    return _loggedUser != null;
+}
+
+function getSessionToken() {
+    return _sessionToken;
+}
+});
 define('config.js', function(module, exports) {
 "use strict";
 
@@ -1343,134 +1555,6 @@ exports.assertNotEmpty = function (obj, msg) {
         throw "Assertion failure: " + msg || "";
     }
 };
-});
-define('framework/auth.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.start = start;
-exports.resume = resume;
-exports.getLoggedUser = getLoggedUser;
-exports.isLoggedIn = isLoggedIn;
-exports.getSessionToken = getSessionToken;
-var aj = require("../aj");
-var http = require("../aj/http");
-
-var services = require("./services");
-var preferences = require("./preferences");
-var config = require("./config");
-
-var _loggedUser = void 0;
-var _sessionToken = void 0;
-
-var TYPE_MAIL = exports.TYPE_MAIL = "MAIL";
-var TYPE_FACEBOOK = exports.TYPE_FACEBOOK = "FACEBOOK";
-
-var STOP_OBJ = {};
-
-function stop() {
-    return STOP_OBJ;
-}
-
-function wrap(r, fn) {
-    if (r == STOP_OBJ) {
-        return STOP_OBJ;
-    } else {
-        return fn(r);
-    }
-}
-
-function start(mail, password) {
-    return new Promise(function (resolve, reject) {
-        _loggedUser = null;
-        _sessionToken = null;
-
-        var data = {};
-
-        var login = services.get("login");
-        if (!login) {
-            reject("Login service not defined");
-            return;
-        }
-
-        preferences.load().then(function () {
-            return login(mail, password);
-        }).then(function (token) {
-            preferences.set("session.type", TYPE_MAIL);
-            preferences.set("session.mail", mail);
-            preferences.set("session.password", password);
-
-            _sessionToken = token;
-            _loggedUser = {
-                type: TYPE_MAIL,
-                mail: mail,
-                data: data
-            };
-
-            return preferences.save();
-        }).then(function (r) {
-            resolve(_loggedUser);
-        }).catch(function (e) {
-            _loggedUser = null;
-            _sessionToken = null;
-
-            logger.e(e);
-
-            preferences.load().then(function () {
-                preferences.set("session.type", false);
-                preferences.set("session.mail", false);
-                preferences.set("session.password", false);
-                return preferences.save();
-            }).catch(function (e) {
-                logger.e(e);
-                reject("Bad username or password");
-            });
-        });
-    });
-}
-
-function resume() {
-    return new Promise(function (resolve, reject) {
-        _loggedUser = null;
-        _sessionToken = null;
-
-        preferences.load().then(function () {
-            var type = preferences.get("session.type");
-            var mail = preferences.get("session.mail");
-            var password = preferences.get("session.password");
-
-            if (type == TYPE_MAIL && mail && password) {
-                return start(mail, password);
-            } else {
-                reject("Cannot resume session");
-                return stop();
-            }
-        }).then(function (r) {
-            return wrap(r, function () {
-                resolve(r);
-            });
-        }).catch(function (e) {
-            reject(e);
-        });
-    });
-}
-
-function getLoggedUser() {
-    return _loggedUser;
-}
-
-function isLoggedIn() {
-    return _loggedUser != null;
-}
-
-function getSessionToken() {
-    logger.i("Current session token: ", _sessionToken);
-    logger.i("Current user: ", _loggedUser);
-
-    return _sessionToken;
-}
 });
 define('framework/base64.js', function(module, exports) {
 'use strict';
@@ -22494,7 +22578,7 @@ define('main.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 exports.main = undefined;
 
@@ -22504,17 +22588,7 @@ require("./stores");
 
 require("./actions");
 
-var _services = require("./framework/services");
-
-var services = _interopRequireWildcard(_services);
-
-var _services2 = require("./services");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var main = exports.main = function main() {
-    services.register("login", _services2.login);
-};
+var main = exports.main = function main() {};
 });
 define('plugins.js', function(module, exports) {
 "use strict";
@@ -22568,81 +22642,21 @@ function toast(message) {
     aj.exec("Toast", "show", { message: message });
 }
 });
-define('services.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.login = login;
-exports.fakeLogin = fakeLogin;
-
-var _http = require("./aj/http");
-
-var http = _interopRequireWildcard(_http);
-
-var _config = require("./framework/config");
-
-var config = _interopRequireWildcard(_config);
-
-var _underscore = require("./libs/underscore");
-
-var _ = _interopRequireWildcard(_underscore);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function login(mail, password) {
-    return new Promise(function (resolve, reject) {
-        http.post(config.get("login.url"), { mail: mail, password: password }).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject("Could not login");
-            } else {
-                var response = JSON.parse(json);
-
-                if (response.error) {
-                    reject(response.message);
-                }
-
-                resolve(response.value);
-            }
-        }).catch(function (e) {
-            logger.e("Error logging in:", e);
-            reject(e);
-        });
-    });
-}
-
-function fakeLogin(mail, password) {
-    return new Promise(function (resolve, reject) {
-        setTimeout(function () {
-            if (Math.random() > 0.6) {
-                reject("Random error generated");
-            } else {
-                resolve({ id: 1, mail: mail, name: "Bruno Fortunato" });
-            }
-        }, 1500);
-    });
-}
-});
 define('stores/index.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ui = exports.session = exports.home = undefined;
+exports.session = exports.SESSION = undefined;
 
 var _aj = require("../aj");
 
 var aj = _interopRequireWildcard(_aj);
 
-var _types = require("./types");
+var _actions = require("../actions");
 
-var types = _interopRequireWildcard(_types);
-
-var _types2 = require("../actions/types");
-
-var actions = _interopRequireWildcard(_types2);
+var actions = _interopRequireWildcard(_actions);
 
 var _underscore = require("../libs/underscore");
 
@@ -22650,57 +22664,24 @@ var _ = _interopRequireWildcard(_underscore);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var initialState = {
-    message: null
-};
+var SESSION = exports.SESSION = "SESSION";
 
-var home = exports.home = aj.createStore(types.HOME, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
-    var action = arguments[1];
-
-
-    switch (action.type) {
-        case actions.GET_MESSAGE:
-            return _.assign(state, { message: action.message });
-    }
-});
-
-var session = exports.session = aj.createStore(types.SESSION, function () {
+var session = exports.session = aj.createStore(SESSION, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
 
     switch (action.type) {
         case actions.LOGIN:
-            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
+            return _.assign(state, { action: action.type, user: action.user, isLoggedIn: action.isLoggedIn });
 
         case actions.RESUME_SESSION:
-            return _.assign(state, { action: action.type, user: action.user, loggedIn: action.loggedIn });
-    }
-});
-
-var ui = exports.ui = aj.createStore(types.UI, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { loading: false };
-    var action = arguments[1];
-
-
-    switch (action.type) {
-        case actions.SHOW_LOADING:
-        case actions.HIDE_LOADING:
-            return _.assign(state, { loading: action.loading });
+            return _.assign(state, { action: action.type, user: action.user, isLoggedIn: action.isLoggedIn });
     }
 });
 });
 define('stores/types.js', function(module, exports) {
 "use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var UI = exports.UI = "UI";
-var SESSION = exports.SESSION = "SESSION";
-var HOME = exports.HOME = "HOME";
-var $ACTION_NAME = exports.$ACTION_NAME = "";
 });
 
 require('./aj').createRuntime();

@@ -3,11 +3,17 @@
 define("components/layout", (module, exports) => {
 
     const HomeStore = require("../stores").home;
-    const getMessage = require("../actions").getMessage;
+    const { logout } = require("../actions");
     const ui = require("../utils/ui");
     const { PageLoader, GlobalLoader } = require("loader");
 
-    const {showLoading, hideLoading} = require("../actions");
+    function showPageLoader() {
+        $(".page-loader").show()
+    }
+
+    function hidePageLoader() {
+        $(".page-loader").fadeOut(500);
+    }
 
     class Header extends React.Component {
         render() {
@@ -62,38 +68,52 @@ define("components/layout", (module, exports) => {
         }
     }
 
+    class ProfileBox extends React.Component {
+
+        logout() {
+            logout()
+            ui.navigate("/login")
+        }
+
+        render() {
+            return (
+                <div className="s-profile">
+                    <a href="" data-ma-action="profile-menu-toggle">
+                        <div className="sp-pic">
+                            <img src="theme/img/demo/profile-pics/1.jpg" alt="" />
+                        </div>
+
+                        <div className="sp-info">
+                            Malinda Hollaway
+
+                            <i className="zmdi zmdi-caret-down"></i>
+                        </div>
+                    </a>
+
+                    <ul className="main-menu">
+                        <li>
+                            <a href=""><i className="zmdi zmdi-account"></i> View Profile</a>
+                        </li>
+                        <li>
+                            <a href=""><i className="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
+                        </li>
+                        <li>
+                            <a href=""><i className="zmdi zmdi-settings"></i> Settings</a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" onClick={this.logout.bind(this)}><i className="zmdi zmdi-time-restore"></i> Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            )
+        }
+    }
+
     class SideBar extends React.Component {
         render() {
             return (
                 <aside id="sidebar" className="sidebar c-overflow">
-                    <div className="s-profile">
-                        <a href="" data-ma-action="profile-menu-toggle">
-                            <div className="sp-pic">
-                                <img src="theme/img/demo/profile-pics/1.jpg" alt="" />
-                            </div>
-
-                            <div className="sp-info">
-                                Malinda Hollaway
-
-                                <i className="zmdi zmdi-caret-down"></i>
-                            </div>
-                        </a>
-
-                        <ul className="main-menu">
-                            <li>
-                                <a href=""><i className="zmdi zmdi-account"></i> View Profile</a>
-                            </li>
-                            <li>
-                                <a href=""><i className="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
-                            </li>
-                            <li>
-                                <a href=""><i className="zmdi zmdi-settings"></i> Settings</a>
-                            </li>
-                            <li>
-                                <a href=""><i className="zmdi zmdi-time-restore"></i> Logout</a>
-                            </li>
-                        </ul>
-                    </div>
+                    <ProfileBox />
 
                     <ul className="main-menu">
                         <li className="active"><a href="index.html"><i className="zmdi zmdi-home"></i> Home</a></li>
@@ -194,9 +214,9 @@ define("components/layout", (module, exports) => {
 
         componentDidMount() {
             ui.addScreenChangeListener(screen => {
-                showLoading()
+                showPageLoader()
                 this.setState(_.assign(this.state, {currentScreen: screen}))
-                hideLoading()
+                hidePageLoader()
             })
         }
 
@@ -221,18 +241,6 @@ define("components/layout", (module, exports) => {
             this.state = {}
         }
 
-        componentDidMount() {
-            HomeStore.subscribe(this, state => {
-                this.setState(state);
-            })
-
-            getMessage()
-        }
-
-        componentWillUnmount() {
-            HomeStore.unsubscribe(this);
-        }
-        
         render() {
             return (
                 <div>

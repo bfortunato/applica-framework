@@ -1,13 +1,17 @@
 "use strict"
 
-define("components/secureScreen", (module, exports) => {
+define("components/secure", (module, exports) => {
 
-    const auth = require("../framework/auth")
-    const Login = require("../screes/login")
-    const { Screen } = require("layout")
-    const SessionStore = require("../stores").session;
+    const Login = require("../screens/login")
+    const SessionStore = require("../stores").session
 
-    class SecureScreen extends Screen {
+    class Secure extends React.Component {
+
+        constructor(props) {
+            super(props)
+
+            this.state = SessionStore.state || {}
+        }
 
         componentDidMount() {
             SessionStore.subscribe(this, state => {
@@ -21,7 +25,7 @@ define("components/secureScreen", (module, exports) => {
 
         render() {
             return (
-                (auth.isLoggedIn() ?
+                (this.state.isLoggedIn ?
                     this.props.children
                         :
                     <Login />
@@ -30,6 +34,8 @@ define("components/secureScreen", (module, exports) => {
         }
 
     }
+
+    module.exports = Secure
 
 
 })
