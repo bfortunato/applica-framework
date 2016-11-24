@@ -15,13 +15,16 @@ plugins.register()
 ui.addRoute("/login", params => ui.changeScreen(<Login />))
 ui.addRoute("/register", params => ui.changeScreen(<Register />))
 ui.addRoute("/recover", params => ui.changeScreen(<Recover />))
-ui.addRoute("/registrationOk", params => ui.changeScreen(<RegistrationOk />))
+ui.addRoute("/registrationComplete", params => ui.changeScreen(<RegistrationOk />))
 
 /* home route */
 ui.addRoute("/", params => ui.changeScreen(<Home />))
 
+/* render main index page into dom */
 ReactDOM.render(<Index />, document.getElementById("entry-point"))
 
-resumeSession();
+/* automatic login, if possible */
+resumeSession()
 
-ui.startNavigation();
+/* starts navigation demon */
+ui.startNavigation()

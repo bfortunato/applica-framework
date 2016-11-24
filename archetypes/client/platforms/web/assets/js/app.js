@@ -4,7 +4,7 @@ define('actions/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.recover = exports.register = exports.logout = exports.resumeSession = exports.login = exports.RECOVER = exports.REGISTER = exports.LOGOUT = exports.RESUME_SESSION = exports.LOGIN = undefined;
+exports.recover = exports.registrationError = exports.registrationOk = exports.register = exports.logout = exports.resumeSession = exports.login = exports.REGISTRATION_ERROR = exports.REGISTRATION_OK = exports.RECOVER = exports.REGISTER = exports.LOGOUT = exports.RESUME_SESSION = exports.LOGIN = undefined;
 
 var _aj = require("../aj");
 
@@ -13,6 +13,10 @@ var aj = _interopRequireWildcard(_aj);
 var _session = require("../api/session");
 
 var session = _interopRequireWildcard(_session);
+
+var _account = require("../api/account");
+
+var account = _interopRequireWildcard(_account);
 
 var _responses = require("../api/responses");
 
@@ -27,6 +31,8 @@ var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
 var LOGOUT = exports.LOGOUT = "LOGOUT";
 var REGISTER = exports.REGISTER = "REGISTER";
 var RECOVER = exports.RECOVER = "RECOVER";
+var REGISTRATION_OK = exports.REGISTRATION_OK = "REGISTRATION_OK";
+var REGISTRATION_ERROR = exports.REGISTRATION_ERROR = "REGISTRATION_ERROR";
 
 var login = exports.login = aj.createAction(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
@@ -89,10 +95,21 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
 });
 
 var register = exports.register = aj.createAction(REGISTER, function (data) {
-
     aj.dispatch({
-        type: REGISTER,
-        loading: true
+        type: REGISTER
+    });
+});
+
+var registrationOk = exports.registrationOk = aj.createAction(REGISTRATION_OK, function (data) {
+    aj.dispatch({
+        type: REGISTRATION_OK
+    });
+});
+
+var registrationError = exports.registrationError = aj.createAction(REGISTRATION_ERROR, function (data) {
+    aj.dispatch({
+        type: REGISTRATION_ERROR,
+        error: data.error
     });
 });
 
@@ -1408,11 +1425,11 @@ function login(mail, password) {
             } else {
                 var response = JSON.parse(json);
 
-                if (responses.OK == response.responseCode) {
+                if (responses.OK != response.responseCode) {
                     reject(response.responseCode);
+                } else {
+                    resolve(response);
                 }
-
-                resolve(response.token);
             }
         }).catch(function (e) {
             logger.e("Error logging in:", e);
@@ -1430,17 +1447,13 @@ function start(mail, password) {
 
         preferences.load().then(function () {
             return login(mail, password);
-        }).then(function (token) {
+        }).then(function (response) {
             preferences.set("session.type", TYPE_MAIL);
             preferences.set("session.mail", mail);
             preferences.set("session.password", password);
 
-            _sessionToken = token;
-            _loggedUser = {
-                type: TYPE_MAIL,
-                mail: mail,
-                data: data
-            };
+            _sessionToken = response.token;
+            _loggedUser = response.user;
 
             return preferences.save();
         }).then(function (r) {
@@ -22648,7 +22661,7 @@ define('stores/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.session = exports.SESSION = undefined;
+exports.account = exports.session = exports.ACCOUNT = exports.SESSION = undefined;
 
 var _aj = require("../aj");
 
@@ -22665,6 +22678,7 @@ var _ = _interopRequireWildcard(_underscore);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var SESSION = exports.SESSION = "SESSION";
+var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
 
 var session = exports.session = aj.createStore(SESSION, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -22679,8 +22693,28 @@ var session = exports.session = aj.createStore(SESSION, function () {
             return _.assign(state, { action: action.type, user: action.user, isLoggedIn: action.isLoggedIn });
     }
 });
+
+var account = exports.account = aj.createStore(ACCOUNT, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.REGISTER:
+            return _.assign(state, { registered: false, error: false });
+
+        case actions.REGISTRATION_OK:
+            return _.assign(state, { registered: true, error: false });
+
+        case actions.REGISTRATION_ERROR:
+            return _.assign(state, { registered: false, error: true, message: action.message });
+    }
+});
 });
 define('stores/types.js', function(module, exports) {
+"use strict";
+});
+define('strings.js', function(module, exports) {
 "use strict";
 });
 

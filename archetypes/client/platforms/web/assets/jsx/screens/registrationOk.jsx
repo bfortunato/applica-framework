@@ -1,17 +1,26 @@
 "use strict";
 
-define("screens/login", (module, exports) => {
+define("screens/registrationOk", (module, exports) => {
 
-    const SessionStore = require("../stores").session
+    const AccountStore = require("../stores").account
     const { FullScreenLayout, Screen } = require("../components/layout")
     const ui = require("../utils/ui")
     const { login } = require("../actions")
     const forms = require("../utils/forms")
     const { Preloader } = require("../components/loader")
+    const { connect } = require("../utils/aj")
+    const strings = require("../strings")
+
 
     class RegistrationOk extends Screen {
 
-        continue() {
+        constructor(props) {
+            super(props)
+
+            connect(this, AccountStore)
+        }
+
+        goHome() {
             ui.navigate("/")
         }
 
@@ -22,10 +31,10 @@ define("screens/login", (module, exports) => {
                         <div className="lc-block toggled" id="l-login">
                             <div className="text-center m-b-10"><img src="resources/images/logo.png" /></div>
 
-                            <div class="jumbotron">
-                                <h1>Congratulations!</h1>
-                                <p>Registration complete. Please confirm your email before login</p>
-                                <p><a class="btn btn-primary btn-lg waves-effect" href="javascript:;" onClick={this.continue.bind(this)} role="button">Continue</a></p>
+                            <div className="jumbotron">
+                                <h1>{strings.congratulations}!</h1>
+                                <p>{this.state.welcomeMessage}</p>
+                                <p><a className="btn btn-primary btn-lg waves-effect" href="javascript:;" onClick={this.goHome.bind(this)} role="button">Continue</a></p>
                             </div>
 
                             <div className="lcb-navigation">
@@ -40,6 +49,6 @@ define("screens/login", (module, exports) => {
 
     }
 
-    module.exports = Login;
+    module.exports = RegistrationOk;
 
 })

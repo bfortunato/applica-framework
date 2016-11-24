@@ -37,11 +37,11 @@ export function login(mail, password) {
                 } else {
                     let response = JSON.parse(json)
 
-                    if (responses.OK == response.responseCode) {
+                    if (responses.OK != response.responseCode) {
                         reject(response.responseCode)
+                    } else {
+                        resolve(response)
                     }
-
-                    resolve(response.token)
                 }
             })
             .catch(e => {
@@ -60,17 +60,13 @@ export function start(mail, password) {
 
         preferences.load()
             .then(() => { return login(mail, password) })
-            .then(token => {
+            .then((response) => {
                 preferences.set("session.type", TYPE_MAIL)
                 preferences.set("session.mail", mail)
                 preferences.set("session.password", password)
 
-                _sessionToken = token
-                _loggedUser = {
-                    type: TYPE_MAIL,
-                    mail: mail,
-                    data: data,
-                }
+                _sessionToken = response.token
+                _loggedUser = response.user
 
                 return preferences.save()
             })

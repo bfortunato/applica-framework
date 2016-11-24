@@ -1,7 +1,7 @@
 <templateSet group="JavaScript">
-  <template name="ajaction" value="export const $ACTION_NAME$ = aj.createAction(types.$ACTION_TYPE$, data =&gt; {&#10;    aj.dispatch({&#10;        type: types.$ACTION_TYPE$&#10;    })&#10;});" description="Creates an aj action" toReformat="false" toShortenFQNames="true">
-    <variable name="ACTION_NAME" expression="" defaultValue="actionName" alwaysStopAt="true" />
-    <variable name="ACTION_TYPE" expression="capitalizeAndUnderscore(ACTION_NAME)" defaultValue="ACTION_NAME" alwaysStopAt="true" />
+  <template name="ajaction" value="export const $ACTION_TYPE$ = &quot;$ACTION_TYPE$&quot;&#10;export const $ACTION_NAME$ = aj.createAction($ACTION_TYPE$, data =&gt; {&#10;    aj.dispatch({&#10;        type: $ACTION_TYPE$&#10;    })&#10;})" description="Creates an aj action" toReformat="false" toShortenFQNames="true">
+    <variable name="ACTION_NAME" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="ACTION_TYPE" expression="capitalizeAndUnderscore(ACTION_NAME)" defaultValue="" alwaysStopAt="true" />
     <context>
       <option name="JAVA_SCRIPT" value="true" />
       <option name="JSX_HTML" value="false" />
@@ -13,7 +13,7 @@
       <option name="JAVA_SCRIPT" value="true" />
     </context>
   </template>
-  <template name="ajstore" value="export const $STORE_NAME$ = aj.createStore(types.$STORE_TYPE$, (state = {}, action) =&gt; {&#10;&#10;    switch (action.type) {&#10;        case actions.$ACTION_TYPE$:&#10;            return _.assign(state, { message: action.message });&#10;    }&#10;&#10;});" description="Creates an aj store" toReformat="false" toShortenFQNames="true">
+  <template name="ajstore" value="export const $STORE_TYPE$ = &quot;$STORE_TYPE$&quot;&#10;export const $STORE_NAME$ = aj.createStore($STORE_TYPE$, (state = {}, action) =&gt; {&#10;&#10;    switch (action.type) {&#10;        case actions.$ACTION_TYPE$:&#10;            return _.assign(state, { message: action.message })&#10;    }&#10;&#10;})" description="Creates an aj store" toReformat="false" toShortenFQNames="true">
     <variable name="STORE_NAME" expression="" defaultValue="STORE" alwaysStopAt="true" />
     <variable name="STORE_TYPE" expression="capitalizeAndUnderscore(STORE_NAME)" defaultValue="" alwaysStopAt="true" />
     <variable name="ACTION_TYPE" expression="" defaultValue="" alwaysStopAt="true" />

@@ -5,6 +5,7 @@ import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.exceptions.BadCredentialsException;
 import applica.framework.library.i18n.controllers.LocalizedController;
 import applica.framework.library.responses.Response;
+import applica.framework.security.Security;
 import applica.framework.security.token.TokenFormatException;
 import applica.framework.security.token.TokenGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class AuthController extends LocalizedController {
     public Response login(String mail, String password) {
         try {
             String token = authService.token(mail, password);
-            return new LoginResponse(token);
+            return new LoginResponse(token, Security.withMe().getLoggedUser());
         } catch (BadCredentialsException e) {
             return new Response(ERROR_BAD_CREDENTIALS);
         } catch (TokenGenerationException e) {

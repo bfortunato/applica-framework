@@ -1,46 +1,20 @@
-"use strict";
+"use strict"
 
 define("screens/login", (module, exports) => {
 
-    const SessionStore = require("../stores").session;
-    const { FullScreenLayout, Screen } = require("../components/layout");
-    const ui = require("../utils/ui");
-    const { login } = require("../actions");
-    const forms = require("../utils/forms");
-    const { Preloader } = require("../components/loader");
+    const { FullScreenLayout, Screen } = require("../components/layout")
+    const { login } = require("../actions")
+    const forms = require("../utils/forms")
 
     class Login extends Screen {
-        constructor(props) {
-            super(props)
-
-            this.state = {
-                loading: false
-            }
-        }
 
         login() {
-            let data = forms.serialize(this.refs.login_form);
+            let data = forms.serialize(this.refs.login_form)
             login(data)
         }
 
-        componentDidMount() {
-            SessionStore.subscribe(this, state => {
-                this.setState(state);
-            })
-        }
-
-        componentWillUnmount() {
-            SessionStore.unsubscribe(this);
-        }
-
-        componentDidUpdate() {
-            if (this.state.error) {
-                swal("Oooops...", "Cannot login. Please check your email or password", "error");
-            }
-        }
-
         render() {
-            let loginButtonClass = this.state.loading ? "animated fadeOutLeft" : "animated fadeInLeft"
+            let loginButtonClass = "animated fadeInLeft"
 
             return (
                 <FullScreenLayout>
@@ -48,7 +22,7 @@ define("screens/login", (module, exports) => {
                         <div className="lc-block toggled" id="l-login">
                             <div className="text-center m-b-10"><img src="resources/images/logo.png" /></div>
 
-                            <form action="javascript:;" className="lcb-form" onSubmit={this.login.bind(this)} ref="login_form">
+                            <form action="javascript:" className="lcb-form" onSubmit={this.login.bind(this)} ref="login_form">
                                 <div className="input-group m-b-20">
                                     <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                     <div className="fg-line">
@@ -86,6 +60,6 @@ define("screens/login", (module, exports) => {
 
     }
 
-    module.exports = Login;
+    module.exports = Login
 
 })

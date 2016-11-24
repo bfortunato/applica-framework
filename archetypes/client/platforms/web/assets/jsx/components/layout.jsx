@@ -2,17 +2,18 @@
 
 define("components/layout", (module, exports) => {
 
-    const HomeStore = require("../stores").home;
-    const { logout } = require("../actions");
-    const ui = require("../utils/ui");
-    const { PageLoader, GlobalLoader } = require("loader");
+    const SessionStore = require("../stores").session
+    const { logout } = require("../actions")
+    const ui = require("../utils/ui")
+    const { PageLoader, GlobalLoader } = require("./loader")
+    const { connect } = require("../utils/aj")
 
     function showPageLoader() {
         $(".page-loader").show()
     }
 
     function hidePageLoader() {
-        $(".page-loader").fadeOut(500);
+        $(".page-loader").fadeOut(500)
     }
 
     class Header extends React.Component {
@@ -70,6 +71,12 @@ define("components/layout", (module, exports) => {
 
     class ProfileBox extends React.Component {
 
+        constructor(props) {
+            super(props)
+
+            connect(this, SessionStore)
+        }
+
         logout() {
             logout()
             ui.navigate("/login")
@@ -84,7 +91,7 @@ define("components/layout", (module, exports) => {
                         </div>
 
                         <div className="sp-info">
-                            Malinda Hollaway
+                            {this.state.user.name}
 
                             <i className="zmdi zmdi-caret-down"></i>
                         </div>
@@ -101,7 +108,7 @@ define("components/layout", (module, exports) => {
                             <a href=""><i className="zmdi zmdi-settings"></i> Settings</a>
                         </li>
                         <li>
-                            <a href="javascript:;" onClick={this.logout.bind(this)}><i className="zmdi zmdi-time-restore"></i> Logout</a>
+                            <a href="javascript:" onClick={this.logout.bind(this)}><i className="zmdi zmdi-time-restore"></i> Logout</a>
                         </li>
                     </ul>
                 </div>
@@ -158,7 +165,7 @@ define("components/layout", (module, exports) => {
         render() {
             return (
                 <footer id="footer">
-                    Copyright &copy; 2016 Applica srl
+                    Copyright &copy 2016 Applica srl
 
                     <ul className="f-menu">
                         <li><a href="">Home</a></li>
@@ -252,10 +259,10 @@ define("components/layout", (module, exports) => {
         }
     }
 
-    exports.Index = Index;
-    exports.Screen = Screen;
-    exports.FullScreenLayout = FullScreenLayout;
-    exports.Layout = Layout;
-    exports.Header = Header;
-    exports.Footer = Footer;
-});
+    exports.Index = Index
+    exports.Screen = Screen
+    exports.FullScreenLayout = FullScreenLayout
+    exports.Layout = Layout
+    exports.Header = Header
+    exports.Footer = Footer
+})

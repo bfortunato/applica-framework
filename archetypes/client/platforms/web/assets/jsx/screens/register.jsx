@@ -2,16 +2,30 @@
 
 define("screens/register", (module, exports) => {
 
-    const { FullScreenLayout, Screen } = require("../components/layout");
-    const ui = require("../utils/ui");
+    const AccountStore = require("../stores").account
+    const { FullScreenLayout, Screen } = require("../components/layout")
+    const ui = require("../utils/ui")
+    const { register } = require("../actions")
+    const forms = require("../utils/forms")
 
     class Register extends Screen {
         constructor(props) {
             super(props)
+
+            connect(this, AccountStore)
         }
 
         register() {
-            ui.navigate("/");
+            let data = forms.serialize(this.refs.register_form)
+            register(data)
+        }
+
+        setState(state) {
+            if (state.registered) {
+                ui.navigate("/registrationComplete")
+            } else {
+                super.setState(state)
+            }
         }
 
         render() {
@@ -56,6 +70,6 @@ define("screens/register", (module, exports) => {
 
     }
 
-    module.exports = Register;
+    module.exports = Register
 
 })

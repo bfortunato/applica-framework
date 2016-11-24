@@ -49,7 +49,7 @@ ui.addRoute("/register", function (params) {
 ui.addRoute("/recover", function (params) {
   return ui.changeScreen(React.createElement(_recover2.default, null));
 });
-ui.addRoute("/registrationOk", function (params) {
+ui.addRoute("/registrationComplete", function (params) {
   return ui.changeScreen(React.createElement(_registrationOk2.default, null));
 });
 
@@ -58,8 +58,11 @@ ui.addRoute("/", function (params) {
   return ui.changeScreen(React.createElement(_home2.default, null));
 });
 
+/* render main index page into dom */
 ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
 
+/* automatic login, if possible */
 (0, _actions.resumeSession)();
 
+/* starts navigation demon */
 ui.startNavigation();
