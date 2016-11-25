@@ -1,6 +1,7 @@
 package applica._APPNAME_.services;
 
 import applica._APPNAME_.services.exceptions.*;
+import applica.framework.ValidationException;
 
 /**
  * Created by bimbobruno on 15/11/2016.
@@ -13,7 +14,7 @@ public interface AccountService {
      * @param mail
      * @param password
      */
-    void register(String name, String mail, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException;
+    void register(String name, String mail, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException;
 
     /**
      * Confirm a previously registered account

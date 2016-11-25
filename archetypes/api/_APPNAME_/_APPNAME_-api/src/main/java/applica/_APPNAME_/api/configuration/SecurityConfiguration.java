@@ -47,7 +47,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public void init(WebSecurity web) throws Exception {
         web
                 .ignoring()
-                .antMatchers("/public/**", "/static/**", "/auth/**")
+                .antMatchers(
+                        "/public/**",
+                        "/static/**",
+                        "/auth/**",
+                        "/account/register",
+                        "/account/recover"
+                )
         ;
     }
 

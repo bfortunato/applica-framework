@@ -11,4 +11,5 @@ public class ResponseCode {
     public static final int ERROR_TOKEN_FORMAT              = 1005;
     public static final int ERROR_MAIL_NOT_VALID            = 1006;
     public static final int ERROR_PASSWORD_NOT_VALID        = 1007;
+    public static final int ERROR_VALIDATION                = 1008;
 }

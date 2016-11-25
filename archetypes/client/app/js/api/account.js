@@ -1,28 +1,16 @@
 "use strict";
 
-import * as http from "../aj/http"
-import * as responses from "./responses"
 import * as config from "../framework/config"
+import { get, post } from "./utils"
 
 export function register(name, mail, password) {
-    return new Promise((resolve, reject) => {
-        http.post(config.get("account.register.url"), {name, mail, password})
-            .then(json => {
-                if (_.isEmpty(json)) {
-                    reject(responses.ERROR)
-                } else {
-                    let response = JSON.parse(json)
+    return post(config.get("account.register.url"), {name, mail, password})
+}
 
-                    if (responses.OK == response.responseCode) {
-                        reject(response.responseCode)
-                    }
+export function recover(mail) {
+    return post(config.get("account.recover.url"), {mail})
+}
 
-                    resolve()
-                }
-            })
-            .catch(e => {
-                logger.e("Error registering user:", e)
-                reject(responses.ERROR)
-            })
-    })
+export function confirm(activationCode) {
+    return post(config.get("account.confirm.url"), {activationCode})
 }

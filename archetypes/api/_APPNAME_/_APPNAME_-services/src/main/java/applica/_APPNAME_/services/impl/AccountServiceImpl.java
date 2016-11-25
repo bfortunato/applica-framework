@@ -8,6 +8,7 @@ import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
+import applica.framework.ValidationException;
 import applica.framework.library.mail.MailUtils;
 import applica.framework.library.mail.TemplatedMail;
 import applica.framework.library.options.OptionsManager;
@@ -41,9 +42,9 @@ public class AccountServiceImpl implements AccountService {
     private OptionsManager options;
 
     @Override
-    public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException {
+    public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException {
         if (StringUtils.isEmpty(name) || StringUtils.isEmpty(email) || StringUtils.isEmpty(password)) {
-            throw new IllegalArgumentException();
+            throw new ValidationException(null);
         }
 
         final String mail = email.trim().toLowerCase();

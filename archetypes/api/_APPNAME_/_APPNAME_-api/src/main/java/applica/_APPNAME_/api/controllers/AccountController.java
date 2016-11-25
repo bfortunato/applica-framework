@@ -5,6 +5,7 @@ import applica._APPNAME_.services.exceptions.PasswordNotValidException;
 import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.exceptions.MailAlreadyExistsException;
 import applica._APPNAME_.services.exceptions.MailNotValidException;
+import applica.framework.ValidationException;
 import applica.framework.library.responses.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,8 @@ public class AccountController {
             return new Response(ERROR_MAIL_NOT_VALID);
         } catch (PasswordNotValidException e) {
             return new Response(ERROR_PASSWORD_NOT_VALID);
+        } catch (ValidationException e) {
+            return new Response(ERROR_VALIDATION);
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(ERROR);

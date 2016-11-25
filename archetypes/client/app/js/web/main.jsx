@@ -4,9 +4,10 @@ import Register from "./screens/register"
 import Recover from "./screens/recover"
 import Home from "./screens/home"
 import RegistrationOk from "./screens/registrationOk"
+import Confirm from "./screens/confirm"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
-import { resumeSession } from "./actions"
+import { resumeSession } from "../actions"
 
 /* Register plugins */
 plugins.register()
@@ -16,6 +17,7 @@ ui.addRoute("/login", params => ui.changeScreen(<Login />))
 ui.addRoute("/register", params => ui.changeScreen(<Register />))
 ui.addRoute("/recover", params => ui.changeScreen(<Recover />))
 ui.addRoute("/registrationComplete", params => ui.changeScreen(<RegistrationOk />))
+ui.addRoute("/confirm", params => ui.changeScreen(<Confirm activationCode={params.activationCode}/>))
 
 /* home route */
 ui.addRoute("/", params => ui.changeScreen(<Home />))

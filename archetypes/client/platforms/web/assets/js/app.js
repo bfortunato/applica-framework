@@ -4,7 +4,7 @@ define('actions/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.recover = exports.registrationError = exports.registrationOk = exports.register = exports.logout = exports.resumeSession = exports.login = exports.REGISTRATION_ERROR = exports.REGISTRATION_OK = exports.RECOVER = exports.REGISTER = exports.LOGOUT = exports.RESUME_SESSION = exports.LOGIN = undefined;
+exports.confirmAccountError = exports.CONFIRM_ACCOUNT_ERROR = exports.confirmAccountComplete = exports.CONFIRM_ACCOUNT_COMPLETE = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccountError = exports.RECOVER_ACCOUNT_ERROR = exports.recoverAccountComplete = exports.RECOVER_ACCOUNT_COMPLETE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.registrationError = exports.REGISTRATION_ERROR = exports.registrationComplete = exports.REGISTRATION_COMPLETE = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSessionError = exports.RESUME_SESSION_ERROR = exports.resumeSessionComplete = exports.RESUME_SESSION_COMPLETE = exports.resumeSession = exports.RESUME_SESSION = exports.loginError = exports.LOGIN_ERROR = exports.loginComplete = exports.LOGIN_COMPLETE = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("../aj");
 
@@ -24,68 +24,90 @@ var responses = _interopRequireWildcard(_responses);
 
 var _plugins = require("../plugins");
 
+var _lang = require("../utils/lang");
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var LOGIN = exports.LOGIN = "LOGIN";
-var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
-var LOGOUT = exports.LOGOUT = "LOGOUT";
-var REGISTER = exports.REGISTER = "REGISTER";
-var RECOVER = exports.RECOVER = "RECOVER";
-var REGISTRATION_OK = exports.REGISTRATION_OK = "REGISTRATION_OK";
-var REGISTRATION_ERROR = exports.REGISTRATION_ERROR = "REGISTRATION_ERROR";
-
 var login = exports.login = aj.createAction(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)("Cannot login", "Email and password are required", "warning");
+        (0, _plugins.alert)(_strings2.default.cannotLogin, _strings2.default.mailAndPasswordRequired, "warning");
         return;
     }
+
+    aj.dispatch({
+        type: LOGIN
+    });
 
     (0, _plugins.showLoader)();
     session.start(data.mail, data.password).then(function (user) {
         (0, _plugins.hideLoader)();
+        (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
-        aj.dispatch({
-            type: LOGIN,
-            user: user,
-            isLoggedIn: true
-        });
-
-        (0, _plugins.toast)("Welcome " + user.mail);
+        loginComplete({ user: user });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, _strings2.default.badLogin, "error");
 
-        aj.dispatch({
-            type: LOGIN,
-            user: null,
-            isLoggedIn: false
-        });
-
-        (0, _plugins.alert)("Oooops...", "Cannot login! Please check your email address or password!", "error");
+        loginError();
     });
 });
 
+var LOGIN_COMPLETE = exports.LOGIN_COMPLETE = "LOGIN_COMPLETE";
+var loginComplete = exports.loginComplete = aj.createAction(LOGIN_COMPLETE, function (data) {
+    aj.dispatch({
+        type: LOGIN_COMPLETE,
+        user: data.user
+    });
+});
+
+var LOGIN_ERROR = exports.LOGIN_ERROR = "LOGIN_ERROR";
+var loginError = exports.loginError = aj.createAction(LOGIN_ERROR, function (data) {
+    aj.dispatch({
+        type: LOGIN_ERROR
+    });
+});
+
+var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
 var resumeSession = exports.resumeSession = aj.createAction(RESUME_SESSION, function (data) {
+    aj.dispatch({
+        type: RESUME_SESSION
+    });
+
     session.resume().then(function (user) {
         (0, _plugins.hideLoader)();
+        (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
-        aj.dispatch({
-            type: RESUME_SESSION,
-            user: user,
-            isLoggedIn: true
-        });
-
-        (0, _plugins.toast)("Welcome " + user.mail);
+        resumeSessionComplete({ user: user });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
 
-        aj.dispatch({
-            type: RESUME_SESSION,
-            user: null,
-            isLoggedIn: false
-        });
+        resumeSessionError();
     });
 });
 
+var RESUME_SESSION_COMPLETE = exports.RESUME_SESSION_COMPLETE = "RESUME_SESSION_COMPLETE";
+var resumeSessionComplete = exports.resumeSessionComplete = aj.createAction(RESUME_SESSION_COMPLETE, function (data) {
+    aj.dispatch({
+        type: RESUME_SESSION_COMPLETE,
+        user: data.user
+    });
+});
+
+var RESUME_SESSION_ERROR = exports.RESUME_SESSION_ERROR = "RESUME_SESSION_ERROR";
+var resumeSessionError = exports.resumeSessionError = aj.createAction(RESUME_SESSION_ERROR, function (data) {
+    aj.dispatch({
+        type: RESUME_SESSION_ERROR
+    });
+});
+
+var LOGOUT = exports.LOGOUT = "LOGOUT";
 var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
     session.destroy().then(function () {
         aj.dispatch({
@@ -94,29 +116,112 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
     });
 });
 
+var REGISTER = exports.REGISTER = "REGISTER";
 var register = exports.register = aj.createAction(REGISTER, function (data) {
+    if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
+        (0, _plugins.alert)(_strings2.default.cannotRegister, _strings2.default.nameMailAndPasswordRequired, "warning");
+        return;
+    }
+
     aj.dispatch({
         type: REGISTER
     });
-});
 
-var registrationOk = exports.registrationOk = aj.createAction(REGISTRATION_OK, function (data) {
-    aj.dispatch({
-        type: REGISTRATION_OK
+    (0, _plugins.showLoader)(_strings2.default.registering);
+    account.register(data.name, data.mail, data.password).then(function () {
+        (0, _plugins.hideLoader)();
+
+        var message = (0, _lang.format)(_strings2.default.welcomeMessage, data.name, data.mail);
+        registrationComplete({ name: data.name, mail: data.mail, message: message });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        registrationError();
     });
 });
 
+var REGISTRATION_COMPLETE = exports.REGISTRATION_COMPLETE = "REGISTRATION_COMPLETE";
+var registrationComplete = exports.registrationComplete = aj.createAction(REGISTRATION_COMPLETE, function (data) {
+    aj.dispatch({
+        type: REGISTRATION_COMPLETE,
+        mail: data.mail,
+        name: data.name
+    });
+});
+
+var REGISTRATION_ERROR = exports.REGISTRATION_ERROR = "REGISTRATION_ERROR";
 var registrationError = exports.registrationError = aj.createAction(REGISTRATION_ERROR, function (data) {
     aj.dispatch({
-        type: REGISTRATION_ERROR,
-        error: data.error
+        type: REGISTRATION_ERROR
     });
 });
 
-var recover = exports.recover = aj.createAction(RECOVER, function (data) {
+var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
+var recoverAccount = exports.recoverAccount = aj.createAction(RECOVER_ACCOUNT, function (data) {
     aj.dispatch({
-        type: RECOVER,
-        loading: true
+        type: RECOVER_ACCOUNT
+    });
+});
+
+var RECOVER_ACCOUNT_COMPLETE = exports.RECOVER_ACCOUNT_COMPLETE = "RECOVER_ACCOUNT_COMPLETE";
+var recoverAccountComplete = exports.recoverAccountComplete = aj.createAction(RECOVER_ACCOUNT_COMPLETE, function (data) {
+    aj.dispatch({
+        type: RECOVER_ACCOUNT_COMPLETE
+    });
+});
+
+var RECOVER_ACCOUNT_ERROR = exports.RECOVER_ACCOUNT_ERROR = "RECOVER_ACCOUNT_ERROR";
+var recoverAccountError = exports.recoverAccountError = aj.createAction(RECOVER_ACCOUNT_ERROR, function (data) {
+    aj.dispatch({
+        type: RECOVER_ACCOUNT_ERROR
+    });
+});
+
+var SET_ACTIVATION_CODE = exports.SET_ACTIVATION_CODE = "SET_ACTIVATION_CODE";
+var setActivationCode = exports.setActivationCode = aj.createAction(SET_ACTIVATION_CODE, function (data) {
+    aj.dispatch({
+        type: SET_ACTIVATION_CODE,
+        activationCode: data.activationCode
+    });
+});
+
+var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
+var confirmAccount = exports.confirmAccount = aj.createAction(CONFIRM_ACCOUNT, function (data) {
+    if (_.isEmpty(data.activationCode)) {
+        (0, _plugins.alert)(_strings2.default.cannotConfirmAccount, _strings2.default.activationCodeRequired, "warning");
+        return;
+    }
+
+    aj.dispatch({
+        type: CONFIRM_ACCOUNT
+    });
+
+    (0, _plugins.showLoader)();
+    account.confirm(data.activationCode).then(function () {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.congratulations, _strings2.default.accountConfirmed);
+
+        confirmAccountComplete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        confirmAccountError();
+    });
+});
+
+var CONFIRM_ACCOUNT_COMPLETE = exports.CONFIRM_ACCOUNT_COMPLETE = "CONFIRM_ACCOUNT_COMPLETE";
+var confirmAccountComplete = exports.confirmAccountComplete = aj.createAction(CONFIRM_ACCOUNT_COMPLETE, function (data) {
+    aj.dispatch({
+        type: CONFIRM_ACCOUNT_COMPLETE
+    });
+});
+
+var CONFIRM_ACCOUNT_ERROR = exports.CONFIRM_ACCOUNT_ERROR = "CONFIRM_ACCOUNT_ERROR";
+var confirmAccountError = exports.confirmAccountError = aj.createAction(CONFIRM_ACCOUNT_ERROR, function (data) {
+    aj.dispatch({
+        type: CONFIRM_ACCOUNT_ERROR
     });
 });
 });
@@ -1311,48 +1416,36 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.register = register;
-
-var _http = require("../aj/http");
-
-var http = _interopRequireWildcard(_http);
-
-var _responses = require("./responses");
-
-var responses = _interopRequireWildcard(_responses);
+exports.recover = recover;
+exports.confirm = confirm;
 
 var _config = require("../framework/config");
 
 var config = _interopRequireWildcard(_config);
 
+var _utils = require("./utils");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function register(name, mail, password) {
-    return new Promise(function (resolve, reject) {
-        http.post(config.get("account.register.url"), { name: name, mail: mail, password: password }).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
+    return (0, _utils.post)(config.get("account.register.url"), { name: name, mail: mail, password: password });
+}
 
-                if (responses.OK == response.responseCode) {
-                    reject(response.responseCode);
-                }
+function recover(mail) {
+    return (0, _utils.post)(config.get("account.recover.url"), { mail: mail });
+}
 
-                resolve();
-            }
-        }).catch(function (e) {
-            logger.e("Error registering user:", e);
-            reject(responses.ERROR);
-        });
-    });
+function confirm(activationCode) {
+    return (0, _utils.post)(config.get("account.confirm.url"), { activationCode: activationCode });
 }
 });
 define('api/responses.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
+exports.msg = msg;
 var OK = exports.OK = 0;
 var ERROR = exports.ERROR = 1;
 var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
@@ -1364,6 +1457,28 @@ var ERROR_TOKEN_GENERATION = exports.ERROR_TOKEN_GENERATION = 1004;
 var ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_FORMAT = 1005;
 var ERROR_MAIL_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = 1006;
 var ERROR_PASSWORD_NOT_VALID = exports.ERROR_PASSWORD_NOT_VALID = 1007;
+var ERROR_VALIDATION = exports.ERROR_VALIDATION = 1008;
+
+var messages = {};
+messages[OK] = "OK";
+messages[ERROR] = "Generic error";
+messages[UNAUTHORIZED] = "Unauthorized";
+messages[ERROR_MAIL_ALREADY_EXISTS] = "Mail already exists";
+messages[ERROR_MAIL_NOT_FOUND] = "Mail not found";
+messages[ERROR_BAD_CREDENTIALS] = "Bad mail or password";
+messages[ERROR_TOKEN_GENERATION] = "Error generating token";
+messages[ERROR_TOKEN_FORMAT] = "Bad token format";
+messages[ERROR_MAIL_NOT_VALID] = "Mail not valid";
+messages[ERROR_PASSWORD_NOT_VALID] = "Password not valid";
+messages[ERROR_VALIDATION] = "Please check your data and try again";
+
+function msg(code) {
+    if (_.has(messages, code)) {
+        return messages[code];
+    }
+
+    return "Code: = " + code;
+}
 });
 define('api/session.js', function(module, exports) {
 "use strict";
@@ -1528,6 +1643,67 @@ function getSessionToken() {
     return _sessionToken;
 }
 });
+define('api/utils.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.post = post;
+exports.get = get;
+
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function post(url, data) {
+    return new Promise(function (resolve, reject) {
+        http.post(url, data).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response.responseCode);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function get(url, data) {
+    return new Promise(function (resolve, reject) {
+        http.get(url, data).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response.responseCode);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+});
 define('config.js', function(module, exports) {
 "use strict";
 
@@ -1537,7 +1713,8 @@ module.exports = {
     "service.url": "" + serviceBase,
     "login.url": serviceBase + "auth/login",
     "account.register.url": serviceBase + "account/register",
-    "account.recover.url": serviceBase + "account/recover"
+    "account.recover.url": serviceBase + "account/recover",
+    "account.confirm.url": serviceBase + "account/confirm"
 };
 });
 define('framework/assert.js', function(module, exports) {
@@ -22661,7 +22838,7 @@ define('stores/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.account = exports.session = exports.ACCOUNT = exports.SESSION = undefined;
+exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
 
 var _aj = require("../aj");
 
@@ -22675,11 +22852,15 @@ var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var SESSION = exports.SESSION = "SESSION";
-var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
-
 var session = exports.session = aj.createStore(SESSION, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
@@ -22687,15 +22868,28 @@ var session = exports.session = aj.createStore(SESSION, function () {
 
     switch (action.type) {
         case actions.LOGIN:
-            return _.assign(state, { action: action.type, user: action.user, isLoggedIn: action.isLoggedIn });
+            return _.assign(state, { isLoggedIn: false });
+
+        case actions.LOGIN_COMPLETE:
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
+
+        case actions.LOGIN_ERROR:
+            return _.assign(state, { isLoggedIn: false, error: true });
 
         case actions.RESUME_SESSION:
-            return _.assign(state, { action: action.type, user: action.user, isLoggedIn: action.isLoggedIn });
+            return _.assign(state, { isLoggedIn: false });
+
+        case actions.RESUME_SESSION_COMPLETE:
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
+
+        case actions.RESUME_SESSION_ERROR:
+            return _.assign(state, { isLoggedIn: false, error: true });
     }
 });
 
+var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
 var account = exports.account = aj.createStore(ACCOUNT, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { activationCode: "" };
     var action = arguments[1];
 
 
@@ -22703,11 +22897,32 @@ var account = exports.account = aj.createStore(ACCOUNT, function () {
         case actions.REGISTER:
             return _.assign(state, { registered: false, error: false });
 
-        case actions.REGISTRATION_OK:
-            return _.assign(state, { registered: true, error: false });
+        case actions.REGISTRATION_COMPLETE:
+            return _.assign(state, { registered: true, error: false, name: action.name, mail: action.mail, message: action.message });
 
         case actions.REGISTRATION_ERROR:
             return _.assign(state, { registered: false, error: true, message: action.message });
+
+        case actions.SET_ACTIVATION_CODE:
+            return _.assign(state, { activationCode: action.activationCode });
+
+        case actions.CONFIRM_ACCOUNT:
+            return _.assign(state, { confirmed: false, error: false });
+
+        case actions.CONFIRM_ACCOUNT_COMPLETE:
+            return _.assign(state, { confirmed: true, error: false });
+
+        case actions.CONFIRM_ACCOUNT_ERROR:
+            return _.assign(state, { confirmed: false, error: true, message: action.message });
+
+        case actions.RECOVER_ACCOUNT:
+            return _.assign(state, { recovered: false, error: false });
+
+        case actions.RECOVER_ACCOUNT_COMPLETE:
+            return _.assign(state, { recovered: true, error: false });
+
+        case actions.RECOVER_ACCOUNT_ERROR:
+            return _.assign(state, { recovered: false, error: true });
     }
 });
 });
@@ -22716,6 +22931,2140 @@ define('stores/types.js', function(module, exports) {
 });
 define('strings.js', function(module, exports) {
 "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = {
+    registering: "Registering...",
+    ooops: "Ooops...",
+    badLogin: "Cannot login! Please check your email address or password!",
+    welcome: "Welcome",
+    congratulations: "Congratulations",
+    welcomeMessage: "Hi {0}. Your registration is complete. A confirmation link was sent to {1}. Please confirm before login",
+    continue: "Continue",
+    register: "Register",
+    forgotPassword: "Forgot password",
+    signIn: "Sign in",
+    mailAddress: "Mail Address",
+    name: "Name",
+    password: "Password",
+    accountConfirmText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
+    accountConfirmed: "Your account is confirmed. You can login now",
+    cannotLogin: "Cannot login",
+    mailAndPasswordRequired: "Email and password are required",
+    cannotRegister: "Cannot register",
+    nameMailAndPasswordRequired: "Name, email and password are required",
+    cannotConfirmAccount: "Cannot confirm account",
+    activationCodeRequired: "Activation code required"
+};
+});
+define('utils/lang.js', function(module, exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.format = format;
+function format(fmt) {
+    for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        values[_key - 1] = arguments[_key];
+    }
+
+    var args = values;
+    return fmt.replace(/{(\d+)}/g, function (match, number) {
+        return typeof args[number] != 'undefined' ? args[number] : match;
+    });
+}
+});
+define('web/components/layout.js', function(module, exports) {
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var SessionStore = require("../../stores").session;
+
+var _require = require("../../actions"),
+    _logout = _require.logout;
+
+var ui = require("../utils/ui");
+
+var _require2 = require("./loader"),
+    PageLoader = _require2.PageLoader,
+    GlobalLoader = _require2.GlobalLoader;
+
+var _require3 = require("../utils/aj"),
+    connect = _require3.connect;
+
+function showPageLoader() {
+    $(".page-loader").show();
+}
+
+function hidePageLoader() {
+    $(".page-loader").fadeOut(500);
+}
+
+var Header = function (_React$Component) {
+    _inherits(Header, _React$Component);
+
+    function Header() {
+        _classCallCheck(this, Header);
+
+        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).apply(this, arguments));
+    }
+
+    _createClass(Header, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "header",
+                { id: "header", className: "clearfix", "data-ma-theme": "blue" },
+                React.createElement(
+                    "ul",
+                    { className: "h-inner" },
+                    React.createElement(
+                        "li",
+                        { className: "hi-trigger ma-trigger", "data-ma-action": "sidebar-open", "data-ma-target": "#sidebar" },
+                        React.createElement(
+                            "div",
+                            { className: "line-wrap" },
+                            React.createElement("div", { className: "line top" }),
+                            React.createElement("div", { className: "line center" }),
+                            React.createElement("div", { className: "line bottom" })
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        { className: "hi-logo hidden-xs" },
+                        React.createElement(
+                            "a",
+                            { href: "index.html" },
+                            "_APPNAME_"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        { className: "pull-right" },
+                        React.createElement(
+                            "ul",
+                            { className: "hi-menu" },
+                            React.createElement(
+                                "li",
+                                { "data-ma-action": "search-open" },
+                                React.createElement(
+                                    "a",
+                                    { href: "" },
+                                    React.createElement("i", { className: "him-icon zmdi zmdi-search" })
+                                )
+                            ),
+                            React.createElement(
+                                "li",
+                                { className: "dropdown" },
+                                React.createElement(
+                                    "a",
+                                    { "data-toggle": "dropdown", href: "" },
+                                    React.createElement("i", { className: "him-icon zmdi zmdi-more-vert" })
+                                ),
+                                React.createElement(
+                                    "ul",
+                                    { className: "dropdown-menu pull-right" },
+                                    React.createElement(
+                                        "li",
+                                        { className: "hidden-xs" },
+                                        React.createElement(
+                                            "a",
+                                            { "data-ma-action": "fullscreen", href: "" },
+                                            "Toggle Fullscreen"
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "li",
+                                        null,
+                                        React.createElement(
+                                            "a",
+                                            { href: "" },
+                                            "Privacy Settings"
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "li",
+                                        null,
+                                        React.createElement(
+                                            "a",
+                                            { href: "" },
+                                            "Other Settings"
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+                React.createElement(
+                    "div",
+                    { className: "h-search-wrap" },
+                    React.createElement(
+                        "div",
+                        { className: "hsw-inner" },
+                        React.createElement("i", { className: "hsw-close zmdi zmdi-arrow-left", "data-ma-action": "search-close" }),
+                        React.createElement("input", { type: "text" })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Header;
+}(React.Component);
+
+var ProfileBox = function (_React$Component2) {
+    _inherits(ProfileBox, _React$Component2);
+
+    function ProfileBox(props) {
+        _classCallCheck(this, ProfileBox);
+
+        var _this2 = _possibleConstructorReturn(this, (ProfileBox.__proto__ || Object.getPrototypeOf(ProfileBox)).call(this, props));
+
+        connect(_this2, SessionStore);
+        return _this2;
+    }
+
+    _createClass(ProfileBox, [{
+        key: "logout",
+        value: function logout() {
+            _logout();
+            ui.navigate("/login");
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "s-profile" },
+                React.createElement(
+                    "a",
+                    { href: "", "data-ma-action": "profile-menu-toggle" },
+                    React.createElement(
+                        "div",
+                        { className: "sp-pic" },
+                        React.createElement("img", { src: "theme/img/demo/profile-pics/1.jpg", alt: "" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "sp-info" },
+                        this.state.user.name,
+                        React.createElement("i", { className: "zmdi zmdi-caret-down" })
+                    )
+                ),
+                React.createElement(
+                    "ul",
+                    { className: "main-menu" },
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            React.createElement("i", { className: "zmdi zmdi-account" }),
+                            " View Profile"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            React.createElement("i", { className: "zmdi zmdi-input-antenna" }),
+                            " Privacy Settings"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            React.createElement("i", { className: "zmdi zmdi-settings" }),
+                            " Settings"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "javascript:", onClick: this.logout.bind(this) },
+                            React.createElement("i", { className: "zmdi zmdi-time-restore" }),
+                            " Logout"
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return ProfileBox;
+}(React.Component);
+
+var SideBar = function (_React$Component3) {
+    _inherits(SideBar, _React$Component3);
+
+    function SideBar() {
+        _classCallCheck(this, SideBar);
+
+        return _possibleConstructorReturn(this, (SideBar.__proto__ || Object.getPrototypeOf(SideBar)).apply(this, arguments));
+    }
+
+    _createClass(SideBar, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "aside",
+                { id: "sidebar", className: "sidebar c-overflow" },
+                React.createElement(ProfileBox, null),
+                React.createElement(
+                    "ul",
+                    { className: "main-menu" },
+                    React.createElement(
+                        "li",
+                        { className: "active" },
+                        React.createElement(
+                            "a",
+                            { href: "index.html" },
+                            React.createElement("i", { className: "zmdi zmdi-home" }),
+                            " Home"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "theme/typography.html" },
+                            React.createElement("i", { className: "zmdi zmdi-format-underlined" }),
+                            " Typography"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "theme/tables.html" },
+                            React.createElement("i", { className: "zmdi zmdi-view-list" }),
+                            " Tables"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "theme/form-elements.html" },
+                            React.createElement("i", { className: "zmdi zmdi-collection-text" }),
+                            " Form Elements"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "theme/buttons.html" },
+                            React.createElement("i", { className: "zmdi zmdi-crop-16-9" }),
+                            " Buttons"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "theme/icons.html" },
+                            React.createElement("i", { className: "zmdi zmdi-airplane" }),
+                            "Icons"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        { className: "sub-menu" },
+                        React.createElement(
+                            "a",
+                            { href: "", "data-ma-action": "submenu-toggle" },
+                            React.createElement("i", { className: "zmdi zmdi-collection-item" }),
+                            " Sample Pages"
+                        ),
+                        React.createElement(
+                            "ul",
+                            null,
+                            React.createElement(
+                                "li",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { href: "theme/login.html" },
+                                    "Login and Sign Up"
+                                )
+                            ),
+                            React.createElement(
+                                "li",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { href: "theme/lockscreen.html" },
+                                    "Lockscreen"
+                                )
+                            ),
+                            React.createElement(
+                                "li",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { href: "theme/404.html" },
+                                    "Error 404"
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        { className: "sub-menu" },
+                        React.createElement(
+                            "a",
+                            { href: "", "data-ma-action": "submenu-toggle" },
+                            React.createElement("i", { className: "zmdi zmdi-menu" }),
+                            " 3 Level Menu"
+                        ),
+                        React.createElement(
+                            "ul",
+                            null,
+                            React.createElement(
+                                "li",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { href: "theme/form-elements.html" },
+                                    "Level 2 link"
+                                )
+                            ),
+                            React.createElement(
+                                "li",
+                                { className: "sub-menu" },
+                                React.createElement(
+                                    "a",
+                                    { href: "", "data-ma-action": "submenu-toggle" },
+                                    "I have children too"
+                                ),
+                                React.createElement(
+                                    "ul",
+                                    null,
+                                    React.createElement(
+                                        "li",
+                                        null,
+                                        React.createElement(
+                                            "a",
+                                            { href: "" },
+                                            "Level 3 link"
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "li",
+                                        null,
+                                        React.createElement(
+                                            "a",
+                                            { href: "" },
+                                            "Another Level 3 link"
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "li",
+                                        null,
+                                        React.createElement(
+                                            "a",
+                                            { href: "" },
+                                            "Third one"
+                                        )
+                                    )
+                                )
+                            ),
+                            React.createElement(
+                                "li",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { href: "" },
+                                    "One more 2"
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return SideBar;
+}(React.Component);
+
+var Footer = function (_React$Component4) {
+    _inherits(Footer, _React$Component4);
+
+    function Footer() {
+        _classCallCheck(this, Footer);
+
+        return _possibleConstructorReturn(this, (Footer.__proto__ || Object.getPrototypeOf(Footer)).apply(this, arguments));
+    }
+
+    _createClass(Footer, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "footer",
+                { id: "footer" },
+                "Copyright &copy 2016 Applica srl",
+                React.createElement(
+                    "ul",
+                    { className: "f-menu" },
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            "Home"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            "Dashboard"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            "Reports"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            "Support"
+                        )
+                    ),
+                    React.createElement(
+                        "li",
+                        null,
+                        React.createElement(
+                            "a",
+                            { href: "" },
+                            "Contact"
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Footer;
+}(React.Component);
+
+var Layout = function (_React$Component5) {
+    _inherits(Layout, _React$Component5);
+
+    function Layout() {
+        _classCallCheck(this, Layout);
+
+        return _possibleConstructorReturn(this, (Layout.__proto__ || Object.getPrototypeOf(Layout)).apply(this, arguments));
+    }
+
+    _createClass(Layout, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                null,
+                React.createElement(Header, null),
+                React.createElement(
+                    "section",
+                    { id: "main" },
+                    React.createElement(SideBar, null),
+                    React.createElement(
+                        "section",
+                        { id: "content" },
+                        React.createElement(
+                            "div",
+                            { className: "container" },
+                            this.props.children
+                        )
+                    )
+                ),
+                React.createElement(Footer, null)
+            );
+        }
+    }]);
+
+    return Layout;
+}(React.Component);
+
+var FullScreenLayout = function (_React$Component6) {
+    _inherits(FullScreenLayout, _React$Component6);
+
+    function FullScreenLayout() {
+        _classCallCheck(this, FullScreenLayout);
+
+        return _possibleConstructorReturn(this, (FullScreenLayout.__proto__ || Object.getPrototypeOf(FullScreenLayout)).apply(this, arguments));
+    }
+
+    _createClass(FullScreenLayout, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                null,
+                this.props.children
+            );
+        }
+    }]);
+
+    return FullScreenLayout;
+}(React.Component);
+
+var ScreenContainer = function (_React$Component7) {
+    _inherits(ScreenContainer, _React$Component7);
+
+    function ScreenContainer(props) {
+        _classCallCheck(this, ScreenContainer);
+
+        var _this7 = _possibleConstructorReturn(this, (ScreenContainer.__proto__ || Object.getPrototypeOf(ScreenContainer)).call(this, props));
+
+        _this7.state = {
+            currentScreen: null
+        };
+        return _this7;
+    }
+
+    _createClass(ScreenContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this8 = this;
+
+            ui.addScreenChangeListener(function (screen) {
+                showPageLoader();
+                _this8.setState(_.assign(_this8.state, { currentScreen: screen }));
+                hidePageLoader();
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            if (_.isEmpty(this.state.currentScreen)) {
+                return React.createElement("div", null);
+            }
+            return this.state.currentScreen;
+        }
+    }]);
+
+    return ScreenContainer;
+}(React.Component);
+
+var Screen = function (_React$Component8) {
+    _inherits(Screen, _React$Component8);
+
+    function Screen() {
+        _classCallCheck(this, Screen);
+
+        return _possibleConstructorReturn(this, (Screen.__proto__ || Object.getPrototypeOf(Screen)).apply(this, arguments));
+    }
+
+    return Screen;
+}(React.Component);
+
+var Index = function (_React$Component9) {
+    _inherits(Index, _React$Component9);
+
+    function Index(props) {
+        _classCallCheck(this, Index);
+
+        var _this10 = _possibleConstructorReturn(this, (Index.__proto__ || Object.getPrototypeOf(Index)).call(this, props));
+
+        _this10.state = {};
+        return _this10;
+    }
+
+    _createClass(Index, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                null,
+                React.createElement(PageLoader, null),
+                React.createElement(GlobalLoader, null),
+                React.createElement(ScreenContainer, null)
+            );
+        }
+    }]);
+
+    return Index;
+}(React.Component);
+
+exports.Index = Index;
+exports.Screen = Screen;
+exports.FullScreenLayout = FullScreenLayout;
+exports.Layout = Layout;
+exports.Header = Header;
+exports.Footer = Footer;
+});
+define('web/components/loader.js', function(module, exports) {
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var PageLoader = function (_React$Component) {
+    _inherits(PageLoader, _React$Component);
+
+    function PageLoader() {
+        _classCallCheck(this, PageLoader);
+
+        return _possibleConstructorReturn(this, (PageLoader.__proto__ || Object.getPrototypeOf(PageLoader)).apply(this, arguments));
+    }
+
+    _createClass(PageLoader, [{
+        key: "componentDidUpdate",
+        value: function componentDidUpdate() {
+            if (this.state.loading) {
+                $(this.refs.page_loader).show();
+            } else {
+                $(this.refs.page_loader).fadeOut(500);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "page-loader", style: { display: "block" } },
+                React.createElement(
+                    "div",
+                    { className: "preloader" },
+                    React.createElement(
+                        "svg",
+                        { className: "pl-circular", viewBox: "25 25 50 50" },
+                        React.createElement("circle", { className: "plc-path", cx: "50", cy: "50", r: "20" })
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        "Please wait..."
+                    )
+                )
+            );
+        }
+    }]);
+
+    return PageLoader;
+}(React.Component);
+
+var GlobalLoader = function (_React$Component2) {
+    _inherits(GlobalLoader, _React$Component2);
+
+    function GlobalLoader() {
+        _classCallCheck(this, GlobalLoader);
+
+        return _possibleConstructorReturn(this, (GlobalLoader.__proto__ || Object.getPrototypeOf(GlobalLoader)).apply(this, arguments));
+    }
+
+    _createClass(GlobalLoader, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "global-loader", style: { display: "none" } },
+                React.createElement("div", { className: "layer" }),
+                React.createElement(
+                    "div",
+                    { className: "preloader" },
+                    React.createElement(
+                        "svg",
+                        { className: "pl-circular", viewBox: "25 25 50 50" },
+                        React.createElement("circle", { className: "plc-path", cx: "50", cy: "50", r: "20" })
+                    )
+                ),
+                React.createElement(
+                    "p",
+                    { className: "message" },
+                    "Please wait..."
+                )
+            );
+        }
+    }]);
+
+    return GlobalLoader;
+}(React.Component);
+
+var Preloader = function (_React$Component3) {
+    _inherits(Preloader, _React$Component3);
+
+    function Preloader() {
+        _classCallCheck(this, Preloader);
+
+        return _possibleConstructorReturn(this, (Preloader.__proto__ || Object.getPrototypeOf(Preloader)).apply(this, arguments));
+    }
+
+    _createClass(Preloader, [{
+        key: "render",
+        value: function render() {
+            return this.props.visible || true ? React.createElement(
+                "div",
+                { className: "preloader" },
+                React.createElement(
+                    "svg",
+                    { className: "pl-circular", viewBox: "25 25 50 50" },
+                    React.createElement("circle", { className: "plc-path", cx: "50", cy: "50", r: "20" })
+                )
+            ) : null;
+        }
+    }]);
+
+    return Preloader;
+}(React.Component);
+
+exports.PageLoader = PageLoader;
+exports.GlobalLoader = GlobalLoader;
+exports.Preloader = Preloader;
+});
+define('web/components/secure.js', function(module, exports) {
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Login = require("../screens/login");
+var SessionStore = require("../../stores").session;
+
+var _require = require("../utils/aj"),
+    connect = _require.connect;
+
+var Secure = function (_React$Component) {
+    _inherits(Secure, _React$Component);
+
+    function Secure(props) {
+        _classCallCheck(this, Secure);
+
+        var _this = _possibleConstructorReturn(this, (Secure.__proto__ || Object.getPrototypeOf(Secure)).call(this, props));
+
+        connect(_this, SessionStore);
+        return _this;
+    }
+
+    _createClass(Secure, [{
+        key: "render",
+        value: function render() {
+            return this.state.isLoggedIn ? this.props.children : React.createElement(Login, null);
+        }
+    }]);
+
+    return Secure;
+}(React.Component);
+
+module.exports = Secure;
+});
+define('web/main.js', function(module, exports) {
+"use strict";
+
+var _layout = require("./components/layout");
+
+var _login = require("./screens/login");
+
+var _login2 = _interopRequireDefault(_login);
+
+var _register = require("./screens/register");
+
+var _register2 = _interopRequireDefault(_register);
+
+var _recover = require("./screens/recover");
+
+var _recover2 = _interopRequireDefault(_recover);
+
+var _home = require("./screens/home");
+
+var _home2 = _interopRequireDefault(_home);
+
+var _registrationOk = require("./screens/registrationOk");
+
+var _registrationOk2 = _interopRequireDefault(_registrationOk);
+
+var _confirm = require("./screens/confirm");
+
+var _confirm2 = _interopRequireDefault(_confirm);
+
+var _ui = require("./utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _pluginsimpl = require("./pluginsimpl");
+
+var plugins = _interopRequireWildcard(_pluginsimpl);
+
+var _actions = require("../actions");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/* Register plugins */
+plugins.register();
+
+/* Login routes */
+ui.addRoute("/login", function (params) {
+  return ui.changeScreen(React.createElement(_login2.default, null));
+});
+ui.addRoute("/register", function (params) {
+  return ui.changeScreen(React.createElement(_register2.default, null));
+});
+ui.addRoute("/recover", function (params) {
+  return ui.changeScreen(React.createElement(_recover2.default, null));
+});
+ui.addRoute("/registrationComplete", function (params) {
+  return ui.changeScreen(React.createElement(_registrationOk2.default, null));
+});
+ui.addRoute("/confirm", function (params) {
+  return ui.changeScreen(React.createElement(_confirm2.default, { activationCode: params.activationCode }));
+});
+
+/* home route */
+ui.addRoute("/", function (params) {
+  return ui.changeScreen(React.createElement(_home2.default, null));
+});
+
+/* render main index page into dom */
+ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
+
+/* automatic login, if possible */
+(0, _actions.resumeSession)();
+
+/* starts navigation demon */
+ui.startNavigation();
+});
+define('web/pluginsimpl.js', function(module, exports) {
+"use strict";
+
+exports.Alert = {
+    alert: function alert(data) {
+        var title = data.title,
+            message = data.message,
+            type = data.type,
+            callback = data.callback;
+
+        var _callback = function _callback(v) {
+            if (_.isFunction(callback)) {
+                callback(v);
+            }
+        };
+        swal({ title: title, text: message, type: type }).then(function () {
+            return _callback(true);
+        }).catch(function () {
+            return _callback(false);
+        });
+    },
+    confirm: function confirm(data) {
+        var title = data.title,
+            message = data.message,
+            callback = data.callback;
+
+        var _callback = function _callback(v) {
+            if (_.isFunction(callback)) {
+                callback(v);
+            }
+        };
+        swal({ title: title, text: message, showCancelButton: true }).then(function () {
+            return _callback(true);
+        }).catch(function () {
+            return _callback(false);
+        });
+    }
+};
+
+exports.Loader = {
+    show: function show(data) {
+        $(".global-loader").find(".message").text(data.message).end().fadeIn(250);
+    },
+    hide: function hide() {
+        $(".global-loader").fadeOut(250);
+    }
+};
+
+exports.Toast = {
+    show: function show(data) {
+        $.growl({
+            message: data.message,
+            url: ''
+        }, {
+            element: 'body',
+            type: "inverse",
+            allow_dismiss: true,
+            placement: {
+                from: "bottom",
+                align: "center"
+            },
+            offset: {
+                x: 20,
+                y: 85
+            },
+            spacing: 10,
+            z_index: 1031,
+            delay: 2500,
+            timer: 1000,
+            url_target: '_blank',
+            mouse_over: false,
+            icon_type: 'class',
+            template: '<div data-growl="container" class="alert" role="alert">' + '<button type="button" class="close" data-growl="dismiss">' + '<span aria-hidden="true">&times;</span>' + '<span class="sr-only">Close</span>' + '</button>' + '<span data-growl="icon"></span>' + '<span data-growl="message"></span>' + '<a href="#" data-growl="url"></a>' + '</div>'
+        });
+    }
+};
+
+exports.register = function () {
+    window.Alert = exports.Alert;
+    window.Toast = exports.Toast;
+    window.Loader = exports.Loader;
+};
+});
+define('web/screens/confirm.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _aj = require("../utils/aj");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var AccountStore = require("../../stores").account;
+
+var _require = require("../components/layout"),
+    FullScreenLayout = _require.FullScreenLayout,
+    Screen = _require.Screen;
+
+var ui = require("../utils/ui");
+var forms = require("../utils/forms");
+
+var _require2 = require("../../actions"),
+    setActivationCode = _require2.setActivationCode,
+    confirmAccount = _require2.confirmAccount;
+
+var Recover = function (_Screen) {
+    _inherits(Recover, _Screen);
+
+    function Recover(props) {
+        _classCallCheck(this, Recover);
+
+        var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
+
+        (0, _aj.connect)(_this, AccountStore);
+        return _this;
+    }
+
+    _createClass(Recover, [{
+        key: "confirm",
+        value: function confirm() {
+            var data = forms.serialize(this.refs.confirm_form);
+            confirmAccount(data);
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(props, state) {
+            if (state.confirmed) {
+                ui.navigate("/");
+            }
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            setActivationCode({ activationCode: this.props.activationCode });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block toggled", id: "l-forget-password" },
+                        React.createElement(
+                            "form",
+                            { action: "javascript:;", className: "lcb-form", onSubmit: this.confirm.bind(this), ref: "confirm_form" },
+                            React.createElement(
+                                "p",
+                                { className: "text-left" },
+                                _strings2.default.accountConfirmText
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "text", name: "activationCode", className: "form-control", placeholder: _strings2.default.activationCode, value: this.state.activationCode })
+                                )
+                            ),
+                            React.createElement(
+                                "button",
+                                { type: "submit", className: "btn btn-login btn-success btn-float" },
+                                React.createElement("i", { className: "zmdi zmdi-check" })
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "lcb-navigation" },
+                            React.createElement(
+                                "a",
+                                { href: "#login", "data-ma-block": "#l-login" },
+                                React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.signIn
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "#register", "data-ma-block": "#l-register" },
+                                React.createElement("i", { className: "zmdi zmdi-plus" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.register
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Recover;
+}(Screen);
+
+exports.default = Recover;
+});
+define('web/screens/home.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _require = require("../components/layout"),
+    Screen = _require.Screen,
+    Layout = _require.Layout;
+
+var Secure = require("../components/secure");
+
+var Home = function (_Screen) {
+    _inherits(Home, _Screen);
+
+    function Home() {
+        _classCallCheck(this, Home);
+
+        return _possibleConstructorReturn(this, (Home.__proto__ || Object.getPrototypeOf(Home)).apply(this, arguments));
+    }
+
+    _createClass(Home, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                Secure,
+                null,
+                React.createElement(
+                    Layout,
+                    null,
+                    React.createElement(
+                        "div",
+                        { className: "card" },
+                        "Home Screen"
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Home;
+}(Screen);
+
+exports.default = Home;
+});
+define('web/screens/login.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _layout = require("../components/layout");
+
+var _actions = require("../../actions");
+
+var _forms = require("../utils/forms");
+
+var forms = _interopRequireWildcard(_forms);
+
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Login = function (_Screen) {
+    _inherits(Login, _Screen);
+
+    function Login() {
+        _classCallCheck(this, Login);
+
+        return _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).apply(this, arguments));
+    }
+
+    _createClass(Login, [{
+        key: "login",
+        value: function login() {
+            var data = forms.serialize(this.refs.login_form);
+            (0, _actions.login)(data);
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                _layout.FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block toggled", id: "l-login" },
+                        React.createElement(
+                            "div",
+                            { className: "text-center m-b-10" },
+                            React.createElement("img", { src: "resources/images/logo.png" })
+                        ),
+                        React.createElement(
+                            "form",
+                            { action: "javascript:", className: "lcb-form", onSubmit: this.login.bind(this), ref: "login_form" },
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-male" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: _strings2.default.password })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "checkbox" },
+                                React.createElement(
+                                    "label",
+                                    null,
+                                    React.createElement("input", { type: "checkbox", name: "remember_me", value: "1" }),
+                                    React.createElement("i", { className: "input-helper" }),
+                                    "Keep me signed in"
+                                )
+                            ),
+                            React.createElement(
+                                "button",
+                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                                React.createElement("i", { className: "zmdi zmdi-arrow-forward" })
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "lcb-navigation" },
+                            React.createElement(
+                                "a",
+                                { href: "#register", "data-ma-block": "#l-register" },
+                                React.createElement("i", { className: "zmdi zmdi-plus" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.register
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "#recover", "data-ma-block": "#l-forget-password" },
+                                React.createElement(
+                                    "i",
+                                    null,
+                                    "?"
+                                ),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.forgotPassword
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Login;
+}(_layout.Screen);
+
+exports.default = Login;
+});
+define('web/screens/recover.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _require = require("../components/layout"),
+    FullScreenLayout = _require.FullScreenLayout,
+    Screen = _require.Screen;
+
+var ui = require("../utils/ui");
+var forms = require("../utils/forms");
+
+var Recover = function (_Screen) {
+    _inherits(Recover, _Screen);
+
+    function Recover(props) {
+        _classCallCheck(this, Recover);
+
+        return _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
+    }
+
+    _createClass(Recover, [{
+        key: "recover",
+        value: function recover() {
+            ui.navigate("/");
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block toggled", id: "l-forget-password" },
+                        React.createElement(
+                            "form",
+                            { action: "javascript:;", className: "lcb-form", onSubmit: this.recover.bind(this), ref: "recover_form" },
+                            React.createElement(
+                                "p",
+                                { className: "text-left" },
+                                "Please insert your email address to recover password. We will send a new password in your mailbox!"
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: "Email Address" })
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", className: "btn btn-login btn-success btn-float" },
+                                React.createElement("i", { className: "zmdi zmdi-check" })
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "lcb-navigation" },
+                            React.createElement(
+                                "a",
+                                { href: "#login", "data-ma-block": "#l-login" },
+                                React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    "Sign in"
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "#register", "data-ma-block": "#l-register" },
+                                React.createElement("i", { className: "zmdi zmdi-plus" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    "Register"
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Recover;
+}(Screen);
+
+exports.default = Recover;
+});
+define('web/screens/register.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _aj = require("../utils/aj");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var AccountStore = require("../../stores").account;
+
+var _require = require("../components/layout"),
+    FullScreenLayout = _require.FullScreenLayout,
+    Screen = _require.Screen;
+
+var ui = require("../utils/ui");
+
+var _require2 = require("../../actions"),
+    _register = _require2.register;
+
+var forms = require("../utils/forms");
+
+var Register = function (_Screen) {
+    _inherits(Register, _Screen);
+
+    function Register(props) {
+        _classCallCheck(this, Register);
+
+        var _this = _possibleConstructorReturn(this, (Register.__proto__ || Object.getPrototypeOf(Register)).call(this, props));
+
+        (0, _aj.connect)(_this, AccountStore);
+        return _this;
+    }
+
+    _createClass(Register, [{
+        key: "register",
+        value: function register() {
+            var data = forms.serialize(this.refs.register_form);
+            _register(data);
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(props, state) {
+            if (state.registered) {
+                ui.navigate("/registrationComplete");
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block toggled", id: "l-register" },
+                        React.createElement(
+                            "form",
+                            { action: "javascript:;", className: "lcb-form", onSubmit: this.register.bind(this), ref: "register_form" },
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-account" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "text", name: "name", className: "form-control", placeholder: _strings2.default.name })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-male" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: _strings2.default.password })
+                                )
+                            ),
+                            React.createElement(
+                                "button",
+                                { type: "submit", className: "btn btn-login btn-success btn-float" },
+                                React.createElement("i", { className: "zmdi zmdi-check" })
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "lcb-navigation" },
+                            React.createElement(
+                                "a",
+                                { href: "#login", "data-ma-block": "#l-login" },
+                                React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.signIn
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "#recover", "data-ma-block": "#l-forget-password" },
+                                React.createElement(
+                                    "i",
+                                    null,
+                                    "?"
+                                ),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    _strings2.default.forgotPassword
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Register;
+}(Screen);
+
+exports.default = Register;
+});
+define('web/screens/registrationOk.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var AccountStore = require("../../stores").account;
+
+var _require = require("../components/layout"),
+    FullScreenLayout = _require.FullScreenLayout,
+    Screen = _require.Screen;
+
+var ui = require("../utils/ui");
+
+var _require2 = require("../../actions"),
+    login = _require2.login;
+
+var forms = require("../utils/forms");
+
+var _require3 = require("../components/loader"),
+    Preloader = _require3.Preloader;
+
+var _require4 = require("../utils/aj"),
+    connect = _require4.connect;
+
+var strings = require("../../strings");
+
+var RegistrationOk = function (_Screen) {
+    _inherits(RegistrationOk, _Screen);
+
+    function RegistrationOk(props) {
+        _classCallCheck(this, RegistrationOk);
+
+        var _this = _possibleConstructorReturn(this, (RegistrationOk.__proto__ || Object.getPrototypeOf(RegistrationOk)).call(this, props));
+
+        connect(_this, AccountStore);
+        return _this;
+    }
+
+    _createClass(RegistrationOk, [{
+        key: "goHome",
+        value: function goHome() {
+            ui.navigate("/");
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block toggled", id: "l-login" },
+                        React.createElement(
+                            "div",
+                            { className: "text-center m-b-10" },
+                            React.createElement("img", { src: "resources/images/logo.png" })
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "jumbotron" },
+                            React.createElement(
+                                "h1",
+                                null,
+                                strings.congratulations,
+                                "!"
+                            ),
+                            React.createElement(
+                                "p",
+                                null,
+                                this.state.welcomeMessage
+                            ),
+                            React.createElement(
+                                "p",
+                                null,
+                                React.createElement(
+                                    "a",
+                                    { className: "btn btn-primary btn-lg waves-effect", href: "javascript:;", onClick: this.goHome.bind(this), role: "button" },
+                                    strings.continue
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "lcb-navigation" },
+                            React.createElement(
+                                "a",
+                                { href: "#register", "data-ma-block": "#l-register" },
+                                React.createElement("i", { className: "zmdi zmdi-plus" }),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    strings.register
+                                )
+                            ),
+                            React.createElement(
+                                "a",
+                                { href: "#recover", "data-ma-block": "#l-forget-password" },
+                                React.createElement(
+                                    "i",
+                                    null,
+                                    "?"
+                                ),
+                                " ",
+                                React.createElement(
+                                    "span",
+                                    null,
+                                    strings.forgotPassword
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return RegistrationOk;
+}(Screen);
+
+exports.default = RegistrationOk;
+});
+define('web/utils/aj.js', function(module, exports) {
+"use strict";
+
+function connect(component, stores) {
+    var singleStore = !_.isArray(stores);
+
+    if (!_.isArray(stores)) {
+        stores = [stores];
+    }
+
+    var originals = {
+        componentDidMount: component.componentDidMount,
+        componentWillUnmount: component.componentWillUnmount
+    };
+
+    if (singleStore) {
+        component.state = singleStore.state || {};
+    }
+
+    component.componentDidMount = function () {
+        _.each(stores, function (store) {
+            store.subscribe(component, function (state) {
+                return component.setState(state);
+            });
+            component.setState(store.state || {});
+        });
+
+        if (_.isFunction(originals.componentDidMount)) {
+            originals.componentDidMount.call(component);
+        }
+    };
+
+    component.componentWillUnmount = function () {
+        _.each(stores, function (store) {
+            store.unsubscribe(component);
+        });
+
+        if (_.isFunction(originals.componentWillUnmount)) {
+            originals.componentWillUnmount.call(component);
+        }
+    };
+}
+
+exports.connect = connect;
+});
+define('web/utils/events.js', function(module, exports) {
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var EventEmitter = {};
+EventEmitter.addListener = function (obj, evt, handler) {
+    var listeners = obj.__events_listeners;
+    if (!listeners) {
+        listeners = {};
+        obj.__events_listeners = listeners;
+    }
+
+    if (!listeners[evt]) {
+        listeners[evt] = [];
+    }
+
+    listeners[evt].push(handler);
+};
+
+EventEmitter.addListeners = function (obj, listeners) {
+    for (var key in listeners) {
+        events.addListener(obj, key, listeners[key]);
+    }
+};
+
+EventEmitter.removeListener = function (obj, evt, listener) {
+    if (obj.__events_listeners && obj.__events_listeners[evt]) {
+        obj.__events_listeners[evt] = obj.__events_listeners[evt].filter(function (l) {
+            return l != listener;
+        });
+    }
+};
+
+EventEmitter.on = function (obj, evt, handler) {
+    if ($.isPlainObject(evt)) {
+        EventEmitter.addListeners(obj, evt);
+    } else {
+        EventEmitter.addListener(obj, evt, handler);
+    }
+};
+
+EventEmitter.live = function (obj, evt) {
+    if (!obj.__events_offs) obj.__events_offs = {};
+    if (evt) {
+        obj.__events_offs[evt] = false;
+    } else {
+        obj.__events_off = false;
+    }
+};
+
+EventEmitter.die = function (obj, evt) {
+    if (!obj.__events_offs) obj.__events_offs = {};
+    if (evt) {
+        obj.__events_offs[evt] = true;
+    } else {
+        obj.__events_off = true;
+    }
+};
+
+EventEmitter.invoke = function (obj, evt) {
+    if (!obj.__events_offs) obj.__events_offs = {};
+    if (obj.__events_off) return;
+    if (obj.__events_offs[evt]) return;
+
+    var listeners = obj.__events_listeners;
+    if (!listeners) {
+        listeners = {};
+        obj.__events_listeners = listeners;
+    }
+
+    var handlers = listeners[evt];
+    if (handlers) {
+        var size = handlers.length;
+        for (var i = 0; i < size; i++) {
+            var h = handlers[i];
+            h.apply(obj, Array.prototype.slice.call(arguments, 2));
+        }
+    }
+};
+
+var Observable = function () {
+    function Observable() {
+        _classCallCheck(this, Observable);
+    }
+
+    _createClass(Observable, [{
+        key: "addListener",
+        value: function addListener(evt, handler) {
+            EventEmitter.addListener(this, evt, handler);
+        }
+    }, {
+        key: "addListeners",
+        value: function addListeners(listeners) {
+            EventEmitter.addListeners(this, listeners);
+        }
+    }, {
+        key: "removeListener",
+        value: function removeListener(evt, handler) {
+            EventEmitter.removeListener(evt, handler);
+        }
+    }, {
+        key: "on",
+        value: function on(evt, fn) {
+            EventEmitter.on(this, evt, fn);
+        }
+    }, {
+        key: "live",
+        value: function live(evt) {
+            EventEmitter.live(this, evt);
+        }
+    }, {
+        key: "die",
+        value: function die(evt) {
+            EventEmitter.die(this, evt);
+        }
+    }, {
+        key: "invoke",
+        value: function invoke(evt) {
+            Array.prototype.splice.call(arguments, 0, 0, this);
+            EventEmitter.invoke.apply(this, arguments);
+        }
+    }]);
+
+    return Observable;
+}();
+
+exports.EventEmitter = EventEmitter;
+exports.Observable = Observable;
+});
+define('web/utils/forms.js', function(module, exports) {
+"use strict";
+
+function serialize(form) {
+    var o = {};
+    var a = $(form).serializeArray();
+    $.each(a, function () {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+}
+
+exports.serialize = serialize;
+});
+define('web/utils/path.js', function(module, exports) {
+"use strict";
+
+function extension(filename) {
+    var lastIndexOfDot = filename.lastIndexOf('.');
+    if (lastIndexOfDot === -1) {
+        return '';
+    }
+    return filename.substr(lastIndexOfDot + 1).toLowerCase();
+}
+
+function basename(filename) {
+    var fileExtension = this.extension(filename);
+    if (!Boolean(fileExtension)) {
+        return filename;
+    }
+    return filename.substr(0, filename.lastIndexOf('.'));
+}
+
+function removeSuffix(filename) {
+    return this.removeSuffixWithDelimiter('.', filename);
+}
+
+function removeSuffixWithDelimiter(delimiter, filename) {
+    var fileExtension = this.extension(filename);
+    var fileBasename = this.basename(filename);
+    var lastIndexOfDelimiter = fileBasename.lastIndexOf(delimiter);
+    if (lastIndexOfDelimiter === -1) {
+        return filename;
+    }
+    return fileBasename.substr(0, lastIndexOfDelimiter) + '.' + fileExtension;
+}
+
+function appendSuffix(suffix, filename) {
+    return this.appendSuffixWithDelimiter(suffix, '.', filename);
+}
+
+function appendSuffixWithDelimiter(suffix, delimiter, filename) {
+    if (Object.prototype.toString.call(suffix) !== '[object Array]') {
+        suffix = [suffix];
+    }
+
+    var fileExtension = this.extension(filename);
+    var newFilename = [this.basename(filename), delimiter].concat(suffix.join(delimiter));
+
+    if (fileExtension) {
+        newFilename.push('.');
+        newFilename.push(fileExtension);
+    }
+
+    return newFilename.join('');
+}
+
+function directoryName(filename) {
+    if (!this.extension(filename)) {
+        return filename;
+    }
+    return filename.substr(0, filename.lastIndexOf('/'));
+}
+
+exports.extension = extension;
+exports.basename = basename;
+exports.removeSuffix = removeSuffix;
+exports.removeSuffixWithDelimiter = removeSuffixWithDelimiter;
+exports.appendSuffix = appendSuffix;
+exports.appendSuffixWithDelimiter = appendSuffixWithDelimiter;
+exports.directoryName = directoryName;
+});
+define('web/utils/polyfill.js', function(module, exports) {
+"use strict";
+
+String.prototype.format = function () {
+    var args = arguments;
+
+    return this.replace(/\{(\d+)\}/g, function () {
+        return args[arguments[1]];
+    });
+};
+
+String.prototype.contains = function (search) {
+    if (!search) {
+        return false;
+    }
+
+    return this.indexOf(search) != -1;
+};
+});
+define('web/utils/ui.js', function(module, exports) {
+"use strict";
+
+var _require = require("./events"),
+    Observable = _require.Observable;
+
+var router = new RouteRecognizer();
+var base = null;
+var lastFragment = null;
+var screens = new Observable();
+
+function _handleRoute(fragment) {
+	var route = router.recognize(fragment);
+	if (route) {
+		var params = _.extend(route[0].params, route.queryParams || {});
+		route[0].handler(params);
+	}
+}
+
+function _clearSlashes(path) {
+	return path.toString().replace(/\/$/, '').replace(/^\//, '');
+}
+
+exports.addRoute = function (path, handler) {
+	router.add([{ path: path, handler: handler }]);
+};
+
+exports.startNavigation = function (_base) {
+	base = _base || "#";
+
+	var loop = function loop() {
+		var fragment = "/";
+		if (location.href.indexOf("#") != -1) {
+			fragment = _clearSlashes(location.href.split("#")[1]);
+		}
+
+		if (lastFragment != fragment) {
+			lastFragment = fragment;
+			_handleRoute(fragment);
+		}
+
+		window.setTimeout(loop, 100);
+	};
+
+	loop();
+};
+
+exports.navigate = function (path) {
+	history.pushState(null, null, _clearSlashes(base + path));
+};
+
+exports.changeScreen = function (screen) {
+	screens.invoke("screen.change", screen);
+};
+
+exports.addScreenChangeListener = function (listener) {
+	screens.addListener("screen.change", listener);
+};
+
+exports.removeScreenChangeListener = function (listener) {
+	screens.removeListener("screen.change", listener);
+};
 });
 
 require('./aj').createRuntime();

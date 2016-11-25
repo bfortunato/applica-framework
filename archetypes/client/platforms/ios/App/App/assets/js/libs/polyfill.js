@@ -16,7 +16,7 @@ if (global._babelPolyfill) {
 global._babelPolyfill = true;
 
 var DEFINE_PROPERTY = "defineProperty";
-function define(O, key, value) {
+function polyfill_define(O, key, value) {
   O[key] || Object[DEFINE_PROPERTY](O, key, {
     writable: true,
     configurable: true,
@@ -24,11 +24,11 @@ function define(O, key, value) {
   });
 }
 
-define(String.prototype, "padLeft", "".padStart);
-define(String.prototype, "padRight", "".padEnd);
+polyfill_define(String.prototype, "padLeft", "".padStart);
+polyfill_define(String.prototype, "padRight", "".padEnd);
 
 "pop,reverse,shift,keys,values,entries,indexOf,every,some,forEach,map,filter,find,findIndex,includes,join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill".split(",").forEach(function (key) {
-  [][key] && define(Array, key, Function.call.bind([][key]));
+  [][key] && polyfill_define(Array, key, Function.call.bind([][key]));
 });
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"2":2,"295":295,"296":296}],2:[function(_dereq_,module,exports){
@@ -4556,14 +4556,14 @@ var define = function(fn){
 
 // 21.2.5.14 RegExp.prototype.toString()
 if(_dereq_(34)(function(){ return $toString.call({source: 'a', flags: 'b'}) != '/a/b'; })){
-  define(function toString(){
+  polyfill_define(function toString(){
     var R = anObject(this);
     return '/'.concat(R.source, '/',
       'flags' in R ? R.flags : !DESCRIPTORS && R instanceof RegExp ? $flags.call(R) : undefined);
   });
 // FF44- RegExp#toString has a wrong name
 } else if($toString.name != TO_STRING){
-  define(function toString(){
+  polyfill_define(function toString(){
     return $toString.call(this);
   });
 }
