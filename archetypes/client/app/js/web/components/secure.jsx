@@ -1,8 +1,8 @@
 "use strict"
 
-const Login = require("../screens/login")
-const SessionStore = require("../../stores").session
-const { connect } = require("../utils/aj")
+import Login from "../screens/login"
+import { session as SessionStore } from "../../stores"
+import { connect } from "../utils/aj"
 
 class Secure extends React.Component {
 

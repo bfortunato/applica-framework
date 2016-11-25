@@ -42,7 +42,7 @@ export default class Login extends Screen {
                                 </label>
                             </div>
 
-                            <button type="submit" className={"btn btn-login btn-success btn-float animated fadeInLeft"}><i className="zmdi zmdi-arrow-forward"></i></button>
+                            <button type="submit" className="btn btn-login btn-success btn-float animated fadeInLeft"><i className="zmdi zmdi-arrow-forward"></i></button>
                         </form>
 
                         <div className="lcb-navigation">

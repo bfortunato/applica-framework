@@ -10,7 +10,7 @@ import strings from "../strings"
 export const LOGIN = "LOGIN";
 export const login = aj.createAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(strings.cannotLogin, strings.mailAndPasswordRequired, "warning")
+        alert(strings.problemOccoured, strings.mailAndPasswordRequired, "warning")
         return;
     }
 
@@ -97,7 +97,7 @@ export const logout = aj.createAction(LOGOUT, data => {
 export const REGISTER = "REGISTER";
 export const register = aj.createAction(REGISTER, data => {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(strings.cannotRegister, strings.nameMailAndPasswordRequired, "warning")
+        alert(strings.problemOccoured, strings.nameMailAndPasswordRequired, "warning")
         return;
     }
 
@@ -139,9 +139,29 @@ export const registrationError = aj.createAction(REGISTRATION_ERROR, data => {
 
 export const RECOVER_ACCOUNT = "RECOVER_ACCOUNT"
 export const recoverAccount = aj.createAction(RECOVER_ACCOUNT, data => {
+    if (_.isEmpty(data.mail)) {
+        alert(strings.problemOccoured, strings.mailRequired, "warning")
+        return;
+    }
+
     aj.dispatch({
-        type: RECOVER_ACCOUNT
+        type: RECOVER_ACCOUNT,
     })
+
+    showLoader()
+    account.recover(data.mail)
+        .then(() => {
+            hideLoader()
+            alert(strings.congratulations, format(strings.accountRecovered, data.mail))
+
+            recoverAccountComplete()
+        })
+        .catch(e => {
+            hideLoader()
+            alert(strings.ooops, responses.msg(e), "error")
+
+            recoverAccountError()
+        })
 })
 
 export const RECOVER_ACCOUNT_COMPLETE = "RECOVER_ACCOUNT_COMPLETE"
@@ -169,7 +189,7 @@ export const setActivationCode = aj.createAction(SET_ACTIVATION_CODE, data => {
 export const CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT"
 export const confirmAccount = aj.createAction(CONFIRM_ACCOUNT, data => {
     if (_.isEmpty(data.activationCode)) {
-        alert(strings.cannotConfirmAccount, strings.activationCodeRequired, "warning")
+        alert(strings.problemOccoured, strings.activationCodeRequired, "warning")
         return;
     }
 

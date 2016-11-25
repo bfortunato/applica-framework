@@ -1,13 +1,13 @@
+
 //
 //  Stores.swift
-//  App
 //
-//  Created by Bruno Fortunato on 26/08/16.
-//  Copyright © 2016 Applica. All rights reserved.
+//  Auto generated from aj build
 //
 
-import Foundation
-
+import foundation
+        
 struct Stores {
-    static let HOME = "HOME"
+	static let SESSION = "SESSION"
+	static let ACCOUNT = "ACCOUNT"
 }

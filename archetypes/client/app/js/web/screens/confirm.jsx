@@ -12,7 +12,7 @@ export default class Recover extends Screen {
     constructor(props) {
         super(props)
 
-        connect(this, AccountStore)
+        connect(this, AccountStore, {activationCode: ""})
     }
 
     confirm() {
@@ -39,13 +39,13 @@ export default class Recover extends Screen {
                             <p className="text-left">{strings.accountConfirmText}</p>
 
                             <div className="input-group m-b-20">
-                                <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
+                                <span className="input-group-addon"><i className="zmdi zmdi-lock"></i></span>
                                 <div className="fg-line">
                                     <input type="text" name="activationCode" className="form-control" placeholder={strings.activationCode} value={this.state.activationCode} />
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn btn-login btn-success btn-float"><i className="zmdi zmdi-check"></i></button>
+                            <button type="submit" className="btn btn-login btn-success btn-float animated fadeInLeft"><i className="zmdi zmdi-lock-open"></i></button>
                         </form>
 
                         <div className="lcb-navigation">

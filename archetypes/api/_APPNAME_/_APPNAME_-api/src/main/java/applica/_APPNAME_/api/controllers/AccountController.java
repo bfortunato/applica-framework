@@ -61,10 +61,10 @@ public class AccountController {
         }
     }
 
-    @RequestMapping(value = "/resetPassword", method = RequestMethod.POST)
-    public Response resetPassword(String mail) {
+    @RequestMapping(value = "/recover", method = RequestMethod.POST)
+    public Response recover(String mail) {
         try {
-            accountService.resetPassword(mail);
+            accountService.recover(mail);
             return new Response(OK);
         } catch (MailNotFoundException e) {
             return new Response(ERROR_MAIL_NOT_FOUND);

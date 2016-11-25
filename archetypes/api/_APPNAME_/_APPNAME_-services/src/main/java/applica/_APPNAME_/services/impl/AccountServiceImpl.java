@@ -102,16 +102,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void resetPassword(String mail) throws MailNotFoundException {
+    public void recover(String mail) throws MailNotFoundException {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
 
         String newPassword = PasswordUtils.generateRandom();
-        user.setPassword(newPassword);
+        Md5PasswordEncoder encoder = new Md5PasswordEncoder();
+        String encodedPassword = encoder.encodePassword(newPassword, null);
+        user.setPassword(encodedPassword);
 
         TemplatedMail templatedMail = new TemplatedMail();
         templatedMail.setOptions(options);
         templatedMail.setMailFormat(TemplatedMail.HTML);
-        templatedMail.setTemplatePath("mailTemplates/resetPassword.vm");
+        templatedMail.setTemplatePath("mailTemplates/recover.vm");
         templatedMail.setFrom(options.get("registration.mail.from"));
         templatedMail.setSubject(options.get("registration.mail.subject"));
         templatedMail.setTo(mail);

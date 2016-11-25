@@ -5,6 +5,7 @@ const { logout } = require("../../actions")
 const ui = require("../utils/ui")
 const { PageLoader, GlobalLoader } = require("./loader")
 const { connect } = require("../utils/aj")
+import { optional } from "../../utils/lang"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -89,7 +90,7 @@ class ProfileBox extends React.Component {
                     </div>
 
                     <div className="sp-info">
-                        {this.state.user.name}
+                        {optional(() => this.state.user.name, "NA")}
 
                         <i className="zmdi zmdi-caret-down"></i>
                     </div>

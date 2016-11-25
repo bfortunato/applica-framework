@@ -23,15 +23,13 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     private CrudStrategy crudStrategy;
 	
 	private Log logger = LogFactory.getLog(getClass());
-	
-	DBCollection collection;
+
+    private DB db;
 
     public void init() {
-        if (collection == null) {
-            DB db = mongoHelper.getDB(getDataSource());
-            if (db != null) {
-                collection = db.getCollection(getCollectionName());
-            } else {
+        if (db == null) {
+            db = mongoHelper.getDB(getDataSource());
+            if (db == null) {
                 logger.warn("Mongo DB is null");
             }
         }
@@ -50,8 +48,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	public Optional<T> get(Object id) {
         init();
 
-		if(collection == null) { 
-			logger.warn("Mongo collection is null");
+		if(db == null) {
+			logger.warn("Mongo DB is null");
 			return null;
 		}
 
@@ -64,10 +62,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	public LoadResponse find(applica.framework.Query query) {
         init();
 
-		if(collection == null) { 
-			logger.warn("Mongo collection is null");
-			return null;
-		}
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
 		
 		if(query == null) query = new applica.framework.Query();
 		
@@ -148,10 +146,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	public void delete(Object id) {
         init();
 
-		if(collection == null) { 
-			logger.warn("Mongo collection is null");
-			return;
-		}
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
 		
 		crudStrategy.delete(id, this);
 	}
@@ -160,10 +158,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	public void save(T entity) {
         init();
 
-		if(collection == null) { 
-			logger.warn("Mongo collection is null");
-			return;
-		}
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
 
         crudStrategy.save(entity, this);
 	}
@@ -181,6 +179,6 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     public DBCollection getCollection() {
-        return collection;
+        return db.getCollection(getCollectionName());
     }
 }

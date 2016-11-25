@@ -50,6 +50,7 @@ public class User extends AEntity implements applica.framework.security.User {
         this.password = password;
     }
 
+    @Override
     public boolean isActive() {
         return active;
     }

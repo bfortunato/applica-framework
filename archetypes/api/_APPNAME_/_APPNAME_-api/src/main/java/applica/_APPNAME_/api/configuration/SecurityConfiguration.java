@@ -52,7 +52,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/static/**",
                         "/auth/**",
                         "/account/register",
-                        "/account/recover"
+                        "/account/recover",
+                        "/account/confirm"
                 )
         ;
     }

@@ -1,6 +1,6 @@
 "use strict"
 
-function connect(component, stores) {
+export function connect(component, stores, localState = {}) {
     let singleStore = !_.isArray(stores)
 
     if (!_.isArray(stores)) {
@@ -13,7 +13,7 @@ function connect(component, stores) {
     }
 
     if (singleStore) {
-        component.state = singleStore.state || {}
+        component.state = singleStore.state || localState
     }
 
     component.componentDidMount = function() {
@@ -37,7 +37,4 @@ function connect(component, stores) {
         }
     }
 }
-
-exports.connect = connect
-
 

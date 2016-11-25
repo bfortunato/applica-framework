@@ -12,12 +12,13 @@ export default {
     mailAddress: "Mail Address",
     name: "Name",
     password: "Password",
-    accountConfirmText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
+    accountConfirmText: "Insert activation code that we sent to your mailbox to confirm your account",
     accountConfirmed: "Your account is confirmed. You can login now",
-    cannotLogin: "Cannot login",
     mailAndPasswordRequired: "Email and password are required",
-    cannotRegister: "Cannot register",
     nameMailAndPasswordRequired: "Name, email and password are required",
-    cannotConfirmAccount: "Cannot confirm account",
+    mailRequired: "Email is required",
     activationCodeRequired: "Activation code required",
+    accountRecoverText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
+    problemOccoured: "There is a problem",
+    accountRecovered: "A new password was sent to {0}"
 }

@@ -23,14 +23,14 @@ public interface AccountService {
     void confirm(String activationCode) throws MailNotFoundException;
 
     /**
-     * Reset lost password by mail. It sents a new password to mail address
-     * @param mail
-     */
-    void resetPassword(String mail) throws MailNotFoundException;
-
-    /**
      * Removes user from system, included related entities
      * @param id
      */
     void delete(Object id) throws UserNotFoundException;
+
+    /**
+     * Recover user account by sending a new password to specified mail address, if exists
+     * @param mail
+     */
+    void recover(String mail) throws MailNotFoundException;
 }

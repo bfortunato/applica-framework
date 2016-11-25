@@ -53,7 +53,7 @@ export default class Register extends Screen {
                                 </div>
                             </div>
 
-                            <button type="submit" className="btn btn-login btn-success btn-float"><i className="zmdi zmdi-check"></i></button>
+                            <button type="submit" className="btn btn-login btn-success btn-float animated fadeInLeft"><i className="zmdi zmdi-check"></i></button>
                         </form>
 
                         <div className="lcb-navigation">
