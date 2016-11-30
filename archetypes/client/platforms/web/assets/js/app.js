@@ -37,7 +37,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 var LOGIN = exports.LOGIN = "LOGIN";
 var login = exports.login = aj.createAction(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)(_strings2.default.cannotLogin, _strings2.default.mailAndPasswordRequired, "warning");
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailAndPasswordRequired, "warning");
         return;
     }
 
@@ -119,7 +119,7 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
 var REGISTER = exports.REGISTER = "REGISTER";
 var register = exports.register = aj.createAction(REGISTER, function (data) {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)(_strings2.default.cannotRegister, _strings2.default.nameMailAndPasswordRequired, "warning");
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.nameMailAndPasswordRequired, "warning");
         return;
     }
 
@@ -159,8 +159,26 @@ var registrationError = exports.registrationError = aj.createAction(REGISTRATION
 
 var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
 var recoverAccount = exports.recoverAccount = aj.createAction(RECOVER_ACCOUNT, function (data) {
+    if (_.isEmpty(data.mail)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailRequired, "warning");
+        return;
+    }
+
     aj.dispatch({
         type: RECOVER_ACCOUNT
+    });
+
+    (0, _plugins.showLoader)();
+    account.recover(data.mail).then(function () {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.congratulations, (0, _lang.format)(_strings2.default.accountRecovered, data.mail));
+
+        recoverAccountComplete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        recoverAccountError();
     });
 });
 
@@ -189,7 +207,7 @@ var setActivationCode = exports.setActivationCode = aj.createAction(SET_ACTIVATI
 var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
 var confirmAccount = exports.confirmAccount = aj.createAction(CONFIRM_ACCOUNT, function (data) {
     if (_.isEmpty(data.activationCode)) {
-        (0, _plugins.alert)(_strings2.default.cannotConfirmAccount, _strings2.default.activationCodeRequired, "warning");
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.activationCodeRequired, "warning");
         return;
     }
 
@@ -22949,14 +22967,15 @@ exports.default = {
     mailAddress: "Mail Address",
     name: "Name",
     password: "Password",
-    accountConfirmText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
+    accountConfirmText: "Insert activation code that we sent to your mailbox to confirm your account",
     accountConfirmed: "Your account is confirmed. You can login now",
-    cannotLogin: "Cannot login",
     mailAndPasswordRequired: "Email and password are required",
-    cannotRegister: "Cannot register",
     nameMailAndPasswordRequired: "Name, email and password are required",
-    cannotConfirmAccount: "Cannot confirm account",
-    activationCodeRequired: "Activation code required"
+    mailRequired: "Email is required",
+    activationCodeRequired: "Activation code required",
+    accountRecoverText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
+    problemOccoured: "There is a problem",
+    accountRecovered: "A new password was sent to {0}"
 };
 });
 define('utils/lang.js', function(module, exports) {
@@ -22966,6 +22985,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.format = format;
+exports.optional = optional;
+/**
+ * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")
+ * @param fmt
+ * @param values
+ * @returns {void|XML|string|*}
+ */
 function format(fmt) {
     for (var _len = arguments.length, values = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         values[_key - 1] = arguments[_key];
@@ -22976,11 +23002,32 @@ function format(fmt) {
         return typeof args[number] != 'undefined' ? args[number] : match;
     });
 }
+
+/**
+ * Gets checked value (check for null or undefined) and gets the default value in case of fail
+ * @param val Value of function to check
+ * @param def Default value or function
+ */
+function optional(val, def) {
+    var v = void 0;
+
+    try {
+        v = _.isFunction(val) ? val() : val;
+    } catch (e) {}
+
+    if (v == undefined) {
+        v = _.isFunction(def) ? def() : def;
+    }
+
+    return v;
+}
 });
 define('web/components/layout.js', function(module, exports) {
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _lang = require("../../utils/lang");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -23144,6 +23191,8 @@ var ProfileBox = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
+            var _this3 = this;
+
             return React.createElement(
                 "div",
                 { className: "s-profile" },
@@ -23158,7 +23207,9 @@ var ProfileBox = function (_React$Component2) {
                     React.createElement(
                         "div",
                         { className: "sp-info" },
-                        this.state.user.name,
+                        (0, _lang.optional)(function () {
+                            return _this3.state.user.name;
+                        }, "NA"),
                         React.createElement("i", { className: "zmdi zmdi-caret-down" })
                     )
                 ),
@@ -23552,22 +23603,22 @@ var ScreenContainer = function (_React$Component7) {
     function ScreenContainer(props) {
         _classCallCheck(this, ScreenContainer);
 
-        var _this7 = _possibleConstructorReturn(this, (ScreenContainer.__proto__ || Object.getPrototypeOf(ScreenContainer)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (ScreenContainer.__proto__ || Object.getPrototypeOf(ScreenContainer)).call(this, props));
 
-        _this7.state = {
+        _this8.state = {
             currentScreen: null
         };
-        return _this7;
+        return _this8;
     }
 
     _createClass(ScreenContainer, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this8 = this;
+            var _this9 = this;
 
             ui.addScreenChangeListener(function (screen) {
                 showPageLoader();
-                _this8.setState(_.assign(_this8.state, { currentScreen: screen }));
+                _this9.setState(_.assign(_this9.state, { currentScreen: screen }));
                 hidePageLoader();
             });
         }
@@ -23602,10 +23653,10 @@ var Index = function (_React$Component9) {
     function Index(props) {
         _classCallCheck(this, Index);
 
-        var _this10 = _possibleConstructorReturn(this, (Index.__proto__ || Object.getPrototypeOf(Index)).call(this, props));
+        var _this11 = _possibleConstructorReturn(this, (Index.__proto__ || Object.getPrototypeOf(Index)).call(this, props));
 
-        _this10.state = {};
-        return _this10;
+        _this11.state = {};
+        return _this11;
     }
 
     _createClass(Index, [{
@@ -23760,17 +23811,21 @@ define('web/components/secure.js', function(module, exports) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _login = require("../screens/login");
+
+var _login2 = _interopRequireDefault(_login);
+
+var _stores = require("../../stores");
+
+var _aj = require("../utils/aj");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Login = require("../screens/login");
-var SessionStore = require("../../stores").session;
-
-var _require = require("../utils/aj"),
-    connect = _require.connect;
 
 var Secure = function (_React$Component) {
     _inherits(Secure, _React$Component);
@@ -23780,14 +23835,14 @@ var Secure = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Secure.__proto__ || Object.getPrototypeOf(Secure)).call(this, props));
 
-        connect(_this, SessionStore);
+        (0, _aj.connect)(_this, _stores.session);
         return _this;
     }
 
     _createClass(Secure, [{
         key: "render",
         value: function render() {
-            return this.state.isLoggedIn ? this.props.children : React.createElement(Login, null);
+            return this.state.isLoggedIn ? this.props.children : React.createElement(_login2.default, null);
         }
     }]);
 
@@ -24000,7 +24055,7 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, AccountStore);
+        (0, _aj.connect)(_this, AccountStore, { activationCode: "" });
         return _this;
     }
 
@@ -24048,7 +24103,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                    React.createElement("i", { className: "zmdi zmdi-lock" })
                                 ),
                                 React.createElement(
                                     "div",
@@ -24058,8 +24113,8 @@ var Recover = function (_Screen) {
                             ),
                             React.createElement(
                                 "button",
-                                { type: "submit", className: "btn btn-login btn-success btn-float" },
-                                React.createElement("i", { className: "zmdi zmdi-check" })
+                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                                React.createElement("i", { className: "zmdi zmdi-lock-open" })
                             )
                         ),
                         React.createElement(
@@ -24314,17 +24369,31 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _aj = require("../utils/aj");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var AccountStore = require("../../stores").account;
+
 var _require = require("../components/layout"),
     FullScreenLayout = _require.FullScreenLayout,
     Screen = _require.Screen;
 
 var ui = require("../utils/ui");
+
+var _require2 = require("../../actions"),
+    recoverAccount = _require2.recoverAccount;
+
 var forms = require("../utils/forms");
 
 var Recover = function (_Screen) {
@@ -24333,13 +24402,24 @@ var Recover = function (_Screen) {
     function Recover(props) {
         _classCallCheck(this, Recover);
 
-        return _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
+
+        (0, _aj.connect)(_this, AccountStore);
+        return _this;
     }
 
     _createClass(Recover, [{
         key: "recover",
         value: function recover() {
-            ui.navigate("/");
+            var data = forms.serialize(this.refs.recover_form);
+            recoverAccount(data);
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(props, state) {
+            if (state.recovered) {
+                ui.navigate("/");
+            }
         }
     }, {
         key: "render",
@@ -24359,7 +24439,7 @@ var Recover = function (_Screen) {
                             React.createElement(
                                 "p",
                                 { className: "text-left" },
-                                "Please insert your email address to recover password. We will send a new password in your mailbox!"
+                                _strings2.default.accountRecoverText
                             ),
                             React.createElement(
                                 "div",
@@ -24372,12 +24452,12 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: "Email Address" })
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
                                 )
                             ),
                             React.createElement(
-                                "a",
-                                { href: "javascript:;", className: "btn btn-login btn-success btn-float" },
+                                "button",
+                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
                                 React.createElement("i", { className: "zmdi zmdi-check" })
                             )
                         ),
@@ -24392,7 +24472,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    "Sign in"
+                                    _strings2.default.signIn
                                 )
                             ),
                             React.createElement(
@@ -24403,7 +24483,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    "Register"
+                                    _strings2.default.register
                                 )
                             )
                         )
@@ -24538,7 +24618,7 @@ var Register = function (_Screen) {
                             ),
                             React.createElement(
                                 "button",
-                                { type: "submit", className: "btn btn-login btn-success btn-float" },
+                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
                                 React.createElement("i", { className: "zmdi zmdi-check" })
                             )
                         ),
@@ -24721,7 +24801,13 @@ exports.default = RegistrationOk;
 define('web/utils/aj.js', function(module, exports) {
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.connect = connect;
 function connect(component, stores) {
+    var localState = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     var singleStore = !_.isArray(stores);
 
     if (!_.isArray(stores)) {
@@ -24734,7 +24820,7 @@ function connect(component, stores) {
     };
 
     if (singleStore) {
-        component.state = singleStore.state || {};
+        component.state = singleStore.state || localState;
     }
 
     component.componentDidMount = function () {
@@ -24760,8 +24846,6 @@ function connect(component, stores) {
         }
     };
 }
-
-exports.connect = connect;
 });
 define('web/utils/events.js', function(module, exports) {
 "use strict";

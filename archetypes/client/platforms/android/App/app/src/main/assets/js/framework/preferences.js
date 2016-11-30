@@ -1,1 +1,109 @@
-"use strict";function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}var _createClass=function(){function e(e,n){for(var t=0;t<n.length;t++){var r=n[t];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(n,t,r){return t&&e(n.prototype,t),r&&e(n,r),n}}(),storage=require("../aj/storage"),Preferences=function(){function e(){_classCallCheck(this,e),this.path="preferences.json",this.data={}}return _createClass(e,null,[{key:"instance",value:function(){return e._instance||(e._instance=new e),e._instance}}]),_createClass(e,[{key:"load",value:function(){var e=this;return logger.i("Loading preferences..."),this.data={},new Promise(function(n,t){storage.exists(e.path).then(function(t){return t?storage.readText(e.path).then(function(t){logger.i("Preferences:",t);try{e.data=JSON.parse(t)}catch(r){}n(e)}):void n(e)})["catch"](function(e){return t(e)})})}},{key:"get",value:function(e){return this.data[e]}},{key:"set",value:function(e,n){this.data[e]=n}},{key:"save",value:function(){var e=this;return logger.i("Saving preferences",JSON.stringify(this.data)),new Promise(function(n,t){storage.writeText(e.path,JSON.stringify(e.data)).then(function(){n()})["catch"](function(e){return t(e)})})}},{key:"clear",value:function(){this.data={}}}]),e}();exports.Preferences=Preferences,exports.load=function(){return Preferences.instance().load()},exports.get=function(e){return Preferences.instance().get(e)},exports.set=function(e,n){return Preferences.instance().set(e,n)},exports.save=function(){return Preferences.instance().save()},exports.clear=function(){return Preferences.instance().clear()};
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var storage = require("../aj/storage");
+
+var Preferences = function () {
+    _createClass(Preferences, null, [{
+        key: "instance",
+        value: function instance() {
+            if (!Preferences._instance) {
+                Preferences._instance = new Preferences();
+            }
+
+            return Preferences._instance;
+        }
+    }]);
+
+    function Preferences() {
+        _classCallCheck(this, Preferences);
+
+        this.path = "preferences.json";
+        this.data = {};
+    }
+
+    _createClass(Preferences, [{
+        key: "load",
+        value: function load() {
+            var _this = this;
+
+            logger.i("Loading preferences...");
+
+            this.data = {};
+
+            return new Promise(function (resolve, reject) {
+                storage.exists(_this.path).then(function (exists) {
+                    if (exists) {
+                        return storage.readText(_this.path).then(function (content) {
+                            logger.i("Preferences:", content);
+                            try {
+                                _this.data = JSON.parse(content);
+                            } catch (e) {}
+                            resolve(_this);
+                        });
+                    } else {
+                        resolve(_this);
+                    }
+                }).catch(function (e) {
+                    return reject(e);
+                });
+            });
+        }
+    }, {
+        key: "get",
+        value: function get(key) {
+            return this.data[key];
+        }
+    }, {
+        key: "set",
+        value: function set(key, value) {
+            this.data[key] = value;
+        }
+    }, {
+        key: "save",
+        value: function save() {
+            var _this2 = this;
+
+            logger.i("Saving preferences", JSON.stringify(this.data));
+            return new Promise(function (resolve, reject) {
+                storage.writeText(_this2.path, JSON.stringify(_this2.data)).then(function () {
+                    resolve();
+                }).catch(function (e) {
+                    return reject(e);
+                });
+            });
+        }
+    }, {
+        key: "clear",
+        value: function clear() {
+            this.data = {};
+        }
+    }]);
+
+    return Preferences;
+}();
+
+exports.Preferences = Preferences;
+
+exports.load = function () {
+    return Preferences.instance().load();
+};
+
+exports.get = function (key) {
+    return Preferences.instance().get(key);
+};
+
+exports.set = function (key, value) {
+    return Preferences.instance().set(key, value);
+};
+
+exports.save = function () {
+    return Preferences.instance().save();
+};
+
+exports.clear = function () {
+    return Preferences.instance().clear();
+};

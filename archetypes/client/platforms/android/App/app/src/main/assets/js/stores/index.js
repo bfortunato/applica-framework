@@ -1,1 +1,92 @@
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var s in e)Object.prototype.hasOwnProperty.call(e,s)&&(r[s]=e[s]);return r["default"]=e,r}Object.defineProperty(exports,"__esModule",{value:!0}),exports.account=exports.session=exports.ACCOUNT=exports.SESSION=void 0;var _aj=require("../aj"),aj=_interopRequireWildcard(_aj),_actions=require("../actions"),actions=_interopRequireWildcard(_actions),_underscore=require("../libs/underscore"),_=_interopRequireWildcard(_underscore),_strings=require("../strings"),_strings2=_interopRequireDefault(_strings),SESSION=exports.SESSION="SESSION",ACCOUNT=exports.ACCOUNT="ACCOUNT",session=exports.session=aj.createStore(SESSION,function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},r=arguments[1];switch(r.type){case actions.LOGIN:return _.assign(e,{action:r.type,user:r.user,isLoggedIn:r.isLoggedIn});case actions.RESUME_SESSION:return _.assign(e,{action:r.type,user:r.user,isLoggedIn:r.isLoggedIn})}}),account=exports.account=aj.createStore(ACCOUNT,function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},r=arguments[1];switch(r.type){case actions.REGISTER:return _.assign(e,{registered:!1,error:!1});case actions.REGISTRATION_COMPLETE:return _.assign(e,{registered:!0,error:!1,name:r.name,mail:r.mail,message:r.message});case actions.REGISTRATION_ERROR:return _.assign(e,{registered:!1,error:!0,message:r.message})}});
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
+
+var _aj = require("../aj");
+
+var aj = _interopRequireWildcard(_aj);
+
+var _actions = require("../actions");
+
+var actions = _interopRequireWildcard(_actions);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var SESSION = exports.SESSION = "SESSION";
+var session = exports.session = aj.createStore(SESSION, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.LOGIN:
+            return _.assign(state, { isLoggedIn: false });
+
+        case actions.LOGIN_COMPLETE:
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
+
+        case actions.LOGIN_ERROR:
+            return _.assign(state, { isLoggedIn: false, error: true });
+
+        case actions.RESUME_SESSION:
+            return _.assign(state, { isLoggedIn: false });
+
+        case actions.RESUME_SESSION_COMPLETE:
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
+
+        case actions.RESUME_SESSION_ERROR:
+            return _.assign(state, { isLoggedIn: false, error: true });
+    }
+});
+
+var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
+var account = exports.account = aj.createStore(ACCOUNT, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { activationCode: "" };
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.REGISTER:
+            return _.assign(state, { registered: false, error: false });
+
+        case actions.REGISTRATION_COMPLETE:
+            return _.assign(state, { registered: true, error: false, name: action.name, mail: action.mail, message: action.message });
+
+        case actions.REGISTRATION_ERROR:
+            return _.assign(state, { registered: false, error: true, message: action.message });
+
+        case actions.SET_ACTIVATION_CODE:
+            return _.assign(state, { activationCode: action.activationCode });
+
+        case actions.CONFIRM_ACCOUNT:
+            return _.assign(state, { confirmed: false, error: false });
+
+        case actions.CONFIRM_ACCOUNT_COMPLETE:
+            return _.assign(state, { confirmed: true, error: false });
+
+        case actions.CONFIRM_ACCOUNT_ERROR:
+            return _.assign(state, { confirmed: false, error: true, message: action.message });
+
+        case actions.RECOVER_ACCOUNT:
+            return _.assign(state, { recovered: false, error: false });
+
+        case actions.RECOVER_ACCOUNT_COMPLETE:
+            return _.assign(state, { recovered: true, error: false });
+
+        case actions.RECOVER_ACCOUNT_ERROR:
+            return _.assign(state, { recovered: false, error: true });
+    }
+});

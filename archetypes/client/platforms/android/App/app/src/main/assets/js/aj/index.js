@@ -1,1 +1,601 @@
-"use strict";function _possibleConstructorReturn(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function createRuntime(e){return __runtime=AJRuntime.create(),__runtime.init(e),__runtime}function createStore(e,t){if(_.has(__stores,e))throw"Cannot create store "+e+". Only one instance of store is allowed";var r=new Store(e,t);return __stores[e]=r,logger.i("Store created:",e),r}function createAction(e,t){if(_.has(__actions,e))throw"Cannot create action "+e+". Already created";var r=__actions[e]=function(e){t(e)};return logger.i("Action created:",e),r}function dispatch(e){logger.i("Dispatching action",e),_.each(__stores,function(t){try{t.dispatch(e)}catch(r){r&&r.stack&&logger.i(r.stack),logger.e(r)}})}function _run(e,t){logger.i("Running action",e),_.has(__actions,e)?__actions[e](t):logger.w("Cannot find action: "+e)}function exec(e,t,r){return __runtime.exec(e,t,r)}function createBuffer(e){return __runtime.createBuffer(e)}function readBuffer(e){return __runtime.readBuffer(e)}function destroyBuffer(e){return __runtime.destroyBuffer(e)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}();exports.createBuffer=createBuffer,exports.readBuffer=readBuffer,exports.destroyBuffer=destroyBuffer;var _=require("../libs/underscore"),Observable=require("../framework/events").Observable,__runtime=null,__stores={},__actions={},AJRuntime=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"exec",value:function(){throw"Not implemented"}},{key:"createBuffer",value:function(){throw"Not implemented"}},{key:"loadBuffer",value:function(){throw"Not implemented"}},{key:"destroyBuffer",value:function(){throw"Not implemented"}},{key:"__trigger",value:function(){throw"Not implemented"}}],[{key:"instance",value:function(){if(!__runtime)throw"Runtime not initialized";return __runtime}}]),e}();"node"==platform.engine?!function(){var e=(require("vm"),require("fs"),function(e){function t(){_classCallCheck(this,t);var e=_possibleConstructorReturn(this,(t.__proto__||Object.getPrototypeOf(t)).call(this));return e.semaphores=[],logger.i("New websocket server runtime created"),e}return _inherits(t,e),_createClass(t,[{key:"init",value:function(e){var t=this;if(this.socket=e.socket,!this.socket)throw"Socket is required";this.socket.on("run",function(e,t,r){async(function(){try{var n=JSON.parse(t);_run(e,n),r()}catch(i){i&&i.stack&&logger.i(i.stack),logger.e(i)}})}),this.socket.on("freeSemaphore",function(e,r){try{t.freeSemaphore(e,r)}catch(n){n&&n.stack&&logger.i(n.stack),logger.e(n)}}),this.socket.on("error",function(e){e&&e.stack&&logger.i(e.stack),logger.e(e)})}},{key:"exec",value:function(e,t,r){var n=this;return logger.i("Executing plugin ",e+"."+t),new Promise(function(i,o){try{n.socket.emit("exec",e,t,r,function(e){i(e)})}catch(u){o(u)}})}},{key:"__trigger",value:function(e,t){var r=this;return logger.i("Triggering ",e),new Promise(function(n){r.socket.emit("trigger",e,t,function(){n()})})}},{key:"freeSemaphore",value:function(e,t){for(var r=-1,n=!1,i=0;i<this.semaphores.length;i++){r++;var o=this.semaphores[i];if(o.id==e){n=!0,o.free(t);break}}n&&(this.semaphores.splice(r,1),logger.i("Semaphore destroyed:",o.name))}},{key:"createBuffer",value:function(e){var t=this;return new Promise(function(r,n){t.socket.emit("createBuffer",e,function(e,t){e?n():r(t)})})}},{key:"readBuffer",value:function(e){var t=this;return new Promise(function(r,n){t.socket.emit("readBuffer",e,function(e,t){e?n():r(t)})})}},{key:"destroyBuffer",value:function(e){var t=this;return new Promise(function(r,n){t.socket.emit("readBuffer",e,function(e){e?n():r()})})}}]),t}(AJRuntime));AJRuntime.create=function(){return new e}}():!function(){var e=function(e){function t(){_classCallCheck(this,t);var e=_possibleConstructorReturn(this,(t.__proto__||Object.getPrototypeOf(t)).call(this));return logger.i("New native server runtime created"),e}return _inherits(t,e),_createClass(t,[{key:"init",value:function(){}},{key:"run",value:function(e,t){_run(e,t)}},{key:"__trigger",value:function(e){function t(){return e.apply(this,arguments)}return t.toString=function(){return e.toString()},t}(function(e,t){if(void 0==__trigger)throw"__trigger function not defined";return logger.i("Triggering ",e),new Promise(function(r,n){async(function(){try{__trigger(e,t),r()}catch(i){n(i)}})})})},{key:"exec",value:function(e,t,r){if(void 0==__exec)throw"__exec function not defined";return logger.i("Executing plugin",e+"."+t),new Promise(function(n,i){async(function(){try{var o=__exec(e,t,r);logger.i("Plugin called with res:",o),n(o)}catch(u){i(u)}})})}},{key:"createBuffer",value:function(e){return new Promise(function(t,r){__buffersManager.create(e,function(e,n){e?r(n):t(n)})})}},{key:"readBuffer",value:function(e){return new Promise(function(t,r){__buffersManager.read(e,function(e,n){e?r(n):t(n)})})}},{key:"destroyBuffer",value:function(e){return new Promise(function(t,r){__buffersManager.destroy(e,function(e,n){e?r(n):t(n)})})}}]),t}(AJRuntime);AJRuntime.create=function(){return new e}}();var Store=function(e){function t(e,r){_classCallCheck(this,t);var n=_possibleConstructorReturn(this,(t.__proto__||Object.getPrototypeOf(t)).call(this));return n.type=e,n.reducer=r,n.subscriptions=[],n}return _inherits(t,e),_createClass(t,[{key:"init",value:function(){}},{key:"subscribe",value:function(e,t){this.subscriptions.push({owner:e,subscription:t})}},{key:"unsubscribe",value:function(e){this.subscriptions=_.filter(this.subscriptions,function(t){return t.owner!=e})}},{key:"trigger",value:function(e){var t=e||this.state;return _.each(this.subscriptions,function(e){e.subscription(t)}),__runtime.__trigger(this.type,t)}},{key:"dispatch",value:function(e){if(_.isFunction(this.reducer)){var t=this.reducer(this.state,e);t&&(this.state=t,this.trigger())}else logger.w("Cannot dispatch action:",this.type+"."+e)}}]),t}(Observable),Semaphore=function(){function e(t){_classCallCheck(this,e),this.complete=!1,this.listeners=[],this.id=e.counter++,t&&this.runAction(t)}return _createClass(e,[{key:"runAction",value:function(e){var t=this;async(function(){e(),t.free()})}},{key:"then",value:function(e){return this.listeners.push(e),this.complete&&e(),this}},{key:"free",value:function(e){return this.listeners.forEach(function(t){t(e)}),this.complete=!0,this}}]),e}();Semaphore.counter=1;var createRuntime=exports.createRuntime=createRuntime,createStore=exports.createStore=createStore,createAction=exports.createAction=createAction,dispatch=exports.dispatch=dispatch,exec=exports.exec=exec,_run=_run;exports.run=_run;
+/**
+ * AJ Framework main module. Contains functions to create hybrid applications using flux framework
+ * @module aj
+ */
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.createBuffer = createBuffer;
+exports.readBuffer = readBuffer;
+exports.destroyBuffer = destroyBuffer;
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _ = require("../libs/underscore");
+var Observable = require("../framework/events").Observable;
+
+var __runtime = null;
+var __stores = {};
+var __actions = {};
+
+var AJRuntime = function () {
+    function AJRuntime() {
+        _classCallCheck(this, AJRuntime);
+    }
+
+    _createClass(AJRuntime, [{
+        key: "exec",
+        value: function exec() {
+            throw "Not implemented";
+        }
+    }, {
+        key: "createBuffer",
+        value: function createBuffer(data) {
+            throw "Not implemented";
+        }
+    }, {
+        key: "loadBuffer",
+        value: function loadBuffer(id) {
+            throw "Not implemented";
+        }
+    }, {
+        key: "destroyBuffer",
+        value: function destroyBuffer(id) {
+            throw "Not implemented";
+        }
+    }, {
+        key: "__trigger",
+        value: function __trigger(store, state) {
+            throw "Not implemented";
+        }
+    }], [{
+        key: "instance",
+        value: function instance() {
+            if (!__runtime) {
+                throw "Runtime not initialized";
+            }
+            return __runtime;
+        }
+    }]);
+
+    return AJRuntime;
+}();
+
+if (platform.engine == "node") {
+    (function () {
+        var vm = require("vm");
+        var fs = require("fs");
+
+        var AJWebSocketServerRuntime = function (_AJRuntime) {
+            _inherits(AJWebSocketServerRuntime, _AJRuntime);
+
+            function AJWebSocketServerRuntime() {
+                _classCallCheck(this, AJWebSocketServerRuntime);
+
+                var _this = _possibleConstructorReturn(this, (AJWebSocketServerRuntime.__proto__ || Object.getPrototypeOf(AJWebSocketServerRuntime)).call(this));
+
+                _this.semaphores = [];
+
+                logger.i("New websocket server runtime created");
+                return _this;
+            }
+
+            _createClass(AJWebSocketServerRuntime, [{
+                key: "init",
+                value: function init(options) {
+                    var _this2 = this;
+
+                    this.socket = options.socket;
+                    if (!this.socket) {
+                        throw "Socket is required";
+                    }
+
+                    this.socket.on("run", function (action, json, ack) {
+                        async(function () {
+                            try {
+                                var data = JSON.parse(json);
+                                _run(action, data);
+
+                                ack();
+                            } catch (e) {
+                                if (e && e.stack) {
+                                    logger.i(e.stack);
+                                }
+                                logger.e(e);
+                            }
+                        });
+                    });
+
+                    this.socket.on("freeSemaphore", function (id, data) {
+                        try {
+                            _this2.freeSemaphore(id, data);
+                        } catch (e) {
+                            if (e && e.stack) {
+                                logger.i(e.stack);
+                            }
+                            logger.e(e);
+                        }
+                    });
+
+                    this.socket.on("error", function (e) {
+                        if (e && e.stack) {
+                            logger.i(e.stack);
+                        }
+                        logger.e(e);
+                    });
+                }
+            }, {
+                key: "exec",
+                value: function exec(plugin, fn, data) {
+                    var _this3 = this;
+
+                    logger.i("Executing plugin ", plugin + "." + fn);
+
+                    return new Promise(function (resolve, reject) {
+                        try {
+                            _this3.socket.emit("exec", plugin, fn, data, function (result) {
+                                resolve(result);
+                            });
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                }
+            }, {
+                key: "__trigger",
+                value: function __trigger(store, state) {
+                    var _this4 = this;
+
+                    logger.i("Triggering ", store);
+
+                    return new Promise(function (resolve, reject) {
+                        _this4.socket.emit("trigger", store, state, function () {
+                            resolve();
+                        });
+                    });
+                }
+            }, {
+                key: "freeSemaphore",
+                value: function freeSemaphore(id, data) {
+                    var index = -1;
+                    var found = false;
+                    for (var i = 0; i < this.semaphores.length; i++) {
+                        index++;
+                        var semaphore = this.semaphores[i];
+
+                        if (semaphore.id == id) {
+                            found = true;
+                            semaphore.free(data);
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        this.semaphores.splice(index, 1);
+                        logger.i("Semaphore destroyed:", semaphore.name);
+                    }
+                }
+            }, {
+                key: "createBuffer",
+                value: function createBuffer(data) {
+                    var _this5 = this;
+
+                    return new Promise(function (resolve, reject) {
+                        _this5.socket.emit("createBuffer", data, function (error, id) {
+                            if (!error) {
+                                resolve(id);
+                            } else {
+                                reject();
+                            }
+                        });
+                    });
+                }
+            }, {
+                key: "readBuffer",
+                value: function readBuffer(id) {
+                    var _this6 = this;
+
+                    return new Promise(function (resolve, reject) {
+                        _this6.socket.emit("readBuffer", id, function (error, data) {
+                            if (!error) {
+                                resolve(data);
+                            } else {
+                                reject();
+                            }
+                        });
+                    });
+                }
+            }, {
+                key: "destroyBuffer",
+                value: function destroyBuffer(id) {
+                    var _this7 = this;
+
+                    return new Promise(function (resolve, reject) {
+                        _this7.socket.emit("readBuffer", id, function (error) {
+                            if (!error) {
+                                resolve();
+                            } else {
+                                reject();
+                            }
+                        });
+                    });
+                }
+            }]);
+
+            return AJWebSocketServerRuntime;
+        }(AJRuntime);
+
+        AJRuntime.create = function () {
+            return new AJWebSocketServerRuntime();
+        };
+    })();
+} else {
+    (function () {
+        var AJNativeServerRuntime = function (_AJRuntime2) {
+            _inherits(AJNativeServerRuntime, _AJRuntime2);
+
+            function AJNativeServerRuntime() {
+                _classCallCheck(this, AJNativeServerRuntime);
+
+                var _this8 = _possibleConstructorReturn(this, (AJNativeServerRuntime.__proto__ || Object.getPrototypeOf(AJNativeServerRuntime)).call(this));
+
+                logger.i("New native server runtime created");
+                return _this8;
+            }
+
+            _createClass(AJNativeServerRuntime, [{
+                key: "init",
+                value: function init(options) {}
+            }, {
+                key: "run",
+                value: function run(action, data) {
+                    _run(action, data);
+                }
+            }, {
+                key: "__trigger",
+                value: function (_trigger) {
+                    function __trigger(_x, _x2) {
+                        return _trigger.apply(this, arguments);
+                    }
+
+                    __trigger.toString = function () {
+                        return _trigger.toString();
+                    };
+
+                    return __trigger;
+                }(function (store, state) {
+                    if (__trigger == undefined) {
+                        throw "__trigger function not defined";
+                    }
+
+                    logger.i("Triggering ", store);
+
+                    return new Promise(function (resolve, reject) {
+                        async(function () {
+                            try {
+                                __trigger(store, state);
+                                resolve();
+                            } catch (e) {
+                                reject(e);
+                            }
+                        });
+                    });
+                })
+            }, {
+                key: "exec",
+                value: function exec(plugin, fn, data) {
+                    if (__exec == undefined) {
+                        throw "__exec function not defined";
+                    }
+
+                    logger.i("Executing plugin", plugin + "." + fn);
+
+                    return new Promise(function (resolve, reject) {
+                        async(function () {
+                            try {
+                                var result = __exec(plugin, fn, data);
+                                logger.i("Plugin called with res:", result);
+
+                                resolve(result);
+                            } catch (e) {
+                                reject(e);
+                            }
+                        });
+                    });
+                }
+            }, {
+                key: "createBuffer",
+                value: function createBuffer(data) {
+                    return new Promise(function (resolve, reject) {
+                        __buffersManager.create(data, function (error, value) {
+                            if (error) {
+                                reject(value);
+                            } else {
+                                resolve(value);
+                            }
+                        });
+                    });
+                }
+            }, {
+                key: "readBuffer",
+                value: function readBuffer(id) {
+                    return new Promise(function (resolve, reject) {
+                        __buffersManager.read(id, function (error, value) {
+                            if (error) {
+                                reject(value);
+                            } else {
+                                resolve(value);
+                            }
+                        });
+                    });
+                }
+            }, {
+                key: "destroyBuffer",
+                value: function destroyBuffer(id) {
+                    return new Promise(function (resolve, reject) {
+                        __buffersManager.destroy(id, function (error, value) {
+                            if (error) {
+                                reject(value);
+                            } else {
+                                resolve(value);
+                            }
+                        });
+                    });
+                }
+            }]);
+
+            return AJNativeServerRuntime;
+        }(AJRuntime);
+
+        AJRuntime.create = function () {
+            return new AJNativeServerRuntime();
+        };
+    })();
+}
+
+var Store = function (_Observable) {
+    _inherits(Store, _Observable);
+
+    function Store(type, reducer) {
+        _classCallCheck(this, Store);
+
+        var _this9 = _possibleConstructorReturn(this, (Store.__proto__ || Object.getPrototypeOf(Store)).call(this));
+
+        _this9.type = type;
+        _this9.reducer = reducer;
+        _this9.subscriptions = [];
+        return _this9;
+    }
+
+    _createClass(Store, [{
+        key: "init",
+        value: function init(options) {}
+    }, {
+        key: "subscribe",
+        value: function subscribe(owner, subscription) {
+            this.subscriptions.push({ owner: owner, subscription: subscription });
+        }
+    }, {
+        key: "unsubscribe",
+        value: function unsubscribe(owner) {
+            this.subscriptions = _.filter(this.subscriptions, function (s) {
+                return s.owner != owner;
+            });
+        }
+    }, {
+        key: "trigger",
+        value: function trigger(state) {
+            var newState = state || this.state;
+
+            _.each(this.subscriptions, function (s) {
+                s.subscription(newState);
+            });
+
+            return __runtime.__trigger(this.type, newState);
+        }
+    }, {
+        key: "dispatch",
+        value: function dispatch(action) {
+            if (_.isFunction(this.reducer)) {
+                var newState = this.reducer(this.state, action);
+                if (newState) {
+                    this.state = newState;
+
+                    this.trigger();
+                }
+            } else {
+                logger.w("Cannot dispatch action:", this.type + "." + action);
+            }
+        }
+    }]);
+
+    return Store;
+}(Observable);
+
+var Semaphore = function () {
+    function Semaphore(action) {
+        _classCallCheck(this, Semaphore);
+
+        this.complete = false;
+        this.listeners = [];
+        this.id = Semaphore.counter++;
+
+        if (action) {
+            this.runAction(action);
+        }
+    }
+
+    _createClass(Semaphore, [{
+        key: "runAction",
+        value: function runAction(action) {
+            var _this10 = this;
+
+            async(function () {
+                action();
+                _this10.free();
+            });
+        }
+    }, {
+        key: "then",
+        value: function then(action) {
+            this.listeners.push(action);
+
+            if (this.complete) {
+                action();
+            }
+
+            return this;
+        }
+    }, {
+        key: "free",
+        value: function free(data) {
+            this.listeners.forEach(function (l) {
+                l(data);
+            });
+            this.complete = true;
+
+            return this;
+        }
+    }]);
+
+    return Semaphore;
+}();
+
+Semaphore.counter = 1;
+
+function createRuntime(options) {
+    __runtime = AJRuntime.create();
+    __runtime.init(options);
+
+    return __runtime;
+};
+
+function createStore(type, reducer) {
+    if (_.has(__stores, type)) {
+        throw "Cannot create store " + type + ". Only one instance of store is allowed";
+    }
+
+    var store = new Store(type, reducer);
+    __stores[type] = store;
+
+    logger.i("Store created:", type);
+
+    return store;
+}
+
+function createAction(type, fn) {
+    if (_.has(__actions, type)) {
+        throw "Cannot create action " + type + ". Already created";
+    }
+
+    var act = __actions[type] = function (data) {
+        fn(data);
+    };
+
+    logger.i("Action created:", type);
+
+    return act;
+}
+
+function dispatch(action) {
+    logger.i("Dispatching action", action);
+
+    _.each(__stores, function (store) {
+        try {
+            store.dispatch(action);
+        } catch (e) {
+            if (e && e.stack) {
+                logger.i(e.stack);
+            }
+            logger.e(e);
+        }
+    });
+}
+
+function _run(action, data) {
+    logger.i("Running action", action);
+
+    if (_.has(__actions, action)) {
+        __actions[action](data);
+    } else {
+        logger.w("Cannot find action: " + action);
+    }
+}
+
+function exec(plugin, fn, data) {
+    return __runtime.exec(plugin, fn, data);
+}
+
+/**
+ * @function createRuntime
+ * @description Creates a new instance of runtime. Usually used internally by devices runtimes
+ * @returns singleton instance of runtime
+ */
+var createRuntime = exports.createRuntime = createRuntime;
+
+/**
+ * @function createStore
+ * @description Creates a new singleton instance of store
+ * @param {string} type - Name of store to create
+ * @param {function} reducer - Store reducer
+ * @returns {store} - The newly created store
+ */
+var createStore = exports.createStore = createStore;
+
+/**
+ * @function createAction
+ * @Description Creates a new action for the application
+ * @param {string} type - Type of action to create
+ * @param {function} action - Action to execute
+ * @returns {function} The newly created action
+ */
+var createAction = exports.createAction = createAction;
+
+/**
+ * @function dispatch
+ * @description Dispatch action to stores, usually called by actions
+ * @param {object} data - Data to pass to stores
+ */
+var dispatch = exports.dispatch = dispatch;
+
+/**
+ * @function exec
+ * @description Exec a plugin method
+ * @param {string} plugin - The plugin
+ * @param {method} method - The plugin method to call
+ * @param {data} data - Data to pass to plugin
+ * @returns {Promise} - A promise of plugin call result
+ */
+var exec = exports.exec = exec;
+
+/**
+ * @function run
+ * @description Run specified action. This is not the common method to call actions, but it's necessary for managing actions from
+ * devices. On JS side, call actions directly
+ * @param {type} type - Type of action to call
+ * @param {data} type - Data to pass to action
+ */
+var _run = _run;
+
+exports.run = _run;
+function createBuffer(data) {
+    return __runtime.createBuffer(data);
+}
+
+function readBuffer(id) {
+    return __runtime.readBuffer(id);
+}
+
+function destroyBuffer(id) {
+    return __runtime.destroyBuffer(id);
+}
