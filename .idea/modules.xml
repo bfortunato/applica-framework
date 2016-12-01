@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/archetypes/api/_APPNAME_/_APPNAME_-api/_APPNAME_-admin.iml" filepath="$PROJECT_DIR$/archetypes/api/_APPNAME_/_APPNAME_-api/_APPNAME_-admin.iml" />
       <module fileurl="file://$PROJECT_DIR$/applica-framework.iml" filepath="$PROJECT_DIR$/applica-framework.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-core/framework-core.iml" filepath="$PROJECT_DIR$/framework-core/framework-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" filepath="$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" />

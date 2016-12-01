@@ -5,7 +5,7 @@
 //  Auto generated from aj build
 //
 
-import foundation
+import Foundation
         
 struct Actions {
 	static let LOGIN = "LOGIN"

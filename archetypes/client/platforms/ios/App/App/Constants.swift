@@ -7,15 +7,4 @@
 //
 
 import Foundation
-import UIKit
-import ApplicaFramework
 
-struct Colors {
-    static let black = UIColor.black
-    static let white = UIColor.white
-}
-
-struct Dimensions {
-    static let padding = X3(16)
-    static let doublePadding = X3(32)
-}

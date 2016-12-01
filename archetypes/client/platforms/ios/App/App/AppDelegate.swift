@@ -20,8 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         app.debug = false
         app.initialize()
         
+        ThemeInitializer.configure()
+        
         window = UIWindow(frame: UIScreen.main.bounds)
-        window?.rootViewController = HomeViewController()
+        window?.rootViewController = WelcomeViewController()
         
         window?.makeKeyAndVisible()
         
