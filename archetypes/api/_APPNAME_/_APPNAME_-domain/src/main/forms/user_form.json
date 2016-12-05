@@ -1,0 +1,13 @@
+{
+  "id": "user_form",
+  "fields": [
+    {
+      "tab": "user_info",
+      "fieldSet": "account",
+      "property": "name",
+      "component": "text",
+      "label": "name",
+      "placeHolder": "name"
+    }
+  ]
+}

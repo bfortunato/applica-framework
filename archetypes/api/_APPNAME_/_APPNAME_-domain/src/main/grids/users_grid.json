@@ -1,0 +1,7 @@
+{
+  "id": "users_grid",
+  "columns": [
+    {"property": "mail", "header": "mail", "component": "text"},
+    {"property": "active", "header": "active", "component": "check"}
+  ]
+}

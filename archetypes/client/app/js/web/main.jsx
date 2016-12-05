@@ -8,11 +8,21 @@ import Confirm from "./screens/confirm"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
 import { resumeSession } from "../actions"
+import { Users } from "./screens/admin"
+
+function ifAdmin(fn, ...params) {
+    if (true) {
+        fn.apply(this, params)
+    }
+}
 
 /* Register plugins */
 plugins.register()
 
-/* Login routes */
+/* Admin routes */
+ui.addRoute("/admin/users", params => ifAdmin(ui.changeScreen, <Users />))
+
+/* Account routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))
 ui.addRoute("/register", params => ui.changeScreen(<Register />))
 ui.addRoute("/recover", params => ui.changeScreen(<Recover />))

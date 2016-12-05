@@ -1,0 +1,14 @@
+{
+  "id": "user",
+  "properties": [
+    {"name": "name", "type": "string" },
+    {"name": "mail", "type": "string" },
+    {"name": "password", "type": "string" },
+    {"name": "active", "type": "boolean" },
+    {"name": "registrationDate", "type": "date" },
+    {"name": "activationCode", "type": "string" },
+    {"name": "image", "type": "string" },
+    {"name": "lastLogin", "type": "date" },
+    {"name": "roles", "type": "manyToMany:role" }
+  ]
+}
