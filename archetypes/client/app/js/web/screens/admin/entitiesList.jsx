@@ -11,7 +11,7 @@ import { Card } from "../../components/common"
 import { Grid, TextColumn, CheckColumn } from "../../components/grids"
 import * as query from "../../../api/query"
 
-class Users extends Screen {
+class EntitiesList extends Screen {
     constructor(props) {
         super(props)
 
@@ -21,8 +21,12 @@ class Users extends Screen {
     }
 
     componentDidMount() {
-        getGrid({id: "users"})
-        loadEntities({entity: "user"})
+        getGrid({id: this.props.grid})
+        loadEntities({entity: this.props.entity})
+    }
+
+    onQueryChanged() {
+        loadEntities({entity: this.props.entity, query: this.state.query})
     }
 
     render() {
@@ -30,7 +34,7 @@ class Users extends Screen {
             {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
-                action: () => { loadEntities({entity: "user"}) }
+                action: () => { loadEntities({entity: this.props.entity}) }
             },
             {
                 type: "button",
@@ -43,12 +47,12 @@ class Users extends Screen {
         return (
             <Layout>
                 <Card title="Users" actions={actions}>
-                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
+                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} onQueryChanged={this.onQueryChanged.bind(this)} />
                 </Card>
             </Layout>
         )
     }
 }
 
-module.exports = Users
+module.exports = EntitiesList
 

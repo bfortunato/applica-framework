@@ -1,1 +1,1 @@
-export const Users = require("./users")
+export const EntitiesList = require("./entitiesList")

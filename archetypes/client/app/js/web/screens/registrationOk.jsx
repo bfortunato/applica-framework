@@ -7,7 +7,7 @@ const { login } = require("../../actions")
 const forms = require("../utils/forms")
 const { Preloader } = require("../components/loader")
 const { connect } = require("../utils/aj")
-const strings = require("../../strings")
+import strings from "../../strings"
 
 export default class RegistrationOk extends Screen {
 
@@ -30,7 +30,7 @@ export default class RegistrationOk extends Screen {
 
                         <div className="jumbotron">
                             <h1>{strings.congratulations}!</h1>
-                            <p>{this.state.welcomeMessage}</p>
+                            <p>{this.state.message}</p>
                             <p><a className="btn btn-primary btn-lg waves-effect" href="javascript:;" onClick={this.goHome.bind(this)} role="button">{strings.continue}</a></p>
                         </div>
 

@@ -199,7 +199,7 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
     })
 
     showLoader()
-    entities.load(data.entity, data.query)
+    entities.load(data.entity, JSON.stringify(data.query))
         .then(response => {
             hideLoader()
 

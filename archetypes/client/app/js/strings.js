@@ -4,7 +4,7 @@ export default {
     badLogin: "Cannot login! Please check your email address or password!",
     welcome: "Welcome",
     congratulations: "Congratulations",
-    welcomeMessage: "Hi {0}. Your registration is complete. A confirmation link was sent to {1}. Please confirm before login",
+    welcomeMessage: "Hi {0}, your registration is complete.\nA confirmation link was sent to {1}.\nPlease confirm before login",
     continue: "Continue",
     register: "Register",
     forgotPassword: "Forgot password",

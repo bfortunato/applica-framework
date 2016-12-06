@@ -101,7 +101,7 @@ class WelcomeViewController: UIViewController {
     }
     
     func login() {
-        _loader = AF_loader.show()
+        _loader = AFLoader.show()
         _ = AJ.run(action: Actions.LOGIN, data: AJObject.create().set("mail", _emailField.text).set("password", _passwordField.text))
     }
     

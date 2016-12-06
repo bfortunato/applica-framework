@@ -219,7 +219,7 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
     });
 
     (0, _plugins.showLoader)();
-    entities.load(data.entity, data.query).then(function (response) {
+    entities.load(data.entity, JSON.stringify(data.query)).then(function (response) {
         (0, _plugins.hideLoader)();
 
         loadEntities.complete({ result: response.value });
@@ -2172,7 +2172,7 @@ function get(url, data) {
 define('config.js', function(module, exports) {
 "use strict";
 
-var serviceBase = "http://192.168.0.46:8080/";
+var serviceBase = "http://192.168.1.188:8080/";
 
 module.exports = {
     "service.url": "" + serviceBase,
@@ -23180,7 +23180,7 @@ exports.default = {
     badLogin: "Cannot login! Please check your email address or password!",
     welcome: "Welcome",
     congratulations: "Congratulations",
-    welcomeMessage: "Hi {0}. Your registration is complete. A confirmation link was sent to {1}. Please confirm before login",
+    welcomeMessage: "Hi {0}, your registration is complete.\nA confirmation link was sent to {1}.\nPlease confirm before login",
     continue: "Continue",
     register: "Register",
     forgotPassword: "Forgot password",
@@ -23425,8 +23425,6 @@ var GridHeaderCell = exports.GridHeaderCell = function (_React$Component) {
                 this.setState({ sorting: false, sortDescending: false });
             }
 
-            console.log(this.state);
-
             if (this.props.query) {
                 if (this.state.sorting) {
                     this.props.query.sort(this.props.column.property, this.state.sortDescending);
@@ -23435,10 +23433,8 @@ var GridHeaderCell = exports.GridHeaderCell = function (_React$Component) {
                 }
             }
 
-            console.log(JSON.stringify(this.props.query));
-
-            if (_.isFunction(this.props.onSortChanged)) {
-                this.props.onSortChanged();
+            if (_.isFunction(this.props.onSort)) {
+                this.props.onSort(this.state);
             }
         }
     }, {
@@ -23477,6 +23473,13 @@ var GridHeader = exports.GridHeader = function (_React$Component2) {
     }
 
     _createClass(GridHeader, [{
+        key: "invokeOnSort",
+        value: function invokeOnSort() {
+            if (_.isFunction(this.props.onSort)) {
+                this.props.onSort();
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this3 = this;
@@ -23487,7 +23490,7 @@ var GridHeader = exports.GridHeader = function (_React$Component2) {
 
             var id = 1;
             var headerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(GridHeaderCell, { key: id++, column: c, query: _this3.props.query });
+                return React.createElement(GridHeaderCell, { key: id++, column: c, query: _this3.props.query, onSort: _this3.invokeOnSort.bind(_this3) });
             });
 
             return React.createElement(
@@ -23679,13 +23682,25 @@ function createCell(type, property, row) {
 var Grid = exports.Grid = function (_React$Component7) {
     _inherits(Grid, _React$Component7);
 
-    function Grid() {
+    function Grid(props) {
         _classCallCheck(this, Grid);
 
-        return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).apply(this, arguments));
+        var _this12 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+
+        if (!_this12.props.query) {
+            _this12.props.query = query.create();
+        }
+        return _this12;
     }
 
     _createClass(Grid, [{
+        key: "onSortChanged",
+        value: function onSortChanged() {
+            if (_.isFunction(this.props.onQueryChanged)) {
+                this.props.onQueryChanged(this.props.query);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             if (_.isEmpty(this.props.descriptor)) {
@@ -23695,7 +23710,7 @@ var Grid = exports.Grid = function (_React$Component7) {
             return React.createElement(
                 "table",
                 { className: "table table-striped table-condensed table-hover" },
-                React.createElement(GridHeader, { descriptor: this.props.descriptor, query: this.props.query }),
+                React.createElement(GridHeader, { descriptor: this.props.descriptor, query: this.props.query, onSort: this.onSortChanged.bind(this) }),
                 React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: this.props.query }),
                 React.createElement(GridFooter, { result: this.props.result, query: this.props.query })
             );
@@ -24593,8 +24608,8 @@ function ifAdmin(fn) {
 plugins.register();
 
 /* Admin routes */
-ui.addRoute("/admin/users", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.Users, null));
+ui.addRoute("/admin/entities/:entity", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesList, { entity: params.entity, grid: params.grid }));
 });
 
 /* Account routes */
@@ -24718,15 +24733,7 @@ exports.register = function () {
     window.Loader = exports.Loader;
 };
 });
-define('web/screens/admin/index.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var Users = exports.Users = require("./users");
-});
-define('web/screens/admin/users.js', function(module, exports) {
+define('web/screens/admin/entitiesList.js', function(module, exports) {
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -24768,13 +24775,13 @@ var _require2 = require("../../../actions"),
     getGrid = _require2.getGrid,
     loadEntities = _require2.loadEntities;
 
-var Users = function (_Screen) {
-    _inherits(Users, _Screen);
+var EntitiesList = function (_Screen) {
+    _inherits(EntitiesList, _Screen);
 
-    function Users(props) {
-        _classCallCheck(this, Users);
+    function EntitiesList(props) {
+        _classCallCheck(this, EntitiesList);
 
-        var _this = _possibleConstructorReturn(this, (Users.__proto__ || Object.getPrototypeOf(Users)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (EntitiesList.__proto__ || Object.getPrototypeOf(EntitiesList)).call(this, props));
 
         _this.state = { grid: null, result: null, query: query.create() };
 
@@ -24782,20 +24789,27 @@ var Users = function (_Screen) {
         return _this;
     }
 
-    _createClass(Users, [{
+    _createClass(EntitiesList, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            getGrid({ id: "users" });
-            loadEntities({ entity: "user" });
+            getGrid({ id: this.props.grid });
+            loadEntities({ entity: this.props.entity });
+        }
+    }, {
+        key: "onQueryChanged",
+        value: function onQueryChanged() {
+            loadEntities({ entity: this.props.entity, query: this.state.query });
         }
     }, {
         key: "render",
         value: function render() {
+            var _this2 = this;
+
             var actions = [{
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 action: function action() {
-                    loadEntities({ entity: "user" });
+                    loadEntities({ entity: _this2.props.entity });
                 }
             }, {
                 type: "button",
@@ -24811,16 +24825,24 @@ var Users = function (_Screen) {
                 React.createElement(
                     _common.Card,
                     { title: "Users", actions: actions },
-                    React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query })
+                    React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query, onQueryChanged: this.onQueryChanged.bind(this) })
                 )
             );
         }
     }]);
 
-    return Users;
+    return EntitiesList;
 }(Screen);
 
-module.exports = Users;
+module.exports = EntitiesList;
+});
+define('web/screens/admin/index.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var EntitiesList = exports.EntitiesList = require("./entitiesList");
 });
 define('web/screens/confirm.js', function(module, exports) {
 "use strict";
@@ -25483,6 +25505,12 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -25507,8 +25535,6 @@ var _require3 = require("../components/loader"),
 
 var _require4 = require("../utils/aj"),
     connect = _require4.connect;
-
-var strings = require("../../strings");
 
 var RegistrationOk = function (_Screen) {
     _inherits(RegistrationOk, _Screen);
@@ -25550,13 +25576,13 @@ var RegistrationOk = function (_Screen) {
                             React.createElement(
                                 "h1",
                                 null,
-                                strings.congratulations,
+                                _strings2.default.congratulations,
                                 "!"
                             ),
                             React.createElement(
                                 "p",
                                 null,
-                                this.state.welcomeMessage
+                                this.state.message
                             ),
                             React.createElement(
                                 "p",
@@ -25564,7 +25590,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "a",
                                     { className: "btn btn-primary btn-lg waves-effect", href: "javascript:;", onClick: this.goHome.bind(this), role: "button" },
-                                    strings.continue
+                                    _strings2.default.continue
                                 )
                             )
                         ),
@@ -25579,7 +25605,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    strings.register
+                                    _strings2.default.register
                                 )
                             ),
                             React.createElement(
@@ -25594,7 +25620,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    strings.forgotPassword
+                                    _strings2.default.forgotPassword
                                 )
                             )
                         )
