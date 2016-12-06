@@ -1,21 +1,54 @@
 "use strict"
 
+import * as query from "../../api/query"
+
 export class GridHeaderCell extends React.Component {
+    constructor(props) {
+        super(props)
+
+        this.state = {sorting: false, sortDescending: false}
+    }
+
     changeSort() {
+        if (this.state.sorting == false) {
+            this.setState({sorting: true, sortDescending: false})
+        } else if (this.state.sortDescending == false) {
+            this.setState({sorting: true, sortDescending: true})
+        } else {
+            this.setState({sorting: false, sortDescending: false})
+        }
+
+        console.log(this.state)
+
+        if (this.props.query) {
+            if (this.state.sorting) {
+                this.props.query.sort(this.props.column.property, this.state.sortDescending)
+            } else {
+                this.props.query.unsort(this.props.column.property)
+            }
+        }
+
+        console.log(JSON.stringify(this.props.query))
+
         if (_.isFunction(this.props.onSortChanged)) {
             this.props.onSortChanged()
         }
     }
 
     render() {
-        let className = this.props.column.sortable ? "sorting" : ""
+        let sortIcon = "zmdi zmdi-unfold-more"
+        if (this.state.sorting && this.state.sortDescending) {
+            sortIcon = "zmdi zmdi-caret-down"
+        } else if (this.state.sorting && !this.state.sortDescending) {
+            sortIcon = "zmdi zmdi-caret-up"
+        }
 
         return (
             <th>
                 {this.props.column.header}
 
                 {this.props.column.sortable ?
-                    <i className="pull-right zmdi zmdi-unfold-more" />
+                    <a className="pull-right" href="javascript:;" onClick={this.changeSort.bind(this)}><i className={sortIcon}/></a>
                 : null}
             </th>
         )
@@ -29,7 +62,7 @@ export class GridHeader extends React.Component {
         }
 
         let id = 1
-        let headerCells = this.props.descriptor.columns.map(c => <GridHeaderCell key={id++} column={c} />)
+        let headerCells = this.props.descriptor.columns.map(c => <GridHeaderCell key={id++} column={c} query={this.props.query} />)
 
         return (
             <thead>
@@ -71,7 +104,7 @@ export class GridBody extends React.Component {
             rowsPerPage = this.props.result.rowsPerPage || 50
         }
 
-        let rowElements = rows.map(r => <GridRow key={r.id} descriptor={this.props.descriptor} row={r} />)
+        let rowElements = rows.map(r => <GridRow key={r.id} descriptor={this.props.descriptor} row={r} query={this.props.query} />)
 
         return (
             <tbody>

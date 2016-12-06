@@ -12,6 +12,6 @@ package applica.framework;
  */
 public interface DefaultRepository<T extends Entity> extends Repository<T> {
 
-    public void setEntityType(Class<T> type);
+    void setEntityType(Class<T> type);
 
 }

@@ -36,5 +36,4 @@ public class EntitiesController {
             return new Response(Response.ERROR);
         }
     }
-
 }

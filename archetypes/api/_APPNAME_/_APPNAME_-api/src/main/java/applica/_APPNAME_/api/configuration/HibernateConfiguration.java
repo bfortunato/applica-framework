@@ -11,6 +11,7 @@ import applica.framework.data.hibernate.HibernateSessionFactoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.context.annotation.Scope;
 */
 /**
  * Created by bimbobruno on 14/11/2016.
@@ -31,6 +32,7 @@ public class HibernateConfiguration {
     }
 
     @Bean(name = "default-repository")
+    @Scope("prototype")
     public DefaultRepository defaultRepository() {
         return new DefaultHibernateRepository();
     }

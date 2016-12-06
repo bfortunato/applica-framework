@@ -9,12 +9,13 @@ const { getGrid, loadEntities } = require("../../../actions")
 import { connect } from "../../utils/aj"
 import { Card } from "../../components/common"
 import { Grid, TextColumn, CheckColumn } from "../../components/grids"
+import * as query from "../../../api/query"
 
 class Users extends Screen {
     constructor(props) {
         super(props)
 
-        this.state = {grid: null, result: null}
+        this.state = {grid: null, result: null, query: query.create()}
 
         connect(this, [GridsStore, EntitiesStore])
     }
@@ -42,7 +43,7 @@ class Users extends Screen {
         return (
             <Layout>
                 <Card title="Users" actions={actions}>
-                    <Grid descriptor={this.state.grid} result={this.state.result} />
+                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
                 </Card>
             </Layout>
         )

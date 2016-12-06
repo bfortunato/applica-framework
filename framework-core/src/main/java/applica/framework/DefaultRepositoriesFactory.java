@@ -4,6 +4,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * Applica (www.applica.guru)
  * User: bimbobruno
@@ -19,6 +23,8 @@ public class DefaultRepositoriesFactory implements RepositoriesFactory {
     @Autowired
     private ApplicationContext applicationContext;
 
+    private HashMap<Class<? extends Entity>, DefaultRepository> defaultRepositories = new HashMap<>();
+
     @Override
     public Repository createForEntity(Class<? extends Entity> type) {
         Repository repository = null;
@@ -30,8 +36,14 @@ public class DefaultRepositoriesFactory implements RepositoriesFactory {
                     .findFirst()
                     .orElseThrow(() -> new NoSuchBeanDefinitionException("repository " + type.getName()));
         } catch (NoSuchBeanDefinitionException e) {
+            if (defaultRepositories.containsKey(type)) {
+                return defaultRepositories.get(type);
+            }
+
             repository = (DefaultRepository) applicationContext.getBean("default-repository");
             ((DefaultRepository) repository).setEntityType(type);
+
+            defaultRepositories.put(type, ((DefaultRepository) repository));
         }
 
         return repository;
