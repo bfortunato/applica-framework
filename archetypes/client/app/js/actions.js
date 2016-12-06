@@ -203,7 +203,7 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         .then(response => {
             hideLoader()
 
-            loadEntities.complete({entities: response.value})
+            loadEntities.complete({result: response.value})
         })
         .catch(e => {
             hideLoader()

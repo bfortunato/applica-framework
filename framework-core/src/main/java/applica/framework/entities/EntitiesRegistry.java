@@ -26,6 +26,8 @@ public class EntitiesRegistry {
     }
 
     private Log logger = LogFactory.getLog(getClass());
+    private boolean initialized;
+    private List<Package> packages = new ArrayList<>();
 
     private EntitiesRegistry() {
 
@@ -47,7 +49,17 @@ public class EntitiesRegistry {
         return definitions.stream().filter(d -> d.getId().equals(id)).findFirst().orElseThrow(() -> new RuntimeException(String.format("Entity not found: %s", id))).getType();
     }
 
-    public void scan(Package... packages) throws InstantiationException, IllegalAccessException {
+    public void addPackage(Package pack) {
+        packages.add(pack);
+    }
+
+    public void init() throws InstantiationException, IllegalAccessException {
+        if (initialized) {
+            return;
+        }
+
+        initialized = true;
+
         logger.info("Scanning packages for entities...");
 
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);

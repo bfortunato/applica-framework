@@ -6,11 +6,13 @@ package applica._APPNAME_.domain.model.base;
 
 import applica._APPNAME_.domain.model.Role;
 import applica.framework.AEntity;
+import applica.framework.annotations.ManyToMany;
 
 import java.util.Date;
 import java.util.List;
 
 public class UserBase extends AEntity {
+
     private String name;
     private String mail;
     private String password;
@@ -19,7 +21,7 @@ public class UserBase extends AEntity {
     private String activationCode;
     private String image;
     private Date lastLogin;
-    private List<Role> roles;
+    @ManyToMany private List<Role> roles;
 
     public String getName() {
         return name;

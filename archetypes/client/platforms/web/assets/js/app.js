@@ -222,7 +222,7 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
     entities.load(data.entity, data.query).then(function (response) {
         (0, _plugins.hideLoader)();
 
-        loadEntities.complete({ entities: response.value });
+        loadEntities.complete({ result: response.value });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -1723,9 +1723,9 @@ var _utils = require("./utils");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function load(entities, query) {
-    var url = config.get("entities.url") + "/" + id;
-    return (0, _utils.get)(url);
+function load(entity, query) {
+    var url = config.get("entities.url") + "/" + entity;
+    return (0, _utils.get)(url, { query: query });
 }
 });
 define('api/grids.js', function(module, exports) {
@@ -1748,6 +1748,73 @@ function getGrid(id) {
     var url = config.get("grids.url") + "/" + id;
     return (0, _utils.get)(url);
 }
+});
+define('api/query.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.query = query;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LIKE = exports.LIKE = "like";
+var GT = exports.GT = "gt";
+var NE = exports.NE = "ne";
+var GTE = exports.GTE = "gte";
+var LT = exports.LT = "lt";
+var LTE = exports.LTE = "lte";
+var EQ = exports.EQ = "eq";
+var IN = exports.IN = "in";
+var LIN = exports.LIN = "lin";
+var NIN = exports.NIN = "nin";
+var LNIN = exports.LNIN = "lnin";
+var ID = exports.ID = "id";
+var OR = exports.OR = "or";
+var AND = exports.AND = "and";
+var CUSTOM = exports.CUSTOM = "custom";
+var RANGE = exports.RANGE = "range";
+
+var Query = exports.Query = function () {
+    function Query() {
+        _classCallCheck(this, Query);
+
+        this.page = 0;
+        this.rowsPerPage = 0;
+        this.sorts = [];
+        this.filters = [];
+    }
+
+    _createClass(Query, [{
+        key: "filter",
+        value: function filter(type, property, value) {
+            this.filters.push({ type: type, property: property, value: value });
+        }
+    }, {
+        key: "like",
+        value: function like(prop, value) {
+            this.filter(LIKE, prop, value);
+        }
+    }, {
+        key: "gt",
+        value: function gt(prop, value) {
+            this.filter(GT, prop, value);
+        }
+    }, {
+        key: "ne",
+        value: function ne(prop, value) {
+            this.filter(NE, prop, value);
+        }
+    }]);
+
+    return Query;
+}();
+
+function query(init) {}
 });
 define('api/responses.js', function(module, exports) {
 "use strict";
@@ -22883,7 +22950,7 @@ define('stores.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
+exports.entities = exports.ENTITIES = exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
 
 var _aj = require("./aj");
 
@@ -22988,6 +23055,25 @@ var grids = exports.grids = aj.createStore(GRIDS, function () {
 
         case (0, _ajex.failed)(actions.GET_GRID):
             return _.assign(state, { error: true, grid: null });
+    }
+});
+
+var ENTITIES = exports.ENTITIES = "ENTITIES";
+var entities = exports.entities = aj.createStore(ENTITIES, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.LOAD_ENTITIES:
+            return _.assign(state, { error: false, result: null });
+
+        case (0, _ajex.completed)(actions.LOAD_ENTITIES):
+            return _.assign(state, { error: false, result: action.result });
+
+        case (0, _ajex.failed)(actions.LOAD_ENTITIES):
+            return _.assign(state, { error: true, result: null });
+
     }
 });
 });
@@ -23123,8 +23209,40 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Card = exports.Card = function (_React$Component) {
-    _inherits(Card, _React$Component);
+var CardAction = exports.CardAction = function (_React$Component) {
+    _inherits(CardAction, _React$Component);
+
+    function CardAction() {
+        _classCallCheck(this, CardAction);
+
+        return _possibleConstructorReturn(this, (CardAction.__proto__ || Object.getPrototypeOf(CardAction)).apply(this, arguments));
+    }
+
+    _createClass(CardAction, [{
+        key: "perform",
+        value: function perform() {
+            this.props.action.action();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "li",
+                null,
+                React.createElement(
+                    "a",
+                    { href: "javascript:;", onClick: this.perform.bind(this) },
+                    React.createElement("i", { className: this.props.action.icon })
+                )
+            );
+        }
+    }]);
+
+    return CardAction;
+}(React.Component);
+
+var Card = exports.Card = function (_React$Component2) {
+    _inherits(Card, _React$Component2);
 
     function Card() {
         _classCallCheck(this, Card);
@@ -23135,10 +23253,12 @@ var Card = exports.Card = function (_React$Component) {
     _createClass(Card, [{
         key: "render",
         value: function render() {
+            var actionKey = 1;
+
             return React.createElement(
                 "div",
                 { className: "card" },
-                !_.isEmpty(this.props.title) ? React.createElement(
+                !_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ? React.createElement(
                     "div",
                     { className: "card-header" },
                     React.createElement(
@@ -23150,7 +23270,14 @@ var Card = exports.Card = function (_React$Component) {
                             null,
                             this.props.subtitle
                         ) : null
-                    )
+                    ),
+                    !_.isEmpty(this.props.actions) ? React.createElement(
+                        "ul",
+                        { className: "actions" },
+                        this.props.actions.map(function (a) {
+                            return React.createElement(CardAction, { key: actionKey++, action: a });
+                        })
+                    ) : null
                 ) : null,
                 this.props.children
             );
@@ -23169,6 +23296,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+exports.createCell = createCell;
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -23185,12 +23314,22 @@ var GridHeaderCell = exports.GridHeaderCell = function (_React$Component) {
     }
 
     _createClass(GridHeaderCell, [{
+        key: "changeSort",
+        value: function changeSort() {
+            if (_.isFunction(this.props.onSortChanged)) {
+                this.props.onSortChanged();
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
+            var className = this.props.column.sortable ? "sorting" : "";
+
             return React.createElement(
                 "th",
                 null,
-                this.props.column.header
+                this.props.column.header,
+                this.props.column.sortable ? React.createElement("i", { className: "pull-right zmdi zmdi-unfold-more" }) : null
             );
         }
     }]);
@@ -23214,8 +23353,9 @@ var GridHeader = exports.GridHeader = function (_React$Component2) {
                 return null;
             }
 
+            var id = 1;
             var headerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(GridHeaderCell, { column: c });
+                return React.createElement(GridHeaderCell, { key: id++, column: c });
             });
 
             return React.createElement(
@@ -23233,8 +23373,41 @@ var GridHeader = exports.GridHeader = function (_React$Component2) {
     return GridHeader;
 }(React.Component);
 
-var GridBody = exports.GridBody = function (_React$Component3) {
-    _inherits(GridBody, _React$Component3);
+var GridRow = exports.GridRow = function (_React$Component3) {
+    _inherits(GridRow, _React$Component3);
+
+    function GridRow() {
+        _classCallCheck(this, GridRow);
+
+        return _possibleConstructorReturn(this, (GridRow.__proto__ || Object.getPrototypeOf(GridRow)).apply(this, arguments));
+    }
+
+    _createClass(GridRow, [{
+        key: "render",
+        value: function render() {
+            var _this4 = this;
+
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
+            var cells = this.props.descriptor.columns.map(function (c) {
+                return createCell(c.component, c.property, _this4.props.row);
+            });
+
+            return React.createElement(
+                "tr",
+                null,
+                cells
+            );
+        }
+    }]);
+
+    return GridRow;
+}(React.Component);
+
+var GridBody = exports.GridBody = function (_React$Component4) {
+    _inherits(GridBody, _React$Component4);
 
     function GridBody() {
         _classCallCheck(this, GridBody);
@@ -23245,22 +23418,32 @@ var GridBody = exports.GridBody = function (_React$Component3) {
     _createClass(GridBody, [{
         key: "render",
         value: function render() {
+            var _this6 = this;
+
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
-            var rows = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(TextCell, { value: c.header });
+            var pages = 1;
+            var totalRows = 0;
+            var rows = [];
+            var rowsPerPage = 50;
+
+            if (this.props.result) {
+                pages = this.props.result.pages || 1;
+                totalRows = this.props.result.totalRows || [];
+                rows = this.props.result.rows || [];
+                rowsPerPage = this.props.result.rowsPerPage || 50;
+            }
+
+            var rowElements = rows.map(function (r) {
+                return React.createElement(GridRow, { key: r.id, descriptor: _this6.props.descriptor, row: r });
             });
 
             return React.createElement(
                 "tbody",
                 null,
-                React.createElement(
-                    "tr",
-                    null,
-                    rows
-                )
+                rowElements
             );
         }
     }]);
@@ -23268,36 +23451,27 @@ var GridBody = exports.GridBody = function (_React$Component3) {
     return GridBody;
 }(React.Component);
 
-var Grid = exports.Grid = function (_React$Component4) {
-    _inherits(Grid, _React$Component4);
+var GridFooter = exports.GridFooter = function (_React$Component5) {
+    _inherits(GridFooter, _React$Component5);
 
-    function Grid() {
-        _classCallCheck(this, Grid);
+    function GridFooter() {
+        _classCallCheck(this, GridFooter);
 
-        return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (GridFooter.__proto__ || Object.getPrototypeOf(GridFooter)).apply(this, arguments));
     }
 
-    _createClass(Grid, [{
+    _createClass(GridFooter, [{
         key: "render",
         value: function render() {
-            if (_.isEmpty(this.props.descriptor)) {
-                return null;
-            }
-
-            return React.createElement(
-                "table",
-                { className: "table table-striped table-condensed table-hover" },
-                React.createElement(GridHeader, { descriptor: this.props.descriptor }),
-                React.createElement(GridBody, { descriptor: this.props.descriptor })
-            );
+            return null;
         }
     }]);
 
-    return Grid;
+    return GridFooter;
 }(React.Component);
 
-var Cell = exports.Cell = function (_React$Component5) {
-    _inherits(Cell, _React$Component5);
+var Cell = exports.Cell = function (_React$Component6) {
+    _inherits(Cell, _React$Component6);
 
     function Cell() {
         _classCallCheck(this, Cell);
@@ -23343,12 +23517,61 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
     _createClass(CheckCell, [{
         key: "render",
         value: function render() {
-            return null;
+            var checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0;
+
+            return React.createElement(
+                "td",
+                null,
+                React.createElement("input", { type: "checkbox", value: "1", checked: checked })
+            );
         }
     }]);
 
     return CheckCell;
 }(Cell);
+
+function createCell(type, property, row) {
+    var key = property + "" + row.id;
+    var value = row[property];
+
+    switch (type) {
+        case "check":
+            return React.createElement(CheckCell, { key: key, row: row, value: value });
+
+        case "text":
+        default:
+            return React.createElement(TextCell, { key: key, row: row, value: value });
+    }
+}
+
+var Grid = exports.Grid = function (_React$Component7) {
+    _inherits(Grid, _React$Component7);
+
+    function Grid() {
+        _classCallCheck(this, Grid);
+
+        return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).apply(this, arguments));
+    }
+
+    _createClass(Grid, [{
+        key: "render",
+        value: function render() {
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
+            return React.createElement(
+                "table",
+                { className: "table table-striped table-condensed table-hover" },
+                React.createElement(GridHeader, { descriptor: this.props.descriptor, query: this.props.query }),
+                React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: this.props.query }),
+                React.createElement(GridFooter, { result: this.props.result, query: this.props.query })
+            );
+        }
+    }]);
+
+    return Grid;
+}(React.Component);
 });
 define('web/components/layout.js', function(module, exports) {
 "use strict";
@@ -24395,6 +24618,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var GridsStore = require("../../../stores").grids;
+var EntitiesStore = require("../../../stores").entities;
 
 var _require = require("../../components/layout"),
     Layout = _require.Layout,
@@ -24403,7 +24627,8 @@ var _require = require("../../components/layout"),
 var ui = require("../../utils/ui");
 
 var _require2 = require("../../../actions"),
-    getGrid = _require2.getGrid;
+    getGrid = _require2.getGrid,
+    loadEntities = _require2.loadEntities;
 
 var Users = function (_Screen) {
     _inherits(Users, _Screen);
@@ -24413,7 +24638,9 @@ var Users = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Users.__proto__ || Object.getPrototypeOf(Users)).call(this, props));
 
-        (0, _aj.connect)(_this, GridsStore, { descriptor: null, result: null });
+        _this.state = { grid: null, result: null };
+
+        (0, _aj.connect)(_this, [GridsStore, EntitiesStore]);
         return _this;
     }
 
@@ -24421,17 +24648,32 @@ var Users = function (_Screen) {
         key: "componentDidMount",
         value: function componentDidMount() {
             getGrid({ id: "users" });
+            loadEntities({ entity: "user" });
         }
     }, {
         key: "render",
         value: function render() {
+            var actions = [{
+                type: "button",
+                icon: "zmdi zmdi-refresh-alt",
+                action: function action() {
+                    loadEntities({ entity: "user" });
+                }
+            }, {
+                type: "button",
+                icon: "zmdi zmdi-plus",
+                action: function action() {
+                    swal("Ciao");
+                }
+            }];
+
             return React.createElement(
                 Layout,
                 null,
                 React.createElement(
                     _common.Card,
-                    { title: "Users" },
-                    React.createElement(_grids.Grid, { descriptor: this.state.grid })
+                    { title: "Users", actions: actions },
+                    React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result })
                 )
             );
         }

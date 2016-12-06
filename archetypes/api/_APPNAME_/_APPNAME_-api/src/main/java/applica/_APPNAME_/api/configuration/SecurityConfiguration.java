@@ -55,7 +55,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/account/recover",
                         "/account/confirm",
                         "/grids/**",
-                        "/forms/**"
+                        "/forms/**",
+                        "/entities/**"
                 )
         ;
     }

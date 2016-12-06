@@ -1,7 +1,7 @@
 {
   "id": "users",
   "columns": [
-    {"property": "mail", "header": "mail", "component": "text"},
+    {"property": "mail", "header": "mail", "component": "text", "sortable": true},
     {"property": "active", "header": "active", "component": "check"}
   ]
 }

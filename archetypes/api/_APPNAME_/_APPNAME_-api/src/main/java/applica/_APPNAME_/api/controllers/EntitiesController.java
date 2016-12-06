@@ -25,7 +25,7 @@ public class EntitiesController {
     private ApplicationContext context;
 
     @GetMapping("")
-    public Response getEntities(@PathVariable String id, String queryJson) {
+    public Response getEntities(@PathVariable("entity") String id, String queryJson) {
         try {
             Class type = EntitiesRegistry.instance().get(id);
             Repository repository = repositoriesFactory.createForEntity(type);
