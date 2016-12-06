@@ -57,10 +57,10 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     }
 
     @Override
-    public LoadResponse<T> find(Query query) {
+    public Result<T> find(Query query) {
         if(query == null) query = new Query();
 
-        LoadResponse response = crudStrategy.find(query, this);
+        Result response = crudStrategy.find(query, this);
 
         return response;
     }

@@ -4,38 +4,48 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.confirmAccountError = exports.CONFIRM_ACCOUNT_ERROR = exports.confirmAccountComplete = exports.CONFIRM_ACCOUNT_COMPLETE = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccountError = exports.RECOVER_ACCOUNT_ERROR = exports.recoverAccountComplete = exports.RECOVER_ACCOUNT_COMPLETE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.registrationError = exports.REGISTRATION_ERROR = exports.registrationComplete = exports.REGISTRATION_COMPLETE = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSessionError = exports.RESUME_SESSION_ERROR = exports.resumeSessionComplete = exports.RESUME_SESSION_COMPLETE = exports.resumeSession = exports.RESUME_SESSION = exports.loginError = exports.LOGIN_ERROR = exports.loginComplete = exports.LOGIN_COMPLETE = exports.login = exports.LOGIN = undefined;
+exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
-var _aj = require("../aj");
+var _aj = require("./aj");
 
 var aj = _interopRequireWildcard(_aj);
 
-var _session = require("../api/session");
+var _ajex = require("./utils/ajex");
+
+var _session = require("./api/session");
 
 var session = _interopRequireWildcard(_session);
 
-var _account = require("../api/account");
+var _account = require("./api/account");
 
 var account = _interopRequireWildcard(_account);
 
-var _responses = require("../api/responses");
+var _responses = require("./api/responses");
 
 var responses = _interopRequireWildcard(_responses);
 
-var _plugins = require("../plugins");
+var _plugins = require("./plugins");
 
-var _lang = require("../utils/lang");
+var _lang = require("./utils/lang");
 
-var _strings = require("../strings");
+var _strings = require("./strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _grids = require("./api/grids");
+
+var grids = _interopRequireWildcard(_grids);
+
+var _entities = require("./api/entities");
+
+var entities = _interopRequireWildcard(_entities);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var LOGIN = exports.LOGIN = "LOGIN";
-var login = exports.login = aj.createAction(LOGIN, function (data) {
+var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
         (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailAndPasswordRequired, "warning");
         return;
@@ -50,32 +60,17 @@ var login = exports.login = aj.createAction(LOGIN, function (data) {
         (0, _plugins.hideLoader)();
         (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
-        loginComplete({ user: user });
+        login.complete({ user: user });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, _strings2.default.badLogin, "error");
 
-        loginError();
-    });
-});
-
-var LOGIN_COMPLETE = exports.LOGIN_COMPLETE = "LOGIN_COMPLETE";
-var loginComplete = exports.loginComplete = aj.createAction(LOGIN_COMPLETE, function (data) {
-    aj.dispatch({
-        type: LOGIN_COMPLETE,
-        user: data.user
-    });
-});
-
-var LOGIN_ERROR = exports.LOGIN_ERROR = "LOGIN_ERROR";
-var loginError = exports.loginError = aj.createAction(LOGIN_ERROR, function (data) {
-    aj.dispatch({
-        type: LOGIN_ERROR
+        login.fail();
     });
 });
 
 var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
-var resumeSession = exports.resumeSession = aj.createAction(RESUME_SESSION, function (data) {
+var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_SESSION, function (data) {
     aj.dispatch({
         type: RESUME_SESSION
     });
@@ -84,26 +79,11 @@ var resumeSession = exports.resumeSession = aj.createAction(RESUME_SESSION, func
         (0, _plugins.hideLoader)();
         (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
-        resumeSessionComplete({ user: user });
+        resumeSession.complete({ user: user });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
 
-        resumeSessionError();
-    });
-});
-
-var RESUME_SESSION_COMPLETE = exports.RESUME_SESSION_COMPLETE = "RESUME_SESSION_COMPLETE";
-var resumeSessionComplete = exports.resumeSessionComplete = aj.createAction(RESUME_SESSION_COMPLETE, function (data) {
-    aj.dispatch({
-        type: RESUME_SESSION_COMPLETE,
-        user: data.user
-    });
-});
-
-var RESUME_SESSION_ERROR = exports.RESUME_SESSION_ERROR = "RESUME_SESSION_ERROR";
-var resumeSessionError = exports.resumeSessionError = aj.createAction(RESUME_SESSION_ERROR, function (data) {
-    aj.dispatch({
-        type: RESUME_SESSION_ERROR
+        resumeSession.fail();
     });
 });
 
@@ -117,7 +97,7 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
 });
 
 var REGISTER = exports.REGISTER = "REGISTER";
-var register = exports.register = aj.createAction(REGISTER, function (data) {
+var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, function (data) {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
         (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.nameMailAndPasswordRequired, "warning");
         return;
@@ -132,33 +112,17 @@ var register = exports.register = aj.createAction(REGISTER, function (data) {
         (0, _plugins.hideLoader)();
 
         var message = (0, _lang.format)(_strings2.default.welcomeMessage, data.name, data.mail);
-        registrationComplete({ name: data.name, mail: data.mail, message: message });
+        register.complete({ name: data.name, mail: data.mail, message: message });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        registrationError();
-    });
-});
-
-var REGISTRATION_COMPLETE = exports.REGISTRATION_COMPLETE = "REGISTRATION_COMPLETE";
-var registrationComplete = exports.registrationComplete = aj.createAction(REGISTRATION_COMPLETE, function (data) {
-    aj.dispatch({
-        type: REGISTRATION_COMPLETE,
-        mail: data.mail,
-        name: data.name
-    });
-});
-
-var REGISTRATION_ERROR = exports.REGISTRATION_ERROR = "REGISTRATION_ERROR";
-var registrationError = exports.registrationError = aj.createAction(REGISTRATION_ERROR, function (data) {
-    aj.dispatch({
-        type: REGISTRATION_ERROR
+        register.fail();
     });
 });
 
 var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
-var recoverAccount = exports.recoverAccount = aj.createAction(RECOVER_ACCOUNT, function (data) {
+var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(RECOVER_ACCOUNT, function (data) {
     if (_.isEmpty(data.mail)) {
         (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailRequired, "warning");
         return;
@@ -173,26 +137,12 @@ var recoverAccount = exports.recoverAccount = aj.createAction(RECOVER_ACCOUNT, f
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.congratulations, (0, _lang.format)(_strings2.default.accountRecovered, data.mail));
 
-        recoverAccountComplete();
+        recoverAccount.complete();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        recoverAccountError();
-    });
-});
-
-var RECOVER_ACCOUNT_COMPLETE = exports.RECOVER_ACCOUNT_COMPLETE = "RECOVER_ACCOUNT_COMPLETE";
-var recoverAccountComplete = exports.recoverAccountComplete = aj.createAction(RECOVER_ACCOUNT_COMPLETE, function (data) {
-    aj.dispatch({
-        type: RECOVER_ACCOUNT_COMPLETE
-    });
-});
-
-var RECOVER_ACCOUNT_ERROR = exports.RECOVER_ACCOUNT_ERROR = "RECOVER_ACCOUNT_ERROR";
-var recoverAccountError = exports.recoverAccountError = aj.createAction(RECOVER_ACCOUNT_ERROR, function (data) {
-    aj.dispatch({
-        type: RECOVER_ACCOUNT_ERROR
+        recoverAccount.fail();
     });
 });
 
@@ -205,7 +155,7 @@ var setActivationCode = exports.setActivationCode = aj.createAction(SET_ACTIVATI
 });
 
 var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
-var confirmAccount = exports.confirmAccount = aj.createAction(CONFIRM_ACCOUNT, function (data) {
+var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFIRM_ACCOUNT, function (data) {
     if (_.isEmpty(data.activationCode)) {
         (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.activationCodeRequired, "warning");
         return;
@@ -220,26 +170,64 @@ var confirmAccount = exports.confirmAccount = aj.createAction(CONFIRM_ACCOUNT, f
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.congratulations, _strings2.default.accountConfirmed);
 
-        confirmAccountComplete();
+        confirmAccount.complete();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        confirmAccountError();
+        confirmAccount.fail();
     });
 });
 
-var CONFIRM_ACCOUNT_COMPLETE = exports.CONFIRM_ACCOUNT_COMPLETE = "CONFIRM_ACCOUNT_COMPLETE";
-var confirmAccountComplete = exports.confirmAccountComplete = aj.createAction(CONFIRM_ACCOUNT_COMPLETE, function (data) {
+/** Grids actions **/
+
+var GET_GRID = exports.GET_GRID = "GET_GRID";
+var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function (data) {
+    if (_.isEmpty(data.id)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        return;
+    }
+
     aj.dispatch({
-        type: CONFIRM_ACCOUNT_COMPLETE
+        type: GET_GRID
+    });
+
+    (0, _plugins.showLoader)();
+    grids.getGrid(data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
+
+        getGrid.complete({ grid: JSON.parse(response.value) });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getGrid.fail();
     });
 });
 
-var CONFIRM_ACCOUNT_ERROR = exports.CONFIRM_ACCOUNT_ERROR = "CONFIRM_ACCOUNT_ERROR";
-var confirmAccountError = exports.confirmAccountError = aj.createAction(CONFIRM_ACCOUNT_ERROR, function (data) {
+/** Entities **/
+
+var LOAD_ENTITIES = exports.LOAD_ENTITIES = "LOAD_ENTITIES";
+var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTITIES, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
     aj.dispatch({
-        type: CONFIRM_ACCOUNT_ERROR
+        type: LOAD_ENTITIES
+    });
+
+    (0, _plugins.showLoader)();
+    entities.load(data.entity, data.query).then(function (response) {
+        (0, _plugins.hideLoader)();
+
+        loadEntities.complete({ entities: response.value });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        loadEntities.fail();
     });
 });
 });
@@ -1719,6 +1707,48 @@ function confirm(activationCode) {
     return (0, _utils.post)(config.get("account.confirm.url"), { activationCode: activationCode });
 }
 });
+define('api/entities.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.load = load;
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+var _utils = require("./utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function load(entities, query) {
+    var url = config.get("entities.url") + "/" + id;
+    return (0, _utils.get)(url);
+}
+});
+define('api/grids.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.getGrid = getGrid;
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+var _utils = require("./utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function getGrid(id) {
+    var url = config.get("grids.url") + "/" + id;
+    return (0, _utils.get)(url);
+}
+});
 define('api/responses.js', function(module, exports) {
 "use strict";
 
@@ -1987,11 +2017,13 @@ function get(url, data) {
 define('config.js', function(module, exports) {
 "use strict";
 
-var serviceBase = "http://192.168.0.45:3000/";
+var serviceBase = "http://192.168.0.46:8080/";
 
 module.exports = {
     "service.url": "" + serviceBase,
-    "login.url": serviceBase + "auth/login"
+    "login.url": serviceBase + "auth/login",
+    "grids.url": serviceBase + "grids",
+    "entities.url": serviceBase + "entities"
 };
 });
 define('framework/config.js', function(module, exports) {
@@ -22851,21 +22883,23 @@ define('stores.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
+exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
 
-var _aj = require("../aj");
+var _aj = require("./aj");
 
 var aj = _interopRequireWildcard(_aj);
 
-var _actions = require("../actions");
+var _ajex = require("./utils/ajex");
+
+var _actions = require("./actions");
 
 var actions = _interopRequireWildcard(_actions);
 
-var _underscore = require("../libs/underscore");
+var _underscore = require("./libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
-var _strings = require("../strings");
+var _strings = require("./strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
@@ -22883,19 +22917,19 @@ var session = exports.session = aj.createStore(SESSION, function () {
         case actions.LOGIN:
             return _.assign(state, { isLoggedIn: false });
 
-        case actions.LOGIN_COMPLETE:
+        case (0, _ajex.completed)(actions.LOGIN):
             return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
 
-        case actions.LOGIN_ERROR:
+        case (0, _ajex.failed)(actions.LOGIN):
             return _.assign(state, { isLoggedIn: false, error: true });
 
         case actions.RESUME_SESSION:
             return _.assign(state, { isLoggedIn: false });
 
-        case actions.RESUME_SESSION_COMPLETE:
+        case (0, _ajex.completed)(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
 
-        case actions.RESUME_SESSION_ERROR:
+        case (0, _ajex.failed)(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: false, error: true });
     }
 });
@@ -22910,10 +22944,10 @@ var account = exports.account = aj.createStore(ACCOUNT, function () {
         case actions.REGISTER:
             return _.assign(state, { registered: false, error: false });
 
-        case actions.REGISTRATION_COMPLETE:
+        case (0, _ajex.completed)(actions.REGISTER):
             return _.assign(state, { registered: true, error: false, name: action.name, mail: action.mail, message: action.message });
 
-        case actions.REGISTRATION_ERROR:
+        case (0, _ajex.failed)(actions.REGISTER):
             return _.assign(state, { registered: false, error: true, message: action.message });
 
         case actions.SET_ACTIVATION_CODE:
@@ -22922,20 +22956,38 @@ var account = exports.account = aj.createStore(ACCOUNT, function () {
         case actions.CONFIRM_ACCOUNT:
             return _.assign(state, { confirmed: false, error: false });
 
-        case actions.CONFIRM_ACCOUNT_COMPLETE:
+        case (0, _ajex.completed)(actions.CONFIRM_ACCOUNT):
             return _.assign(state, { confirmed: true, error: false });
 
-        case actions.CONFIRM_ACCOUNT_ERROR:
+        case (0, _ajex.failed)(actions.CONFIRM_ACCOUNT):
             return _.assign(state, { confirmed: false, error: true, message: action.message });
 
         case actions.RECOVER_ACCOUNT:
             return _.assign(state, { recovered: false, error: false });
 
-        case actions.RECOVER_ACCOUNT_COMPLETE:
+        case (0, _ajex.completed)(actions.RECOVER_ACCOUNT):
             return _.assign(state, { recovered: true, error: false });
 
-        case actions.RECOVER_ACCOUNT_ERROR:
+        case (0, _ajex.failed)(actions.RECOVER_ACCOUNT):
             return _.assign(state, { recovered: false, error: true });
+    }
+});
+
+var GRIDS = exports.GRIDS = "GRIDS";
+var grids = exports.grids = aj.createStore(GRIDS, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { grid: null };
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.GET_GRID:
+            return _.assign(state, { error: false, grid: null });
+
+        case (0, _ajex.completed)(actions.GET_GRID):
+            return _.assign(state, { error: false, grid: action.grid });
+
+        case (0, _ajex.failed)(actions.GET_GRID):
+            return _.assign(state, { error: true, grid: null });
     }
 });
 });
@@ -22967,8 +23019,50 @@ exports.default = {
     activationCodeRequired: "Activation code required",
     accountRecoverText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
     problemOccoured: "There is a problem",
-    accountRecovered: "A new password was sent to {0}"
+    accountRecovered: "A new password was sent to {0}",
+    pleaseSpecifyId: "Please specify an ID",
+    pleaseSpecifyQuery: "Please specify a query",
+    pleaseSpecifyEntity: "Please specify the entity"
 };
+});
+define('utils/ajex.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.completed = completed;
+exports.failed = failed;
+exports.createAsyncAction = createAsyncAction;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _aj = require("../aj");
+
+var aj = _interopRequireWildcard(_aj);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function completed(action) {
+    return action + "_COMPLETE";
+}
+
+function failed(action) {
+    return action + "_FAIL";
+}
+
+function createAsyncAction(type, action) {
+    var normal = aj.createAction(type, action);
+    normal.complete = aj.createAction(completed(type), function (data) {
+        aj.dispatch(_.assign({ type: completed(type), error: false }, data));
+    });
+    normal.fail = aj.createAction(failed(type), function (data) {
+        aj.dispatch(_.assign({ type: failed(type), error: true }, data));
+    });
+    return normal;
+}
 });
 define('utils/lang.js', function(module, exports) {
 'use strict';
@@ -23081,8 +23175,101 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Grid = exports.Grid = function (_React$Component) {
-    _inherits(Grid, _React$Component);
+var GridHeaderCell = exports.GridHeaderCell = function (_React$Component) {
+    _inherits(GridHeaderCell, _React$Component);
+
+    function GridHeaderCell() {
+        _classCallCheck(this, GridHeaderCell);
+
+        return _possibleConstructorReturn(this, (GridHeaderCell.__proto__ || Object.getPrototypeOf(GridHeaderCell)).apply(this, arguments));
+    }
+
+    _createClass(GridHeaderCell, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "th",
+                null,
+                this.props.column.header
+            );
+        }
+    }]);
+
+    return GridHeaderCell;
+}(React.Component);
+
+var GridHeader = exports.GridHeader = function (_React$Component2) {
+    _inherits(GridHeader, _React$Component2);
+
+    function GridHeader() {
+        _classCallCheck(this, GridHeader);
+
+        return _possibleConstructorReturn(this, (GridHeader.__proto__ || Object.getPrototypeOf(GridHeader)).apply(this, arguments));
+    }
+
+    _createClass(GridHeader, [{
+        key: "render",
+        value: function render() {
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
+            var headerCells = this.props.descriptor.columns.map(function (c) {
+                return React.createElement(GridHeaderCell, { column: c });
+            });
+
+            return React.createElement(
+                "thead",
+                null,
+                React.createElement(
+                    "tr",
+                    null,
+                    headerCells
+                )
+            );
+        }
+    }]);
+
+    return GridHeader;
+}(React.Component);
+
+var GridBody = exports.GridBody = function (_React$Component3) {
+    _inherits(GridBody, _React$Component3);
+
+    function GridBody() {
+        _classCallCheck(this, GridBody);
+
+        return _possibleConstructorReturn(this, (GridBody.__proto__ || Object.getPrototypeOf(GridBody)).apply(this, arguments));
+    }
+
+    _createClass(GridBody, [{
+        key: "render",
+        value: function render() {
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
+            var rows = this.props.descriptor.columns.map(function (c) {
+                return React.createElement(TextCell, { value: c.header });
+            });
+
+            return React.createElement(
+                "tbody",
+                null,
+                React.createElement(
+                    "tr",
+                    null,
+                    rows
+                )
+            );
+        }
+    }]);
+
+    return GridBody;
+}(React.Component);
+
+var Grid = exports.Grid = function (_React$Component4) {
+    _inherits(Grid, _React$Component4);
 
     function Grid() {
         _classCallCheck(this, Grid);
@@ -23091,287 +23278,17 @@ var Grid = exports.Grid = function (_React$Component) {
     }
 
     _createClass(Grid, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            this.props.children.forEach(function (c) {
-                return console.log(c);
-            });
-        }
-    }, {
         key: "render",
         value: function render() {
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
             return React.createElement(
                 "table",
                 { className: "table table-striped table-condensed table-hover" },
-                React.createElement(
-                    "thead",
-                    null,
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "th",
-                            null,
-                            "#"
-                        ),
-                        React.createElement(
-                            "th",
-                            null,
-                            "First Name"
-                        ),
-                        React.createElement(
-                            "th",
-                            null,
-                            "Last Name"
-                        ),
-                        React.createElement(
-                            "th",
-                            null,
-                            "Username"
-                        ),
-                        React.createElement(
-                            "th",
-                            null,
-                            "Nickname"
-                        )
-                    )
-                ),
-                React.createElement(
-                    "tbody",
-                    null,
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "1"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Alexandra"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Christopher"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@makinton"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Ducky"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "2"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Madeleine"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Hollaway"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@hollway"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Cheese"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "3"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Sebastian"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Johnston"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@sebastian"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Jaycee"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "4"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Mitchell"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Christin"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@mitchell4u"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "AdskiDeAnus"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "5"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Elizabeth"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Belkitt"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@belkitt"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Goat"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "6"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Benjamin"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Parnell"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@wayne234"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Pokie"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "7"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Katherine"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Buckland"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@anitabelle"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Wokie"
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "8"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Nicholas"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Walmart"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "@mwalmart"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            "Spike"
-                        )
-                    )
-                )
+                React.createElement(GridHeader, { descriptor: this.props.descriptor }),
+                React.createElement(GridBody, { descriptor: this.props.descriptor })
             );
         }
     }]);
@@ -23379,55 +23296,59 @@ var Grid = exports.Grid = function (_React$Component) {
     return Grid;
 }(React.Component);
 
-var Column = exports.Column = function (_React$Component2) {
-    _inherits(Column, _React$Component2);
+var Cell = exports.Cell = function (_React$Component5) {
+    _inherits(Cell, _React$Component5);
 
-    function Column() {
-        _classCallCheck(this, Column);
+    function Cell() {
+        _classCallCheck(this, Cell);
 
-        return _possibleConstructorReturn(this, (Column.__proto__ || Object.getPrototypeOf(Column)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (Cell.__proto__ || Object.getPrototypeOf(Cell)).apply(this, arguments));
     }
 
-    return Column;
+    return Cell;
 }(React.Component);
 
-var TextColumn = exports.TextColumn = function (_Column) {
-    _inherits(TextColumn, _Column);
+var TextCell = exports.TextCell = function (_Cell) {
+    _inherits(TextCell, _Cell);
 
-    function TextColumn() {
-        _classCallCheck(this, TextColumn);
+    function TextCell() {
+        _classCallCheck(this, TextCell);
 
-        return _possibleConstructorReturn(this, (TextColumn.__proto__ || Object.getPrototypeOf(TextColumn)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (TextCell.__proto__ || Object.getPrototypeOf(TextCell)).apply(this, arguments));
     }
 
-    _createClass(TextColumn, [{
+    _createClass(TextCell, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "td",
+                null,
+                this.props.value
+            );
+        }
+    }]);
+
+    return TextCell;
+}(Cell);
+
+var CheckCell = exports.CheckCell = function (_Cell2) {
+    _inherits(CheckCell, _Cell2);
+
+    function CheckCell() {
+        _classCallCheck(this, CheckCell);
+
+        return _possibleConstructorReturn(this, (CheckCell.__proto__ || Object.getPrototypeOf(CheckCell)).apply(this, arguments));
+    }
+
+    _createClass(CheckCell, [{
         key: "render",
         value: function render() {
             return null;
         }
     }]);
 
-    return TextColumn;
-}(Column);
-
-var CheckColumn = exports.CheckColumn = function (_Column2) {
-    _inherits(CheckColumn, _Column2);
-
-    function CheckColumn() {
-        _classCallCheck(this, CheckColumn);
-
-        return _possibleConstructorReturn(this, (CheckColumn.__proto__ || Object.getPrototypeOf(CheckColumn)).apply(this, arguments));
-    }
-
-    _createClass(CheckColumn, [{
-        key: "render",
-        value: function render() {
-            return null;
-        }
-    }]);
-
-    return CheckColumn;
-}(Column);
+    return CheckCell;
+}(Cell);
 });
 define('web/components/layout.js', function(module, exports) {
 "use strict";
@@ -24391,12 +24312,19 @@ exports.Alert = {
     }
 };
 
+var loaderCount = 0;
+
 exports.Loader = {
     show: function show(data) {
+        loaderCount++;
         $(".global-loader").find(".message").text(data.message).end().fadeIn(250);
     },
     hide: function hide() {
-        $(".global-loader").fadeOut(250);
+        loaderCount--;
+        if (loaderCount <= 0) {
+            $(".global-loader").fadeOut(250);
+            loaderCount = 0;
+        }
     }
 };
 
@@ -24446,8 +24374,6 @@ var Users = exports.Users = require("./users");
 define('web/screens/admin/users.js', function(module, exports) {
 "use strict";
 
-//const UsersStore = require("../../../stores").users
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _strings = require("../../../strings");
@@ -24468,15 +24394,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var GridsStore = require("../../../stores").grids;
+
 var _require = require("../../components/layout"),
     Layout = _require.Layout,
     Screen = _require.Screen;
 
 var ui = require("../../utils/ui");
-var forms = require("../../utils/forms");
 
 var _require2 = require("../../../actions"),
-    getUsers = _require2.getUsers;
+    getGrid = _require2.getGrid;
 
 var Users = function (_Screen) {
     _inherits(Users, _Screen);
@@ -24486,12 +24413,16 @@ var Users = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Users.__proto__ || Object.getPrototypeOf(Users)).call(this, props));
 
-        _this.state = { result: null };
-        //connect(this, UsersStore, {users: []})
+        (0, _aj.connect)(_this, GridsStore, { descriptor: null, result: null });
         return _this;
     }
 
     _createClass(Users, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            getGrid({ id: "users" });
+        }
+    }, {
         key: "render",
         value: function render() {
             return React.createElement(
@@ -24500,12 +24431,7 @@ var Users = function (_Screen) {
                 React.createElement(
                     _common.Card,
                     { title: "Users" },
-                    React.createElement(
-                        _grids.Grid,
-                        { data: this.state.result },
-                        React.createElement(_grids.TextColumn, { property: "mail" }),
-                        React.createElement(_grids.CheckColumn, { property: "active" })
-                    )
+                    React.createElement(_grids.Grid, { descriptor: this.state.grid })
                 )
             );
         }

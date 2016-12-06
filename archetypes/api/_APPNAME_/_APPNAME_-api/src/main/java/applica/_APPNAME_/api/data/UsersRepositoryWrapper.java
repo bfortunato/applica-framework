@@ -3,7 +3,7 @@ package applica._APPNAME_.api.data;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
-import applica.framework.LoadResponse;
+import applica.framework.Result;
 import applica.framework.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
@@ -29,7 +29,7 @@ public class UsersRepositoryWrapper implements Repository<User> {
     }
 
     @Override
-    public LoadResponse<User> find(Query request) {
+    public Result<User> find(Query request) {
         return usersRepository.find(request);
     }
 

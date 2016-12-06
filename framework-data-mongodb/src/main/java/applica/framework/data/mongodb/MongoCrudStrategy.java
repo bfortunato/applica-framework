@@ -40,11 +40,11 @@ public class MongoCrudStrategy implements CrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(applica.framework.Query loadRequest, Repository<T> repository) {
+    public <T extends Entity> Result<T> find(applica.framework.Query loadRequest, Repository<T> repository) {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
-        LoadResponse<T> response = new LoadResponse<T>();
+        Result<T> response = new Result<T>();
         List<T> entities = new ArrayList<>();
 
         DBObject query = mongoRepository.createQuery(loadRequest);

@@ -4,7 +4,9 @@ import applica._APPNAME_.api.configuration.ApplicationConfiguration;
 import applica._APPNAME_.api.configuration.ApplicationInitializer;
 import applica._APPNAME_.api.configuration.MongoConfiguration;
 import applica._APPNAME_.api.configuration.SecurityConfiguration;
+import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
+import applica.framework.entities.EntitiesRegistry;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.options.PropertiesOptionManager;
 import applica.framework.library.utils.NullableDateConverter;
@@ -148,6 +150,12 @@ public class Application {
     }
 */
     public static void main(String[] args) {
+        try {
+            EntitiesRegistry.instance().scan(User.class.getPackage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         SpringApplication.run(Application.class, args);
     }
 }

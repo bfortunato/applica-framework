@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class LoadResponse<T extends Entity> {
+public class Result<T extends Entity> {
 
     private List<T> rows = new ArrayList<>();
     private long totalRows;

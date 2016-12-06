@@ -37,7 +37,7 @@ public class GridDataProvider {
         grid.setSearched(query.getFilters().size() > 0);
 
         List<Map<String, Object>> data = new ArrayList<>();
-        LoadResponse response = repository.find(query);
+        Result response = repository.find(query);
         List<? extends Entity> entities = response.getRows();
         GridDataMapper mapper = new SimpleGridDataMapper();
         mapper.mapGridDataFromEntities(grid.getDescriptor(), data, entities);

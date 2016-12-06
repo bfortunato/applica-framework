@@ -56,7 +56,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository) {
+    public <T extends Entity> Result<T> find(Query query, Repository<T> repository) {
         checkAttributes();
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {

@@ -20,5 +20,8 @@ export default {
     activationCodeRequired: "Activation code required",
     accountRecoverText: "Please insert your email address to recover password. We will send a new password in your mailbox!",
     problemOccoured: "There is a problem",
-    accountRecovered: "A new password was sent to {0}"
+    accountRecovered: "A new password was sent to {0}",
+    pleaseSpecifyId: "Please specify an ID",
+    pleaseSpecifyQuery: "Please specify a query",
+    pleaseSpecifyEntity: "Please specify the entity"
 }

@@ -53,7 +53,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/auth/**",
                         "/account/register",
                         "/account/recover",
-                        "/account/confirm"
+                        "/account/confirm",
+                        "/grids/**",
+                        "/forms/**"
                 )
         ;
     }
@@ -85,9 +87,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers("/api").authenticated()
                     .and()
-                .formLogin()
-                    .loginProcessingUrl("/auth/login/process")
-                    .loginPage("/auth/login")
+                    .antMatcher("/**").anonymous()
         ;
 
     }

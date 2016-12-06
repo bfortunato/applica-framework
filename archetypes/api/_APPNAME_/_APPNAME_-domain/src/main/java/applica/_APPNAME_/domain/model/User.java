@@ -3,6 +3,7 @@ package applica._APPNAME_.domain.model;
 import applica._APPNAME_.domain.model.base.UserBase;
 import applica.framework.AEntity;
 import applica.framework.annotations.ManyToMany;
+import applica.framework.entities.EntityId;
 import applica.framework.security.Role;
 import org.springframework.util.StringUtils;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * Date: 28/10/13
  * Time: 17:08
  */
+@EntityId("user")
 public class User extends UserBase implements applica.framework.security.User {
 
     public String getInitials() {

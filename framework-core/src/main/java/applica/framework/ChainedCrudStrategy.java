@@ -32,7 +32,7 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository) {
+    public <T extends Entity> Result<T> find(Query query, Repository<T> repository) {
         if (parent != null) {
             return parent.find(query, repository);
         }

@@ -1,7 +1,8 @@
-import * as aj from "../aj"
-import * as actions from "../actions"
-import * as _ from "../libs/underscore"
-import strings from "../strings"
+import * as aj from "./aj"
+import { createAsyncAction, completed, failed } from "./utils/ajex"
+import * as actions from "./actions"
+import * as _ from "./libs/underscore"
+import strings from "./strings"
 
 export const SESSION = "SESSION";
 export const session = aj.createStore(SESSION, (state = {}, action) => {
@@ -10,19 +11,19 @@ export const session = aj.createStore(SESSION, (state = {}, action) => {
         case actions.LOGIN:
             return _.assign(state, { isLoggedIn: false });
 
-        case actions.LOGIN_COMPLETE:
+        case completed(actions.LOGIN):
             return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
 
-        case actions.LOGIN_ERROR:
+        case failed(actions.LOGIN):
             return _.assign(state, { isLoggedIn: false, error: true });
 
         case actions.RESUME_SESSION:
             return _.assign(state, { isLoggedIn: false });
 
-        case actions.RESUME_SESSION_COMPLETE:
+        case completed(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
 
-        case actions.RESUME_SESSION_ERROR:
+        case failed(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: false, error: true });
     }
 
@@ -35,10 +36,10 @@ export const account = aj.createStore(ACCOUNT, (state = {activationCode: ""}, ac
         case actions.REGISTER:
             return _.assign(state, { registered: false, error: false });
 
-        case actions.REGISTRATION_COMPLETE:
+        case completed(actions.REGISTER):
             return _.assign(state, { registered: true, error: false, name: action.name, mail: action.mail, message: action.message });
 
-        case actions.REGISTRATION_ERROR:
+        case failed(actions.REGISTER):
             return _.assign(state, { registered: false, error: true, message: action.message });
 
         case actions.SET_ACTIVATION_CODE:
@@ -47,20 +48,37 @@ export const account = aj.createStore(ACCOUNT, (state = {activationCode: ""}, ac
         case actions.CONFIRM_ACCOUNT:
             return _.assign(state, { confirmed: false, error: false });
 
-        case actions.CONFIRM_ACCOUNT_COMPLETE:
+        case completed(actions.CONFIRM_ACCOUNT):
             return _.assign(state, { confirmed: true, error: false });
 
-        case actions.CONFIRM_ACCOUNT_ERROR:
+        case failed(actions.CONFIRM_ACCOUNT):
             return _.assign(state, { confirmed: false, error: true, message: action.message });
 
         case actions.RECOVER_ACCOUNT:
             return _.assign(state, { recovered: false, error: false });
 
-        case actions.RECOVER_ACCOUNT_COMPLETE:
+        case completed(actions.RECOVER_ACCOUNT):
             return _.assign(state, { recovered: true, error: false });
 
-        case actions.RECOVER_ACCOUNT_ERROR:
+        case failed(actions.RECOVER_ACCOUNT):
             return _.assign(state, { recovered: false, error: true });
     }
 
 });
+
+
+export const GRIDS = "GRIDS"
+export const grids = aj.createStore(GRIDS, (state = {grid: null}, action) => {
+
+    switch (action.type) {
+        case actions.GET_GRID:
+            return _.assign(state, { error: false, grid: null })
+
+        case completed(actions.GET_GRID):
+            return _.assign(state, { error: false, grid: action.grid })
+
+        case failed(actions.GET_GRID):
+            return _.assign(state, { error: true, grid: null })
+    }
+
+})

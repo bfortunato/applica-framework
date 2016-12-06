@@ -14,13 +14,20 @@ exports.Alert = {
     }
 }
 
+let loaderCount = 0;
+
 exports.Loader = {
     show(data) {
+        loaderCount++
         $(".global-loader").find(".message").text(data.message).end().fadeIn(250)
     },
 
     hide() {
-        $(".global-loader").fadeOut(250)
+        loaderCount--
+        if (loaderCount <= 0) {
+            $(".global-loader").fadeOut(250)
+            loaderCount = 0
+        }
     }
 }
 

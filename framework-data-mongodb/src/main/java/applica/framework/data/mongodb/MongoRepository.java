@@ -59,7 +59,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	}
 
 	@Override
-	public LoadResponse find(applica.framework.Query query) {
+	public Result find(applica.framework.Query query) {
         init();
 
         if(db == null) {
@@ -69,7 +69,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		
 		if(query == null) query = new applica.framework.Query();
 		
-		LoadResponse response = crudStrategy.find(query, this);
+		Result response = crudStrategy.find(query, this);
 		
 		return response;
 	}

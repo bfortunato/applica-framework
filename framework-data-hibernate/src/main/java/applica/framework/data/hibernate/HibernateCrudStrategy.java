@@ -42,11 +42,11 @@ public class HibernateCrudStrategy implements CrudStrategy {
     }
 
     @Override
-    public <T extends Entity> LoadResponse<T> find(Query query, Repository<T> repository) {
+    public <T extends Entity> Result<T> find(Query query, Repository<T> repository) {
         HibernateRepository<T> hibernateRepository = ((HibernateRepository<T>) repository);
         Assert.notNull(hibernateRepository, "Specified repository is not HibernateRepository");
 
-        LoadResponse<T> loadResponse = new LoadResponse<T>();
+        Result<T> result = new Result<T>();
 
         Session session = hibernateRepository.getSession();
         Transaction transaction = session.beginTransaction();
@@ -80,8 +80,8 @@ public class HibernateCrudStrategy implements CrudStrategy {
                     }
                 }
             }
-            loadResponse.setRows(criteria.list());
-            loadResponse.setTotalRows(count);
+            result.setRows(criteria.list());
+            result.setTotalRows(count);
 
             transaction.commit();
         } catch(Exception e) {
@@ -91,7 +91,7 @@ public class HibernateCrudStrategy implements CrudStrategy {
             session.close();
         }
 
-        return loadResponse;
+        return result;
     }
 
     @Override

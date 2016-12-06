@@ -1,11 +1,10 @@
 "use strict";
 
-//const UsersStore = require("../../../stores").users
-const { Layout, Screen } = require("../../components/layout");
-const ui = require("../../utils/ui");
-const forms = require("../../utils/forms");
+const GridsStore = require("../../../stores").grids
+const { Layout, Screen } = require("../../components/layout")
+const ui = require("../../utils/ui")
 import strings from "../../../strings"
-const { getUsers } = require("../../../actions")
+const { getGrid } = require("../../../actions")
 import { connect } from "../../utils/aj"
 import { Card } from "../../components/common"
 import { Grid, TextColumn, CheckColumn } from "../../components/grids"
@@ -14,20 +13,22 @@ class Users extends Screen {
     constructor(props) {
         super(props)
 
-        this.state = {result: null}
-        //connect(this, UsersStore, {users: []})
+        connect(this, GridsStore, {descriptor: null, result: null})
+    }
+
+    componentDidMount() {
+        getGrid({id: "users"})
     }
 
     render() {
         return (
             <Layout>
                 <Card title="Users">
-                    <Grid data={this.state.result}>
-                        <TextColumn property="mail" />
-                        <CheckColumn property="active" />
-                    </Grid>
+                    <Grid descriptor={this.state.grid} />
                 </Card>
             </Layout>
+
+
         )
     }
 }

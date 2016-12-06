@@ -1,5 +1,5 @@
 {
-  "id": "users_grid",
+  "id": "users",
   "columns": [
     {"property": "mail", "header": "mail", "component": "text"},
     {"property": "active", "header": "active", "component": "check"}
