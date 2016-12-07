@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Helper functions for building a DataTables server-side processing SQL query
+ * Helper functions for building a DataTables server-side processing SQL mongoQuery
  *
  * The static functions in this class are just helper functions to help build
  * the SQL used in the DataTables demo server-side processing scripts. These
@@ -60,7 +60,7 @@ class SSP {
 	/**
 	 * Paging
 	 *
-	 * Construct the LIMIT clause for server-side processing SQL query
+	 * Construct the LIMIT clause for server-side processing SQL mongoQuery
 	 *
 	 *  @param  array $request Data sent to server by DataTables
 	 *  @param  array $columns Column information array
@@ -81,7 +81,7 @@ class SSP {
 	/**
 	 * Ordering
 	 *
-	 * Construct the ORDER BY clause for server-side processing SQL query
+	 * Construct the ORDER BY clause for server-side processing SQL mongoQuery
 	 *
 	 *  @param  array $request Data sent to server by DataTables
 	 *  @param  array $columns Column information array
@@ -122,7 +122,7 @@ class SSP {
 	/**
 	 * Searching / Filtering
 	 *
-	 * Construct the WHERE clause for server-side processing SQL query.
+	 * Construct the WHERE clause for server-side processing SQL mongoQuery.
 	 *
 	 * NOTE this does not match the built-in DataTables filtering which does it
 	 * word by word on any field. It's possible to do here performance on large
@@ -200,7 +200,7 @@ class SSP {
 	 *
 	 *  @param  array $request Data sent to server by DataTables
 	 *  @param  array $sql_details SQL connection details - see sql_connect()
-	 *  @param  string $table SQL table to query
+	 *  @param  string $table SQL table to mongoQuery
 	 *  @param  string $primaryKey Primary key of the table
 	 *  @param  array $columns Column information array
 	 *  @return array          Server-side processing response array
@@ -210,12 +210,12 @@ class SSP {
 		$bindings = array();
 		$db = self::sql_connect( $sql_details );
 
-		// Build the SQL query string from the request
+		// Build the SQL mongoQuery string from the request
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
 		$where = self::filter( $request, $columns, $bindings );
 
-		// Main query to actually get the data
+		// Main mongoQuery to actually get the data
 		$data = self::sql_exec( $db, $bindings,
 			"SELECT SQL_CALC_FOUND_ROWS `".implode("`, `", self::pluck($columns, 'db'))."`
 			 FROM `$table`
@@ -283,14 +283,14 @@ class SSP {
 
 
 	/**
-	 * Execute an SQL query on the database
+	 * Execute an SQL mongoQuery on the database
 	 *
 	 * @param  resource $db  Database handler
 	 * @param  array    $bindings Array of PDO binding values from bind() to be
 	 *   used for safely escaping strings. Note that this can be given as the
-	 *   SQL query string if no bindings are required.
-	 * @param  string   $sql SQL query to execute.
-	 * @return array         Result from the query (all rows)
+	 *   SQL mongoQuery string if no bindings are required.
+	 * @param  string   $sql SQL mongoQuery to execute.
+	 * @return array         Result from the mongoQuery (all rows)
 	 */
 	static function sql_exec ( $db, $bindings, $sql=null )
 	{
@@ -346,7 +346,7 @@ class SSP {
 
 	/**
 	 * Create a PDO binding key which can be used for escaping variables safely
-	 * when executing a query with sql_exec()
+	 * when executing a mongoQuery with sql_exec()
 	 *
 	 * @param  array &$a    Array of bindings
 	 * @param  *      $val  Value to bind

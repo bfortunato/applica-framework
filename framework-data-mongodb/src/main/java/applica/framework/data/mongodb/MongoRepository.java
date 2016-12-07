@@ -74,54 +74,54 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		return response;
 	}
 
-    public void pushFilter(Query query, Filter filter) {
+    public void pushFilter(MongoQuery mongoQuery, Filter filter) {
         switch (filter.getType()) {
             case Filter.LIKE:
-                query.like(filter.getProperty(), filter.getValue().toString());
+                mongoQuery.like(filter.getProperty(), filter.getValue().toString());
                 break;
             case Filter.GT:
-                query.gt(filter.getProperty(), filter.getValue());
+                mongoQuery.gt(filter.getProperty(), filter.getValue());
                 break;
             case Filter.GTE:
-                query.gte(filter.getProperty(), filter.getValue());
+                mongoQuery.gte(filter.getProperty(), filter.getValue());
                 break;
             case Filter.LT:
-                query.lt(filter.getProperty(), filter.getValue());
+                mongoQuery.lt(filter.getProperty(), filter.getValue());
                 break;
             case Filter.LTE:
-                query.lte(filter.getProperty(), filter.getValue());
+                mongoQuery.lte(filter.getProperty(), filter.getValue());
                 break;
             case Filter.EQ:
-                query.eq(filter.getProperty(), filter.getValue());
+                mongoQuery.eq(filter.getProperty(), filter.getValue());
                 break;
             case Filter.RANGE:
-                query.range(filter.getProperty(), (List)filter.getValue());
+                mongoQuery.range(filter.getProperty(), (List)filter.getValue());
                 break;
             case Filter.IN:
-                query.in(filter.getProperty(), (List)filter.getValue());
+                mongoQuery.in(filter.getProperty(), (List)filter.getValue());
                 break;
             case Filter.NIN:
-                query.nin(filter.getProperty(), (List)filter.getValue());
+                mongoQuery.nin(filter.getProperty(), (List)filter.getValue());
                 break;
             case Filter.ID:
                 if(filter.getProperty() == null) {
-                    query.id((String)filter.getValue());
+                    mongoQuery.id((String)filter.getValue());
                 } else {
-                    query.id(filter.getProperty(), (String)filter.getValue());
+                    mongoQuery.id(filter.getProperty(), (String)filter.getValue());
                 }
                 break;
             case Filter.OR:
                 List<Filter> ors = (List<Filter>) filter.getValue();
-                query.or(ors.stream().map((f) -> {
-                    Query q = query();
+                mongoQuery.or(ors.stream().map((f) -> {
+                    MongoQuery q = query();
                     pushFilter(q, f);
                     return q;
                 }).collect(Collectors.toList()));
                 break;
             case Filter.AND:
                 List<Filter> ands = (List<Filter>) filter.getValue();
-                query.and(ands.stream().map((f) -> {
-                    Query q = query();
+                mongoQuery.and(ands.stream().map((f) -> {
+                    MongoQuery q = query();
                     pushFilter(q, f);
                     return q;
                 }).collect(Collectors.toList()));
@@ -129,17 +129,17 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
     }
 
-	public Query createQuery(applica.framework.Query loadRequest) {
-		Query query = query();
+	public MongoQuery createQuery(applica.framework.Query loadRequest) {
+		MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
             if (filter.getValue() == null) {
                 continue;
             }
 
-            pushFilter(query, filter);
+            pushFilter(mongoQuery, filter);
         }
-        return query;
+        return mongoQuery;
 	}
 
 	@Override
@@ -170,8 +170,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		return null;
 	}
 
-    public Query query() {
-        return applica.framework.data.mongodb.Query.mk();
+    public MongoQuery query() {
+        return MongoQuery.mk();
     }
 
     public String getDataSource() {
@@ -180,5 +180,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
     public DBCollection getCollection() {
         return db.getCollection(getCollectionName());
+    }
+
+    @Override
+    public void addKeywordFilter(applica.framework.Query query, String keyword) {
+
     }
 }

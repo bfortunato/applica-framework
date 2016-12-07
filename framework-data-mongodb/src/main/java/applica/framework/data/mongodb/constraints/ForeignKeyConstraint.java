@@ -37,10 +37,10 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
     }
 
     /**
-     * Returns a Query for check in checkPrimary() function.
+     * Returns a MongoQuery for check in checkPrimary() function.
      * By default, entire entity collection was loaded.
      * You can specify an optimized query to load optimized data.
-     * Query is user by foreign repository. Primary type entity was passed as parameter of builder
+     * MongoQuery is user by foreign repository. Primary type entity was passed as parameter of builder
      * @return
      */
     protected Query getOptimizedQuery(T1 primaryEntity) {

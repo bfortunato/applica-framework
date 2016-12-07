@@ -32,6 +32,12 @@
             <artifactId>framework-security</artifactId>
             <version>${applica.framework.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>applica.framework</groupId>
+            <artifactId>framework-widgets</artifactId>
+            <version>${applica.framework.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -54,4 +54,9 @@ public class UsersRepositoryWrapper implements Repository<User> {
     public Class<User> getEntityType() {
         return usersRepository.getEntityType();
     }
+
+    @Override
+    public void addKeywordFilter(Query query, String keyword) {
+
+    }
 }

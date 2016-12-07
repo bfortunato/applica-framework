@@ -21,3 +21,5 @@
 - **Added possibility to force environment in options**
 
 - **MongoEmbedded server added (testing purposes?)**
+
+- **Mongodb Query renamed to MongoQuery to avoid confusion with framework query**

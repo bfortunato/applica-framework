@@ -1,6 +1,7 @@
 package applica.framework.library.tests.data;
 
 
+import applica.framework.Query;
 import applica.framework.library.tests.Brand;
 
 /**
@@ -18,5 +19,10 @@ public class MockBrandsRepository extends MockRepository<Brand> {
     @Override
     public Class<Brand> getEntityType() {
         return Brand.class;
+    }
+
+    @Override
+    public void addKeywordFilter(Query query, String keyword) {
+
     }
 }

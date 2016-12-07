@@ -83,7 +83,7 @@ class DriverPostgresQuery extends Query {
 	protected function _prepare( $sql )
 	{
 		// Add a RETURNING command to postgres insert queries so we can get the
-		// pkey value from the query reliably
+		// pkey value from the mongoQuery reliably
 		if ( $this->_type === 'insert' ) {
 			$table = explode( ' as ', $this->_table[0] );
 

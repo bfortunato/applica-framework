@@ -716,18 +716,18 @@ class Validate {
 			$cfg['field'] :
 			$field->dbField();
 
-		$query = $db
-			->query( 'select', $table )
+		$mongoQuery = $db
+			->mongoQuery( 'select', $table )
 			->get( $column )
 			->where( $column, $val );
 
 		// If doing an edit, then we need to also discount the current row,
 		// since it is of course already validly unique
 		if ( $host['action'] === 'edit' ) {
-			$query->where( $editor->pkey(), $host['id'], '!=' ); 
+			$mongoQuery->where( $editor->pkey(), $host['id'], '!=' );
 		}
 
-		$res = $query->exec();
+		$res = $mongoQuery->exec();
 
 		return $res->count() === 0 ?
 			true :

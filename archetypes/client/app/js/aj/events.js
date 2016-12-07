@@ -1,6 +1,7 @@
 "use strict";
 
-var EventEmitter = EventEmitter || {};
+export const EventEmitter = {}
+
 EventEmitter.addListener = function(obj, evt, handler) {
     var listeners = obj.__events_listeners;
     if(!listeners) {
@@ -17,7 +18,7 @@ EventEmitter.addListener = function(obj, evt, handler) {
 
 EventEmitter.addListeners = function(obj, listeners) {
     for(var key in listeners) {
-        events.addListener(obj, key, listeners[key]);
+        EventEmitter.addListener(obj, key, listeners[key]);
     }
 };
 
@@ -29,9 +30,9 @@ EventEmitter.removeListener = function(obj, evt, listener) {
 
 EventEmitter.on = function(obj, evt, handler) {
     if(typeof(evt) === "object") {
-        events.addListeners(obj, evt);
+        EventEmitter.addListeners(obj, evt);
     } else {
-        events.addListener(obj, evt, handler);
+        EventEmitter.addListener(obj, evt, handler);
     }
 };
 
@@ -74,7 +75,7 @@ EventEmitter.invoke = function(obj, evt) {
     }
 };
 
-class Observable {
+export class Observable {
     on(evt, handler) {
         EventEmitter.on(this, evt, handler);
     }
@@ -84,5 +85,3 @@ class Observable {
     }
 }
 
-exports.EventEmitter = EventEmitter;
-exports.Observable = Observable;

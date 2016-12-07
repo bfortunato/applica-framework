@@ -7,7 +7,7 @@ const ui = require("../../utils/ui")
 import strings from "../../../strings"
 const { getGrid, loadEntities } = require("../../../actions")
 import { connect } from "../../utils/aj"
-import { Card } from "../../components/common"
+import { Card, HeaderBlock } from "../../components/common"
 import { Grid, TextColumn, CheckColumn } from "../../components/grids"
 import * as query from "../../../api/query"
 
@@ -16,6 +16,10 @@ class EntitiesList extends Screen {
         super(props)
 
         this.state = {grid: null, result: null, query: query.create()}
+
+        this.state.query.on("change", () => {
+            this.onQueryChanged()
+        })
 
         connect(this, [GridsStore, EntitiesStore])
     }
@@ -26,9 +30,6 @@ class EntitiesList extends Screen {
     }
 
     onQueryChanged() {
-        console.log(this.state.query)
-
-
         loadEntities({entity: this.props.entity, query: this.state.query})
     }
 
@@ -37,7 +38,7 @@ class EntitiesList extends Screen {
             {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
-                action: () => { loadEntities({entity: this.props.entity}) }
+                action: () => { loadEntities({entity: this.props.entity, query: this.state.query}) }
             },
             {
                 type: "button",
@@ -49,8 +50,8 @@ class EntitiesList extends Screen {
 
         return (
             <Layout>
-                <Card title="Users" actions={actions}>
-                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} onQueryChanged={this.onQueryChanged.bind(this)} />
+                <Card title="Users" subtitle="List of users. Click on column name to search, click on carets to sort" actions={actions} >
+                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
                 </Card>
             </Layout>
         )

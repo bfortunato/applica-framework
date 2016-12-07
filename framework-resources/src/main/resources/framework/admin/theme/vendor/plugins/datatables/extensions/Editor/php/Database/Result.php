@@ -66,7 +66,7 @@ class Result {
 
 
 	/**
-	 * After an INSERT query, get the ID that was inserted.
+	 * After an INSERT mongoQuery, get the ID that was inserted.
 	 *  @return int
 	 */
 	public function insertId ()

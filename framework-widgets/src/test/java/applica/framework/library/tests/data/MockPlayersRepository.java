@@ -1,5 +1,6 @@
 package applica.framework.library.tests.data;
 
+import applica.framework.Query;
 import applica.framework.library.tests.Player;
 
 /**
@@ -18,5 +19,10 @@ public class MockPlayersRepository extends MockRepository<Player> {
     @Override
     public Class<Player> getEntityType() {
         return Player.class;
+    }
+
+    @Override
+    public void addKeywordFilter(Query query, String keyword) {
+
     }
 }

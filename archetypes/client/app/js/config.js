@@ -1,4 +1,4 @@
-var serviceBase = "http://192.168.1.188:8080/";
+var serviceBase = "http://192.168.0.46:8080/";
 
 module.exports = {
     "service.url": `${serviceBase}`,

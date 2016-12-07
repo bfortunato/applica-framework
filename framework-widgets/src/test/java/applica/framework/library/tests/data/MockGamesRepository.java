@@ -1,5 +1,6 @@
 package applica.framework.library.tests.data;
 
+import applica.framework.Query;
 import applica.framework.library.tests.Brand;
 import applica.framework.library.tests.Game;
 import applica.framework.library.tests.Player;
@@ -36,5 +37,10 @@ public class MockGamesRepository extends MockRepository<Game> {
     @Override
     public Class<Game> getEntityType() {
         return Game.class;
+    }
+
+    @Override
+    public void addKeywordFilter(Query query, String keyword) {
+
     }
 }

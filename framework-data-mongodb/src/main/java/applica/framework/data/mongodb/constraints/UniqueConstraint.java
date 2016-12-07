@@ -21,7 +21,7 @@ public abstract class UniqueConstraint<T extends Entity> implements Constraint<T
     private RepositoriesFactory repositoriesFactory;
 
     /**
-     * Returns a Query builder for check in check() function.
+     * Returns a MongoQuery builder for check in check() function.
      * By default, entire entity collection was loaded.
      * You can specify an optimized query to load optimized data
      * @return

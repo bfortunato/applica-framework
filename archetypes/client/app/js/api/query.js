@@ -1,6 +1,7 @@
 "use strict"
 
 import * as _ from "../libs/underscore"
+import { Observable } from "../aj/events"
 
 export const LIKE = "like"
 export const GT = "gt"
@@ -16,8 +17,10 @@ export const OR = "or"
 export const AND = "and"
 export const RANGE = "range"
 
-export class Query {
+export class Query extends Observable {
     constructor(init) {
+        super()
+
         this.page = 0
         this.rowsPerPage = 0
         this.sorts = []
@@ -27,7 +30,19 @@ export class Query {
     }
 
     filter(type, property, value) {
-        this.filters.push({type, property, value})
+        let current = _.find(this.filters, s => s.property == property)
+        if (current) {
+            current.value = value
+            current.type = type
+        } else {
+            this.filters.push({property, type, value})
+        }
+
+        this.invoke("change")
+    }
+
+    unfilter(property) {
+        this.filters = _.filter(this.filters, f => f.property != property)
     }
 
     like(prop, value) {
@@ -91,7 +106,7 @@ export class Query {
     }
 
     sort(prop, descending) {
-        let current = _.find(s => s.property == prop)
+        let current = _.find(this.sorts, s => s.property == prop)
         if (current) {
             current.descending = descending
         } else {

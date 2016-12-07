@@ -404,42 +404,12 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     }
 
 
-
     private enum PropType{
         primitive,
         list,
         entity,
         valueobject
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public List<Sort> getDefaultSorts() {
@@ -460,4 +430,8 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         return "default";
     }
 
+    @Override
+    public void addKeywordFilter(Query query, String keyword) {
+
+    }
 }

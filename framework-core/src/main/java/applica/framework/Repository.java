@@ -13,5 +13,6 @@ public interface Repository<T extends Entity> {
     void save(T entity);
     void delete(Object id);
     Class<T> getEntityType();
+    void addKeywordFilter(Query query, String keyword);
 
 }

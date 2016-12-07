@@ -321,7 +321,7 @@ class Join extends DataTables\Ext {
 
 
 	/**
-	 * Where condition to add to the query used to get data from the database.
+	 * Where condition to add to the mongoQuery used to get data from the database.
 	 * Note that this is applied to the child table.
 	 * 
 	 * Can be used in two different ways, as where( field, value ) or as an
@@ -424,9 +424,9 @@ class Join extends DataTables\Ext {
 			}
 		}
 
-		// Set up the JOIN query
+		// Set up the JOIN mongoQuery
 		$stmt = $db
-			->query( 'select' )
+			->mongoQuery( 'select' )
 			->get( $pkeyTable.'.'.$joinField.' as _dte_pkey' )
 			->get( $this->_fields('get') )
 			->table( $dteTable .' as '. $dteTableAlias );
@@ -583,14 +583,14 @@ class Join extends DataTables\Ext {
 		
 		if ( isset($this->_join['table']) ) {
 			$stmt = $db
-				->query( 'delete' )
+				->mongoQuery( 'delete' )
 				->table( $this->_join['table'] )
 				->or_where( $this->_join['parent'][1], $ids )
 				->exec();
 		}
 		else {
 			$stmt = $db
-				->query( 'delete' )
+				->mongoQuery( 'delete' )
 				->table( $this->_table )
 				->where_group( true )
 				->or_where( $this->_join['child'], $ids )
@@ -622,7 +622,7 @@ class Join extends DataTables\Ext {
 		if ( isset($this->_join['table']) ) {
 			// Insert keys into the join table
 			$stmt = $db
-				->query('insert')
+				->mongoQuery('insert')
 				->table( $this->_join['table'] )
 				->set( $this->_join['parent'][1], $parentId )
 				->set( $this->_join['child'][1], $data[$this->_join['child'][0]] )
@@ -631,7 +631,7 @@ class Join extends DataTables\Ext {
 		else {
 			// Insert values into the target table
 			$stmt = $db
-				->query('insert')
+				->mongoQuery('insert')
 				->table( $this->_table )
 				->set( $this->_join['child'], $parentId );
 

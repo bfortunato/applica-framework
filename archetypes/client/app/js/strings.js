@@ -23,5 +23,10 @@ export default {
     accountRecovered: "A new password was sent to {0}",
     pleaseSpecifyId: "Please specify an ID",
     pleaseSpecifyQuery: "Please specify a query",
-    pleaseSpecifyEntity: "Please specify the entity"
+    pleaseSpecifyEntity: "Please specify the entity",
+    search: "Search",
+    close: "Close",
+    selectFilterType: "Select filter type",
+    typeValueToSearch: "Type value to search",
+    value: "Value"
 }

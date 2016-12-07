@@ -1,6 +1,7 @@
 package applica._APPNAME_.domain.model;
 
 import applica.framework.AEntity;
+import applica.framework.widgets.entities.EntityId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * Date: 3/3/13
  * Time: 10:46 PM
  */
+@EntityId("role")
 public class Role extends AEntity implements applica.framework.security.Role {
 
     public static final String ADMIN = "admin";

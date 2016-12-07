@@ -25,10 +25,10 @@ use
 //
 
 /**
- * Perform an individual query on the database.
+ * Perform an individual mongoQuery on the database.
  * 
  * The typical pattern for using this class is through the {@link
- * \DataTables\Database::query} method (and it's 'select', etc short-cuts).
+ * \DataTables\Database::mongoQuery} method (and it's 'select', etc short-cuts).
  * Typically it would not be initialised directly.
  *
  * Note that this is a stub class that a driver will extend and complete as
@@ -45,7 +45,7 @@ class Query {
 	 * Query instance constructor.
 	 *
 	 * Note that typically instances of this class will be automatically created
-	 * through the {@link \DataTables\Database::query} method.
+	 * through the {@link \DataTables\Database::mongoQuery} method.
 	 *  @param Database        $db    Database instance
 	 *  @param string          $type  Query type - 'select', 'insert', 'update' or 'delete'
 	 *  @param string|string[] $table Tables to operate on - see {@link table}.
@@ -217,8 +217,8 @@ class Query {
 	
 
 	/**
-	 * Set a distinct flag for a `select` query. Note that this has no effect on
-	 * any of the other query types.
+	 * Set a distinct flag for a `select` mongoQuery. Note that this has no effect on
+	 * any of the other mongoQuery types.
 	 *  @param boolean $dis Optional
 	 *  @return Query
 	 */
@@ -229,7 +229,7 @@ class Query {
 	}
 
 	/**
-	 * Execute the query.
+	 * Execute the mongoQuery.
 	 *  @param string $sql SQL string to execute (only if _type is 'raw').
 	 *  @return Result
 	 */
@@ -333,7 +333,7 @@ class Query {
 
 
 	/**
-	 * Set table(s) to perform the query on.
+	 * Set table(s) to perform the mongoQuery on.
 	 *  @param string|string[] $table,... Table(s) to use - can be specified as
 	 *    individual names, an array of names, a string of comma separated
 	 *    names or any combination of those.
@@ -438,13 +438,13 @@ class Query {
 
 
 	/**
-	 * Where query - multiple conditions are bound as ANDs.
+	 * Where mongoQuery - multiple conditions are bound as ANDs.
 	 *
 	 * Can be used in two different ways, as where( field, value ) or as an array of
 	 * conditions to use: where( array('fieldName', ...), array('value', ...) );
 	 *  @param string|string[]|function $key   Single field name, or an array of field names.
 	 *    If given as a function (i.e. a closure), the function is called, passing the
-	 *    query itself in as the only parameter, so the function can add extra conditions
+	 *    mongoQuery itself in as the only parameter, so the function can add extra conditions
 	 *    with parentheses around the additional parameters.
 	 *  @param string|string[]          $value Single field value, or an array of values.
 	 *  @param string                   $op    Condition operator: <, >, = etc
@@ -456,7 +456,7 @@ class Query {
 	 *     `'WHERE name='allan' AND ( location='Scotland' OR location='Canada' )`:
 	 *
 	 *     <code>
-	 *       $query
+	 *       $mongoQuery
 	 *         ->where( 'name', 'allan' )
 	 *         ->where( function ($q) {
 	 *           $q->where( 'location', 'Scotland' );
@@ -490,14 +490,14 @@ class Query {
 
 
 	/**
-	 * Add addition where conditions to the query with an AND operator. An alias
+	 * Add addition where conditions to the mongoQuery with an AND operator. An alias
 	 * of `where` for naming consistency.
 	 *
 	 * Can be used in two different ways, as where( field, value ) or as an array of
 	 * conditions to use: where( array('fieldName', ...), array('value', ...) );
 	 *  @param string|string[]|function $key   Single field name, or an array of field names.
 	 *    If given as a function (i.e. a closure), the function is called, passing the
-	 *    query itself in as the only parameter, so the function can add extra conditions
+	 *    mongoQuery itself in as the only parameter, so the function can add extra conditions
 	 *    with parentheses around the additional parameters.
 	 *  @param string|string[]          $value Single field value, or an array of values.
 	 *  @param string                   $op    Condition operator: <, >, = etc
@@ -511,13 +511,13 @@ class Query {
 
 
 	/**
-	 * Add addition where conditions to the query with an OR operator.
+	 * Add addition where conditions to the mongoQuery with an OR operator.
 	 *
 	 * Can be used in two different ways, as where( field, value ) or as an array of
 	 * conditions to use: where( array('fieldName', ...), array('value', ...) );
 	 *  @param string|string[]|function $key   Single field name, or an array of field names.
 	 *    If given as a function (i.e. a closure), the function is called, passing the
-	 *    query itself in as the only parameter, so the function can add extra conditions
+	 *    mongoQuery itself in as the only parameter, so the function can add extra conditions
 	 *    with parentheses around the additional parameters.
 	 *  @param string|string[]          $value Single field value, or an array of values.
 	 *  @param string                   $op    Condition operator: <, >, = etc
@@ -796,7 +796,7 @@ class Query {
 				$where .= $this->_where[$i]['group'];
 			}
 			else {
-				$where .= $this->_where[$i]['query'] .' ';
+				$where .= $this->_where[$i]['mongoQuery'] .' ';
 			}
 		}
 
@@ -828,7 +828,7 @@ class Query {
 
 
 	/**
-	 * Add an individual where condition to the query.
+	 * Add an individual where condition to the mongoQuery.
 	 *  @internal
 	 */
 	protected function _where ( $where, $value=null, $type='AND ', $op="=", $bind=true )
@@ -852,7 +852,7 @@ class Query {
 					'field'    => $this->_protect_identifiers($key),
 					'value'    => $value,
 					'binder'   => ':where_'. $this->_safe_bind( $i ),
-					'query'    => $this->_protect_identifiers($key) .' '.$op.' :where_'. $this->_safe_bind( $i )
+					'mongoQuery'    => $this->_protect_identifiers($key) .' '.$op.' :where_'. $this->_safe_bind( $i )
 				);
 			}
 			else {
@@ -862,7 +862,7 @@ class Query {
 					'field'    => null,
 					'value'    => null,
 					'binder'   => null,
-					'query'    => $this->_protect_identifiers($key) .' '. $op .' '. $this->_protect_identifiers($value)
+					'mongoQuery'    => $this->_protect_identifiers($key) .' '. $op .' '. $this->_protect_identifiers($value)
 				);
 			}
 		}

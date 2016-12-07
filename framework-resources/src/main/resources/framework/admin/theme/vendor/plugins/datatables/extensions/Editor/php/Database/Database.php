@@ -83,10 +83,10 @@ class Database {
 
 
 	/**
-	 * Perform a delete query on a table.
+	 * Perform a delete mongoQuery on a table.
 	 *
-	 * This is a short cut method that creates an update query and then uses
-	 * the query('delete'), table, where and exec methods of the query.
+	 * This is a short cut method that creates an update mongoQuery and then uses
+	 * the mongoQuery('delete'), table, where and exec methods of the mongoQuery.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @param array $where Where condition for what to delete - see {@link
 	 *    Query::where}.
@@ -94,7 +94,7 @@ class Database {
 	 */
 	public function delete ( $table, $where=null )
 	{
-		return $this->query( 'delete' )
+		return $this->mongoQuery( 'delete' )
 			->table( $table )
 			->where( $where )
 			->exec();
@@ -104,8 +104,8 @@ class Database {
 	/**
 	 * Insert data into a table.
 	 *
-	 * This is a short cut method that creates an update query and then uses
-	 * the query('insert'), table, set and exec methods of the query.
+	 * This is a short cut method that creates an update mongoQuery and then uses
+	 * the mongoQuery('insert'), table, set and exec methods of the mongoQuery.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @param array $set Field names and values to set - see {@link
 	 *    Query::set}.
@@ -113,7 +113,7 @@ class Database {
 	 */
 	public function insert ( $table, $set )
 	{
-		return $this->query( 'insert' )
+		return $this->mongoQuery( 'insert' )
 			->table( $table )
 			->set( $set )
 			->exec();
@@ -147,12 +147,12 @@ class Database {
 
 
 	/**
-	 * Create a query object to build a database query.
+	 * Create a mongoQuery object to build a database mongoQuery.
 	 *  @param string $type Query type - select, insert, update or delete.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @return Query
 	 */
-	public function query ( $type, $table=null )
+	public function mongoQuery ( $type, $table=null )
 	{
 		return new $this->query_driver( $this->_db, $type, $table );
 	}
@@ -186,8 +186,8 @@ class Database {
 	/**
 	 * Select data from a table.
 	 *
-	 * This is a short cut method that creates an update query and then uses
-	 * the query('select'), table, get, where and exec methods of the query.
+	 * This is a short cut method that creates an update mongoQuery and then uses
+	 * the mongoQuery('select'), table, get, where and exec methods of the mongoQuery.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @param array $field Fields to get from the table(s) - see {@link
 	 *    Query::get}.
@@ -199,7 +199,7 @@ class Database {
 	 */
 	public function select ( $table, $field="*", $where=null, $orderBy=null )
 	{
-		return $this->query( 'select' )
+		return $this->mongoQuery( 'select' )
 			->table( $table )
 			->get( $field )
 			->where( $where )
@@ -211,8 +211,8 @@ class Database {
 	/**
 	 * Select data from a table.
 	 *
-	 * This is a short cut method that creates an update query and then uses
-	 * the query('select'), table, get, where and exec methods of the query.
+	 * This is a short cut method that creates an update mongoQuery and then uses
+	 * the mongoQuery('select'), table, get, where and exec methods of the mongoQuery.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @param array $field Fields to get from the table(s) - see {@link
 	 *    Query::get}.
@@ -224,7 +224,7 @@ class Database {
 	 */
 	public function selectDistinct ( $table, $field="*", $where=null, $orderBy=null )
 	{
-		return $this->query( 'select' )
+		return $this->mongoQuery( 'select' )
 			->table( $table )
 			->distinct( true )
 			->get( $field )
@@ -235,7 +235,7 @@ class Database {
 
 
 	/**
-	 * Execute an raw SQL query - i.e. give the method your own SQL, rather
+	 * Execute an raw SQL mongoQuery - i.e. give the method your own SQL, rather
 	 * than having the Database classes building it for you.
 	 *  @param string $sql SQL string to execute (only if _type is 'raw').
 	 *  @return Result
@@ -256,7 +256,7 @@ class Database {
 	 */
 	public function sql ( $sql )
 	{
-		return $this->query( 'raw' )
+		return $this->mongoQuery( 'raw' )
 			->exec( $sql );
 	}
 
@@ -277,8 +277,8 @@ class Database {
 	/**
 	 * Update data.
 	 *
-	 * This is a short cut method that creates an update query and then uses
-	 * the query('update'), table, set, where and exec methods of the query.
+	 * This is a short cut method that creates an update mongoQuery and then uses
+	 * the mongoQuery('update'), table, set, where and exec methods of the mongoQuery.
 	 *  @param string|string[] $table Table name(s) to act upon.
 	 *  @param array $set Field names and values to set - see {@link
 	 *    Query::set}.
@@ -288,7 +288,7 @@ class Database {
 	 */
 	public function update ( $table, $set=null, $where=null )
 	{
-		return $this->query( 'update' )
+		return $this->mongoQuery( 'update' )
 			->table( $table )
 			->set( $set )
 			->where( $where )

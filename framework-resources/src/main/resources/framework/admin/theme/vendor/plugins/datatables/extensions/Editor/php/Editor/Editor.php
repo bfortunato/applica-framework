@@ -359,7 +359,7 @@ class Editor extends Ext {
 	 * The table name designated which DB table Editor will use as its data
 	 * source for working with the database. Table names can be given with an
 	 * alias, which can be used to simplify larger table names. The field
-	 * names would also need to reflect the alias, just like an SQL query. For
+	 * names would also need to reflect the alias, just like an SQL mongoQuery. For
 	 * example: `users as a`.
 	 *
 	 *  @param string|array $_,... Table names given as a single string, an array of
@@ -498,7 +498,7 @@ class Editor extends Ext {
 
 
 	/**
-	 * Where condition to add to the query used to get data from the database.
+	 * Where condition to add to the mongoQuery used to get data from the database.
 	 * 
 	 * Can be used in two different ways, as where( field, value ) or as an array of
 	 * conditions to use: where( array('fieldName', ...), array('value', ...) );
@@ -566,21 +566,21 @@ class Editor extends Ext {
 	 */
 	private function _get( $id=null, $http=null )
 	{
-		$query = $this->_db
-			->query('select')
+		$mongoQuery = $this->_db
+			->mongoQuery('select')
 			->table( $this->_table )
 			->get( $this->_pkey )
 			->get( $this->_fields('get') );
 
-		$this->_get_where( $query );
-		$this->_left_join( $query );
-		$ssp = $this->_ssp_query( $query, $http );
+		$this->_get_where( $mongoQuery );
+		$this->_left_join( $mongoQuery );
+		$ssp = $this->_ssp_query( $mongoQuery, $http );
 
 		if ( $id !== null ) {
-			$query->where( $this->_pkey, $id );
+			$mongoQuery->where( $this->_pkey, $id );
 		}
 
-		$res = $query->exec();
+		$res = $mongoQuery->exec();
 		if ( ! $res ) {
 			throw new \Exception('Error executing SQL for data get');
 		}
@@ -751,14 +751,14 @@ class Editor extends Ext {
 	 */
 
 	/**
-	 * When server-side processing is being used, modify the query with // the
+	 * When server-side processing is being used, modify the mongoQuery with // the
      * required extra conditions
 	 *
-	 *  @param Query $query Query instance to apply the SSP commands to
+	 *  @param Query $mongoQuery Query instance to apply the SSP commands to
 	 *  @return array Server-side processing information array
 	 *  @private
 	 */
-	private function _ssp_query ( $query, $http )
+	private function _ssp_query ( $mongoQuery, $http )
 	{
 		$ssp = array();
 		
@@ -767,13 +767,13 @@ class Editor extends Ext {
 		}
 
 		// Add the server-side processing conditions
-		$this->_ssp_limit( $query, $http );
-		$this->_ssp_sort( $query, $http );
-		$this->_ssp_filter( $query, $http );
+		$this->_ssp_limit( $mongoQuery, $http );
+		$this->_ssp_sort( $mongoQuery, $http );
+		$this->_ssp_filter( $mongoQuery, $http );
 
 		// Get the number of rows in the result set
 		$ssp_set_count = $this->_db
-			->query('select')
+			->mongoQuery('select')
 			->table( $this->_table )
 			->get( 'COUNT('.$this->_pkey.') as cnt' );
 		$this->_get_where( $ssp_set_count );
@@ -783,7 +783,7 @@ class Editor extends Ext {
 
 		// Get the number of rows in the full set
 		$ssp_full_count = $this->_db
-			->query('select')
+			->mongoQuery('select')
 			->table( $this->_table )
 			->get( 'COUNT('.$this->_pkey.') as cnt' );
 		$this->_get_where( $ssp_full_count );
@@ -822,17 +822,17 @@ class Editor extends Ext {
 
 
 	/**
-	 * Sorting requirements to a server-side processing query.
-	 *  @param Query $query Query instance to apply sorting to
+	 * Sorting requirements to a server-side processing mongoQuery.
+	 *  @param Query $mongoQuery Query instance to apply sorting to
 	 *  @param array $http HTTP variables (i.e. GET or POST)
 	 *  @private
 	 */
-	private function _ssp_sort ( $query, $http )
+	private function _ssp_sort ( $mongoQuery, $http )
 	{
 		for ( $i=0 ; $i<count($http['order']) ; $i++ ) {
 			$order = $http['order'][$i];
 
-			$query->order(
+			$mongoQuery->order(
 				$this->_ssp_field( $http, $order['column'] ) .' '.
 				($order['dir']==='asc' ? 'asc' : 'desc')
 			);
@@ -841,13 +841,13 @@ class Editor extends Ext {
 
 
 	/**
-	 * Add DataTables' 'where' condition to a server-side processing query. This
+	 * Add DataTables' 'where' condition to a server-side processing mongoQuery. This
 	 * works for both global and individual column filtering.
-	 *  @param Query $query Query instance to apply the WHERE conditions to
+	 *  @param Query $mongoQuery Query instance to apply the WHERE conditions to
 	 *  @param array $http HTTP variables (i.e. GET or POST)
 	 *  @private
 	 */
-	private function _ssp_filter ( $query, $http )
+	private function _ssp_filter ( $mongoQuery, $http )
 	{
 		$that = $this;
 
@@ -857,7 +857,7 @@ class Editor extends Ext {
 		// Global search, add a ( ... or ... ) set of filters for each column
 		// in the table (not the fields, just the columns submitted)
 		if ( $http['search']['value'] ) {
-			$query->where( function ($q) use (&$that, &$fields, $http) {
+			$mongoQuery->where( function ($q) use (&$that, &$fields, $http) {
 				for ( $i=0 ; $i<count($http['columns']) ; $i++ ) {
 					if ( $http['columns'][$i]['searchable'] == 'true' ) {
 						$field = $that->_ssp_field( $http, $i );
@@ -874,22 +874,22 @@ class Editor extends Ext {
 			$search = $column['search']['value'];
 
 			if ( $search && $column['searchable'] == 'true' ) {
-				$query->where( $this->_ssp_field( $http, $i ), '%'.$search.'%', 'like' );
+				$mongoQuery->where( $this->_ssp_field( $http, $i ), '%'.$search.'%', 'like' );
 			}
 		}
 	}
 
 
 	/**
-	 * Add a limit / offset to a server-side processing query
-	 *  @param Query $query Query instance to apply the offset / limit to
+	 * Add a limit / offset to a server-side processing mongoQuery
+	 *  @param Query $mongoQuery Query instance to apply the offset / limit to
 	 *  @param array $http HTTP variables (i.e. GET or POST)
 	 *  @private
 	 */
-	private function _ssp_limit ( $query, $http )
+	private function _ssp_limit ( $mongoQuery, $http )
 	{
 		if ( $http['start'] != -1 ) { // -1 is 'show all' in DataTables
-			$query
+			$mongoQuery
 				->offset( $http['start'] )
 				->limit( $http['length'] );
 		}
@@ -901,32 +901,32 @@ class Editor extends Ext {
 	 */
 
 	/**
-	 * Add left join commands for the instance to a query.
+	 * Add left join commands for the instance to a mongoQuery.
 	 *
-	 *  @param Query $query Query instance to apply the joins to
+	 *  @param Query $mongoQuery Query instance to apply the joins to
 	 *  @private
 	 */
-	private function _left_join ( $query )
+	private function _left_join ( $mongoQuery )
 	{
 		if ( count($this->_leftJoin) ) {
 			for ( $i=0, $ien=count($this->_leftJoin) ; $i<$ien ; $i++ ) {
 				$join = $this->_leftJoin[$i];
 
-				$query->join( $join['table'], $join['field1'].' '.$join['operator'].' '.$join['field2'], 'LEFT' );
+				$mongoQuery->join( $join['table'], $join['field1'].' '.$join['operator'].' '.$join['field2'], 'LEFT' );
 			}
 		}
 	}
 
 
 	/**
-	 * Add local WHERE condition to query
-	 *  @param Query $query Query instance to apply the WHERE conditions ti
+	 * Add local WHERE condition to mongoQuery
+	 *  @param Query $mongoQuery Query instance to apply the WHERE conditions ti
 	 *  @private
 	 */
-	private function _get_where ( $query )
+	private function _get_where ( $mongoQuery )
 	{
 		for ( $i=0 ; $i<count($this->_where) ; $i++ ) {
-			$query->where(
+			$mongoQuery->where(
 				$this->_where[$i]['key'],
 				$this->_where[$i]['value'],
 				$this->_where[$i]['op']
@@ -982,9 +982,9 @@ class Editor extends Ext {
 	 * Insert or update a row for all main tables and left joined tables.
 	 *
 	 *  @param int $id ID to use to condition the update. If null is given, the
-	 *      first query performed is an insert and the inserted id used as the
+	 *      first mongoQuery performed is an insert and the inserted id used as the
 	 *      value should there be any subsequent tables to operate on.
-	 *  @return Database.Result Result from the query or null if no query
+	 *  @return Database.Result Result from the mongoQuery or null if no mongoQuery
 	 *      performed.
 	 *  @private
 	 */
@@ -1058,7 +1058,7 @@ class Editor extends Ext {
 	 *
 	 *  @param string $table Database table name to use (can include an alias)
 	 *  @param array $where Update condition
-	 *  @return Database.Result Result from the query or null if no query
+	 *  @return Database.Result Result from the mongoQuery or null if no mongoQuery
 	 *      performed.
 	 *  @private
 	 */
@@ -1139,7 +1139,7 @@ class Editor extends Ext {
 		}
 
 		$stmt = $this->_db
-			->query( 'delete' )
+			->mongoQuery( 'delete' )
 			->table( $table )
 			->or_where( $pkey, $ids )
 			->exec();
