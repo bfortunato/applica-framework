@@ -26,6 +26,9 @@ class EntitiesList extends Screen {
     }
 
     onQueryChanged() {
+        console.log(this.state.query)
+
+
         loadEntities({entity: this.props.entity, query: this.state.query})
     }
 
