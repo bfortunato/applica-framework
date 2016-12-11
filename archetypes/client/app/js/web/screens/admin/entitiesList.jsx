@@ -1,21 +1,24 @@
 "use strict";
 
-const GridsStore = require("../../../stores").grids
-const EntitiesStore = require("../../../stores").entities
-const { Layout, Screen } = require("../../components/layout")
-const ui = require("../../utils/ui")
+import { grids as GridsStore, entities as EntitiesStore } from "../../../stores"
+import { Layout, Screen } from "../../components/layout"
+import * as ui from "../../utils/ui"
 import strings from "../../../strings"
-const { getGrid, loadEntities } = require("../../../actions")
+import { getGrid, loadEntities } from "../../../actions"
 import { connect } from "../../utils/aj"
-import { Card, HeaderBlock } from "../../components/common"
-import { Grid, TextColumn, CheckColumn } from "../../components/grids"
+import { Card, HeaderBlock, FloatingButton } from "../../components/common"
+import { Grid, Filters } from "../../components/grids"
 import * as query from "../../../api/query"
 
 class EntitiesList extends Screen {
     constructor(props) {
         super(props)
 
-        this.state = {grid: null, result: null, query: query.create()}
+        let _query = query.create()
+        _query.page = 1
+        _query.rowsPerPage = 20
+
+        this.state = {grid: null, result: null, query: _query}
 
         this.state.query.on("change", () => {
             this.onQueryChanged()
@@ -26,11 +29,15 @@ class EntitiesList extends Screen {
 
     componentDidMount() {
         getGrid({id: this.props.grid})
-        loadEntities({entity: this.props.entity})
+        loadEntities({entity: this.props.entity, query: this.state.query})
     }
 
     onQueryChanged() {
         loadEntities({entity: this.props.entity, query: this.state.query})
+    }
+
+    createEntity() {
+
     }
 
     render() {
@@ -48,11 +55,16 @@ class EntitiesList extends Screen {
 
         ]
 
+        let filtersHidden = this.state.query.filters.length == 0
+
         return (
             <Layout>
-                <Card title="Users" subtitle="List of users. Click on column name to search, click on carets to sort" actions={actions} >
-                    <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
-                </Card>
+                <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
+                <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
+                <div className="animated fadeInUpBig" hidden={filtersHidden}>
+                    <Filters query={this.state.query} />
+                </div>
+                <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )
     }

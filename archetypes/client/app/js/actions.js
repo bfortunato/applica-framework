@@ -198,15 +198,11 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         type: LOAD_ENTITIES
     })
 
-    showLoader()
-    entities.load(data.entity, !_.isEmpty(data.query) ? JSON.stringify(data.query) : null)
+    entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null)
         .then(response => {
-            hideLoader()
-
             loadEntities.complete({result: response.value})
         })
         .catch(e => {
-            hideLoader()
             alert(strings.ooops, responses.msg(e), "error")
 
             loadEntities.fail()

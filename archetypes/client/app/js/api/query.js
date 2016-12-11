@@ -43,6 +43,8 @@ export class Query extends Observable {
 
     unfilter(property) {
         this.filters = _.filter(this.filters, f => f.property != property)
+
+        this.invoke("change")
     }
 
     like(prop, value) {
@@ -113,10 +115,34 @@ export class Query extends Observable {
             this.sorts.push({property: prop, descending})
         }
 
+        this.invoke("change")
     }
 
     unsort(prop) {
         this.sorts = _.filter(this.sorts, s => s.property != prop)
+
+        this.invoke("change")
+    }
+
+    clearFilters() {
+        this.filters = []
+        this.invoke("change")
+    }
+
+    changePage(page) {
+        this.page = page
+        this.invoke("change")
+    }
+
+    toJSON() {
+        return JSON.stringify(
+            {
+                filters: this.filters,
+                sorts: this.sorts,
+                page: this.page,
+                rowsPerPage: this.rowsPerPage
+            }
+        )
     }
 }
 

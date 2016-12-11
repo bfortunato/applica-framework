@@ -218,13 +218,9 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         type: LOAD_ENTITIES
     });
 
-    (0, _plugins.showLoader)();
-    entities.load(data.entity, !_.isEmpty(data.query) ? JSON.stringify(data.query) : null).then(function (response) {
-        (0, _plugins.hideLoader)();
-
+    entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null).then(function (response) {
         loadEntities.complete({ result: response.value });
     }).catch(function (e) {
-        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         loadEntities.fail();
@@ -1829,6 +1825,8 @@ var Query = exports.Query = function (_Observable) {
             this.filters = _.filter(this.filters, function (f) {
                 return f.property != property;
             });
+
+            this.invoke("change");
         }
     }, {
         key: "like",
@@ -1916,12 +1914,38 @@ var Query = exports.Query = function (_Observable) {
             } else {
                 this.sorts.push({ property: prop, descending: descending });
             }
+
+            this.invoke("change");
         }
     }, {
         key: "unsort",
         value: function unsort(prop) {
             this.sorts = _.filter(this.sorts, function (s) {
                 return s.property != prop;
+            });
+
+            this.invoke("change");
+        }
+    }, {
+        key: "clearFilters",
+        value: function clearFilters() {
+            this.filters = [];
+            this.invoke("change");
+        }
+    }, {
+        key: "changePage",
+        value: function changePage(page) {
+            this.page = page;
+            this.invoke("change");
+        }
+    }, {
+        key: "toJSON",
+        value: function toJSON() {
+            return JSON.stringify({
+                filters: this.filters,
+                sorts: this.sorts,
+                page: this.page,
+                rowsPerPage: this.rowsPerPage
             });
         }
     }]);
@@ -2202,7 +2226,7 @@ function get(url, data) {
 define('config.js', function(module, exports) {
 "use strict";
 
-var serviceBase = "http://192.168.0.46:8080/";
+var serviceBase = "http://localhost:8080/";
 
 module.exports = {
     "service.url": "" + serviceBase,
@@ -23234,7 +23258,8 @@ exports.default = {
     close: "Close",
     selectFilterType: "Select filter type",
     typeValueToSearch: "Type value to search",
-    value: "Value"
+    value: "Value",
+    filters: "Filters"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -23421,10 +23446,13 @@ var Card = exports.Card = function (_React$Component3) {
         key: "render",
         value: function render() {
             var actionKey = 1;
-
+            var className = "card";
+            if (this.props.padding) {
+                className += " card-padding";
+            }
             return React.createElement(
                 "div",
-                { className: "card" },
+                { className: className },
                 !_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ? React.createElement(
                     "div",
                     { className: "card-header" },
@@ -23453,6 +23481,36 @@ var Card = exports.Card = function (_React$Component3) {
 
     return Card;
 }(React.Component);
+
+var FloatingButton = exports.FloatingButton = function (_React$Component4) {
+    _inherits(FloatingButton, _React$Component4);
+
+    function FloatingButton() {
+        _classCallCheck(this, FloatingButton);
+
+        return _possibleConstructorReturn(this, (FloatingButton.__proto__ || Object.getPrototypeOf(FloatingButton)).apply(this, arguments));
+    }
+
+    _createClass(FloatingButton, [{
+        key: "onClick",
+        value: function onClick() {
+            if (_.isFunction(this.props.onClick)) {
+                this.props.onClick();
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "button",
+                { className: "btn btn-float btn-danger m-btn waves-effect waves-circle waves-float", onClick: this.onClick.bind(this) },
+                React.createElement("i", { className: this.props.icon })
+            );
+        }
+    }]);
+
+    return FloatingButton;
+}(React.Component);
 });
 define('web/components/grids.js', function(module, exports) {
 "use strict";
@@ -23460,7 +23518,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.Filters = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -23473,6 +23531,8 @@ var query = _interopRequireWildcard(_query);
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _common = require("./common");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -23515,12 +23575,18 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
             this.setState(_.assign(this.state, { type: type }));
         }
     }, {
+        key: "close",
+        value: function close() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).modal("hide");
+        }
+    }, {
         key: "filter",
         value: function filter() {
             if (this.props.query) {
                 this.props.query.filter(this.state.type, this.props.column.property, this.state.value);
 
-                console.log(this.props.query);
+                this.close();
             }
         }
     }, {
@@ -23733,7 +23799,7 @@ var Header = exports.Header = function (_React$Component3) {
                 null,
                 React.createElement(
                     "tr",
-                    null,
+                    { className: "animated fadeInUp" },
                     headerCells
                 )
             );
@@ -23753,21 +23819,31 @@ var Row = exports.Row = function (_React$Component4) {
     }
 
     _createClass(Row, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this6 = this;
+
+            setTimeout(function () {
+                var me = ReactDOM.findDOMNode(_this6);
+                $(me).addClass("animated fadeInUp");
+            }, this.props.index * 20);
+        }
+    }, {
         key: "render",
         value: function render() {
-            var _this6 = this;
+            var _this7 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
             var cells = this.props.descriptor.columns.map(function (c) {
-                return createCell(c.component, c.property, _this6.props.row);
+                return createCell(c.component, c.property, _this7.props.row);
             });
 
             return React.createElement(
                 "tr",
-                null,
+                { className: "" },
                 cells
             );
         }
@@ -23788,7 +23864,7 @@ var GridBody = exports.GridBody = function (_React$Component5) {
     _createClass(GridBody, [{
         key: "render",
         value: function render() {
-            var _this8 = this;
+            var _this9 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -23806,8 +23882,9 @@ var GridBody = exports.GridBody = function (_React$Component5) {
                 rowsPerPage = this.props.result.rowsPerPage || 50;
             }
 
+            var index = 0;
             var rowElements = rows.map(function (r) {
-                return React.createElement(Row, { key: r.id, descriptor: _this8.props.descriptor, row: r, query: _this8.props.query });
+                return React.createElement(Row, { key: r.id, index: ++index, descriptor: _this9.props.descriptor, row: r, query: _this9.props.query });
             });
 
             return React.createElement(
@@ -23954,8 +24031,61 @@ var KeywordSearch = exports.KeywordSearch = function (_React$Component8) {
     return KeywordSearch;
 }(React.Component);
 
-var Filters = exports.Filters = function (_React$Component9) {
-    _inherits(Filters, _React$Component9);
+var Filter = exports.Filter = function (_React$Component9) {
+    _inherits(Filter, _React$Component9);
+
+    function Filter() {
+        _classCallCheck(this, Filter);
+
+        return _possibleConstructorReturn(this, (Filter.__proto__ || Object.getPrototypeOf(Filter)).apply(this, arguments));
+    }
+
+    _createClass(Filter, [{
+        key: "unfilter",
+        value: function unfilter() {
+            if (!this.props.query) {
+                return;
+            }
+
+            this.props.query.unfilter(this.props.data.property);
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "list-group-item" },
+                React.createElement(
+                    "a",
+                    { href: "javascript:;", onClick: this.unfilter.bind(this), className: "pull-left remove-filter-button" },
+                    React.createElement("i", { className: "zmdi zmdi-close-circle-o" })
+                ),
+                React.createElement(
+                    "div",
+                    { className: "lgi-heading filter-text" },
+                    this.props.data.property,
+                    " ",
+                    React.createElement(
+                        "b",
+                        { className: "text-primary m-l-5 m-r-5" },
+                        this.props.data.type.toUpperCase()
+                    ),
+                    " ",
+                    React.createElement(
+                        "i",
+                        null,
+                        this.props.data.value
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Filter;
+}(React.Component);
+
+var Filters = exports.Filters = function (_React$Component10) {
+    _inherits(Filters, _React$Component10);
 
     function Filters() {
         _classCallCheck(this, Filters);
@@ -23964,27 +24094,143 @@ var Filters = exports.Filters = function (_React$Component9) {
     }
 
     _createClass(Filters, [{
+        key: "clearFilters",
+        value: function clearFilters() {
+            if (!this.props.query) {
+                return;
+            }
+
+            this.props.query.clearFilters();
+        }
+    }, {
         key: "render",
         value: function render() {
-            return React.createElement("div", { className: "col-md-offset-8 col-md-4" });
+            var _this17 = this;
+
+            var filters = [];
+            if (this.props.query) {
+                filters = this.props.query.filters.map(function (f) {
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this17.props.query });
+                });
+            }
+
+            var actions = [{ icon: "zmdi zmdi-delete", action: this.clearFilters.bind(this) }];
+
+            return React.createElement(
+                _common.Card,
+                { title: _strings2.default.filters, actions: actions },
+                React.createElement(
+                    "div",
+                    { className: "list-group" },
+                    filters
+                )
+            );
         }
     }]);
 
     return Filters;
 }(React.Component);
 
-var Grid = exports.Grid = function (_React$Component10) {
-    _inherits(Grid, _React$Component10);
+var Pagination = exports.Pagination = function (_React$Component11) {
+    _inherits(Pagination, _React$Component11);
+
+    function Pagination() {
+        _classCallCheck(this, Pagination);
+
+        return _possibleConstructorReturn(this, (Pagination.__proto__ || Object.getPrototypeOf(Pagination)).apply(this, arguments));
+    }
+
+    _createClass(Pagination, [{
+        key: "changePage",
+        value: function changePage(page) {
+            this.props.query.changePage(page);
+        }
+    }, {
+        key: "getTotalPages",
+        value: function getTotalPages() {
+            var totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage));
+            return totalPages;
+        }
+    }, {
+        key: "nextPage",
+        value: function nextPage() {
+            var totalPages = this.getTotalPages();
+            if (this.props.query.page < totalPages) {
+                this.props.query.changePage(this.props.query.page + 1);
+            }
+        }
+    }, {
+        key: "previousPage",
+        value: function previousPage() {
+            if (this.props.query.page > 1) {
+                this.props.query.changePage(this.props.query.page - 1);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            if (_.isEmpty(this.props.query) || _.isEmpty(this.props.result)) {
+                return null;
+            }
+
+            var totalPages = this.getTotalPages();
+            var visible = totalPages > 1;
+            var page = parseInt(this.props.query.page || 1);
+            var pages = [];
+            for (var i = 1; i <= totalPages; i++) {
+                var active = i == page ? "active" : "";
+                pages.push(React.createElement(
+                    "li",
+                    { key: i, className: active },
+                    React.createElement(
+                        "a",
+                        { href: "javascript:;", onClick: this.changePage.bind(this, i) },
+                        i
+                    )
+                ));
+            }
+
+            return React.createElement(
+                "ul",
+                { className: "pagination", hidden: !visible },
+                React.createElement(
+                    "li",
+                    null,
+                    React.createElement(
+                        "a",
+                        { href: "javascript:;", onClick: this.previousPage.bind(this), "aria-label": "Previous" },
+                        React.createElement("i", { className: "zmdi zmdi-chevron-left" })
+                    )
+                ),
+                pages,
+                React.createElement(
+                    "li",
+                    null,
+                    React.createElement(
+                        "a",
+                        { href: "javascript:;", onClick: this.nextPage.bind(this), "aria-label": "Next" },
+                        React.createElement("i", { className: "zmdi zmdi-chevron-right" })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Pagination;
+}(React.Component);
+
+var Grid = exports.Grid = function (_React$Component12) {
+    _inherits(Grid, _React$Component12);
 
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this15 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this19 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        if (!_this15.props.query) {
-            _this15.props.query = query.create();
+        if (!_this19.props.query) {
+            _this19.props.query = query.create();
         }
-        return _this15;
+        return _this19;
     }
 
     _createClass(Grid, [{
@@ -23997,13 +24243,21 @@ var Grid = exports.Grid = function (_React$Component10) {
             return React.createElement(
                 "div",
                 { className: "grid" },
-                React.createElement(Filters, { query: this.props.query }),
                 React.createElement(
-                    "table",
-                    { className: "table table-striped table-condensed table-hover" },
-                    React.createElement(Header, { descriptor: this.props.descriptor, query: this.props.query }),
-                    React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: this.props.query }),
-                    React.createElement(Footer, { result: this.props.result, query: this.props.query })
+                    _common.Card,
+                    { padding: "true" },
+                    React.createElement(
+                        "table",
+                        { className: "table table-striped table-hover" },
+                        React.createElement(Header, { descriptor: this.props.descriptor, query: this.props.query }),
+                        React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: this.props.query }),
+                        React.createElement(Footer, { result: this.props.result, query: this.props.query })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "text-center" },
+                        React.createElement(Pagination, { result: this.props.result, query: this.props.query })
+                    )
                 )
             );
         }
@@ -25030,9 +25284,19 @@ define('web/screens/admin/entitiesList.js', function(module, exports) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../../stores");
+
+var _layout = require("../../components/layout");
+
+var _ui = require("../../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
 var _strings = require("../../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _actions = require("../../../actions");
 
 var _aj = require("../../utils/aj");
 
@@ -25040,32 +25304,19 @@ var _common = require("../../components/common");
 
 var _grids = require("../../components/grids");
 
-var _query = require("../../../api/query");
+var _query2 = require("../../../api/query");
 
-var query = _interopRequireWildcard(_query);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+var query = _interopRequireWildcard(_query2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var GridsStore = require("../../../stores").grids;
-var EntitiesStore = require("../../../stores").entities;
-
-var _require = require("../../components/layout"),
-    Layout = _require.Layout,
-    Screen = _require.Screen;
-
-var ui = require("../../utils/ui");
-
-var _require2 = require("../../../actions"),
-    getGrid = _require2.getGrid,
-    loadEntities = _require2.loadEntities;
 
 var EntitiesList = function (_Screen) {
     _inherits(EntitiesList, _Screen);
@@ -25075,27 +25326,34 @@ var EntitiesList = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (EntitiesList.__proto__ || Object.getPrototypeOf(EntitiesList)).call(this, props));
 
-        _this.state = { grid: null, result: null, query: query.create() };
+        var _query = query.create();
+        _query.page = 1;
+        _query.rowsPerPage = 20;
+
+        _this.state = { grid: null, result: null, query: _query };
 
         _this.state.query.on("change", function () {
             _this.onQueryChanged();
         });
 
-        (0, _aj.connect)(_this, [GridsStore, EntitiesStore]);
+        (0, _aj.connect)(_this, [_stores.grids, _stores.entities]);
         return _this;
     }
 
     _createClass(EntitiesList, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            getGrid({ id: this.props.grid });
-            loadEntities({ entity: this.props.entity });
+            (0, _actions.getGrid)({ id: this.props.grid });
+            (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
         }
     }, {
         key: "onQueryChanged",
         value: function onQueryChanged() {
-            loadEntities({ entity: this.props.entity, query: this.state.query });
+            (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
         }
+    }, {
+        key: "createEntity",
+        value: function createEntity() {}
     }, {
         key: "render",
         value: function render() {
@@ -25105,7 +25363,7 @@ var EntitiesList = function (_Screen) {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 action: function action() {
-                    loadEntities({ entity: _this2.props.entity, query: _this2.state.query });
+                    (0, _actions.loadEntities)({ entity: _this2.props.entity, query: _this2.state.query });
                 }
             }, {
                 type: "button",
@@ -25115,20 +25373,25 @@ var EntitiesList = function (_Screen) {
                 }
             }];
 
+            var filtersHidden = this.state.query.filters.length == 0;
+
             return React.createElement(
-                Layout,
+                _layout.Layout,
                 null,
+                React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
+                React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query }),
                 React.createElement(
-                    _common.Card,
-                    { title: "Users", subtitle: "List of users. Click on column name to search, click on carets to sort", actions: actions },
-                    React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query })
-                )
+                    "div",
+                    { className: "animated fadeInUpBig", hidden: filtersHidden },
+                    React.createElement(_grids.Filters, { query: this.state.query })
+                ),
+                React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
     }]);
 
     return EntitiesList;
-}(Screen);
+}(_layout.Screen);
 
 module.exports = EntitiesList;
 });

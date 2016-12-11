@@ -40,9 +40,12 @@ export class HeaderBlock extends React.Component {
 export class Card extends React.Component {
     render() {
         let actionKey = 1
-
+        let className = "card"
+        if (this.props.padding) {
+            className += " card-padding"
+        }
         return (
-            <div className="card">
+            <div className={className}>
                 {!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ?
                     <div className="card-header">
                         <h2>
@@ -62,6 +65,20 @@ export class Card extends React.Component {
 
                 {this.props.children}
             </div>
+        )
+    }
+}
+
+export class FloatingButton extends React.Component {
+    onClick() {
+        if (_.isFunction(this.props.onClick)) {
+            this.props.onClick()
+        }
+    }
+
+    render() {
+        return (
+            <button className="btn btn-float btn-danger m-btn waves-effect waves-circle waves-float" onClick={this.onClick.bind(this)}><i className={this.props.icon}></i></button>
         )
     }
 }

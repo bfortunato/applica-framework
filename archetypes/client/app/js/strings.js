@@ -28,5 +28,6 @@ export default {
     close: "Close",
     selectFilterType: "Select filter type",
     typeValueToSearch: "Type value to search",
-    value: "Value"
+    value: "Value",
+    filters: "Filters"
 }

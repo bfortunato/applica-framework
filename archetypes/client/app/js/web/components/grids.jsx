@@ -2,6 +2,7 @@
 
 import * as query from "../../api/query"
 import strings from "../../strings"
+import { Card, HeaderBlock } from "./common"
 
 export class SearchDialog extends React.Component {
     constructor(props) {
@@ -25,11 +26,16 @@ export class SearchDialog extends React.Component {
         this.setState(_.assign(this.state, {type}))
     }
 
+    close() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).modal("hide")
+    }
+
     filter() {
         if (this.props.query) {
             this.props.query.filter(this.state.type, this.props.column.property, this.state.value)
 
-            console.log(this.props.query)
+            this.close()
         }
     }
 
@@ -148,13 +154,20 @@ export class Header extends React.Component {
 
         return (
             <thead>
-            <tr>{headerCells}</tr>
+            <tr className="animated fadeInUp">{headerCells}</tr>
             </thead>
         )
     }
 }
 
 export class Row extends React.Component {
+    componentDidMount() {
+        setTimeout(() => {
+            let me = ReactDOM.findDOMNode(this)
+            $(me).addClass("animated fadeInUp")
+        }, this.props.index * 20)
+    }
+
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -163,7 +176,7 @@ export class Row extends React.Component {
         let cells = this.props.descriptor.columns.map(c => createCell(c.component, c.property, this.props.row))
 
         return (
-            <tr>{cells}</tr>
+            <tr className="">{cells}</tr>
         )
     }
 }
@@ -186,7 +199,8 @@ export class GridBody extends React.Component {
             rowsPerPage = this.props.result.rowsPerPage || 50
         }
 
-        let rowElements = rows.map(r => <Row key={r.id} descriptor={this.props.descriptor} row={r} query={this.props.query} />)
+        let index = 0
+        let rowElements = rows.map(r => <Row key={r.id} index={++index} descriptor={this.props.descriptor} row={r} query={this.props.query} />)
 
         return (
             <tbody>
@@ -255,13 +269,109 @@ export class KeywordSearch extends React.Component {
     }
 }
 
+export class Filter extends React.Component {
+    unfilter() {
+        if (!this.props.query) {
+            return
+        }
 
-export class Filters extends React.Component {
+        this.props.query.unfilter(this.props.data.property)
+    }
+
     render() {
         return (
-            <div className="col-md-offset-8 col-md-4">
+            <div className="list-group-item">
+                <a href="javascript:;" onClick={this.unfilter.bind(this)} className="pull-left remove-filter-button" ><i className="zmdi zmdi-close-circle-o"></i></a>
 
+                <div className="lgi-heading filter-text">
+                    {this.props.data.property} <b className="text-primary m-l-5 m-r-5">{this.props.data.type.toUpperCase()}</b> <i>{this.props.data.value}</i>
+                </div>
             </div>
+        )
+    }
+}
+
+export class Filters extends React.Component {
+    clearFilters() {
+        if (!this.props.query) {
+            return
+        }
+
+        this.props.query.clearFilters()
+    }
+
+    render() {
+        let filters = []
+        if (this.props.query) {
+            filters = this.props.query.filters.map(f => <Filter key={f.property + f.type + f.value} data={f} query={this.props.query} />)
+        }
+
+        let actions = [
+            {icon: "zmdi zmdi-delete", action: this.clearFilters.bind(this)}
+        ]
+
+        return (
+            <Card title={strings.filters} actions={actions}>
+                <div className="list-group">
+                    {filters}
+                </div>
+            </Card>
+        )
+    }
+}
+
+
+export class Pagination extends React.Component {
+    changePage(page) {
+        this.props.query.changePage(page)
+    }
+
+    getTotalPages() {
+        let totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage))
+        return totalPages
+    }
+
+    nextPage() {
+        let totalPages = this.getTotalPages()
+        if (this.props.query.page < totalPages) {
+            this.props.query.changePage(this.props.query.page + 1)
+        }
+    }
+
+    previousPage() {
+        if (this.props.query.page > 1) {
+            this.props.query.changePage(this.props.query.page - 1)
+        }
+    }
+
+    render() {
+        if (_.isEmpty(this.props.query) || _.isEmpty(this.props.result)) {
+            return null
+        }
+
+        let totalPages = this.getTotalPages()
+        let visible = totalPages > 1
+        let page = parseInt(this.props.query.page || 1)
+        let pages = []
+        for (let i = 1; i <= totalPages; i++) {
+            let active = i == page ? "active" : ""
+            pages.push(<li key={i} className={active}><a href="javascript:;" onClick={this.changePage.bind(this, i)}>{i}</a></li>)
+        }
+
+        return (
+            <ul className="pagination" hidden={!visible}>
+                <li>
+                    <a href="javascript:;" onClick={this.previousPage.bind(this)} aria-label="Previous">
+                        <i className="zmdi zmdi-chevron-left"></i>
+                    </a>
+                </li>
+                {pages}
+                <li>
+                    <a href="javascript:;" onClick={this.nextPage.bind(this)} aria-label="Next">
+                        <i className="zmdi zmdi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
         )
     }
 }
@@ -283,13 +393,16 @@ export class Grid extends React.Component {
 
         return (
             <div className="grid">
-                <Filters query={this.props.query} />
-
-                <table className="table table-striped table-condensed table-hover">
-                    <Header descriptor={this.props.descriptor} query={this.props.query}/>
-                    <GridBody descriptor={this.props.descriptor} result={this.props.result} query={this.props.query} />
-                    <Footer result={this.props.result} query={this.props.query} />
-                </table>
+                <Card padding="true">
+                    <table className="table table-striped table-hover">
+                        <Header descriptor={this.props.descriptor} query={this.props.query}/>
+                        <GridBody descriptor={this.props.descriptor} result={this.props.result} query={this.props.query} />
+                        <Footer result={this.props.result} query={this.props.query} />
+                    </table>
+                    <div className="text-center">
+                        <Pagination result={this.props.result} query={this.props.query} />
+                    </div>
+                </Card>
             </div>
         )
     }
