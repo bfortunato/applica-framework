@@ -65,8 +65,12 @@ html.ismobile .global-loader {
   cursor: pointer;
 }
 
+.pointer-cursor {
+  cursor: pointer;
+}
+
 .btn-no-shadow {
-  box-shadow: 0px !important;
+  box-shadow: 0 0px 0px !important;
 }
 
 
@@ -83,10 +87,10 @@ html.ismobile .global-loader {
   color: white;
 }
 
+.result-summary {
+  margin: 30px;
+}
+
 /*-------------------------
     Forms
 --------------------------*/
-.form-control {
-  border: 0px;
-  background-color: #F0F0F0;
-}

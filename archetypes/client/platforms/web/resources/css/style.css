@@ -1,4 +1,7 @@
 /*-------------------------
+    Variables
+--------------------------*/
+/*-------------------------
     Global Loader
 --------------------------*/
 html:not(.ismobile) .global-loader {
@@ -40,11 +43,31 @@ html:not(.ismobile) .global-loader {
 html.ismobile .global-loader {
   display: none; }
 
+/*-------------------------
+    Utility classes
+--------------------------*/
 .search-cursor {
   cursor: pointer; }
 
-.keyword-search {
-  padding: 10px; }
+.pointer-cursor {
+  cursor: pointer; }
 
-.filter-text {
-  margin-left: 30px; }
+.btn-no-shadow {
+  box-shadow: 0 0px 0px !important; }
+
+/*-------------------------
+    Tables
+--------------------------*/
+.table-hover > tbody > tr:hover {
+  background-color: #ebebeb; }
+
+.table-hover > tbody > tr.selected {
+  background-color: #2196F3;
+  color: white; }
+
+.result-summary {
+  margin: 30px; }
+
+/*-------------------------
+    Forms
+--------------------------*/

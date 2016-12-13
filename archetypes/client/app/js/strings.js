@@ -29,5 +29,7 @@ export default {
     selectFilterType: "Select filter type",
     typeValueToSearch: "Type value to search",
     value: "Value",
-    filters: "Filters"
+    filters: "Filters",
+    pagination: "Showing {0} to {1} of {2}",
+    noResults: "there are no results with the specified criteria"
 }

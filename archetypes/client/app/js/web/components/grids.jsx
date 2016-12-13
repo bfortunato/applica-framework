@@ -3,6 +3,7 @@
 import * as query from "../../api/query"
 import strings from "../../strings"
 import { Card, HeaderBlock } from "./common"
+import { format } from "../../utils/lang"
 
 export class SearchDialog extends React.Component {
     constructor(props) {
@@ -104,9 +105,11 @@ export class HeaderCell extends React.Component {
     }
 
     changeSort() {
-        let newState = null
+        if (!this.props.column.sortable) {
+            return
+        }
 
-        console.log("Sorting state before change: " + JSON.stringify(this.state))
+        let newState = null
 
         if (this.state.sorting == false) {
             newState = {sorting: true, sortDescending: false}
@@ -140,11 +143,9 @@ export class HeaderCell extends React.Component {
             sortIcon = "zmdi zmdi-caret-up"
         }
 
-        console.log("Sorting state in rendering: " + JSON.stringify(this.state))
-
         return (
             <th style={{position: "relative"}}>
-                <span>{this.props.column.header}</span>
+                <span onClick={this.changeSort.bind(this)} className="pointer-cursor">{this.props.column.header}</span>
 
                 {this.props.column.sortable ?
                     <a className="pull-right" href="javascript:;" onClick={this.changeSort.bind(this)}><i className={sortIcon}/></a>
@@ -159,7 +160,6 @@ export class HeaderCell extends React.Component {
 }
 
 export class Header extends React.Component {
-
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -184,6 +184,7 @@ export class Row extends React.Component {
     }
 
     select() {
+        console.log("click")
         this.state.selected = !this.state.selected
     }
 
@@ -230,9 +231,30 @@ export class GridBody extends React.Component {
     }
 }
 
+export class FooterCell extends React.Component {
+    render() {
+        return (
+            <th>
+                {this.props.column.header}
+            </th>
+        )
+    }
+}
+
 export class Footer extends React.Component {
     render() {
-        return null
+        if (_.isEmpty(this.props.descriptor)) {
+            return null
+        }
+
+        let id = 1
+        let footerCells = this.props.descriptor.columns.map(c => <FooterCell key={id++} column={c} query={this.props.query} />)
+
+        return (
+            <tfoot>
+            <tr>{footerCells}</tr>
+            </tfoot>
+        )
     }
 }
 
@@ -390,36 +412,78 @@ export class Pagination extends React.Component {
 }
 
 
+export class ResultSummary extends React.Component {
+    render() {
+        let totalRows = 0
+        let start = 0
+        let stop = 0
+        let rowsPerPage = 0
+        let page = 0
+        if (this.props.query && this.props.result) {
+            rowsPerPage = this.props.query.rowsPerPage || 0
+            totalRows = this.props.result.totalRows
+            page = parseInt(this.props.query.page || 1)
+            start = (page - 1) * rowsPerPage + 1
+            stop = Math.min(page * rowsPerPage, totalRows)
+        }
+
+        return (
+            <p className="result-summary">{format(strings.pagination, start, stop, totalRows)}</p>
+        )
+    }
+}
+
+
 export class Grid extends React.Component {
     constructor(props) {
         super(props)
+    }
 
-        if (!this.props.query) {
-            this.props.query = query.create()
-        }
+    getTotalRows() {
+        let totalRows = parseInt(this.props.result.totalRows)
+        return totalRows
     }
 
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
         }
+        
+        let myQuery = this.props.query || query.create()
 
-        let filtersHidden = this.props.query.filters.length == 0
+        let filtersHidden = myQuery.filters.length == 0
+        let hasResults = this.props.result && this.props.result.rows && this.props.result.rows.length > 0
 
         return (
             <div className="grid">
                 <Card>
-                    <div hidden={filtersHidden}>
-                        <Filters query={this.props.query} />
-                    </div>
+                    <div>
+                        <div hidden={filtersHidden}>
+                            <Filters query={myQuery} />
+                        </div>
 
-                    <table className="table table-striped table-hover">
-                        <Header descriptor={this.props.descriptor} query={this.props.query}/>
-                        <GridBody descriptor={this.props.descriptor} result={this.props.result} query={this.props.query} />
-                        <Footer result={this.props.result} query={this.props.query} />
-                    </table>
-                    <div className="text-center">
-                        <Pagination result={this.props.result} query={this.props.query} />
+                        {hasResults ?
+                            <div className="with-result">
+                                <table className="table table-striped table-hover">
+                                    <Header descriptor={this.props.descriptor} query={myQuery}/>
+                                    <GridBody descriptor={this.props.descriptor} result={this.props.result} query={myQuery} />
+                                    <Footer descriptor={this.props.descriptor} />
+                                </table>
+
+                                <div className="pull-right m-20">
+                                    <Pagination result={this.props.result} query={myQuery} />
+                                </div>
+
+                                <ResultSummary query={myQuery} result={this.props.result} />
+
+                                <div className="clearfix"></div>
+                            </div>
+                            : //no results
+                            <div className="no-results text-center p-30">
+                                <h1><i className="zmdi zmdi-info-outline" /></h1>
+                                <h4>{strings.noResults}</h4>
+                            </div>
+                        }
                     </div>
                 </Card>
             </div>

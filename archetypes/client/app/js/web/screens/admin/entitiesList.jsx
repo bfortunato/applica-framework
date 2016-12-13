@@ -16,7 +16,7 @@ class EntitiesList extends Screen {
 
         let _query = query.create()
         _query.page = 1
-        _query.rowsPerPage = 20
+        _query.rowsPerPage = 50
 
         this.state = {grid: null, result: null, query: _query}
 
@@ -24,11 +24,10 @@ class EntitiesList extends Screen {
             this.onQueryChanged()
         })
 
-        connect(this, [GridsStore, EntitiesStore])
+        connect(this, [EntitiesStore])
     }
 
     componentDidMount() {
-        getGrid({id: this.props.grid})
         loadEntities({entity: this.props.entity, query: this.state.query})
     }
 
@@ -54,10 +53,20 @@ class EntitiesList extends Screen {
             }
 
         ]
-     return (
+
+        let descriptor = {
+            "id": "users",
+            "columns": [
+                {"property": "name", "header": "Name", "component": "text", "sortable": true},
+                {"property": "mail", "header": "Mail", "component": "text", "sortable": true},
+                {"property": "active", "header": "Active", "component": "check"}
+            ]
+        }
+
+         return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
-                <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
+                <Grid descriptor={descriptor} result={this.state.result} query={this.state.query} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

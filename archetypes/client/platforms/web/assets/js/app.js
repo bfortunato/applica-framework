@@ -23205,13 +23205,11 @@ var grids = exports.grids = aj.createStore(GRIDS, function () {
 
 var ENTITIES = exports.ENTITIES = "ENTITIES";
 var entities = exports.entities = aj.createStore(ENTITIES, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { error: false, result: null };
     var action = arguments[1];
 
 
     switch (action.type) {
-        case actions.LOAD_ENTITIES:
-            return _.assign(state, { error: false, result: null });
 
         case (0, _ajex.completed)(actions.LOAD_ENTITIES):
             return _.assign(state, { error: false, result: action.result });
@@ -23259,7 +23257,9 @@ exports.default = {
     selectFilterType: "Select filter type",
     typeValueToSearch: "Type value to search",
     value: "Value",
-    filters: "Filters"
+    filters: "Filters",
+    pagination: "Showing {0} to {1} of {2}",
+    noResults: "there are no results with the specified criteria"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -23518,7 +23518,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.FooterCell = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -23533,6 +23533,8 @@ var _strings = require("../../strings");
 var _strings2 = _interopRequireDefault(_strings);
 
 var _common = require("./common");
+
+var _lang = require("../../utils/lang");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -23719,9 +23721,11 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     }, {
         key: "changeSort",
         value: function changeSort() {
-            var newState = null;
+            if (!this.props.column.sortable) {
+                return;
+            }
 
-            console.log("Sorting state before change: " + JSON.stringify(this.state));
+            var newState = null;
 
             if (this.state.sorting == false) {
                 newState = { sorting: true, sortDescending: false };
@@ -23757,14 +23761,12 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
                 sortIcon = "zmdi zmdi-caret-up";
             }
 
-            console.log("Sorting state in rendering: " + JSON.stringify(this.state));
-
             return React.createElement(
                 "th",
                 { style: { position: "relative" } },
                 React.createElement(
                     "span",
-                    null,
+                    { onClick: this.changeSort.bind(this), className: "pointer-cursor" },
                     this.props.column.header
                 ),
                 this.props.column.sortable ? React.createElement(
@@ -23838,6 +23840,7 @@ var Row = exports.Row = function (_React$Component4) {
     _createClass(Row, [{
         key: "select",
         value: function select() {
+            console.log("click");
             this.state.selected = !this.state.selected;
         }
     }, {
@@ -23911,8 +23914,31 @@ var GridBody = exports.GridBody = function (_React$Component5) {
     return GridBody;
 }(React.Component);
 
-var Footer = exports.Footer = function (_React$Component6) {
-    _inherits(Footer, _React$Component6);
+var FooterCell = exports.FooterCell = function (_React$Component6) {
+    _inherits(FooterCell, _React$Component6);
+
+    function FooterCell() {
+        _classCallCheck(this, FooterCell);
+
+        return _possibleConstructorReturn(this, (FooterCell.__proto__ || Object.getPrototypeOf(FooterCell)).apply(this, arguments));
+    }
+
+    _createClass(FooterCell, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "th",
+                null,
+                this.props.column.header
+            );
+        }
+    }]);
+
+    return FooterCell;
+}(React.Component);
+
+var Footer = exports.Footer = function (_React$Component7) {
+    _inherits(Footer, _React$Component7);
 
     function Footer() {
         _classCallCheck(this, Footer);
@@ -23923,15 +23949,34 @@ var Footer = exports.Footer = function (_React$Component6) {
     _createClass(Footer, [{
         key: "render",
         value: function render() {
-            return null;
+            var _this11 = this;
+
+            if (_.isEmpty(this.props.descriptor)) {
+                return null;
+            }
+
+            var id = 1;
+            var footerCells = this.props.descriptor.columns.map(function (c) {
+                return React.createElement(FooterCell, { key: id++, column: c, query: _this11.props.query });
+            });
+
+            return React.createElement(
+                "tfoot",
+                null,
+                React.createElement(
+                    "tr",
+                    null,
+                    footerCells
+                )
+            );
         }
     }]);
 
     return Footer;
 }(React.Component);
 
-var Cell = exports.Cell = function (_React$Component7) {
-    _inherits(Cell, _React$Component7);
+var Cell = exports.Cell = function (_React$Component8) {
+    _inherits(Cell, _React$Component8);
 
     function Cell() {
         _classCallCheck(this, Cell);
@@ -24005,8 +24050,8 @@ function createCell(type, property, row) {
     }
 }
 
-var KeywordSearch = exports.KeywordSearch = function (_React$Component8) {
-    _inherits(KeywordSearch, _React$Component8);
+var KeywordSearch = exports.KeywordSearch = function (_React$Component9) {
+    _inherits(KeywordSearch, _React$Component9);
 
     function KeywordSearch() {
         _classCallCheck(this, KeywordSearch);
@@ -24045,8 +24090,8 @@ var KeywordSearch = exports.KeywordSearch = function (_React$Component8) {
     return KeywordSearch;
 }(React.Component);
 
-var Filter = exports.Filter = function (_React$Component9) {
-    _inherits(Filter, _React$Component9);
+var Filter = exports.Filter = function (_React$Component10) {
+    _inherits(Filter, _React$Component10);
 
     function Filter() {
         _classCallCheck(this, Filter);
@@ -24079,8 +24124,8 @@ var Filter = exports.Filter = function (_React$Component9) {
     return Filter;
 }(React.Component);
 
-var Filters = exports.Filters = function (_React$Component10) {
-    _inherits(Filters, _React$Component10);
+var Filters = exports.Filters = function (_React$Component11) {
+    _inherits(Filters, _React$Component11);
 
     function Filters() {
         _classCallCheck(this, Filters);
@@ -24100,12 +24145,12 @@ var Filters = exports.Filters = function (_React$Component10) {
     }, {
         key: "render",
         value: function render() {
-            var _this16 = this;
+            var _this18 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this16.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this18.props.query });
                 });
             }
 
@@ -24127,8 +24172,8 @@ var Filters = exports.Filters = function (_React$Component10) {
     return Filters;
 }(React.Component);
 
-var Pagination = exports.Pagination = function (_React$Component11) {
-    _inherits(Pagination, _React$Component11);
+var Pagination = exports.Pagination = function (_React$Component12) {
+    _inherits(Pagination, _React$Component12);
 
     function Pagination() {
         _classCallCheck(this, Pagination);
@@ -24215,28 +24260,68 @@ var Pagination = exports.Pagination = function (_React$Component11) {
     return Pagination;
 }(React.Component);
 
-var Grid = exports.Grid = function (_React$Component12) {
-    _inherits(Grid, _React$Component12);
+var ResultSummary = exports.ResultSummary = function (_React$Component13) {
+    _inherits(ResultSummary, _React$Component13);
+
+    function ResultSummary() {
+        _classCallCheck(this, ResultSummary);
+
+        return _possibleConstructorReturn(this, (ResultSummary.__proto__ || Object.getPrototypeOf(ResultSummary)).apply(this, arguments));
+    }
+
+    _createClass(ResultSummary, [{
+        key: "render",
+        value: function render() {
+            var totalRows = 0;
+            var start = 0;
+            var stop = 0;
+            var rowsPerPage = 0;
+            var page = 0;
+            if (this.props.query && this.props.result) {
+                rowsPerPage = this.props.query.rowsPerPage || 0;
+                totalRows = this.props.result.totalRows;
+                page = parseInt(this.props.query.page || 1);
+                start = (page - 1) * rowsPerPage + 1;
+                stop = Math.min(page * rowsPerPage, totalRows);
+            }
+
+            return React.createElement(
+                "p",
+                { className: "result-summary" },
+                (0, _lang.format)(_strings2.default.pagination, start, stop, totalRows)
+            );
+        }
+    }]);
+
+    return ResultSummary;
+}(React.Component);
+
+var Grid = exports.Grid = function (_React$Component14) {
+    _inherits(Grid, _React$Component14);
 
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this18 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
-
-        if (!_this18.props.query) {
-            _this18.props.query = query.create();
-        }
-        return _this18;
+        return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
     }
 
     _createClass(Grid, [{
+        key: "getTotalRows",
+        value: function getTotalRows() {
+            var totalRows = parseInt(this.props.result.totalRows);
+            return totalRows;
+        }
+    }, {
         key: "render",
         value: function render() {
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
-            var filtersHidden = this.props.query.filters.length == 0;
+            var myQuery = this.props.query || query.create();
+
+            var filtersHidden = myQuery.filters.length == 0;
+            var hasResults = this.props.result && this.props.result.rows && this.props.result.rows.length > 0;
 
             return React.createElement(
                 "div",
@@ -24246,20 +24331,44 @@ var Grid = exports.Grid = function (_React$Component12) {
                     null,
                     React.createElement(
                         "div",
-                        { hidden: filtersHidden },
-                        React.createElement(Filters, { query: this.props.query })
-                    ),
-                    React.createElement(
-                        "table",
-                        { className: "table table-striped table-hover" },
-                        React.createElement(Header, { descriptor: this.props.descriptor, query: this.props.query }),
-                        React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: this.props.query }),
-                        React.createElement(Footer, { result: this.props.result, query: this.props.query })
-                    ),
-                    React.createElement(
-                        "div",
-                        { className: "text-center" },
-                        React.createElement(Pagination, { result: this.props.result, query: this.props.query })
+                        null,
+                        React.createElement(
+                            "div",
+                            { hidden: filtersHidden },
+                            React.createElement(Filters, { query: myQuery })
+                        ),
+                        hasResults ? React.createElement(
+                            "div",
+                            { className: "with-result" },
+                            React.createElement(
+                                "table",
+                                { className: "table table-striped table-hover" },
+                                React.createElement(Header, { descriptor: this.props.descriptor, query: myQuery }),
+                                React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: myQuery }),
+                                React.createElement(Footer, { descriptor: this.props.descriptor })
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "pull-right m-20" },
+                                React.createElement(Pagination, { result: this.props.result, query: myQuery })
+                            ),
+                            React.createElement(ResultSummary, { query: myQuery, result: this.props.result }),
+                            React.createElement("div", { className: "clearfix" })
+                        ) : //no results
+                        React.createElement(
+                            "div",
+                            { className: "no-results text-center p-30" },
+                            React.createElement(
+                                "h1",
+                                null,
+                                React.createElement("i", { className: "zmdi zmdi-info-outline" })
+                            ),
+                            React.createElement(
+                                "h4",
+                                null,
+                                _strings2.default.noResults
+                            )
+                        )
                     )
                 )
             );
@@ -25371,7 +25480,7 @@ var EntitiesList = function (_Screen) {
 
         var _query = query.create();
         _query.page = 1;
-        _query.rowsPerPage = 20;
+        _query.rowsPerPage = 50;
 
         _this.state = { grid: null, result: null, query: _query };
 
@@ -25379,14 +25488,13 @@ var EntitiesList = function (_Screen) {
             _this.onQueryChanged();
         });
 
-        (0, _aj.connect)(_this, [_stores.grids, _stores.entities]);
+        (0, _aj.connect)(_this, [_stores.entities]);
         return _this;
     }
 
     _createClass(EntitiesList, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            (0, _actions.getGrid)({ id: this.props.grid });
             (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
         }
     }, {
@@ -25415,11 +25523,17 @@ var EntitiesList = function (_Screen) {
                     swal("Ciao");
                 }
             }];
+
+            var descriptor = {
+                "id": "users",
+                "columns": [{ "property": "name", "header": "Name", "component": "text", "sortable": true }, { "property": "mail", "header": "Mail", "component": "text", "sortable": true }, { "property": "active", "header": "Active", "component": "check" }]
+            };
+
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
-                React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query }),
+                React.createElement(_grids.Grid, { descriptor: descriptor, result: this.state.result, query: this.state.query }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
