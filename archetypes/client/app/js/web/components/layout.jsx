@@ -148,7 +148,19 @@ class SideBar extends React.Component {
                                     <li><a href="">Level 3 link</a></li>
                                     <li><a href="">Another Level 3 link</a></li>
                                     <li><a href="">Third one</a></li>
+
+                                    <li className="sub-menu">
+                                        <a href="" data-ma-action="submenu-toggle">I have children too</a>
+
+                                        <ul>
+                                            <li><a href="">Level 3 link</a></li>
+                                            <li><a href="">Another Level 3 link</a></li>
+                                            <li><a href="">Third one</a></li>
+                                        </ul>
+                                    </li>
                                 </ul>
+
+
                             </li>
                             <li><a href="">One more 2</a></li>
                         </ul>

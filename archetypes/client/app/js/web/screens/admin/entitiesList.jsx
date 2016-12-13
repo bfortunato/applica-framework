@@ -54,16 +54,10 @@ class EntitiesList extends Screen {
             }
 
         ]
-
-        let filtersHidden = this.state.query.filters.length == 0
-
-        return (
+     return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
                 <Grid descriptor={this.state.grid} result={this.state.result} query={this.state.query} />
-                <div className="animated fadeInUpBig" hidden={filtersHidden}>
-                    <Filters query={this.state.query} />
-                </div>
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

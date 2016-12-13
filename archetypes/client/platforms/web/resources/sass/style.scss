@@ -1,4 +1,10 @@
 /*-------------------------
+    Variables
+--------------------------*/
+
+$primary-color: #2196F3;
+
+/*-------------------------
     Global Loader
 --------------------------*/
 
@@ -50,14 +56,37 @@ html.ismobile .global-loader {
   display: none;
 }
 
+
+/*-------------------------
+    Utility classes
+--------------------------*/
+
 .search-cursor {
   cursor: pointer;
 }
 
-.keyword-search {
-  padding: 10px;
+.btn-no-shadow {
+  box-shadow: 0px !important;
 }
 
-.filter-text {
-  margin-left: 30px;
+
+/*-------------------------
+    Tables
+--------------------------*/
+
+.table-hover>tbody>tr:hover {
+  background-color: #ebebeb;
+}
+
+.table-hover>tbody>tr.selected {
+  background-color: $primary-color;
+  color: white;
+}
+
+/*-------------------------
+    Forms
+--------------------------*/
+.form-control {
+  border: 0px;
+  background-color: #F0F0F0;
 }

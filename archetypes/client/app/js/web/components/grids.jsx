@@ -86,6 +86,23 @@ export class HeaderCell extends React.Component {
         this.state = {sorting: false, sortDescending: false}
     }
 
+    componentDidMount() {
+        let me = $(ReactDOM.findDOMNode(this))
+        let button = $(this.refs.search)
+
+        me.mouseenter(() => {
+            button
+                .css({opacity: 0})
+                .show()
+                .stop()
+                .animate({opacity: 1}, 250)
+        }).mouseleave(() => {
+            button
+                .stop()
+                .animate({opacity: 0}, 250)
+        })
+    }
+
     changeSort() {
         let newState = null
 
@@ -107,9 +124,6 @@ export class HeaderCell extends React.Component {
             }
         }
 
-        console.log("Sorting state after change: " + JSON.stringify(newState))
-        console.log("Query: " + JSON.stringify(this.props.query))
-
         this.setState(newState)
     }
 
@@ -129,12 +143,14 @@ export class HeaderCell extends React.Component {
         console.log("Sorting state in rendering: " + JSON.stringify(this.state))
 
         return (
-            <th>
-                <span className="search-cursor" onClick={this.search.bind(this)}>{this.props.column.header}</span>
+            <th style={{position: "relative"}}>
+                <span>{this.props.column.header}</span>
 
                 {this.props.column.sortable ?
                     <a className="pull-right" href="javascript:;" onClick={this.changeSort.bind(this)}><i className={sortIcon}/></a>
-                : null}
+                    : null}
+
+                <a ref="search" className="btn bgm-bluegray btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
 
                 <SearchDialog column={this.props.column} query={this.props.query}/>
             </th>
@@ -154,18 +170,21 @@ export class Header extends React.Component {
 
         return (
             <thead>
-            <tr className="animated fadeInUp">{headerCells}</tr>
+            <tr>{headerCells}</tr>
             </thead>
         )
     }
 }
 
 export class Row extends React.Component {
-    componentDidMount() {
-        setTimeout(() => {
-            let me = ReactDOM.findDOMNode(this)
-            $(me).addClass("animated fadeInUp")
-        }, this.props.index * 20)
+    constructor(props) {
+        super(props)
+
+        this.state = {selected: false}
+    }
+
+    select() {
+        this.state.selected = !this.state.selected
     }
 
     render() {
@@ -174,9 +193,10 @@ export class Row extends React.Component {
         }
 
         let cells = this.props.descriptor.columns.map(c => createCell(c.component, c.property, this.props.row))
+        let className = this.state.selected ? "selected" : ""
 
         return (
-            <tr className="">{cells}</tr>
+            <tr onClick={this.select.bind(this)} className={className}>{cells}</tr>
         )
     }
 }
@@ -231,9 +251,10 @@ export class TextCell extends Cell {
 export class CheckCell extends Cell {
     render() {
         let checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0
+        let icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o"
 
         return (
-            <td><input type="checkbox" value="1" checked={checked} readOnly="true"/></td>
+            <td><i className={icon} /></td>
         )
     }
 }
@@ -280,13 +301,7 @@ export class Filter extends React.Component {
 
     render() {
         return (
-            <div className="list-group-item">
-                <a href="javascript:;" onClick={this.unfilter.bind(this)} className="pull-left remove-filter-button" ><i className="zmdi zmdi-close-circle-o"></i></a>
-
-                <div className="lgi-heading filter-text">
-                    {this.props.data.property} <b className="text-primary m-l-5 m-r-5">{this.props.data.type.toUpperCase()}</b> <i>{this.props.data.value}</i>
-                </div>
-            </div>
+            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow bgm-bluegray waves-effect m-r-10" >{this.props.data.property} <i className="zmdi zmdi-close"></i></button>
         )
     }
 }
@@ -311,11 +326,9 @@ export class Filters extends React.Component {
         ]
 
         return (
-            <Card title={strings.filters} actions={actions}>
-                <div className="list-group">
-                    {filters}
-                </div>
-            </Card>
+            <div className="filters p-30">
+                <button type="button" className="btn btn-no-shadow bgm-bluegray waves-effect m-r-10"><i className="zmdi zmdi-delete" /></button>{filters}
+            </div>
         )
     }
 }
@@ -391,9 +404,15 @@ export class Grid extends React.Component {
             return null
         }
 
+        let filtersHidden = this.props.query.filters.length == 0
+
         return (
             <div className="grid">
-                <Card padding="true">
+                <Card>
+                    <div hidden={filtersHidden}>
+                        <Filters query={this.props.query} />
+                    </div>
+
                     <table className="table table-striped table-hover">
                         <Header descriptor={this.props.descriptor} query={this.props.query}/>
                         <GridBody descriptor={this.props.descriptor} result={this.props.result} query={this.props.query} />

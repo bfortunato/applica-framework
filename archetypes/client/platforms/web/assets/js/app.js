@@ -23705,6 +23705,18 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     }
 
     _createClass(HeaderCell, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = $(ReactDOM.findDOMNode(this));
+            var button = $(this.refs.search);
+
+            me.mouseenter(function () {
+                button.css({ opacity: 0 }).show().stop().animate({ opacity: 1 }, 250);
+            }).mouseleave(function () {
+                button.stop().animate({ opacity: 0 }, 250);
+            });
+        }
+    }, {
         key: "changeSort",
         value: function changeSort() {
             var newState = null;
@@ -23726,9 +23738,6 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
                     this.props.query.unsort(this.props.column.property);
                 }
             }
-
-            console.log("Sorting state after change: " + JSON.stringify(newState));
-            console.log("Query: " + JSON.stringify(this.props.query));
 
             this.setState(newState);
         }
@@ -23752,10 +23761,10 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
 
             return React.createElement(
                 "th",
-                null,
+                { style: { position: "relative" } },
                 React.createElement(
                     "span",
-                    { className: "search-cursor", onClick: this.search.bind(this) },
+                    null,
                     this.props.column.header
                 ),
                 this.props.column.sortable ? React.createElement(
@@ -23763,6 +23772,11 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
                     { className: "pull-right", href: "javascript:;", onClick: this.changeSort.bind(this) },
                     React.createElement("i", { className: sortIcon })
                 ) : null,
+                React.createElement(
+                    "a",
+                    { ref: "search", className: "btn bgm-bluegray btn-no-shadow", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-5px", position: "absolute", right: "30px" } },
+                    React.createElement("i", { className: "zmdi zmdi-search" })
+                ),
                 React.createElement(SearchDialog, { column: this.props.column, query: this.props.query })
             );
         }
@@ -23799,7 +23813,7 @@ var Header = exports.Header = function (_React$Component3) {
                 null,
                 React.createElement(
                     "tr",
-                    { className: "animated fadeInUp" },
+                    null,
                     headerCells
                 )
             );
@@ -23812,38 +23826,37 @@ var Header = exports.Header = function (_React$Component3) {
 var Row = exports.Row = function (_React$Component4) {
     _inherits(Row, _React$Component4);
 
-    function Row() {
+    function Row(props) {
         _classCallCheck(this, Row);
 
-        return _possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).apply(this, arguments));
+        var _this5 = _possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).call(this, props));
+
+        _this5.state = { selected: false };
+        return _this5;
     }
 
     _createClass(Row, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            var _this6 = this;
-
-            setTimeout(function () {
-                var me = ReactDOM.findDOMNode(_this6);
-                $(me).addClass("animated fadeInUp");
-            }, this.props.index * 20);
+        key: "select",
+        value: function select() {
+            this.state.selected = !this.state.selected;
         }
     }, {
         key: "render",
         value: function render() {
-            var _this7 = this;
+            var _this6 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
             var cells = this.props.descriptor.columns.map(function (c) {
-                return createCell(c.component, c.property, _this7.props.row);
+                return createCell(c.component, c.property, _this6.props.row);
             });
+            var className = this.state.selected ? "selected" : "";
 
             return React.createElement(
                 "tr",
-                { className: "" },
+                { onClick: this.select.bind(this), className: className },
                 cells
             );
         }
@@ -23864,7 +23877,7 @@ var GridBody = exports.GridBody = function (_React$Component5) {
     _createClass(GridBody, [{
         key: "render",
         value: function render() {
-            var _this9 = this;
+            var _this8 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -23884,7 +23897,7 @@ var GridBody = exports.GridBody = function (_React$Component5) {
 
             var index = 0;
             var rowElements = rows.map(function (r) {
-                return React.createElement(Row, { key: r.id, index: ++index, descriptor: _this9.props.descriptor, row: r, query: _this9.props.query });
+                return React.createElement(Row, { key: r.id, index: ++index, descriptor: _this8.props.descriptor, row: r, query: _this8.props.query });
             });
 
             return React.createElement(
@@ -23965,11 +23978,12 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
         key: "render",
         value: function render() {
             var checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0;
+            var icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o";
 
             return React.createElement(
                 "td",
                 null,
-                React.createElement("input", { type: "checkbox", value: "1", checked: checked, readOnly: "true" })
+                React.createElement("i", { className: icon })
             );
         }
     }]);
@@ -24053,30 +24067,11 @@ var Filter = exports.Filter = function (_React$Component9) {
         key: "render",
         value: function render() {
             return React.createElement(
-                "div",
-                { className: "list-group-item" },
-                React.createElement(
-                    "a",
-                    { href: "javascript:;", onClick: this.unfilter.bind(this), className: "pull-left remove-filter-button" },
-                    React.createElement("i", { className: "zmdi zmdi-close-circle-o" })
-                ),
-                React.createElement(
-                    "div",
-                    { className: "lgi-heading filter-text" },
-                    this.props.data.property,
-                    " ",
-                    React.createElement(
-                        "b",
-                        { className: "text-primary m-l-5 m-r-5" },
-                        this.props.data.type.toUpperCase()
-                    ),
-                    " ",
-                    React.createElement(
-                        "i",
-                        null,
-                        this.props.data.value
-                    )
-                )
+                "button",
+                { onClick: this.unfilter.bind(this), className: "btn btn-no-shadow bgm-bluegray waves-effect m-r-10" },
+                this.props.data.property,
+                " ",
+                React.createElement("i", { className: "zmdi zmdi-close" })
             );
         }
     }]);
@@ -24105,25 +24100,26 @@ var Filters = exports.Filters = function (_React$Component10) {
     }, {
         key: "render",
         value: function render() {
-            var _this17 = this;
+            var _this16 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this17.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this16.props.query });
                 });
             }
 
             var actions = [{ icon: "zmdi zmdi-delete", action: this.clearFilters.bind(this) }];
 
             return React.createElement(
-                _common.Card,
-                { title: _strings2.default.filters, actions: actions },
+                "div",
+                { className: "filters p-30" },
                 React.createElement(
-                    "div",
-                    { className: "list-group" },
-                    filters
-                )
+                    "button",
+                    { type: "button", className: "btn btn-no-shadow bgm-bluegray waves-effect m-r-10" },
+                    React.createElement("i", { className: "zmdi zmdi-delete" })
+                ),
+                filters
             );
         }
     }]);
@@ -24225,12 +24221,12 @@ var Grid = exports.Grid = function (_React$Component12) {
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this19 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        if (!_this19.props.query) {
-            _this19.props.query = query.create();
+        if (!_this18.props.query) {
+            _this18.props.query = query.create();
         }
-        return _this19;
+        return _this18;
     }
 
     _createClass(Grid, [{
@@ -24240,12 +24236,19 @@ var Grid = exports.Grid = function (_React$Component12) {
                 return null;
             }
 
+            var filtersHidden = this.props.query.filters.length == 0;
+
             return React.createElement(
                 "div",
                 { className: "grid" },
                 React.createElement(
                     _common.Card,
-                    { padding: "true" },
+                    null,
+                    React.createElement(
+                        "div",
+                        { hidden: filtersHidden },
+                        React.createElement(Filters, { query: this.props.query })
+                    ),
                     React.createElement(
                         "table",
                         { className: "table table-striped table-hover" },
@@ -24685,6 +24688,46 @@ var SideBar = function (_React$Component3) {
                                             "a",
                                             { href: "" },
                                             "Third one"
+                                        )
+                                    ),
+                                    React.createElement(
+                                        "li",
+                                        { className: "sub-menu" },
+                                        React.createElement(
+                                            "a",
+                                            { href: "", "data-ma-action": "submenu-toggle" },
+                                            "I have children too"
+                                        ),
+                                        React.createElement(
+                                            "ul",
+                                            null,
+                                            React.createElement(
+                                                "li",
+                                                null,
+                                                React.createElement(
+                                                    "a",
+                                                    { href: "" },
+                                                    "Level 3 link"
+                                                )
+                                            ),
+                                            React.createElement(
+                                                "li",
+                                                null,
+                                                React.createElement(
+                                                    "a",
+                                                    { href: "" },
+                                                    "Another Level 3 link"
+                                                )
+                                            ),
+                                            React.createElement(
+                                                "li",
+                                                null,
+                                                React.createElement(
+                                                    "a",
+                                                    { href: "" },
+                                                    "Third one"
+                                                )
+                                            )
                                         )
                                     )
                                 )
@@ -25372,19 +25415,11 @@ var EntitiesList = function (_Screen) {
                     swal("Ciao");
                 }
             }];
-
-            var filtersHidden = this.state.query.filters.length == 0;
-
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
                 React.createElement(_grids.Grid, { descriptor: this.state.grid, result: this.state.result, query: this.state.query }),
-                React.createElement(
-                    "div",
-                    { className: "animated fadeInUpBig", hidden: filtersHidden },
-                    React.createElement(_grids.Filters, { query: this.state.query })
-                ),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
