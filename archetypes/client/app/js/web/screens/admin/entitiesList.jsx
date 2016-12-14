@@ -1,14 +1,22 @@
 "use strict";
 
-import { grids as GridsStore, entities as EntitiesStore } from "../../../stores"
-import { Layout, Screen } from "../../components/layout"
-import * as ui from "../../utils/ui"
+import {entities as EntitiesStore} from "../../../stores"
+import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
-import { getGrid, loadEntities } from "../../../actions"
-import { connect } from "../../utils/aj"
-import { Card, HeaderBlock, FloatingButton } from "../../components/common"
-import { Grid, Filters } from "../../components/grids"
+import {loadEntities, deleteEntities} from "../../../actions"
+import {connect} from "../../utils/aj"
+import {HeaderBlock, FloatingButton} from "../../components/common"
+import {Grid} from "../../components/grids"
 import * as query from "../../../api/query"
+import {format} from "../../../utils/lang"
+
+function isCancel(which) {
+    return which == 46 || which == 8
+}
+
+function isEsc(which) {
+    return which == 27
+}
 
 class EntitiesList extends Screen {
     constructor(props) {
@@ -16,7 +24,7 @@ class EntitiesList extends Screen {
 
         let _query = query.create()
         _query.page = 1
-        _query.rowsPerPage = 50
+        _query.rowsPerPage = 20
 
         this.state = {grid: null, result: null, query: _query}
 
@@ -39,17 +47,52 @@ class EntitiesList extends Screen {
 
     }
 
+    deleteEntities() {
+        let selection = this.refs.grid.getSelection()
+        if (_.isEmpty(selection)) {
+            return
+        }
+
+        swal({ title: strings.confirm, text: format(strings.entityDeleteConfirm, selection.length), showCancelButton: true })
+            .then(() => {
+                deleteEntities({entity: this.props.entity, ids: selection.map(s => s.id)})
+            })
+            .catch(() => {})
+    }
+
+    onGridKeyDown(e) {
+        if (isCancel(e.which)) {
+            this.deleteEntities()
+        } else if (isEsc(e.which)) {
+            this.refs.grid.clearSelection()
+        }
+    }
+
     render() {
         let actions = [
             {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
+                tooltip: strings.refresh,
                 action: () => { loadEntities({entity: this.props.entity, query: this.state.query}) }
             },
             {
                 type: "button",
                 icon: "zmdi zmdi-plus",
+                tooltip: strings.create,
                 action: () => { swal("Ciao") }
+            },
+            {
+                type: "button",
+                icon: "zmdi zmdi-delete",
+                tooltip: strings.delete,
+                action: () => { this.deleteEntities() }
+            },
+            {
+                type: "button",
+                icon: "zmdi zmdi-select-all",
+                tooltip: strings.selectAll,
+                action: () => { this.refs.grid.toggleSelectAll() }
             }
 
         ]
@@ -66,7 +109,7 @@ class EntitiesList extends Screen {
          return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
-                <Grid descriptor={descriptor} result={this.state.result} query={this.state.query} />
+                <Grid ref="grid" descriptor={descriptor} result={this.state.result} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

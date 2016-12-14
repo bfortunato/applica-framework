@@ -78,6 +78,10 @@ html.ismobile .global-loader {
     Tables
 --------------------------*/
 
+.table-hover>tbody>tr {
+
+}
+
 .table-hover>tbody>tr:hover {
   background-color: #ebebeb;
 }
@@ -85,6 +89,10 @@ html.ismobile .global-loader {
 .table-hover>tbody>tr.selected {
   background-color: $primary-color;
   color: white;
+}
+
+.table-hover>tbody>tr.selected:hover {
+  background-color: darken($primary-color, 20%)
 }
 
 .result-summary {

@@ -5,9 +5,13 @@ export class ActionButton extends React.Component {
         this.props.action.action()
     }
 
+    componentDidMount() {
+        $(this.refs.button).tooltip({trigger: "hover"})
+    }
+
     render() {
         return (
-            <li><a href="javascript:;" onClick={this.perform.bind(this)}><i className={this.props.action.icon}></i></a></li>
+            <li><a ref="button" href="javascript:;" data-toggle="tooltip" data-placement="bottom" title={this.props.action.tooltip} onClick={this.perform.bind(this)}><i className={this.props.action.icon}></i></a></li>
         )
     }
 }

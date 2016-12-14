@@ -208,3 +208,30 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
             loadEntities.fail()
         })
 })
+
+export const DELETE_ENTITIES = "DELETE_ENTITIES"
+export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
+    if (_.isEmpty(data.entity)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.ids)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyId)
+        return
+    }
+
+    aj.dispatch({
+        type: DELETE_ENTITIES
+    })
+
+    entities.delete_(data.entity, data.ids)
+        .then(() => {
+            deleteEntities.complete()
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            deleteEntities.fail()
+        })
+})

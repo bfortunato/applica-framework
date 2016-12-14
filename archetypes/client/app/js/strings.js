@@ -31,5 +31,11 @@ export default {
     value: "Value",
     filters: "Filters",
     pagination: "Showing {0} to {1} of {2}",
-    noResults: "there are no results with the specified criteria"
+    noResults: "there are no results with the specified criteria",
+    selectAll: "Select all",
+    delete: "Delete",
+    create: "Create",
+    refresh: "Refresh",
+    confirm: "Confirm",
+    entityDeleteConfirm: "Are you sure to delete {0} entities?"
 }

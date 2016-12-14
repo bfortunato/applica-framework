@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -224,6 +224,31 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         loadEntities.fail();
+    });
+});
+
+var DELETE_ENTITIES = exports.DELETE_ENTITIES = "DELETE_ENTITIES";
+var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELETE_ENTITIES, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.ids)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        return;
+    }
+
+    aj.dispatch({
+        type: DELETE_ENTITIES
+    });
+
+    entities.delete_(data.entity, data.ids).then(function () {
+        deleteEntities.complete();
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        deleteEntities.fail();
     });
 });
 });
@@ -1712,6 +1737,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.load = load;
+exports.delete_ = delete_;
 
 var _config = require("../framework/config");
 
@@ -1724,6 +1750,11 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
     return (0, _utils.get)(url, { queryJson: query });
+}
+
+function delete_(entity, ids) {
+    var url = config.get("entities.url") + "/" + entity;
+    return (0, _utils.delete_)(url, { ids: ids });
 }
 });
 define('api/grids.js', function(module, exports) {
@@ -2170,6 +2201,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.post = post;
 exports.get = get;
+exports.delete_ = delete_;
 
 var _http = require("../aj/http");
 
@@ -2205,6 +2237,27 @@ function post(url, data) {
 function get(url, data) {
     return new Promise(function (resolve, reject) {
         http.get(url, data).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response.responseCode);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function delete_(url, data) {
+    return new Promise(function (resolve, reject) {
+        http.delete(url, data).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -23210,11 +23263,16 @@ var entities = exports.entities = aj.createStore(ENTITIES, function () {
 
 
     switch (action.type) {
-
         case (0, _ajex.completed)(actions.LOAD_ENTITIES):
             return _.assign(state, { error: false, result: action.result });
 
         case (0, _ajex.failed)(actions.LOAD_ENTITIES):
+            return _.assign(state, { error: true, result: null });
+
+        case (0, _ajex.completed)(actions.DELETE_ENTITIES):
+            return _.assign(state, { error: false, result: action.result });
+
+        case (0, _ajex.failed)(actions.DELETE_ENTITIES):
             return _.assign(state, { error: true, result: null });
 
     }
@@ -23259,7 +23317,13 @@ exports.default = {
     value: "Value",
     filters: "Filters",
     pagination: "Showing {0} to {1} of {2}",
-    noResults: "there are no results with the specified criteria"
+    noResults: "there are no results with the specified criteria",
+    selectAll: "Select all",
+    delete: "Delete",
+    create: "Create",
+    refresh: "Refresh",
+    confirm: "Confirm",
+    entityDeleteConfirm: "Are you sure to delete {0} entities?"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -23375,6 +23439,11 @@ var ActionButton = exports.ActionButton = function (_React$Component) {
             this.props.action.action();
         }
     }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            $(this.refs.button).tooltip({ trigger: "hover" });
+        }
+    }, {
         key: "render",
         value: function render() {
             return React.createElement(
@@ -23382,7 +23451,7 @@ var ActionButton = exports.ActionButton = function (_React$Component) {
                 null,
                 React.createElement(
                     "a",
-                    { href: "javascript:;", onClick: this.perform.bind(this) },
+                    { ref: "button", href: "javascript:;", "data-toggle": "tooltip", "data-placement": "bottom", title: this.props.action.tooltip, onClick: this.perform.bind(this) },
                     React.createElement("i", { className: this.props.action.icon })
                 )
             );
@@ -23536,6 +23605,8 @@ var _common = require("./common");
 
 var _lang = require("../../utils/lang");
 
+var _events = require("../../aj/events");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -23546,23 +23617,200 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+function isMac() {
+    return navigator.platform.indexOf('Mac') > -1;
+}
+
+function isControl(which) {
+    if (isMac()) {
+        return which == 91 || which == 93;
+    } else {
+        return which == 17;
+    }
+}
+
+function isShift(which) {
+    return which == 16;
+}
+
+function isUp(which) {
+    return which == 38;
+}
+
+function isDown(which) {
+    return which == 40;
+}
+
+function resultToGridRows(result) {
+    if (!result || !result.rows) {
+        return null;
+    }
+    var index = 0;
+    return result.rows.map(function (r) {
+        return {
+            data: r,
+            index: index++,
+            children: null,
+            selected: false
+        };
+    });
+}
+
+var Selection = function (_Observable) {
+    _inherits(Selection, _Observable);
+
+    function Selection(rows) {
+        _classCallCheck(this, Selection);
+
+        var _this = _possibleConstructorReturn(this, (Selection.__proto__ || Object.getPrototypeOf(Selection)).call(this));
+
+        _this.rows = rows;
+        _this.shiftPressed = false;
+        _this.controlPressed = false;
+        _this.lastSelected = null;
+        _this.rangeStartRow = null;
+        _this.allSelected = false;
+        return _this;
+    }
+
+    _createClass(Selection, [{
+        key: "handle",
+        value: function handle(row) {
+            var _this2 = this;
+
+            if (this.shiftPressed) {
+                this.rows.forEach(function (r) {
+                    return r.selected = false;
+                });
+                if (this.rangeStartRow == null) {
+                    this.rangeStartRow = this.lastSelected;
+                    if (this.rangeStartRow == null) {
+                        this.rangeStartRow = row;
+                    }
+                    this.lastSelected = row;
+                    row.selected = true;
+                } else {
+                    (function () {
+                        var startIndex = Math.min(_this2.rangeStartRow.index, row.index);
+                        var endIndex = Math.max(_this2.rangeStartRow.index, row.index);
+                        _this2.rows.forEach(function (r) {
+                            if (r.index >= startIndex && r.index <= endIndex) {
+                                r.selected = true;
+                            }
+                        });
+                        _this2.lastSelected = row;
+                    })();
+                }
+            } else if (this.controlPressed) {
+                row.selected = !row.selected;
+                this.rangeStartRow = row;
+                this.lastSelected = row;
+            } else {
+                this.rows.forEach(function (r) {
+                    return r.selected = false;
+                });
+                row.selected = true;
+                this.rangeStartRow = row;
+                this.lastSelected = row;
+            }
+
+            this.invoke("change");
+        }
+    }, {
+        key: "getSelectedData",
+        value: function getSelectedData() {
+            return _.map(_.filter(this.rows, function (r) {
+                return r.selected;
+            }), function (r) {
+                return r.data;
+            });
+        }
+    }, {
+        key: "toggleAll",
+        value: function toggleAll() {
+            var _this3 = this;
+
+            this.rows.forEach(function (r) {
+                return r.selected = !_this3.allSelected;
+            });
+            this.allSelected = !this.allSelected;
+            this.lastSelected = null;
+            this.rangeStartRow = null;
+
+            this.invoke("change");
+        }
+    }, {
+        key: "clear",
+        value: function clear() {
+            this.rows.forEach(function (r) {
+                return r.selected = false;
+            });
+            this.allSelected = false;
+            this.lastSelected = null;
+            this.rangeStartRow = null;
+
+            this.invoke("change");
+        }
+    }, {
+        key: "down",
+        value: function down() {
+            if (!this.rows || this.rows.length == 0) {
+                return;
+            }
+
+            var index = -1;
+            if (this.lastSelected != null) {
+                index = this.rows.indexOf(this.lastSelected);
+            }
+
+            index++;
+            if (index >= this.rows.length) {
+                index = 0;
+            }
+            var newRow = this.rows[index];
+            this.handle(newRow);
+        }
+    }, {
+        key: "up",
+        value: function up() {
+            if (!this.rows || this.rows.length == 0) {
+                return;
+            }
+
+            var index = -1;
+            if (this.lastSelected != null) {
+                index = this.rows.indexOf(this.lastSelected);
+            }
+
+            index--;
+            if (index < 0) {
+                index = this.rows.length - 1;
+            }
+            var newRow = this.rows[index];
+            this.handle(newRow);
+        }
+    }]);
+
+    return Selection;
+}(_events.Observable);
+
 var SearchDialog = exports.SearchDialog = function (_React$Component) {
     _inherits(SearchDialog, _React$Component);
 
     function SearchDialog(props) {
         _classCallCheck(this, SearchDialog);
 
-        var _this = _possibleConstructorReturn(this, (SearchDialog.__proto__ || Object.getPrototypeOf(SearchDialog)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (SearchDialog.__proto__ || Object.getPrototypeOf(SearchDialog)).call(this, props));
 
-        _this.state = { value: "", type: "eq" };
-        return _this;
+        _this4.state = { value: "", type: "eq" };
+        return _this4;
     }
 
     _createClass(SearchDialog, [{
         key: "componentDidMount",
         value: function componentDidMount() {
             var me = ReactDOM.findDOMNode(this);
-            $(me).find("select").selectpicker();
+            //$(me).find("select").selectpicker()
         }
     }, {
         key: "onChangeValue",
@@ -23645,7 +23893,7 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
                                         { className: "fg-line" },
                                         React.createElement(
                                             "select",
-                                            { value: this.state.type, onChange: this.onTypeChange.bind(this) },
+                                            { className: "form-control", value: this.state.type, onChange: this.onTypeChange.bind(this) },
                                             React.createElement(
                                                 "option",
                                                 { value: "ne" },
@@ -23700,10 +23948,10 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     function HeaderCell(props) {
         _classCallCheck(this, HeaderCell);
 
-        var _this2 = _possibleConstructorReturn(this, (HeaderCell.__proto__ || Object.getPrototypeOf(HeaderCell)).call(this, props));
+        var _this5 = _possibleConstructorReturn(this, (HeaderCell.__proto__ || Object.getPrototypeOf(HeaderCell)).call(this, props));
 
-        _this2.state = { sorting: false, sortDescending: false };
-        return _this2;
+        _this5.state = { sorting: false, sortDescending: false };
+        return _this5;
     }
 
     _createClass(HeaderCell, [{
@@ -23799,7 +24047,7 @@ var Header = exports.Header = function (_React$Component3) {
     _createClass(Header, [{
         key: "render",
         value: function render() {
-            var _this4 = this;
+            var _this7 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -23807,7 +24055,7 @@ var Header = exports.Header = function (_React$Component3) {
 
             var id = 1;
             var headerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(HeaderCell, { key: id++, column: c, query: _this4.props.query });
+                return React.createElement(HeaderCell, { key: id++, column: c, query: _this7.props.query });
             });
 
             return React.createElement(
@@ -23831,35 +24079,42 @@ var Row = exports.Row = function (_React$Component4) {
     function Row(props) {
         _classCallCheck(this, Row);
 
-        var _this5 = _possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).call(this, props));
-
-        _this5.state = { selected: false };
-        return _this5;
+        return _possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).call(this, props));
     }
 
     _createClass(Row, [{
-        key: "select",
-        value: function select() {
-            console.log("click");
-            this.state.selected = !this.state.selected;
+        key: "doubleClick",
+        value: function doubleClick(e) {
+            if (_.isFunction(this.props.onDoubleClick)) {
+                this.props.onDoubleClick(this.props.row);
+                e.stopPropagation();
+            }
+        }
+    }, {
+        key: "onMouseDown",
+        value: function onMouseDown(e) {
+            if (_.isFunction(this.props.onMouseDown)) {
+                this.props.onMouseDown(this.props.row);
+                e.stopPropagation();
+            }
         }
     }, {
         key: "render",
         value: function render() {
-            var _this6 = this;
+            var _this9 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
             var cells = this.props.descriptor.columns.map(function (c) {
-                return createCell(c.component, c.property, _this6.props.row);
+                return createCell(c.component, c.property, _this9.props.row);
             });
-            var className = this.state.selected ? "selected" : "";
+            var className = this.props.row.selected ? "selected" : "";
 
             return React.createElement(
                 "tr",
-                { onClick: this.select.bind(this), className: className },
+                { onMouseDown: this.onMouseDown.bind(this), onDoubleClick: this.doubleClick.bind(this), className: className },
                 cells
             );
         }
@@ -23878,29 +24133,31 @@ var GridBody = exports.GridBody = function (_React$Component5) {
     }
 
     _createClass(GridBody, [{
+        key: "onRowMouseDown",
+        value: function onRowMouseDown(row) {
+            if (_.isFunction(this.props.onRowMouseDown)) {
+                this.props.onRowMouseDown(row);
+            }
+        }
+    }, {
+        key: "onRowDoubleClick",
+        value: function onRowDoubleClick(row) {
+            if (_.isFunction(this.props.onRowDoubleClick)) {
+                this.props.onRowDoubleClick(row);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
-            var _this8 = this;
+            var _this11 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
-            var pages = 1;
-            var totalRows = 0;
-            var rows = [];
-            var rowsPerPage = 50;
-
-            if (this.props.result) {
-                pages = this.props.result.pages || 1;
-                totalRows = this.props.result.totalRows || [];
-                rows = this.props.result.rows || [];
-                rowsPerPage = this.props.result.rowsPerPage || 50;
-            }
-
-            var index = 0;
+            var rows = this.props.rows || [];
             var rowElements = rows.map(function (r) {
-                return React.createElement(Row, { key: r.id, index: ++index, descriptor: _this8.props.descriptor, row: r, query: _this8.props.query });
+                return React.createElement(Row, { key: r.index, descriptor: _this11.props.descriptor, row: r, query: _this11.props.query, onMouseDown: _this11.onRowMouseDown.bind(_this11), onDoubleClick: _this11.onRowDoubleClick.bind(_this11) });
             });
 
             return React.createElement(
@@ -23949,7 +24206,7 @@ var Footer = exports.Footer = function (_React$Component7) {
     _createClass(Footer, [{
         key: "render",
         value: function render() {
-            var _this11 = this;
+            var _this14 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -23957,7 +24214,7 @@ var Footer = exports.Footer = function (_React$Component7) {
 
             var id = 1;
             var footerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(FooterCell, { key: id++, column: c, query: _this11.props.query });
+                return React.createElement(FooterCell, { key: id++, column: c, query: _this14.props.query });
             });
 
             return React.createElement(
@@ -24037,8 +24294,8 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
 }(Cell);
 
 function createCell(type, property, row) {
-    var key = property + "" + row.id;
-    var value = row[property];
+    var key = property + "" + row.index;
+    var value = row.data[property];
 
     switch (type) {
         case "check":
@@ -24145,12 +24402,12 @@ var Filters = exports.Filters = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this18 = this;
+            var _this21 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this18.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this21.props.query });
                 });
             }
 
@@ -24302,7 +24559,11 @@ var Grid = exports.Grid = function (_React$Component14) {
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this24 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+
+        _this24.selection = null;
+        _this24.state = { rows: null };
+        return _this24;
     }
 
     _createClass(Grid, [{
@@ -24312,6 +24573,125 @@ var Grid = exports.Grid = function (_React$Component14) {
             return totalRows;
         }
     }, {
+        key: "onKeyPress",
+        value: function onKeyPress(e) {}
+    }, {
+        key: "onBlur",
+        value: function onBlur() {
+            //if (this.selection) this.selection.clear()
+        }
+    }, {
+        key: "onKeyDown",
+        value: function onKeyDown(e) {
+            var me = ReactDOM.findDOMNode(this);
+            if (this.selection != null) {
+                if (isShift(e.which)) {
+                    me.onselectstart = function () {
+                        return false;
+                    };
+                    this.selection.shiftPressed = true;
+                    e.preventDefault();
+                    return;
+                } else if (isControl(e.which)) {
+                    this.selection.controlPressed = true;
+                    e.preventDefault();
+                    return;
+                } else if (isUp(e.which)) {
+                    this.selection.up();
+                    e.preventDefault();
+                    return;
+                } else if (isDown(e.which)) {
+                    this.selection.down();
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            if (_.isFunction(this.props.onKeyDown)) {
+                this.props.onKeyDown(e);
+            }
+        }
+    }, {
+        key: "onKeyUp",
+        value: function onKeyUp(e) {
+            var me = ReactDOM.findDOMNode(this);
+            if (this.selection != null) {
+                if (isShift(e.which)) {
+                    me.onselectstart = null;
+                    this.selection.shiftPressed = false;
+                    e.preventDefault();
+                    return;
+                } else if (isControl(e.which)) {
+                    this.selection.controlPressed = false;
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            if (_.isFunction(this.props.onKeyUp)) {
+                this.props.onKeyUp(e);
+            }
+        }
+    }, {
+        key: "onRowMouseDown",
+        value: function onRowMouseDown(row) {
+            this.selection.handle(row);
+        }
+    }, {
+        key: "onRowDoubleClick",
+        value: function onRowDoubleClick() {}
+    }, {
+        key: "componentWillReceiveProps",
+        value: function componentWillReceiveProps(nextProps) {
+            var _this25 = this;
+
+            var rows = resultToGridRows(nextProps.result);
+            if (rows != null) {
+                this.selection = new Selection(rows);
+                this.selection.on("change", function () {
+                    _this25.setState(_this25.state);
+                    if (_.isFunction(_this25.props.onSelectionChanged)) {
+                        _this25.props.onSelectionChanged(_this25.selection.getSelectedData());
+                    }
+                });
+            }
+
+            this.setState(_.assign(this.state, { rows: rows }));
+        }
+    }, {
+        key: "toggleSelectAll",
+        value: function toggleSelectAll() {
+            if (this.selection) {
+                this.selection.toggleAll();
+            }
+        }
+    }, {
+        key: "clearSelection",
+        value: function clearSelection() {
+            if (this.selection) {
+                this.selection.clear();
+            }
+        }
+    }, {
+        key: "getSelection",
+        value: function getSelection() {
+            if (this.selection) {
+                return this.selection.getSelectedData();
+            } else {
+                return null;
+            }
+        }
+    }, {
+        key: "getTotalPages",
+        value: function getTotalPages() {
+            if (!this.props.result || !this.props.query) {
+                return 1;
+            }
+
+            var totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage));
+            return totalPages;
+        }
+    }, {
         key: "render",
         value: function render() {
             if (_.isEmpty(this.props.descriptor)) {
@@ -24319,13 +24699,14 @@ var Grid = exports.Grid = function (_React$Component14) {
             }
 
             var myQuery = this.props.query || query.create();
-
             var filtersHidden = myQuery.filters.length == 0;
             var hasResults = this.props.result && this.props.result.rows && this.props.result.rows.length > 0;
+            var rows = this.state.rows;
+            var hasPagination = this.getTotalPages() > 1;
 
             return React.createElement(
                 "div",
-                { className: "grid" },
+                { className: "grid", tabIndex: "0", onBlur: this.onBlur.bind(this), onKeyPress: this.onKeyPress.bind(this), onKeyUp: this.onKeyUp.bind(this), onKeyDown: this.onKeyDown.bind(this) },
                 React.createElement(
                     _common.Card,
                     null,
@@ -24344,12 +24725,12 @@ var Grid = exports.Grid = function (_React$Component14) {
                                 "table",
                                 { className: "table table-striped table-hover" },
                                 React.createElement(Header, { descriptor: this.props.descriptor, query: myQuery }),
-                                React.createElement(GridBody, { descriptor: this.props.descriptor, result: this.props.result, query: myQuery }),
+                                React.createElement(GridBody, { descriptor: this.props.descriptor, rows: rows, query: myQuery, onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
                                 React.createElement(Footer, { descriptor: this.props.descriptor })
                             ),
                             React.createElement(
                                 "div",
-                                { className: "pull-right m-20" },
+                                { className: "pull-right m-20", hidden: !hasPagination },
                                 React.createElement(Pagination, { result: this.props.result, query: myQuery })
                             ),
                             React.createElement(ResultSummary, { query: myQuery, result: this.props.result }),
@@ -25440,10 +25821,6 @@ var _stores = require("../../../stores");
 
 var _layout = require("../../components/layout");
 
-var _ui = require("../../utils/ui");
-
-var ui = _interopRequireWildcard(_ui);
-
 var _strings = require("../../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
@@ -25460,15 +25837,25 @@ var _query2 = require("../../../api/query");
 
 var query = _interopRequireWildcard(_query2);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _lang = require("../../../utils/lang");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function isCancel(which) {
+    return which == 46 || which == 8;
+}
+
+function isEsc(which) {
+    return which == 27;
+}
 
 var EntitiesList = function (_Screen) {
     _inherits(EntitiesList, _Screen);
@@ -25480,7 +25867,7 @@ var EntitiesList = function (_Screen) {
 
         var _query = query.create();
         _query.page = 1;
-        _query.rowsPerPage = 50;
+        _query.rowsPerPage = 20;
 
         _this.state = { grid: null, result: null, query: _query };
 
@@ -25506,21 +25893,62 @@ var EntitiesList = function (_Screen) {
         key: "createEntity",
         value: function createEntity() {}
     }, {
+        key: "deleteEntities",
+        value: function deleteEntities() {
+            var _this2 = this;
+
+            var selection = this.refs.grid.getSelection();
+            if (_.isEmpty(selection)) {
+                return;
+            }
+
+            swal({ title: _strings2.default.confirm, text: (0, _lang.format)(_strings2.default.entityDeleteConfirm, selection.length), showCancelButton: true }).then(function () {
+                (0, _actions.deleteEntities)({ entity: _this2.props.entity, ids: selection.map(function (s) {
+                        return s.id;
+                    }) });
+            }).catch(function () {});
+        }
+    }, {
+        key: "onGridKeyDown",
+        value: function onGridKeyDown(e) {
+            if (isCancel(e.which)) {
+                this.deleteEntities();
+            } else if (isEsc(e.which)) {
+                this.refs.grid.clearSelection();
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
-            var _this2 = this;
+            var _this3 = this;
 
             var actions = [{
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
+                tooltip: _strings2.default.refresh,
                 action: function action() {
-                    (0, _actions.loadEntities)({ entity: _this2.props.entity, query: _this2.state.query });
+                    (0, _actions.loadEntities)({ entity: _this3.props.entity, query: _this3.state.query });
                 }
             }, {
                 type: "button",
                 icon: "zmdi zmdi-plus",
+                tooltip: _strings2.default.create,
                 action: function action() {
                     swal("Ciao");
+                }
+            }, {
+                type: "button",
+                icon: "zmdi zmdi-delete",
+                tooltip: _strings2.default.delete,
+                action: function action() {
+                    _this3.deleteEntities();
+                }
+            }, {
+                type: "button",
+                icon: "zmdi zmdi-select-all",
+                tooltip: _strings2.default.selectAll,
+                action: function action() {
+                    _this3.refs.grid.toggleSelectAll();
                 }
             }];
 
@@ -25533,7 +25961,7 @@ var EntitiesList = function (_Screen) {
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
-                React.createElement(_grids.Grid, { descriptor: descriptor, result: this.state.result, query: this.state.query }),
+                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, result: this.state.result, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }

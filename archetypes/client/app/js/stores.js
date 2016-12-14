@@ -87,11 +87,16 @@ export const ENTITIES = "ENTITIES"
 export const entities = aj.createStore(ENTITIES, (state = {error: false, result: null}, action) => {
 
     switch (action.type) {
-
         case completed(actions.LOAD_ENTITIES):
-            return _.assign(state, { error: false, result: action.result })
+        return _.assign(state, { error: false, result: action.result })
 
         case failed(actions.LOAD_ENTITIES):
+            return _.assign(state, { error: true, result: null })
+
+        case completed(actions.DELETE_ENTITIES):
+            return _.assign(state, { error: false, result: action.result })
+
+        case failed(actions.DELETE_ENTITIES):
             return _.assign(state, { error: true, result: null })
 
     }
