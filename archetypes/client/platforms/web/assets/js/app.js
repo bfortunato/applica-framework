@@ -1754,7 +1754,7 @@ function load(entity, query) {
 
 function delete_(entity, ids) {
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.delete_)(url, { ids: ids });
+    return (0, _utils.delete_)(url, { entityIds: ids });
 }
 });
 define('api/grids.js', function(module, exports) {

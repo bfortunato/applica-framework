@@ -10,5 +10,5 @@ export function load(entity, query) {
 
 export function delete_(entity, ids) {
     let url = config.get("entities.url") + "/" + entity
-    return delete__(url, {ids})
+    return delete__(url, {entityIds: ids})
 }
