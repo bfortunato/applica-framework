@@ -23591,6 +23591,7 @@ exports.Grid = exports.ResultSummary = exports.Pagination = exports.Filters = ex
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+exports.resultToGridRows = resultToGridRows;
 exports.createCell = createCell;
 
 var _query = require("../../api/query");
@@ -24115,6 +24116,12 @@ var Row = exports.Row = function (_React$Component4) {
             return React.createElement(
                 "tr",
                 { onMouseDown: this.onMouseDown.bind(this), onDoubleClick: this.doubleClick.bind(this), className: className },
+                React.createElement(
+                    "td",
+                    null,
+                    this.props.level
+                ),
+                " ",
                 cells
             );
         }
@@ -24156,9 +24163,28 @@ var GridBody = exports.GridBody = function (_React$Component5) {
             }
 
             var rows = this.props.rows || [];
-            var rowElements = rows.map(function (r) {
-                return React.createElement(Row, { key: r.index, descriptor: _this11.props.descriptor, row: r, query: _this11.props.query, onMouseDown: _this11.onRowMouseDown.bind(_this11), onDoubleClick: _this11.onRowDoubleClick.bind(_this11) });
-            });
+            var rowElements = [];
+            var level = this.props.level || 0;
+            var key = 1;
+            var addElements = function addElements(children, level) {
+                children.forEach(function (r) {
+                    var element = React.createElement(Row, {
+                        key: key++,
+                        descriptor: _this11.props.descriptor,
+                        row: r,
+                        query: _this11.props.query,
+                        level: level,
+                        onMouseDown: _this11.onRowMouseDown.bind(_this11),
+                        onDoubleClick: _this11.onRowDoubleClick.bind(_this11) });
+
+                    rowElements.push(element);
+                    if (!_.isEmpty(r.children)) {
+                        addElements(r.children, level + 1);
+                    }
+                });
+            };
+
+            addElements(rows, level);
 
             return React.createElement(
                 "tbody",
@@ -24446,7 +24472,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     }, {
         key: "getTotalPages",
         value: function getTotalPages() {
-            var totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage));
+            var totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage));
             return totalPages;
         }
     }, {
@@ -24467,7 +24493,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     }, {
         key: "render",
         value: function render() {
-            if (_.isEmpty(this.props.query) || _.isEmpty(this.props.result)) {
+            if (_.isEmpty(this.props.query) || _.isEmpty(this.props.rows)) {
                 return null;
             }
 
@@ -24534,9 +24560,9 @@ var ResultSummary = exports.ResultSummary = function (_React$Component13) {
             var stop = 0;
             var rowsPerPage = 0;
             var page = 0;
-            if (this.props.query && this.props.result) {
+            if (this.props.query && this.props.rows) {
                 rowsPerPage = this.props.query.rowsPerPage || 0;
-                totalRows = this.props.result.totalRows;
+                totalRows = this.props.rows.length;
                 page = parseInt(this.props.query.page || 1);
                 start = (page - 1) * rowsPerPage + 1;
                 stop = Math.min(page * rowsPerPage, totalRows);
@@ -24569,7 +24595,7 @@ var Grid = exports.Grid = function (_React$Component14) {
     _createClass(Grid, [{
         key: "getTotalRows",
         value: function getTotalRows() {
-            var totalRows = parseInt(this.props.result.totalRows);
+            var totalRows = parseInt(this.props.rows.length);
             return totalRows;
         }
     }, {
@@ -24645,7 +24671,7 @@ var Grid = exports.Grid = function (_React$Component14) {
         value: function componentWillReceiveProps(nextProps) {
             var _this25 = this;
 
-            var rows = resultToGridRows(nextProps.result);
+            var rows = nextProps.rows;
             if (rows != null) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
@@ -24684,11 +24710,11 @@ var Grid = exports.Grid = function (_React$Component14) {
     }, {
         key: "getTotalPages",
         value: function getTotalPages() {
-            if (!this.props.result || !this.props.query) {
+            if (!this.props.rows || !this.props.query) {
                 return 1;
             }
 
-            var totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage));
+            var totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage));
             return totalPages;
         }
     }, {
@@ -24700,8 +24726,8 @@ var Grid = exports.Grid = function (_React$Component14) {
 
             var myQuery = this.props.query || query.create();
             var filtersHidden = myQuery.filters.length == 0;
-            var hasResults = this.props.result && this.props.result.rows && this.props.result.rows.length > 0;
-            var rows = this.state.rows;
+            var hasResults = this.props.rows ? this.props.rows.length > 0 : false;
+            var rows = this.props.rows;
             var hasPagination = this.getTotalPages() > 1;
 
             return React.createElement(
@@ -24731,9 +24757,9 @@ var Grid = exports.Grid = function (_React$Component14) {
                             React.createElement(
                                 "div",
                                 { className: "pull-right m-20", hidden: !hasPagination },
-                                React.createElement(Pagination, { result: this.props.result, query: myQuery })
+                                React.createElement(Pagination, { rows: this.props.rows, query: myQuery })
                             ),
-                            React.createElement(ResultSummary, { query: myQuery, result: this.props.result }),
+                            React.createElement(ResultSummary, { query: myQuery, rows: this.props.rows }),
                             React.createElement("div", { className: "clearfix" })
                         ) : //no results
                         React.createElement(
@@ -25957,11 +25983,45 @@ var EntitiesList = function (_Screen) {
                 "columns": [{ "property": "name", "header": "Name", "component": "text", "sortable": true }, { "property": "mail", "header": "Mail", "component": "text", "sortable": true }, { "property": "active", "header": "Active", "component": "check" }]
             };
 
+            //let rows = resultToGridRows(this.state.result)
+            var rows = [];
+            for (var x = 0; x < 50; x++) {
+                var xo = {
+                    index: x,
+                    selected: false,
+                    data: { name: "name" + x, mail: "mail" + x, active: true },
+                    children: []
+                };
+                for (var y = 0; y < 10; y++) {
+                    var yo = {
+                        index: y,
+                        selected: false,
+                        data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
+                        children: []
+                    };
+
+                    xo.children.push(yo);
+
+                    for (var z = 0; z < 5; z++) {
+                        var zo = {
+                            index: z,
+                            selected: false,
+                            data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
+                            children: null
+                        };
+
+                        yo.children.push(zo);
+                    }
+                }
+
+                rows.push(xo);
+            }
+
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
-                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, result: this.state.result, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
+                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, rows: rows, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }

@@ -6,7 +6,7 @@ import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid} from "../../components/grids"
+import {Grid, resultToGridRows} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 
@@ -106,10 +106,44 @@ class EntitiesList extends Screen {
             ]
         }
 
-         return (
+        //let rows = resultToGridRows(this.state.result)
+        let rows = []
+        for (let x = 0; x < 50; x++) {
+            let xo = {
+                index: x,
+                selected: false,
+                data: { name: "name" + x, mail: "mail" + x, active: true },
+                children: []
+            }
+            for (let y = 0; y < 10; y++) {
+                let yo = {
+                    index: y,
+                    selected: false,
+                    data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
+                    children: []
+                }
+
+                xo.children.push(yo)
+
+                for (let z = 0; z < 5; z++) {
+                    let zo = {
+                        index: z,
+                        selected: false,
+                        data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
+                        children: null
+                    }
+
+                    yo.children.push(zo)
+                }
+            }
+
+            rows.push(xo)
+        }
+
+        return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
-                <Grid ref="grid" descriptor={descriptor} result={this.state.result} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
+                <Grid ref="grid" descriptor={descriptor} rows={rows} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

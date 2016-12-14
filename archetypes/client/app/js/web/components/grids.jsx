@@ -30,7 +30,7 @@ function isDown(which) {
     return which == 40
 }
 
-function resultToGridRows(result) {
+export function resultToGridRows(result) {
     if (!result || !result.rows) {
         return null
     }
@@ -347,7 +347,7 @@ export class Row extends React.Component {
         let className = this.props.row.selected ? "selected" : ""
 
         return (
-            <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}>{cells}</tr>
+            <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}><td>{this.props.level}</td> {cells}</tr>
         )
     }
 }
@@ -371,11 +371,35 @@ export class GridBody extends React.Component {
         }
 
         let rows = this.props.rows || []
-        let rowElements = rows.map(r => <Row key={r.index} descriptor={this.props.descriptor} row={r} query={this.props.query} onMouseDown={this.onRowMouseDown.bind(this)} onDoubleClick={this.onRowDoubleClick.bind(this)} />)
+        let rowElements = []
+        let level = this.props.level || 0
+        let key = 1
+        let addElements = (children, level) => {
+            children.forEach(r => {
+                    let element = (
+                        <Row
+                            key={key++}
+                            descriptor={this.props.descriptor}
+                            row={r}
+                            query={this.props.query}
+                            level={level}
+                            onMouseDown={this.onRowMouseDown.bind(this)}
+                            onDoubleClick={this.onRowDoubleClick.bind(this)} />
+                    )
+
+                    rowElements.push(element)
+                    if (!_.isEmpty(r.children)) {
+                        addElements(r.children, level + 1)
+                    }
+                }
+            )
+        }
+
+        addElements(rows, level)
 
         return (
             <tbody>
-            {rowElements}
+                {rowElements}
             </tbody>
         )
     }
@@ -512,7 +536,7 @@ export class Pagination extends React.Component {
     }
 
     getTotalPages() {
-        let totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage))
+        let totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage))
         return totalPages
     }
 
@@ -530,7 +554,7 @@ export class Pagination extends React.Component {
     }
 
     render() {
-        if (_.isEmpty(this.props.query) || _.isEmpty(this.props.result)) {
+        if (_.isEmpty(this.props.query) || _.isEmpty(this.props.rows)) {
             return null
         }
 
@@ -569,9 +593,9 @@ export class ResultSummary extends React.Component {
         let stop = 0
         let rowsPerPage = 0
         let page = 0
-        if (this.props.query && this.props.result) {
+        if (this.props.query && this.props.rows) {
             rowsPerPage = this.props.query.rowsPerPage || 0
-            totalRows = this.props.result.totalRows
+            totalRows = this.props.rows.length
             page = parseInt(this.props.query.page || 1)
             start = (page - 1) * rowsPerPage + 1
             stop = Math.min(page * rowsPerPage, totalRows)
@@ -593,7 +617,7 @@ export class Grid extends React.Component {
     }
 
     getTotalRows() {
-        let totalRows = parseInt(this.props.result.totalRows)
+        let totalRows = parseInt(this.props.rows.length)
         return totalRows
     }
 
@@ -662,7 +686,7 @@ export class Grid extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let rows = resultToGridRows(nextProps.result)
+        let rows = nextProps.rows
         if (rows != null) {
             this.selection = new Selection(rows)
             this.selection.on("change", () => {
@@ -697,11 +721,11 @@ export class Grid extends React.Component {
     }
 
     getTotalPages() {
-        if (!this.props.result || !this.props.query) {
+        if (!this.props.rows || !this.props.query) {
             return 1
         }
 
-        let totalPages = parseInt(Math.ceil(this.props.result.totalRows / this.props.query.rowsPerPage))
+        let totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage))
         return totalPages
     }
 
@@ -712,8 +736,8 @@ export class Grid extends React.Component {
         
         let myQuery = this.props.query || query.create()
         let filtersHidden = myQuery.filters.length == 0
-        let hasResults = this.props.result && this.props.result.rows && this.props.result.rows.length > 0
-        let rows = this.state.rows
+        let hasResults = this.props.rows ? this.props.rows.length > 0 : false
+        let rows = this.props.rows
         let hasPagination = this.getTotalPages() > 1
 
         return (
@@ -733,10 +757,10 @@ export class Grid extends React.Component {
                                 </table>
 
                                 <div className="pull-right m-20" hidden={!hasPagination}>
-                                    <Pagination result={this.props.result} query={myQuery} />
+                                    <Pagination rows={this.props.rows} query={myQuery} />
                                 </div>
 
-                                <ResultSummary query={myQuery} result={this.props.result} />
+                                <ResultSummary query={myQuery} rows={this.props.rows} />
 
                                 <div className="clearfix"></div>
                             </div>
