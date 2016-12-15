@@ -112,6 +112,7 @@ class EntitiesList extends Screen {
             let xo = {
                 index: x,
                 selected: false,
+                expanded: false,
                 data: { name: "name" + x, mail: "mail" + x, active: true },
                 children: []
             }
@@ -119,6 +120,7 @@ class EntitiesList extends Screen {
                 let yo = {
                     index: y,
                     selected: false,
+                    expanded: false,
                     data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
                     children: []
                 }
@@ -129,6 +131,7 @@ class EntitiesList extends Screen {
                     let zo = {
                         index: z,
                         selected: false,
+                        expanded: false,
                         data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
                         children: null
                     }

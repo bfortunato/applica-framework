@@ -23675,12 +23675,36 @@ var Selection = function (_Observable) {
     }
 
     _createClass(Selection, [{
+        key: "flatRows",
+        value: function flatRows() {
+            var flatRows = [];
+
+            var addRows = function addRows(children) {
+                if (!children) {
+                    return;
+                }
+                children.forEach(function (c) {
+                    flatRows.push(c);
+
+                    if (c.expanded) {
+                        addRows(c.children);
+                    }
+                });
+            };
+
+            addRows(this.rows);
+
+            return flatRows;
+        }
+    }, {
         key: "handle",
         value: function handle(row) {
             var _this2 = this;
 
+            var flatRows = this.flatRows();
+
             if (this.shiftPressed) {
-                this.rows.forEach(function (r) {
+                flatRows.forEach(function (r) {
                     return r.selected = false;
                 });
                 if (this.rangeStartRow == null) {
@@ -23694,7 +23718,7 @@ var Selection = function (_Observable) {
                     (function () {
                         var startIndex = Math.min(_this2.rangeStartRow.index, row.index);
                         var endIndex = Math.max(_this2.rangeStartRow.index, row.index);
-                        _this2.rows.forEach(function (r) {
+                        flatRows.forEach(function (r) {
                             if (r.index >= startIndex && r.index <= endIndex) {
                                 r.selected = true;
                             }
@@ -23707,7 +23731,7 @@ var Selection = function (_Observable) {
                 this.rangeStartRow = row;
                 this.lastSelected = row;
             } else {
-                this.rows.forEach(function (r) {
+                flatRows.forEach(function (r) {
                     return r.selected = false;
                 });
                 row.selected = true;
@@ -23720,7 +23744,7 @@ var Selection = function (_Observable) {
     }, {
         key: "getSelectedData",
         value: function getSelectedData() {
-            return _.map(_.filter(this.rows, function (r) {
+            return _.map(_.filter(this.flatRows(), function (r) {
                 return r.selected;
             }), function (r) {
                 return r.data;
@@ -23731,7 +23755,7 @@ var Selection = function (_Observable) {
         value: function toggleAll() {
             var _this3 = this;
 
-            this.rows.forEach(function (r) {
+            this.flatRows().forEach(function (r) {
                 return r.selected = !_this3.allSelected;
             });
             this.allSelected = !this.allSelected;
@@ -23743,7 +23767,7 @@ var Selection = function (_Observable) {
     }, {
         key: "clear",
         value: function clear() {
-            this.rows.forEach(function (r) {
+            this.flatRows().forEach(function (r) {
                 return r.selected = false;
             });
             this.allSelected = false;
@@ -23755,39 +23779,43 @@ var Selection = function (_Observable) {
     }, {
         key: "down",
         value: function down() {
-            if (!this.rows || this.rows.length == 0) {
+            var flatRows = this.flatRows();
+
+            if (!flatRows || flatRows.length == 0) {
                 return;
             }
 
             var index = -1;
             if (this.lastSelected != null) {
-                index = this.rows.indexOf(this.lastSelected);
+                index = flatRows.indexOf(this.lastSelected);
             }
 
             index++;
-            if (index >= this.rows.length) {
+            if (index >= flatRows.length) {
                 index = 0;
             }
-            var newRow = this.rows[index];
+            var newRow = flatRows[index];
             this.handle(newRow);
         }
     }, {
         key: "up",
         value: function up() {
-            if (!this.rows || this.rows.length == 0) {
+            var flatRows = this.flatRows();
+
+            if (!flatRows || flatRows.length == 0) {
                 return;
             }
 
             var index = -1;
             if (this.lastSelected != null) {
-                index = this.rows.indexOf(this.lastSelected);
+                index = flatRows.indexOf(this.lastSelected);
             }
 
             index--;
             if (index < 0) {
-                index = this.rows.length - 1;
+                index = flatRows.length - 1;
             }
-            var newRow = this.rows[index];
+            var newRow = flatRows[index];
             this.handle(newRow);
         }
     }]);
@@ -24012,7 +24040,7 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
 
             return React.createElement(
                 "th",
-                { style: { position: "relative" } },
+                { className: "hover", style: { position: "relative" } },
                 React.createElement(
                     "span",
                     { onClick: this.changeSort.bind(this), className: "pointer-cursor" },
@@ -24108,20 +24136,32 @@ var Row = exports.Row = function (_React$Component4) {
                 return null;
             }
 
+            var onExpand = function onExpand(row) {
+                if (_.isFunction(_this9.props.onExpand)) {
+                    _this9.props.onExpand(row);
+                }
+            };
+
+            var firstElement = true;
             var cells = this.props.descriptor.columns.map(function (c) {
-                return createCell(c.component, c.property, _this9.props.row);
+                var cell = createCell(c.component, c.property, _this9.props.row, firstElement, onExpand);
+                firstElement = false;
+                return cell;
             });
             var className = this.props.row.selected ? "selected" : "";
+            var expandedNow = this.props.row.expandedNow || false;
+            var collapsedNow = this.props.row.collapsedNow || false;
+            if (expandedNow) {
+                this.props.row.expandedNow = undefined;
+                className += " animated animated-fast fadeInDown";
+            } else if (collapsedNow) {
+                this.props.row.collapsedNow = undefined;
+                className += " animated animated-fast fadeOutUp";
+            }
 
             return React.createElement(
                 "tr",
                 { onMouseDown: this.onMouseDown.bind(this), onDoubleClick: this.doubleClick.bind(this), className: className },
-                React.createElement(
-                    "td",
-                    null,
-                    this.props.level
-                ),
-                " ",
                 cells
             );
         }
@@ -24154,6 +24194,13 @@ var GridBody = exports.GridBody = function (_React$Component5) {
             }
         }
     }, {
+        key: "onRowExpand",
+        value: function onRowExpand(row) {
+            if (_.isFunction(this.props.onRowExpand)) {
+                this.props.onRowExpand(row);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this11 = this;
@@ -24165,21 +24212,27 @@ var GridBody = exports.GridBody = function (_React$Component5) {
             var rows = this.props.rows || [];
             var rowElements = [];
             var level = this.props.level || 0;
-            var key = 1;
+            var index = 1;
+
             var addElements = function addElements(children, level) {
                 children.forEach(function (r) {
+                    r.index = index++;
+                    r.level = level;
                     var element = React.createElement(Row, {
-                        key: key++,
+                        key: index++,
                         descriptor: _this11.props.descriptor,
                         row: r,
                         query: _this11.props.query,
-                        level: level,
                         onMouseDown: _this11.onRowMouseDown.bind(_this11),
-                        onDoubleClick: _this11.onRowDoubleClick.bind(_this11) });
+                        onDoubleClick: _this11.onRowDoubleClick.bind(_this11),
+                        onExpand: _this11.onRowExpand.bind(_this11) });
 
                     rowElements.push(element);
+
                     if (!_.isEmpty(r.children)) {
-                        addElements(r.children, level + 1);
+                        if (r.expanded) {
+                            addElements(r.children, level + 1);
+                        }
                     }
                 });
             };
@@ -24280,12 +24333,43 @@ var TextCell = exports.TextCell = function (_Cell) {
     }
 
     _createClass(TextCell, [{
+        key: "toggleExpand",
+        value: function toggleExpand() {
+            if (_.isFunction(this.props.onExpand)) {
+                this.props.onExpand(this.props.row);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
+            var marginLeft = 30 * (this.props.row.level || 0);
+            var icon = "zmdi ";
+            if (!this.props.row.expanded) {
+                icon += " zmdi-plus";
+            } else {
+                icon += " zmdi-minus";
+            }
+
+            var caret = !_.isEmpty(this.props.row.children) && this.props.firstElement ? React.createElement(
+                "a",
+                { style: { marginLeft: marginLeft, marginRight: 20 }, href: "javascript:;", className: "expand-button", onClick: this.toggleExpand.bind(this) },
+                React.createElement("i", { className: "c-black " + icon })
+            ) : null;
+
+            var style = {};
+            if (caret == null && this.props.row.level > 1 && this.props.firstElement) {
+                style.marginLeft = marginLeft + 20;
+            }
+
             return React.createElement(
                 "td",
                 null,
-                this.props.value
+                caret,
+                React.createElement(
+                    "span",
+                    { style: style },
+                    this.props.value
+                )
             );
         }
     }]);
@@ -24318,20 +24402,6 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
 
     return CheckCell;
 }(Cell);
-
-function createCell(type, property, row) {
-    var key = property + "" + row.index;
-    var value = row.data[property];
-
-    switch (type) {
-        case "check":
-            return React.createElement(CheckCell, { key: key, row: row, value: value });
-
-        case "text":
-        default:
-            return React.createElement(TextCell, { key: key, row: row, value: value });
-    }
-}
 
 var KeywordSearch = exports.KeywordSearch = function (_React$Component9) {
     _inherits(KeywordSearch, _React$Component9);
@@ -24667,17 +24737,45 @@ var Grid = exports.Grid = function (_React$Component14) {
         key: "onRowDoubleClick",
         value: function onRowDoubleClick() {}
     }, {
+        key: "onRowExpand",
+        value: function onRowExpand(row) {
+            var _this25 = this;
+
+            var expanded = !row.expanded;
+
+            if (expanded) {
+                row.children.forEach(function (r) {
+                    return r.expandedNow = true;
+                });
+            } else {
+                row.children.forEach(function (r) {
+                    return r.collapsedNow = true;
+                });
+            }
+            if (!expanded) {
+                this.forceUpdate();
+
+                setTimeout(function () {
+                    row.expanded = expanded;
+                    _this25.forceUpdate();
+                }, 250);
+            } else {
+                row.expanded = expanded;
+                this.forceUpdate();
+            }
+        }
+    }, {
         key: "componentWillReceiveProps",
         value: function componentWillReceiveProps(nextProps) {
-            var _this25 = this;
+            var _this26 = this;
 
             var rows = nextProps.rows;
             if (rows != null) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
-                    _this25.setState(_this25.state);
-                    if (_.isFunction(_this25.props.onSelectionChanged)) {
-                        _this25.props.onSelectionChanged(_this25.selection.getSelectedData());
+                    _this26.setState(_this26.state);
+                    if (_.isFunction(_this26.props.onSelectionChanged)) {
+                        _this26.props.onSelectionChanged(_this26.selection.getSelectedData());
                     }
                 });
             }
@@ -24751,7 +24849,7 @@ var Grid = exports.Grid = function (_React$Component14) {
                                 "table",
                                 { className: "table table-striped table-hover" },
                                 React.createElement(Header, { descriptor: this.props.descriptor, query: myQuery }),
-                                React.createElement(GridBody, { descriptor: this.props.descriptor, rows: rows, query: myQuery, onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
+                                React.createElement(GridBody, { descriptor: this.props.descriptor, rows: rows, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
                                 React.createElement(Footer, { descriptor: this.props.descriptor })
                             ),
                             React.createElement(
@@ -24784,6 +24882,20 @@ var Grid = exports.Grid = function (_React$Component14) {
 
     return Grid;
 }(React.Component);
+
+function createCell(type, property, row, firstElement, onExpand) {
+    var key = property + "" + row.index;
+    var value = row.data[property];
+
+    switch (type) {
+        case "check":
+            return React.createElement(CheckCell, { key: key, row: row, value: value, firstElement: firstElement });
+
+        case "text":
+        default:
+            return React.createElement(TextCell, { key: key, row: row, value: value, firstElement: firstElement, onExpand: onExpand });
+    }
+}
 });
 define('web/components/layout.js', function(module, exports) {
 "use strict";
@@ -25989,6 +26101,7 @@ var EntitiesList = function (_Screen) {
                 var xo = {
                     index: x,
                     selected: false,
+                    expanded: false,
                     data: { name: "name" + x, mail: "mail" + x, active: true },
                     children: []
                 };
@@ -25996,6 +26109,7 @@ var EntitiesList = function (_Screen) {
                     var yo = {
                         index: y,
                         selected: false,
+                        expanded: false,
                         data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
                         children: []
                     };
@@ -26006,6 +26120,7 @@ var EntitiesList = function (_Screen) {
                         var zo = {
                             index: z,
                             selected: false,
+                            expanded: false,
                             data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
                             children: null
                         };

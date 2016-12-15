@@ -55,6 +55,22 @@ html.ismobile .global-loader {
 .btn-no-shadow {
   box-shadow: 0 0px 0px !important; }
 
+.hover {
+  -webkit-transition: background-color 0.25s;
+  -moz-transition: background-color 0.25s;
+  -ms-transition: background-color 0.25s;
+  -o-transition: background-color 0.25s;
+  transition: background-color 0.25s; }
+
+.hover:hover {
+  background-color: #ebebeb; }
+
+.animated-fast {
+  -webkit-animation-duration: 0.25s;
+  -moz-animation-duration: 0.25s;
+  -o-animation-duration: 0.25s;
+  animation-duration: 0.25s; }
+
 /*-------------------------
     Tables
 --------------------------*/
@@ -74,3 +90,29 @@ html.ismobile .global-loader {
 /*-------------------------
     Forms
 --------------------------*/
+/*-------------------------
+    Grids
+--------------------------*/
+tr.collapsible {
+  -webkit-transition: transform 0.25s;
+  -moz-transition: transform 0.25s;
+  -ms-transition: transform 0.25s;
+  -o-transition: transform 0.25s;
+  transition: transform 0.25s;
+  -webkit-transform: scale(1, 0);
+  -moz-transform: scale(1, 0);
+  -ms-transform: scale(1, 0);
+  -o-transform: scale(1, 0);
+  transform: scale(1, 0); }
+  tr.collapsible .collapsed {
+    -webkit-transform: scale(1, 0);
+    -moz-transform: scale(1, 0);
+    -ms-transform: scale(1, 0);
+    -o-transform: scale(1, 0);
+    transform: scale(1, 0); }
+  tr.collapsible .expanded {
+    -webkit-transform: scale(1, 1);
+    -moz-transform: scale(1, 1);
+    -ms-transform: scale(1, 1);
+    -o-transform: scale(1, 1);
+    transform: scale(1, 1); }

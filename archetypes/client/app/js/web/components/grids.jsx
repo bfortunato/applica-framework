@@ -55,9 +55,32 @@ class Selection extends Observable {
         this.allSelected = false
     }
 
+    flatRows() {
+        let flatRows = []
+
+        let addRows = (children) => {
+            if (!children) {
+                return
+            }
+            children.forEach(c => {
+                flatRows.push(c)
+
+                if (c.expanded) {
+                    addRows(c.children)
+                }
+            })
+        }
+
+        addRows(this.rows)
+
+        return flatRows
+    }
+
     handle(row) {
+        let flatRows = this.flatRows()
+        
         if (this.shiftPressed) {
-            this.rows.forEach(r => r.selected = false)
+            flatRows.forEach(r => r.selected = false)
             if (this.rangeStartRow == null) {
                 this.rangeStartRow = this.lastSelected
                 if (this.rangeStartRow == null) {
@@ -68,7 +91,7 @@ class Selection extends Observable {
             } else {
                 let startIndex = Math.min(this.rangeStartRow.index, row.index)
                 let endIndex = Math.max(this.rangeStartRow.index, row.index)
-                this.rows.forEach(r => {
+                flatRows.forEach(r => {
                     if (r.index >= startIndex && r.index <= endIndex) {
                         r.selected = true
                     }
@@ -80,7 +103,7 @@ class Selection extends Observable {
             this.rangeStartRow = row
             this.lastSelected = row
         } else {
-            this.rows.forEach(r => r.selected = false)
+            flatRows.forEach(r => r.selected = false)
             row.selected = true
             this.rangeStartRow = row
             this.lastSelected = row
@@ -90,11 +113,11 @@ class Selection extends Observable {
     }
 
     getSelectedData() {
-        return _.map(_.filter(this.rows, r => r.selected), r => r.data)
+        return _.map(_.filter(this.flatRows(), r => r.selected), r => r.data)
     }
 
     toggleAll() {
-        this.rows.forEach(r => r.selected = !this.allSelected)
+        this.flatRows().forEach(r => r.selected = !this.allSelected)
         this.allSelected = !this.allSelected
         this.lastSelected = null
         this.rangeStartRow = null
@@ -103,7 +126,7 @@ class Selection extends Observable {
     }
 
     clear() {
-        this.rows.forEach(r => r.selected = false)
+        this.flatRows().forEach(r => r.selected = false)
         this.allSelected = false
         this.lastSelected = null
         this.rangeStartRow = null
@@ -112,38 +135,42 @@ class Selection extends Observable {
     }
 
     down() {
-        if (!this.rows || this.rows.length == 0) {
+        let flatRows = this.flatRows()
+        
+        if (!flatRows || flatRows.length == 0) {
             return
         }
 
         let index = -1
         if (this.lastSelected != null) {
-            index = this.rows.indexOf(this.lastSelected)
+            index = flatRows.indexOf(this.lastSelected)
         }
 
         index++
-        if (index >= this.rows.length) {
+        if (index >= flatRows.length) {
             index = 0
         }
-        let newRow = this.rows[index]
+        let newRow = flatRows[index]
         this.handle(newRow)
     }
 
     up() {
-        if (!this.rows || this.rows.length == 0) {
+        let flatRows = this.flatRows()
+        
+        if (!flatRows || flatRows.length == 0) {
             return
         }
 
         let index = -1
         if (this.lastSelected != null) {
-            index = this.rows.indexOf(this.lastSelected)
+            index = flatRows.indexOf(this.lastSelected)
         }
 
         index--
         if (index < 0) {
-            index = this.rows.length - 1
+            index = flatRows.length - 1
         }
-        let newRow = this.rows[index]
+        let newRow = flatRows[index]
         this.handle(newRow)
     }
 }
@@ -287,7 +314,7 @@ export class HeaderCell extends React.Component {
         }
 
         return (
-            <th style={{position: "relative"}}>
+            <th className="hover" style={{position: "relative"}}>
                 <span onClick={this.changeSort.bind(this)} className="pointer-cursor">{this.props.column.header}</span>
 
                 {this.props.column.sortable ?
@@ -343,11 +370,31 @@ export class Row extends React.Component {
             return null
         }
 
-        let cells = this.props.descriptor.columns.map(c => createCell(c.component, c.property, this.props.row))
+        let onExpand = (row) => {
+            if (_.isFunction(this.props.onExpand)) {
+                this.props.onExpand(row)
+            }
+        }
+
+        let firstElement = true
+        let cells = this.props.descriptor.columns.map(c => {
+            let cell = createCell(c.component, c.property, this.props.row, firstElement, onExpand)
+            firstElement = false
+            return cell
+        })
         let className = this.props.row.selected ? "selected" : ""
+        let expandedNow = this.props.row.expandedNow || false
+        let collapsedNow = this.props.row.collapsedNow || false
+        if (expandedNow) {
+            this.props.row.expandedNow = undefined
+            className += " animated animated-fast fadeInDown"
+        } else if (collapsedNow) {
+            this.props.row.collapsedNow = undefined
+            className += " animated animated-fast fadeOutUp"
+        }
 
         return (
-            <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}><td>{this.props.level}</td> {cells}</tr>
+            <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}>{cells}</tr>
         )
     }
 }
@@ -365,6 +412,12 @@ export class GridBody extends React.Component {
         }
     }
 
+    onRowExpand(row) {
+        if (_.isFunction(this.props.onRowExpand)) {
+            this.props.onRowExpand(row)
+        }
+    }
+
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -373,26 +426,31 @@ export class GridBody extends React.Component {
         let rows = this.props.rows || []
         let rowElements = []
         let level = this.props.level || 0
-        let key = 1
+        let index = 1
+
         let addElements = (children, level) => {
             children.forEach(r => {
-                    let element = (
-                        <Row
-                            key={key++}
-                            descriptor={this.props.descriptor}
-                            row={r}
-                            query={this.props.query}
-                            level={level}
-                            onMouseDown={this.onRowMouseDown.bind(this)}
-                            onDoubleClick={this.onRowDoubleClick.bind(this)} />
-                    )
+                r.index = index++
+                r.level = level
+                let element = (
+                    <Row
+                        key={index++}
+                        descriptor={this.props.descriptor}
+                        row={r}
+                        query={this.props.query}
+                        onMouseDown={this.onRowMouseDown.bind(this)}
+                        onDoubleClick={this.onRowDoubleClick.bind(this)}
+                        onExpand={this.onRowExpand.bind(this)}/>
+                )
 
-                    rowElements.push(element)
-                    if (!_.isEmpty(r.children)) {
+                rowElements.push(element)
+
+                if (!_.isEmpty(r.children)) {
+                    if (r.expanded) {
                         addElements(r.children, level + 1)
                     }
                 }
-            )
+            })
         }
 
         addElements(rows, level)
@@ -437,9 +495,33 @@ export class Cell extends React.Component {
 }
 
 export class TextCell extends Cell {
+    toggleExpand() {
+        if (_.isFunction(this.props.onExpand)) {
+            this.props.onExpand(this.props.row)
+        }
+    }
+
     render() {
+        let marginLeft = 30 * (this.props.row.level || 0)
+        let icon = "zmdi "
+        if (!this.props.row.expanded) {
+            icon += " zmdi-plus"
+        } else {
+            icon += " zmdi-minus"
+        }
+
+        let caret = !_.isEmpty(this.props.row.children) && this.props.firstElement ?
+            <a style={{marginLeft: marginLeft, marginRight: 20}} href="javascript:;" className="expand-button" onClick={this.toggleExpand.bind(this)}>
+                <i className={"c-black " + icon} />
+            </a> : null
+
+        let style = {}
+        if (caret == null && this.props.row.level > 1 && this.props.firstElement) {
+            style.marginLeft = marginLeft + 20
+        }
+
         return (
-            <td>{this.props.value}</td>
+            <td>{caret}<span style={style}>{this.props.value}</span></td>
         )
     }
 }
@@ -455,19 +537,6 @@ export class CheckCell extends Cell {
     }
 }
 
-export function createCell(type, property, row) {
-    let key = property + "" + row.index
-    let value = row.data[property]
-
-    switch (type) {
-        case "check":
-            return <CheckCell key={key} row={row} value={value} />
-
-        case "text":
-        default:
-            return <TextCell key={key} row={row} value={value} />
-    }
-}
 
 export class KeywordSearch extends React.Component {
     render() {
@@ -685,6 +754,27 @@ export class Grid extends React.Component {
     onRowDoubleClick() {
     }
 
+    onRowExpand(row) {
+        let expanded = !row.expanded
+
+        if (expanded) {
+            row.children.forEach(r => r.expandedNow = true)
+        } else {
+            row.children.forEach(r => r.collapsedNow = true)
+        }
+        if (!expanded) {
+            this.forceUpdate()
+
+            setTimeout(() => {
+                row.expanded = expanded
+                this.forceUpdate()
+            }, 250)
+        } else {
+            row.expanded = expanded
+            this.forceUpdate()
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         let rows = nextProps.rows
         if (rows != null) {
@@ -752,7 +842,7 @@ export class Grid extends React.Component {
                             <div className="with-result">
                                 <table className="table table-striped table-hover">
                                     <Header descriptor={this.props.descriptor} query={myQuery}/>
-                                    <GridBody descriptor={this.props.descriptor} rows={rows} query={myQuery} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
+                                    <GridBody descriptor={this.props.descriptor} rows={rows} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
                                     <Footer descriptor={this.props.descriptor} />
                                 </table>
 
@@ -777,3 +867,18 @@ export class Grid extends React.Component {
     }
 }
 
+
+
+export function createCell(type, property, row, firstElement, onExpand) {
+    let key = property + "" + row.index
+    let value = row.data[property]
+
+    switch (type) {
+        case "check":
+            return <CheckCell key={key} row={row} value={value} firstElement={firstElement} />
+
+        case "text":
+        default:
+            return <TextCell key={key} row={row} value={value} firstElement={firstElement} onExpand={onExpand}/>
+    }
+}
