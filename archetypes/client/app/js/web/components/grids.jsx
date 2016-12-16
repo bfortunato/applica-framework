@@ -6,6 +6,10 @@ import { Card, HeaderBlock } from "./common"
 import { format } from "../../utils/lang"
 import { Observable } from "../../aj/events"
 
+const EXPAND_ANIMATION_TIME = 250
+const CELL_PADDING_TOP = 15
+const CELL_PADDING_BOTTOM = 15
+
 function isMac() {
     return navigator.platform.indexOf('Mac') > -1
 }
@@ -30,17 +34,32 @@ function isDown(which) {
     return which == 40
 }
 
-export function resultToGridRows(result) {
+function eachChildren(root, action) {
+    if (_.isArray(root)) {
+        root.forEach(c => {
+            action(c)
+
+            eachChildren(c.children, action)
+        })
+    }
+}
+
+export function resultToGridData(result) {
     if (!result || !result.rows) {
         return null
     }
     let index = 0
-    return result.rows.map(r => { return {
-            data: r,
-            index: index++,
-            children: null,
-            selected: false
-    }})
+    return {
+        totalRows: result.totalRows,
+        rows: result.rows.map(r => {
+            return {
+                data: r,
+                index: index++,
+                children: null,
+                selected: false
+            }
+        })
+    }
 }
 
 class Selection extends Observable {
@@ -365,6 +384,39 @@ export class Row extends React.Component {
         }
     }
 
+    componentDidMount() {
+        let expandedNow = this.props.row.expandedNow || false
+        if (expandedNow) {
+            let me = ReactDOM.findDOMNode(this)
+            this.props.row.expandedNow = undefined
+            $(me)
+                .find("td")
+                .css({paddingTop: 0, paddingBottom: 0})
+                .stop()
+                .animate({paddingTop: CELL_PADDING_TOP, paddingBottom: CELL_PADDING_BOTTOM}, EXPAND_ANIMATION_TIME)
+                .end()
+                .find(".grid-cell-container")
+                .hide()
+                .slideDown(EXPAND_ANIMATION_TIME)
+
+        }
+    }
+
+    componentDidUpdate() {
+        let collapsedNow = this.props.row.collapsedNow || false
+        if (collapsedNow) {
+            let me = ReactDOM.findDOMNode(this)
+            this.props.row.collapsedNow = undefined
+            $(me)
+                .find("td")
+                .stop()
+                .animate({paddingTop: 0, paddingBottom: 0}, EXPAND_ANIMATION_TIME)
+                .end()
+                .find(".grid-cell-container")
+                .slideUp(EXPAND_ANIMATION_TIME)
+        }
+    }
+
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -377,21 +429,13 @@ export class Row extends React.Component {
         }
 
         let firstElement = true
+        let key = 1
         let cells = this.props.descriptor.columns.map(c => {
             let cell = createCell(c.component, c.property, this.props.row, firstElement, onExpand)
             firstElement = false
-            return cell
+            return <td key={key++}><div className="grid-cell-container">{cell}</div></td>
         })
-        let className = this.props.row.selected ? "selected" : ""
-        let expandedNow = this.props.row.expandedNow || false
-        let collapsedNow = this.props.row.collapsedNow || false
-        if (expandedNow) {
-            this.props.row.expandedNow = undefined
-            className += " animated animated-fast fadeInDown"
-        } else if (collapsedNow) {
-            this.props.row.collapsedNow = undefined
-            className += " animated animated-fast fadeOutUp"
-        }
+        let className = `level-${this.props.row.level} ` + (this.props.row.selected ? "selected" : "")
 
         return (
             <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}>{cells}</tr>
@@ -423,18 +467,18 @@ export class GridBody extends React.Component {
             return null
         }
 
-        let rows = this.props.rows || []
+        let rows = this.props.data.rows || []
         let rowElements = []
         let level = this.props.level || 0
-        let index = 1
-
-        let addElements = (children, level) => {
+        let index = 0
+        let addElements = (children, level, parentKey) => {
+            let key = 1
             children.forEach(r => {
                 r.index = index++
                 r.level = level
                 let element = (
                     <Row
-                        key={index++}
+                        key={parentKey + "_" + key++}
                         descriptor={this.props.descriptor}
                         row={r}
                         query={this.props.query}
@@ -447,13 +491,13 @@ export class GridBody extends React.Component {
 
                 if (!_.isEmpty(r.children)) {
                     if (r.expanded) {
-                        addElements(r.children, level + 1)
+                        addElements(r.children, level + 1, parentKey + "_" + key)
                     }
                 }
             })
         }
 
-        addElements(rows, level)
+        addElements(rows, level, "root")
 
         return (
             <tbody>
@@ -495,9 +539,13 @@ export class Cell extends React.Component {
 }
 
 export class TextCell extends Cell {
-    toggleExpand() {
+    toggleExpand(e) {
         if (_.isFunction(this.props.onExpand)) {
             this.props.onExpand(this.props.row)
+            e.preventDefault()
+            e.stopPropagation()
+            e.nativeEvent.stopImmediatePropagation()
+            console.log("propagation stopped")
         }
     }
 
@@ -511,17 +559,17 @@ export class TextCell extends Cell {
         }
 
         let caret = !_.isEmpty(this.props.row.children) && this.props.firstElement ?
-            <a style={{marginLeft: marginLeft, marginRight: 20}} href="javascript:;" className="expand-button" onClick={this.toggleExpand.bind(this)}>
+            <a style={{marginLeft: marginLeft, marginRight: 20}} href="javascript:;" className="expand-button" onClick={this.toggleExpand.bind(this)} onMouseDown={(e) => e.stopPropagation()}>
                 <i className={"c-black " + icon} />
             </a> : null
 
         let style = {}
-        if (caret == null && this.props.row.level > 1 && this.props.firstElement) {
+        if (caret == null && this.props.row.level > 0 && this.props.firstElement) {
             style.marginLeft = marginLeft + 20
         }
 
         return (
-            <td>{caret}<span style={style}>{this.props.value}</span></td>
+            <div>{caret}<span style={style}>{this.props.value}</span></div>
         )
     }
 }
@@ -532,7 +580,7 @@ export class CheckCell extends Cell {
         let icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o"
 
         return (
-            <td><i className={icon} /></td>
+            <i className={icon} />
         )
     }
 }
@@ -605,7 +653,11 @@ export class Pagination extends React.Component {
     }
 
     getTotalPages() {
-        let totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage))
+        if (!this.props.data || !this.props.data.rows || !this.props.query) {
+            return 1
+        }
+
+        let totalPages = parseInt(Math.ceil(this.props.data.totalRows / this.props.query.rowsPerPage))
         return totalPages
     }
 
@@ -623,7 +675,7 @@ export class Pagination extends React.Component {
     }
 
     render() {
-        if (_.isEmpty(this.props.query) || _.isEmpty(this.props.rows)) {
+        if (_.isEmpty(this.props.query) || _.isEmpty(this.props.data.rows)) {
             return null
         }
 
@@ -662,9 +714,9 @@ export class ResultSummary extends React.Component {
         let stop = 0
         let rowsPerPage = 0
         let page = 0
-        if (this.props.query && this.props.rows) {
+        if (this.props.query && this.props.data.rows) {
             rowsPerPage = this.props.query.rowsPerPage || 0
-            totalRows = this.props.rows.length
+            totalRows = this.props.data.totalRows
             page = parseInt(this.props.query.page || 1)
             start = (page - 1) * rowsPerPage + 1
             stop = Math.min(page * rowsPerPage, totalRows)
@@ -686,7 +738,7 @@ export class Grid extends React.Component {
     }
 
     getTotalRows() {
-        let totalRows = parseInt(this.props.rows.length)
+        let totalRows = parseInt(this.props.data.totalRows)
         return totalRows
     }
 
@@ -758,9 +810,9 @@ export class Grid extends React.Component {
         let expanded = !row.expanded
 
         if (expanded) {
-            row.children.forEach(r => r.expandedNow = true)
+            eachChildren(row.children, r => r.expandedNow = true)
         } else {
-            row.children.forEach(r => r.collapsedNow = true)
+            eachChildren(row.children, r => r.collapsedNow = true)
         }
         if (!expanded) {
             this.forceUpdate()
@@ -768,7 +820,7 @@ export class Grid extends React.Component {
             setTimeout(() => {
                 row.expanded = expanded
                 this.forceUpdate()
-            }, 250)
+            }, EXPAND_ANIMATION_TIME)
         } else {
             row.expanded = expanded
             this.forceUpdate()
@@ -776,8 +828,8 @@ export class Grid extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let rows = nextProps.rows
-        if (rows != null) {
+        let rows = nextProps.data && nextProps.data.rows
+        if (rows) {
             this.selection = new Selection(rows)
             this.selection.on("change", () => {
                 this.setState(this.state)
@@ -811,11 +863,11 @@ export class Grid extends React.Component {
     }
 
     getTotalPages() {
-        if (!this.props.rows || !this.props.query) {
+        if (!this.props.data || !this.props.data.rows || !this.props.query) {
             return 1
         }
 
-        let totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage))
+        let totalPages = parseInt(Math.ceil(this.props.data.totalRows / this.props.query.rowsPerPage))
         return totalPages
     }
 
@@ -826,8 +878,8 @@ export class Grid extends React.Component {
         
         let myQuery = this.props.query || query.create()
         let filtersHidden = myQuery.filters.length == 0
-        let hasResults = this.props.rows ? this.props.rows.length > 0 : false
-        let rows = this.props.rows
+        let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
+        let rows = this.props.data && this.props.data.rows
         let hasPagination = this.getTotalPages() > 1
 
         return (
@@ -842,15 +894,15 @@ export class Grid extends React.Component {
                             <div className="with-result">
                                 <table className="table table-striped table-hover">
                                     <Header descriptor={this.props.descriptor} query={myQuery}/>
-                                    <GridBody descriptor={this.props.descriptor} rows={rows} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
+                                    <GridBody descriptor={this.props.descriptor} data={this.props.data} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
                                     <Footer descriptor={this.props.descriptor} />
                                 </table>
 
                                 <div className="pull-right m-20" hidden={!hasPagination}>
-                                    <Pagination rows={this.props.rows} query={myQuery} />
+                                    <Pagination data={this.props.data} query={myQuery} />
                                 </div>
 
-                                <ResultSummary query={myQuery} rows={this.props.rows} />
+                                <ResultSummary query={myQuery} data={this.props.data} />
 
                                 <div className="clearfix"></div>
                             </div>
@@ -872,6 +924,8 @@ export class Grid extends React.Component {
 export function createCell(type, property, row, firstElement, onExpand) {
     let key = property + "" + row.index
     let value = row.data[property]
+
+
 
     switch (type) {
         case "check":

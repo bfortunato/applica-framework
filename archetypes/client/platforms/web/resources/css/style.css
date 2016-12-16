@@ -82,7 +82,7 @@ html.ismobile .global-loader {
   color: white; }
 
 .table-hover > tbody > tr.selected:hover {
-  background-color: #0960a5; }
+  background-color: #0c7cd5; }
 
 .result-summary {
   margin: 30px; }
@@ -93,6 +93,166 @@ html.ismobile .global-loader {
 /*-------------------------
     Grids
 --------------------------*/
+.table-hover > tbody > tr.level-0 {
+  background-color: white; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-0:nth-of-type(odd) {
+  background-color: #f9f9f9; }
+
+.table-hover > tbody > tr.level-0:hover {
+  background-color: #ebebeb; }
+
+.table-hover > tbody > tr.level-0.selected:hover {
+  background-color: #0c7cd5; }
+
+.table-hover > tbody > tr.level-0.selected {
+  background-color: #2196f3;
+  color: white; }
+
+.table-hover > tbody > tr.level-1 {
+  background-color: #e6e6e6; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-1:nth-of-type(odd) {
+  background-color: #e0e0e0; }
+
+.table-hover > tbody > tr.level-1:hover {
+  background-color: #d2d2d2; }
+
+.table-hover > tbody > tr.level-1.selected:hover {
+  background-color: #0960a5; }
+
+.table-hover > tbody > tr.level-1.selected {
+  background-color: #0c7cd5;
+  color: white; }
+
+.table-hover > tbody > tr.level-2 {
+  background-color: #cccccc; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-2:nth-of-type(odd) {
+  background-color: #c6c6c6; }
+
+.table-hover > tbody > tr.level-2:hover {
+  background-color: #b8b8b8; }
+
+.table-hover > tbody > tr.level-2.selected:hover {
+  background-color: #064475; }
+
+.table-hover > tbody > tr.level-2.selected {
+  background-color: #0960a5;
+  color: white; }
+
+.table-hover > tbody > tr.level-3 {
+  background-color: #b3b3b3; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-3:nth-of-type(odd) {
+  background-color: #adadad; }
+
+.table-hover > tbody > tr.level-3:hover {
+  background-color: #9f9f9f; }
+
+.table-hover > tbody > tr.level-3.selected:hover {
+  background-color: #042844; }
+
+.table-hover > tbody > tr.level-3.selected {
+  background-color: #064475;
+  color: white; }
+
+.table-hover > tbody > tr.level-4 {
+  background-color: #999999; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-4:nth-of-type(odd) {
+  background-color: #939393; }
+
+.table-hover > tbody > tr.level-4:hover {
+  background-color: #858585; }
+
+.table-hover > tbody > tr.level-4.selected:hover {
+  background-color: #010c14; }
+
+.table-hover > tbody > tr.level-4.selected {
+  background-color: #042844;
+  color: white; }
+
+.table-hover > tbody > tr.level-5 {
+  background-color: gray; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-5:nth-of-type(odd) {
+  background-color: #7a7a7a; }
+
+.table-hover > tbody > tr.level-5:hover {
+  background-color: #6c6c6c; }
+
+.table-hover > tbody > tr.level-5.selected:hover {
+  background-color: black; }
+
+.table-hover > tbody > tr.level-5.selected {
+  background-color: #010c14;
+  color: white; }
+
+.table-hover > tbody > tr.level-6 {
+  background-color: #666666; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-6:nth-of-type(odd) {
+  background-color: #606060; }
+
+.table-hover > tbody > tr.level-6:hover {
+  background-color: #525252; }
+
+.table-hover > tbody > tr.level-6.selected:hover {
+  background-color: black; }
+
+.table-hover > tbody > tr.level-6.selected {
+  background-color: black;
+  color: white; }
+
+.table-hover > tbody > tr.level-7 {
+  background-color: #4d4d4d; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-7:nth-of-type(odd) {
+  background-color: #474747; }
+
+.table-hover > tbody > tr.level-7:hover {
+  background-color: #393939; }
+
+.table-hover > tbody > tr.level-7.selected:hover {
+  background-color: black; }
+
+.table-hover > tbody > tr.level-7.selected {
+  background-color: black;
+  color: white; }
+
+.table-hover > tbody > tr.level-8 {
+  background-color: #333333; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-8:nth-of-type(odd) {
+  background-color: #2d2d2d; }
+
+.table-hover > tbody > tr.level-8:hover {
+  background-color: #1f1f1f; }
+
+.table-hover > tbody > tr.level-8.selected:hover {
+  background-color: black; }
+
+.table-hover > tbody > tr.level-8.selected {
+  background-color: black;
+  color: white; }
+
+.table-hover > tbody > tr.level-9 {
+  background-color: #1a1a1a; }
+
+.table-hover > tbody > tr:hover, .table-striped > tbody > tr.level-9:nth-of-type(odd) {
+  background-color: #141414; }
+
+.table-hover > tbody > tr.level-9:hover {
+  background-color: #060606; }
+
+.table-hover > tbody > tr.level-9.selected:hover {
+  background-color: black; }
+
+.table-hover > tbody > tr.level-9.selected {
+  background-color: black;
+  color: white; }
+
 tr.collapsible {
   -webkit-transition: transform 0.25s;
   -moz-transition: transform 0.25s;

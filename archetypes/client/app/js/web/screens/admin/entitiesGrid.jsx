@@ -6,7 +6,7 @@ import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid, resultToGridRows} from "../../components/grids"
+import {Grid, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 
@@ -18,13 +18,13 @@ function isEsc(which) {
     return which == 27
 }
 
-class EntitiesList extends Screen {
+export default class EntitiesList extends Screen {
     constructor(props) {
         super(props)
 
         let _query = query.create()
         _query.page = 1
-        _query.rowsPerPage = 20
+        _query.rowsPerPage = 5
 
         this.state = {grid: null, result: null, query: _query}
 
@@ -106,9 +106,10 @@ class EntitiesList extends Screen {
             ]
         }
 
-        //let rows = resultToGridRows(this.state.result)
+        let data = resultToGridData(this.state.result)
+        /*
         let rows = []
-        for (let x = 0; x < 50; x++) {
+        for (let x = 0; x < 34; x++) {
             let xo = {
                 index: x,
                 selected: false,
@@ -116,7 +117,7 @@ class EntitiesList extends Screen {
                 data: { name: "name" + x, mail: "mail" + x, active: true },
                 children: []
             }
-            for (let y = 0; y < 10; y++) {
+            for (let y = 0; y < 4; y++) {
                 let yo = {
                     index: y,
                     selected: false,
@@ -133,7 +134,19 @@ class EntitiesList extends Screen {
                         selected: false,
                         expanded: false,
                         data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
-                        children: null
+                        children: []
+                    }
+
+                    for (let h = 0; h < 5; h++) {
+                        let ho = {
+                            index: h,
+                            selected: false,
+                            expanded: false,
+                            data: { name: "name" + x + y + z + h, mail: "mail" + x + y + z + h, active: true },
+                            children: null
+                        }
+
+                        zo.children.push(ho)
                     }
 
                     yo.children.push(zo)
@@ -141,12 +154,14 @@ class EntitiesList extends Screen {
             }
 
             rows.push(xo)
+
         }
+        */
 
         return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
-                <Grid ref="grid" descriptor={descriptor} rows={rows} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
+                <Grid ref="grid" descriptor={descriptor} data={data} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

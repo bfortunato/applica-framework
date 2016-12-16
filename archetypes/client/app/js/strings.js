@@ -37,5 +37,7 @@ export default {
     create: "Create",
     refresh: "Refresh",
     confirm: "Confirm",
-    entityDeleteConfirm: "Are you sure to delete {0} entities?"
+    entityDeleteConfirm: "Are you sure to delete {0} entities?",
+    submit: "Submit",
+    cancel: "Cancel"
 }

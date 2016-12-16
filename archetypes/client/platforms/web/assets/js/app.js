@@ -23323,7 +23323,9 @@ exports.default = {
     create: "Create",
     refresh: "Refresh",
     confirm: "Confirm",
-    entityDeleteConfirm: "Are you sure to delete {0} entities?"
+    entityDeleteConfirm: "Are you sure to delete {0} entities?",
+    submit: "Submit",
+    cancel: "Cancel"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -23515,13 +23517,13 @@ var Card = exports.Card = function (_React$Component3) {
         key: "render",
         value: function render() {
             var actionKey = 1;
-            var className = "card";
+            var bodyClass = "card-body";
             if (this.props.padding) {
-                className += " card-padding";
+                bodyClass += " card-padding";
             }
             return React.createElement(
                 "div",
-                { className: className },
+                { className: "card" },
                 !_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ? React.createElement(
                     "div",
                     { className: "card-header" },
@@ -23543,7 +23545,11 @@ var Card = exports.Card = function (_React$Component3) {
                         })
                     ) : null
                 ) : null,
-                this.props.children
+                React.createElement(
+                    "div",
+                    { className: bodyClass },
+                    this.props.children
+                )
             );
         }
     }]);
@@ -23581,6 +23587,428 @@ var FloatingButton = exports.FloatingButton = function (_React$Component4) {
     return FloatingButton;
 }(React.Component);
 });
+define('web/components/forms.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Model = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _common = require("./common");
+
+var _lang = require("../../utils/lang");
+
+var _events = require("../../aj/events");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Model = exports.Model = function (_Observable) {
+    _inherits(Model, _Observable);
+
+    function Model() {
+        _classCallCheck(this, Model);
+
+        var _this = _possibleConstructorReturn(this, (Model.__proto__ || Object.getPrototypeOf(Model)).call(this));
+
+        _this.data = {};
+        return _this;
+    }
+
+    _createClass(Model, [{
+        key: "set",
+        value: function set(key, value) {}
+    }, {
+        key: "get",
+        value: function get(key) {
+            return key;
+        }
+    }, {
+        key: "isValid",
+        value: function isValid(key) {}
+    }]);
+
+    return Model;
+}(_events.Observable);
+
+var Field = exports.Field = function (_React$Component) {
+    _inherits(Field, _React$Component);
+
+    function Field() {
+        _classCallCheck(this, Field);
+
+        return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).apply(this, arguments));
+    }
+
+    _createClass(Field, [{
+        key: "render",
+        value: function render() {
+            var className = "form-group " + (this.props.field.size ? this.props.field.size : "");
+            var control = React.createElement(this.props.field.control, { field: this.props.field });
+            var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
+            var controlSize = hasLabel ? "col-sm-10" : "col-sm-12";
+            return React.createElement(
+                "div",
+                { className: className },
+                hasLabel && React.createElement(
+                    "div",
+                    { className: "col-sm-2" },
+                    React.createElement(Label, { field: this.props.field })
+                ),
+                React.createElement(
+                    "div",
+                    { className: controlSize },
+                    control
+                )
+            );
+        }
+    }]);
+
+    return Field;
+}(React.Component);
+
+var Control = exports.Control = function (_React$Component2) {
+    _inherits(Control, _React$Component2);
+
+    function Control(props) {
+        _classCallCheck(this, Control);
+
+        return _possibleConstructorReturn(this, (Control.__proto__ || Object.getPrototypeOf(Control)).call(this, props));
+    }
+
+    _createClass(Control, [{
+        key: "value",
+        set: function set(newValue) {},
+        get: function get() {}
+    }]);
+
+    return Control;
+}(React.Component);
+
+var Text = exports.Text = function (_Control) {
+    _inherits(Text, _Control);
+
+    function Text() {
+        _classCallCheck(this, Text);
+
+        return _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).apply(this, arguments));
+    }
+
+    _createClass(Text, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", { type: "text", className: "form-control input-sm", id: field.property, placeholder: field.placeholder })
+            );
+        }
+    }]);
+
+    return Text;
+}(Control);
+
+var Mail = exports.Mail = function (_Control2) {
+    _inherits(Mail, _Control2);
+
+    function Mail() {
+        _classCallCheck(this, Mail);
+
+        return _possibleConstructorReturn(this, (Mail.__proto__ || Object.getPrototypeOf(Mail)).apply(this, arguments));
+    }
+
+    _createClass(Mail, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", { type: "email", className: "form-control input-sm", id: field.property, placeholder: field.placeholder })
+            );
+        }
+    }]);
+
+    return Mail;
+}(Control);
+
+var Check = exports.Check = function (_Control3) {
+    _inherits(Check, _Control3);
+
+    function Check() {
+        _classCallCheck(this, Check);
+
+        return _possibleConstructorReturn(this, (Check.__proto__ || Object.getPrototypeOf(Check)).apply(this, arguments));
+    }
+
+    _createClass(Check, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "checkbox" },
+                React.createElement(
+                    "label",
+                    null,
+                    React.createElement("input", { type: "checkbox", name: field.property, id: field.property, value: this.props.value }),
+                    React.createElement("i", { className: "input-helper" }),
+                    field.placeholder
+                )
+            );
+        }
+    }]);
+
+    return Check;
+}(Control);
+
+var Label = exports.Label = function (_React$Component3) {
+    _inherits(Label, _React$Component3);
+
+    function Label() {
+        _classCallCheck(this, Label);
+
+        return _possibleConstructorReturn(this, (Label.__proto__ || Object.getPrototypeOf(Label)).apply(this, arguments));
+    }
+
+    _createClass(Label, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return !_.isEmpty(field.label) && React.createElement(
+                "label",
+                { style: { width: "100%" }, htmlFor: field.property, className: "control-label" },
+                field.label
+            );
+        }
+    }]);
+
+    return Label;
+}(React.Component);
+
+var Area = exports.Area = function (_React$Component4) {
+    _inherits(Area, _React$Component4);
+
+    function Area() {
+        _classCallCheck(this, Area);
+
+        return _possibleConstructorReturn(this, (Area.__proto__ || Object.getPrototypeOf(Area)).apply(this, arguments));
+    }
+
+    _createClass(Area, [{
+        key: "render",
+        value: function render() {
+            var _this9 = this;
+
+            var area = this.props.area;
+            var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model });
+            var fields = area.fields.map(function (f) {
+                return React.createElement(Field, { key: f.property, model: _this9.props.model, field: f });
+            });
+
+            return React.createElement(
+                _common.Card,
+                { padding: "true", title: area.title, subtitle: area.subtitle },
+                tabs,
+                fields
+            );
+        }
+    }]);
+
+    return Area;
+}(React.Component);
+
+var Tabs = exports.Tabs = function (_React$Component5) {
+    _inherits(Tabs, _React$Component5);
+
+    function Tabs() {
+        _classCallCheck(this, Tabs);
+
+        return _possibleConstructorReturn(this, (Tabs.__proto__ || Object.getPrototypeOf(Tabs)).apply(this, arguments));
+    }
+
+    _createClass(Tabs, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this11 = this;
+
+            var me = ReactDOM.findDOMNode(this);
+            console.log(me);
+            $(me).find(".tab-button").click(function (e) {
+                console.log("ciao");
+                e.preventDefault();
+                $(_this11).tab("show");
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this12 = this;
+
+            var first = true;
+            var tabs = this.props.tabs;
+            var nav = tabs.map(function (n) {
+                var el = React.createElement(
+                    "li",
+                    { key: "nav_" + n.key, className: first ? "active" : "" },
+                    React.createElement(
+                        "a",
+                        { className: "tab-button", role: "tab", "data-toggle": "tab", href: "#" + n.key },
+                        n.title
+                    )
+                );
+                first = false;
+                return el;
+            });
+            first = true;
+            var panes = tabs.map(function (c) {
+                var fields = c.fields.map(function (f) {
+                    return React.createElement(Field, { key: f.property, model: _this12.props.model, field: f });
+                });
+                var el = React.createElement(
+                    "div",
+                    { key: "pane_" + c.key, role: "tabpanel", className: "tab-pane" + (first ? " active" : ""), id: "" + c.key },
+                    fields,
+                    React.createElement("div", { className: "clearfix" })
+                );
+                first = false;
+                return el;
+            });
+
+            return React.createElement(
+                "div",
+                null,
+                React.createElement(
+                    "ul",
+                    { className: "tab-nav", role: "tablist" },
+                    nav
+                ),
+                React.createElement(
+                    "div",
+                    { className: "tab-content" },
+                    panes
+                )
+            );
+        }
+    }]);
+
+    return Tabs;
+}(React.Component);
+
+var AREA_KEY = 1;
+var TAB_KEY = 1;
+
+function generateKeys(descriptor) {
+    descriptor.areas.forEach(function (a) {
+        if (_.isEmpty(a.key)) {
+            a.key = "area" + AREA_KEY++;
+        }
+
+        if (!_.isEmpty(a.tabs)) {
+            a.tabs.forEach(function (t) {
+                if (_.isEmpty(t.key)) {
+                    t.key = "tab" + TAB_KEY++;
+                }
+            });
+        }
+    });
+
+    if (!_.isEmpty(descriptor.tabs)) {
+        descriptor.tabs.forEach(function (t) {
+            if (_.isEmpty(t.key)) {
+                t.key = "tab" + TAB_KEY++;
+            }
+        });
+    }
+}
+
+var Form = exports.Form = function (_React$Component6) {
+    _inherits(Form, _React$Component6);
+
+    function Form(props) {
+        _classCallCheck(this, Form);
+
+        return _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
+    }
+
+    _createClass(Form, [{
+        key: "render",
+        value: function render() {
+            var descriptor = this.props.descriptor;
+            var model = this.props.model || new Model();
+
+            generateKeys(descriptor);
+
+            var areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(function (a) {
+                return React.createElement(Area, { key: a.key, model: model, area: a });
+            });
+            var tabs = !_.isEmpty(descriptor.tabs) && React.createElement(Tabs, { tabs: descriptor.tabs, model: model });
+            var fields = descriptor.fields.map(function (f) {
+                return React.createElement(Field, { key: f.property, model: model, field: f });
+            });
+
+            return React.createElement(
+                "div",
+                { className: "form" },
+                React.createElement(
+                    "form",
+                    { className: "form-horizontal", role: "form" },
+                    areas,
+                    React.createElement(
+                        _common.Card,
+                        { padding: "true" },
+                        tabs,
+                        fields,
+                        React.createElement("div", { className: "clearfix" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "form-group" },
+                        React.createElement(
+                            "div",
+                            { className: "text-right col-sm-12" },
+                            React.createElement(
+                                "button",
+                                { type: "submit", className: "btn btn-default waves-effect m-r-10" },
+                                React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
+                                " ",
+                                descriptor.cancelText || _strings2.default.cancel
+                            ),
+                            React.createElement(
+                                "button",
+                                { type: "submit", className: "btn btn-primary waves-effect" },
+                                React.createElement("i", { className: "zmdi zmdi-save" }),
+                                " ",
+                                descriptor.submitText || _strings2.default.submit
+                            )
+                        )
+                    ),
+                    React.createElement("div", { className: "clearfix" })
+                )
+            );
+        }
+    }]);
+
+    return Form;
+}(React.Component);
+});
 define('web/components/grids.js', function(module, exports) {
 "use strict";
 
@@ -23591,7 +24019,7 @@ exports.Grid = exports.ResultSummary = exports.Pagination = exports.Filters = ex
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-exports.resultToGridRows = resultToGridRows;
+exports.resultToGridData = resultToGridData;
 exports.createCell = createCell;
 
 var _query = require("../../api/query");
@@ -23618,6 +24046,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var EXPAND_ANIMATION_TIME = 250;
+var CELL_PADDING_TOP = 15;
+var CELL_PADDING_BOTTOM = 15;
+
 function isMac() {
     return navigator.platform.indexOf('Mac') > -1;
 }
@@ -23642,19 +24074,32 @@ function isDown(which) {
     return which == 40;
 }
 
-function resultToGridRows(result) {
+function eachChildren(root, action) {
+    if (_.isArray(root)) {
+        root.forEach(function (c) {
+            action(c);
+
+            eachChildren(c.children, action);
+        });
+    }
+}
+
+function resultToGridData(result) {
     if (!result || !result.rows) {
         return null;
     }
     var index = 0;
-    return result.rows.map(function (r) {
-        return {
-            data: r,
-            index: index++,
-            children: null,
-            selected: false
-        };
-    });
+    return {
+        totalRows: result.totalRows,
+        rows: result.rows.map(function (r) {
+            return {
+                data: r,
+                index: index++,
+                children: null,
+                selected: false
+            };
+        })
+    };
 }
 
 var Selection = function (_Observable) {
@@ -24128,6 +24573,26 @@ var Row = exports.Row = function (_React$Component4) {
             }
         }
     }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var expandedNow = this.props.row.expandedNow || false;
+            if (expandedNow) {
+                var me = ReactDOM.findDOMNode(this);
+                this.props.row.expandedNow = undefined;
+                $(me).find("td").css({ paddingTop: 0, paddingBottom: 0 }).stop().animate({ paddingTop: CELL_PADDING_TOP, paddingBottom: CELL_PADDING_BOTTOM }, EXPAND_ANIMATION_TIME).end().find(".grid-cell-container").hide().slideDown(EXPAND_ANIMATION_TIME);
+            }
+        }
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate() {
+            var collapsedNow = this.props.row.collapsedNow || false;
+            if (collapsedNow) {
+                var me = ReactDOM.findDOMNode(this);
+                this.props.row.collapsedNow = undefined;
+                $(me).find("td").stop().animate({ paddingTop: 0, paddingBottom: 0 }, EXPAND_ANIMATION_TIME).end().find(".grid-cell-container").slideUp(EXPAND_ANIMATION_TIME);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this9 = this;
@@ -24143,21 +24608,21 @@ var Row = exports.Row = function (_React$Component4) {
             };
 
             var firstElement = true;
+            var key = 1;
             var cells = this.props.descriptor.columns.map(function (c) {
                 var cell = createCell(c.component, c.property, _this9.props.row, firstElement, onExpand);
                 firstElement = false;
-                return cell;
+                return React.createElement(
+                    "td",
+                    { key: key++ },
+                    React.createElement(
+                        "div",
+                        { className: "grid-cell-container" },
+                        cell
+                    )
+                );
             });
-            var className = this.props.row.selected ? "selected" : "";
-            var expandedNow = this.props.row.expandedNow || false;
-            var collapsedNow = this.props.row.collapsedNow || false;
-            if (expandedNow) {
-                this.props.row.expandedNow = undefined;
-                className += " animated animated-fast fadeInDown";
-            } else if (collapsedNow) {
-                this.props.row.collapsedNow = undefined;
-                className += " animated animated-fast fadeOutUp";
-            }
+            var className = "level-" + this.props.row.level + " " + (this.props.row.selected ? "selected" : "");
 
             return React.createElement(
                 "tr",
@@ -24209,17 +24674,17 @@ var GridBody = exports.GridBody = function (_React$Component5) {
                 return null;
             }
 
-            var rows = this.props.rows || [];
+            var rows = this.props.data.rows || [];
             var rowElements = [];
             var level = this.props.level || 0;
-            var index = 1;
-
-            var addElements = function addElements(children, level) {
+            var index = 0;
+            var addElements = function addElements(children, level, parentKey) {
+                var key = 1;
                 children.forEach(function (r) {
                     r.index = index++;
                     r.level = level;
                     var element = React.createElement(Row, {
-                        key: index++,
+                        key: parentKey + "_" + key++,
                         descriptor: _this11.props.descriptor,
                         row: r,
                         query: _this11.props.query,
@@ -24231,13 +24696,13 @@ var GridBody = exports.GridBody = function (_React$Component5) {
 
                     if (!_.isEmpty(r.children)) {
                         if (r.expanded) {
-                            addElements(r.children, level + 1);
+                            addElements(r.children, level + 1, parentKey + "_" + key);
                         }
                     }
                 });
             };
 
-            addElements(rows, level);
+            addElements(rows, level, "root");
 
             return React.createElement(
                 "tbody",
@@ -24334,9 +24799,13 @@ var TextCell = exports.TextCell = function (_Cell) {
 
     _createClass(TextCell, [{
         key: "toggleExpand",
-        value: function toggleExpand() {
+        value: function toggleExpand(e) {
             if (_.isFunction(this.props.onExpand)) {
                 this.props.onExpand(this.props.row);
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                console.log("propagation stopped");
             }
         }
     }, {
@@ -24352,17 +24821,19 @@ var TextCell = exports.TextCell = function (_Cell) {
 
             var caret = !_.isEmpty(this.props.row.children) && this.props.firstElement ? React.createElement(
                 "a",
-                { style: { marginLeft: marginLeft, marginRight: 20 }, href: "javascript:;", className: "expand-button", onClick: this.toggleExpand.bind(this) },
+                { style: { marginLeft: marginLeft, marginRight: 20 }, href: "javascript:;", className: "expand-button", onClick: this.toggleExpand.bind(this), onMouseDown: function onMouseDown(e) {
+                        return e.stopPropagation();
+                    } },
                 React.createElement("i", { className: "c-black " + icon })
             ) : null;
 
             var style = {};
-            if (caret == null && this.props.row.level > 1 && this.props.firstElement) {
+            if (caret == null && this.props.row.level > 0 && this.props.firstElement) {
                 style.marginLeft = marginLeft + 20;
             }
 
             return React.createElement(
-                "td",
+                "div",
                 null,
                 caret,
                 React.createElement(
@@ -24392,11 +24863,7 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
             var checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0;
             var icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o";
 
-            return React.createElement(
-                "td",
-                null,
-                React.createElement("i", { className: icon })
-            );
+            return React.createElement("i", { className: icon });
         }
     }]);
 
@@ -24542,7 +25009,11 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     }, {
         key: "getTotalPages",
         value: function getTotalPages() {
-            var totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage));
+            if (!this.props.data || !this.props.data.rows || !this.props.query) {
+                return 1;
+            }
+
+            var totalPages = parseInt(Math.ceil(this.props.data.totalRows / this.props.query.rowsPerPage));
             return totalPages;
         }
     }, {
@@ -24563,7 +25034,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     }, {
         key: "render",
         value: function render() {
-            if (_.isEmpty(this.props.query) || _.isEmpty(this.props.rows)) {
+            if (_.isEmpty(this.props.query) || _.isEmpty(this.props.data.rows)) {
                 return null;
             }
 
@@ -24630,9 +25101,9 @@ var ResultSummary = exports.ResultSummary = function (_React$Component13) {
             var stop = 0;
             var rowsPerPage = 0;
             var page = 0;
-            if (this.props.query && this.props.rows) {
+            if (this.props.query && this.props.data.rows) {
                 rowsPerPage = this.props.query.rowsPerPage || 0;
-                totalRows = this.props.rows.length;
+                totalRows = this.props.data.totalRows;
                 page = parseInt(this.props.query.page || 1);
                 start = (page - 1) * rowsPerPage + 1;
                 stop = Math.min(page * rowsPerPage, totalRows);
@@ -24665,7 +25136,7 @@ var Grid = exports.Grid = function (_React$Component14) {
     _createClass(Grid, [{
         key: "getTotalRows",
         value: function getTotalRows() {
-            var totalRows = parseInt(this.props.rows.length);
+            var totalRows = parseInt(this.props.data.totalRows);
             return totalRows;
         }
     }, {
@@ -24744,11 +25215,11 @@ var Grid = exports.Grid = function (_React$Component14) {
             var expanded = !row.expanded;
 
             if (expanded) {
-                row.children.forEach(function (r) {
+                eachChildren(row.children, function (r) {
                     return r.expandedNow = true;
                 });
             } else {
-                row.children.forEach(function (r) {
+                eachChildren(row.children, function (r) {
                     return r.collapsedNow = true;
                 });
             }
@@ -24758,7 +25229,7 @@ var Grid = exports.Grid = function (_React$Component14) {
                 setTimeout(function () {
                     row.expanded = expanded;
                     _this25.forceUpdate();
-                }, 250);
+                }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
                 this.forceUpdate();
@@ -24769,8 +25240,8 @@ var Grid = exports.Grid = function (_React$Component14) {
         value: function componentWillReceiveProps(nextProps) {
             var _this26 = this;
 
-            var rows = nextProps.rows;
-            if (rows != null) {
+            var rows = nextProps.data && nextProps.data.rows;
+            if (rows) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
                     _this26.setState(_this26.state);
@@ -24808,11 +25279,11 @@ var Grid = exports.Grid = function (_React$Component14) {
     }, {
         key: "getTotalPages",
         value: function getTotalPages() {
-            if (!this.props.rows || !this.props.query) {
+            if (!this.props.data || !this.props.data.rows || !this.props.query) {
                 return 1;
             }
 
-            var totalPages = parseInt(Math.ceil(this.props.rows.length / this.props.query.rowsPerPage));
+            var totalPages = parseInt(Math.ceil(this.props.data.totalRows / this.props.query.rowsPerPage));
             return totalPages;
         }
     }, {
@@ -24824,8 +25295,8 @@ var Grid = exports.Grid = function (_React$Component14) {
 
             var myQuery = this.props.query || query.create();
             var filtersHidden = myQuery.filters.length == 0;
-            var hasResults = this.props.rows ? this.props.rows.length > 0 : false;
-            var rows = this.props.rows;
+            var hasResults = this.props.data && this.props.data.rows ? this.props.data.rows.length > 0 : false;
+            var rows = this.props.data && this.props.data.rows;
             var hasPagination = this.getTotalPages() > 1;
 
             return React.createElement(
@@ -24849,15 +25320,15 @@ var Grid = exports.Grid = function (_React$Component14) {
                                 "table",
                                 { className: "table table-striped table-hover" },
                                 React.createElement(Header, { descriptor: this.props.descriptor, query: myQuery }),
-                                React.createElement(GridBody, { descriptor: this.props.descriptor, rows: rows, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
+                                React.createElement(GridBody, { descriptor: this.props.descriptor, data: this.props.data, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
                                 React.createElement(Footer, { descriptor: this.props.descriptor })
                             ),
                             React.createElement(
                                 "div",
                                 { className: "pull-right m-20", hidden: !hasPagination },
-                                React.createElement(Pagination, { rows: this.props.rows, query: myQuery })
+                                React.createElement(Pagination, { data: this.props.data, query: myQuery })
                             ),
-                            React.createElement(ResultSummary, { query: myQuery, rows: this.props.rows }),
+                            React.createElement(ResultSummary, { query: myQuery, data: this.props.data }),
                             React.createElement("div", { className: "clearfix" })
                         ) : //no results
                         React.createElement(
@@ -25825,8 +26296,11 @@ function ifAdmin(fn) {
 plugins.register();
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesList, { entity: params.entity, grid: params.grid }));
+ui.addRoute("/admin/entities/:entity/", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(EntitiesGrid, { entity: params.entity, grid: params.grid }));
+});
+ui.addRoute("/admin/entities/:entity/edit", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity, form: params.form }));
 });
 
 /* Account routes */
@@ -25950,8 +26424,12 @@ exports.register = function () {
     window.Loader = exports.Loader;
 };
 });
-define('web/screens/admin/entitiesList.js', function(module, exports) {
+define('web/screens/admin/entitiesGrid.js', function(module, exports) {
 "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -26005,7 +26483,7 @@ var EntitiesList = function (_Screen) {
 
         var _query = query.create();
         _query.page = 1;
-        _query.rowsPerPage = 20;
+        _query.rowsPerPage = 5;
 
         _this.state = { grid: null, result: null, query: _query };
 
@@ -26095,48 +26573,56 @@ var EntitiesList = function (_Screen) {
                 "columns": [{ "property": "name", "header": "Name", "component": "text", "sortable": true }, { "property": "mail", "header": "Mail", "component": "text", "sortable": true }, { "property": "active", "header": "Active", "component": "check" }]
             };
 
-            //let rows = resultToGridRows(this.state.result)
-            var rows = [];
-            for (var x = 0; x < 50; x++) {
-                var xo = {
+            var data = (0, _grids.resultToGridData)(this.state.result);
+            /*
+            let rows = []
+            for (let x = 0; x < 34; x++) {
+                let xo = {
                     index: x,
                     selected: false,
                     expanded: false,
                     data: { name: "name" + x, mail: "mail" + x, active: true },
                     children: []
-                };
-                for (var y = 0; y < 10; y++) {
-                    var yo = {
+                }
+                for (let y = 0; y < 4; y++) {
+                    let yo = {
                         index: y,
                         selected: false,
                         expanded: false,
                         data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
                         children: []
-                    };
-
-                    xo.children.push(yo);
-
-                    for (var z = 0; z < 5; z++) {
-                        var zo = {
+                    }
+                     xo.children.push(yo)
+                     for (let z = 0; z < 5; z++) {
+                        let zo = {
                             index: z,
                             selected: false,
                             expanded: false,
                             data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
-                            children: null
-                        };
-
-                        yo.children.push(zo);
+                            children: []
+                        }
+                         for (let h = 0; h < 5; h++) {
+                            let ho = {
+                                index: h,
+                                selected: false,
+                                expanded: false,
+                                data: { name: "name" + x + y + z + h, mail: "mail" + x + y + z + h, active: true },
+                                children: null
+                            }
+                             zo.children.push(ho)
+                        }
+                         yo.children.push(zo)
                     }
                 }
-
-                rows.push(xo);
-            }
+                 rows.push(xo)
+             }
+            */
 
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
-                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, rows: rows, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
+                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, data: data, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
@@ -26145,7 +26631,119 @@ var EntitiesList = function (_Screen) {
     return EntitiesList;
 }(_layout.Screen);
 
+exports.default = EntitiesList;
+
+
 module.exports = EntitiesList;
+});
+define('web/screens/admin/entityForm.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _stores = require("../../../stores");
+
+var _layout = require("../../components/layout");
+
+var _strings = require("../../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _aj = require("../../utils/aj");
+
+var _common = require("../../components/common");
+
+var _forms = require("../../components/forms");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function isCancel(which) {
+    return which == 46 || which == 8;
+}
+
+function isEsc(which) {
+    return which == 27;
+}
+
+var EntityForm = function (_Screen) {
+    _inherits(EntityForm, _Screen);
+
+    function EntityForm(props) {
+        _classCallCheck(this, EntityForm);
+
+        var _this = _possibleConstructorReturn(this, (EntityForm.__proto__ || Object.getPrototypeOf(EntityForm)).call(this, props));
+
+        (0, _aj.connect)(_this, [_stores.entities]);
+        return _this;
+    }
+
+    _createClass(EntityForm, [{
+        key: "saveEntity",
+        value: function saveEntity() {}
+    }, {
+        key: "render",
+        value: function render() {
+            var actions = [{
+                type: "button",
+                icon: "zmdi zmdi-arrow-left",
+                tooltip: _strings2.default.refresh,
+                action: function action() {
+                    swal("Ciao");
+                }
+            }, {
+                type: "button",
+                icon: "zmdi zmdi-save",
+                tooltip: _strings2.default.create,
+                action: function action() {
+                    swal("Ciao");
+                }
+            }];
+
+            var descriptor = {
+                id: "user",
+                submitText: "Save",
+                areas: [{
+                    title: "General informations",
+                    subtitle: "Insert all information about user",
+                    fields: [{ property: "name", control: _forms.Text, label: "Name", placeholder: "Name" }, { property: "mail", control: _forms.Mail, label: "Mail", placeholder: "Mail" }, { property: "active", control: _forms.Check, label: "", placeholder: "Active" }]
+                }, {
+                    title: "General informations 2",
+                    subtitle: "Insert all information about user",
+                    fields: [{ property: "name", control: _forms.Text, label: "Name", placeholder: "Name" }, { property: "mail", control: _forms.Mail, label: "Mail", placeholder: "Mail" }, { property: "active", control: _forms.Check, label: "", placeholder: "Active" }]
+                }],
+                tabs: [{
+                    title: "Tab 1",
+                    fields: [{ property: "tab1_name1", control: _forms.Text, label: "tab1_name1", placeholder: "tab1_placeholder1" }, { property: "tab1_name2", control: _forms.Text, label: "tab1_name2", placeholder: "tab1_placeholder2" }]
+                }, {
+                    title: "Tab 2",
+                    fields: [{ property: "tab2_name1", control: _forms.Text, label: "tab2_name1", placeholder: "tab2_placeholder1" }, { property: "tab2_name2", control: _forms.Text, label: "tab2_name2", placeholder: "tab2_placeholder2" }]
+                }],
+                fields: [{ property: "root_name", control: _forms.Text, placeholder: "Name", size: "col-sm-6" }, { property: "root_mail", control: _forms.Mail, placeholder: "Mail", size: "col-sm-6" }]
+            };
+
+            return React.createElement(
+                _layout.Layout,
+                null,
+                React.createElement(_common.HeaderBlock, { title: "User", subtitle: "Edit user", actions: actions }),
+                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor })
+            );
+        }
+    }]);
+
+    return EntityForm;
+}(_layout.Screen);
+
+exports.default = EntityForm;
 });
 define('web/screens/admin/index.js', function(module, exports) {
 "use strict";
@@ -26153,7 +26751,8 @@ define('web/screens/admin/index.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var EntitiesList = exports.EntitiesList = require("./entitiesList");
+var EntitiesGrid = exports.EntitiesGrid = require("./entitiesGrid").default;
+var EntityForm = exports.EntityForm = require("./entityForm").default;
 });
 define('web/screens/confirm.js', function(module, exports) {
 "use strict";

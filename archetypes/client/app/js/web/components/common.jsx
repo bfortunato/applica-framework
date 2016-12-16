@@ -44,12 +44,12 @@ export class HeaderBlock extends React.Component {
 export class Card extends React.Component {
     render() {
         let actionKey = 1
-        let className = "card"
+        let bodyClass = "card-body"
         if (this.props.padding) {
-            className += " card-padding"
+            bodyClass += " card-padding"
         }
         return (
-            <div className={className}>
+            <div className="card">
                 {!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ?
                     <div className="card-header">
                         <h2>
@@ -66,8 +66,9 @@ export class Card extends React.Component {
                         : null }
                     </div>
                     : null }
-
-                {this.props.children}
+                <div className={bodyClass}>
+                    {this.props.children}
+                </div>
             </div>
         )
     }

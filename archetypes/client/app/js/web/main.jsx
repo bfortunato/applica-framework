@@ -8,7 +8,7 @@ import Confirm from "./screens/confirm"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
 import { resumeSession } from "../actions"
-import { EntitiesList } from "./screens/admin"
+import { EntityForm } from "./screens/admin"
 
 function ifAdmin(fn, ...params) {
     if (true) {
@@ -20,7 +20,8 @@ function ifAdmin(fn, ...params) {
 plugins.register()
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity", params => ifAdmin(ui.changeScreen, <EntitiesList entity={params.entity} grid={params.grid} />))
+ui.addRoute("/admin/entities/:entity/", params => ifAdmin(ui.changeScreen, <EntitiesGrid entity={params.entity} grid={params.grid} />))
+ui.addRoute("/admin/entities/:entity/edit", params => ifAdmin(ui.changeScreen, <EntityForm entity={params.entity} form={params.form} />))
 
 /* Account routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))

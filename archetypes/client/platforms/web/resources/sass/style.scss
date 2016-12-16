@@ -112,7 +112,7 @@ html.ismobile .global-loader {
 }
 
 .table-hover>tbody>tr.selected:hover {
-  background-color: darken($primary-color, 20%)
+  background-color: darken($primary-color, 10%)
 }
 
 .result-summary {
@@ -126,6 +126,31 @@ html.ismobile .global-loader {
 /*-------------------------
     Grids
 --------------------------*/
+
+$darken-value: 10%;
+
+@for $i from 0 to 10 {
+  .table-hover > tbody > tr.level-#{$i} {
+    background-color: darken(#FFFFFF, $i * $darken-value);
+  }
+
+  .table-hover>tbody>tr:hover, .table-striped>tbody>tr.level-#{$i}:nth-of-type(odd) {
+    background-color: darken(#f9f9f9, $darken-value * $i);
+  }
+
+  .table-hover > tbody > tr.level-#{$i}:hover {
+    background-color: darken($hover-color, $i * $darken-value);
+  }
+
+  .table-hover > tbody > tr.level-#{$i}.selected:hover {
+    background-color: darken($primary-color, 10% + $i * $darken-value)
+  }
+
+  .table-hover > tbody > tr.level-#{$i}.selected {
+    background-color: darken($primary-color, $i * $darken-value);
+    color: white;
+  }
+}
 
 tr.collapsible {
   -webkit-transition: transform 0.25s;
