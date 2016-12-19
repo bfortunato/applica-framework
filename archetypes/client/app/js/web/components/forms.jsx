@@ -9,30 +9,180 @@ export class Model extends Observable {
     constructor() {
         super()
 
+        this.descriptor = null
         this.data = {}
+        this.validationResult = {}
     }
 
-    set(key, value) {
+    findField(property) {
+        if (this.descriptor == null) {
+            throw new Error("Please specify a descriptor")
+        }
 
+        const Break = {}
+        let field = null
+        try {
+            if (!_.isEmpty(this.descriptor.areas)) {
+                this.descriptor.areas.forEach(a => {
+                    if (!_.isEmpty(a.tabs)) {
+                        a.tabs.forEach(t => {
+                            if (!_.isEmpty(t.fields)) {
+                                t.fields.forEach(f => {
+                                    if (f.property == property) {
+                                        field = f
+                                        throw Break
+                                    }
+                                })
+                            }
+                            if (field != null) {
+                                throw Break
+                            }
+                        })
+                    }
+                    if (field != null) {
+                        return
+                    }
+                    if (!_.isEmpty(a.fields)) {
+                        a.fields.forEach(f => {
+                            if (f.property == property) {
+                                field = f
+                                throw Break
+                            }
+                        })
+                    }
+                    if (field != null) {
+                        throw Break
+                    }
+                })
+            }
+
+            if (field == null) {
+                if (!_.isEmpty(this.descriptor.tabs)) {
+                    this.descriptor.tabs.forEach(t => {
+                        if (!_.isEmpty(t.fields)) {
+                            t.fields.forEach(f => {
+                                if (f.property == property) {
+                                    field = f
+                                    throw Break
+                                }
+                            })
+                        }
+                        if (field != null) {
+                            throw Break
+                        }
+                    })
+                }
+            }
+
+            if (field == null) {
+                if (!_.isEmpty(this.descriptor.fields)) {
+                    this.descriptor.fields.forEach(f => {
+                        if (f.property == property) {
+                            field = f
+                            throw Break
+                        }
+                    })
+                }
+            }
+        } catch (e) {
+            if (e !== Break) {
+                throw e
+            }
+        }
+
+        return field
     }
 
-    get(key) {
-        return key
+    set(property, value) {
+        let field = this.findField(property)
+        if (field != null) {
+            let v = _.isFunction(field.sanitizer) ? field.sanitizer(value) : value
+            this.data[property] = v
+        } else {
+            this.data[property] = v
+        }
     }
 
-    isValid(key) {
-
+    get(property) {
+        if (_.has(this.data, property)) {
+            return this.data[property]
+        } else {
+            return ""
+        }
     }
 
+    validateField(validationResult, field) {
+        let value = this.data[field.property]
+        try {
+            if (_.isFunction(field.validator)) {
+                field.validator(value)
+            }
 
+            validationResult[field.property] = {
+                valid: true,
+                message: null
+            }
+        } catch (e) {
+            validationResult[field.property] = {
+                valid: false,
+                message: e.message
+            }
+        }
+    }
+
+    validate() {
+        this.validationResult = {}
+        if (!_.isEmpty(this.descriptor.areas)) {
+            this.descriptor.areas.forEach(a => {
+                if (!_.isEmpty(a.tabs)) {
+                    a.tabs.forEach(t => {
+                        if (!_.isEmpty(t.fields)) {
+                            t.fields.forEach(f => {
+                                this.validateField(this.validationResult, f)
+                            })
+                        }
+                    })
+                }
+                if (!_.isEmpty(a.fields)) {
+                    a.fields.forEach(f => {
+                        this.validateField(this.validationResult, f)
+                    })
+                }
+            })
+        }
+
+        if (!_.isEmpty(this.descriptor.tabs)) {
+            this.descriptor.tabs.forEach(t => {
+                if (!_.isEmpty(t.fields)) {
+                    t.fields.forEach(f => {
+                        this.validateField(this.validationResult, f)
+                    })
+                }
+            })
+        }
+
+        if (!_.isEmpty(this.descriptor.fields)) {
+            this.descriptor.fields.forEach(f => {
+                this.validateField(this.validationResult, f)
+            })
+        }
+
+        let invalid = _.any(this.validationResult, (k, v) => !v.valid)
+        return !invalid
+    }
 }
 
 export class Field extends React.Component {
     render() {
+        let model = this.props.model
         let className = "form-group " + (this.props.field.size ? this.props.field.size : "")
-        let control = React.createElement(this.props.field.control, {field: this.props.field})
+        let control = React.createElement(this.props.field.control, {field: this.props.field, model: this.props.model})
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
         let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
+        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
+        if (!validationResult.valid) {
+            className += " has-error"
+        }
         return (
             <div className={className}>
                 {hasLabel &&
@@ -53,12 +203,12 @@ export class Control extends React.Component {
         super(props)
     }
 
-    set value(newValue) {
-
-    }
-
-    get value() {
-
+    onValueChange(e) {
+        let value = e.target.value
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, value)
+        this.forceUpdate()
     }
 }
 
@@ -68,7 +218,7 @@ export class Text extends Control {
 
         return (
             <div className="fg-line">
-                <input type="text" className="form-control input-sm" id={field.property} placeholder={field.placeholder} />
+                <input type="text" className="form-control input-sm" id={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
             </div>
         )
     }
@@ -80,23 +230,29 @@ export class Mail extends Control {
 
         return (
             <div className="fg-line">
-                <input type="email" className="form-control input-sm" id={field.property} placeholder={field.placeholder} />
+                <input type="email" className="form-control input-sm" id={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
             </div>
         )
     }
 }
 
 export class Check extends Control {
+    onValueChange(e) {
+        let value = e.target.checked
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, value)
+        this.forceUpdate()
+    }
+
     render() {
         let field = this.props.field
 
         return (
-            <div className="checkbox">
-                <label>
-                    <input type="checkbox" name={field.property} id={field.property} value={this.props.value} />
-                        <i className="input-helper"></i>
-                        {field.placeholder}
-                </label>
+            <div className="toggle-switch" data-ts-color="blue">
+                <input type="checkbox" hidden="hidden" name={field.property} id={field.property} checked={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <label htmlFor={field.property} className="ts-helper"></label>
+                <label htmlFor={field.property} className="ts-label">{field.placeholder}</label>
             </div>
         )
     }
@@ -116,7 +272,7 @@ export class Area extends React.Component {
     render() {
         let area = this.props.area
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+        let fields = !_.isEmpty(area.fields) && area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
 
         return (
             <Card padding="true" title={area.title} subtitle={area.subtitle}>
@@ -152,7 +308,7 @@ export class Tabs extends React.Component {
         })
         first = true
         let panes = tabs.map(c => {
-            let fields = c.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+            let fields = _.isEmpty(c.fields) && c.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
             let el = (
                 <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
                     {fields}
@@ -209,27 +365,50 @@ function generateKeys(descriptor) {
 export class Form extends React.Component {
     constructor(props) {
         super(props)
+
+        this.model = new Model()
+    }
+
+    submit(e) {
+        e.preventDefault()
+
+        let valid = this.model.validate()
+        if (!valid) {
+            this.forceUpdate()
+        }
+        let validationResult = this.model.validationResult
+        let data = this.model.data
+
+        console.log(validationResult)
+        console.log(data)
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.model.descriptor = nextProps.descriptor
+        this.model.data = nextProps.data ? nextProps.data : {}
     }
 
     render() {
         let descriptor = this.props.descriptor
-        let model = this.props.model || new Model()
+        let model = this.model
 
         generateKeys(descriptor)
 
         let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => <Area key={a.key} model={model} area={a} />)
         let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} />
-        let fields = descriptor.fields.map(f => <Field key={f.property} model={model} field={f} />)
+        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => <Field key={f.property} model={model} field={f} />)
 
         return (
             <div className="form">
-                <form className="form-horizontal" role="form">
+                <form className="form-horizontal" role="form" onSubmit={this.submit.bind(this)}>
                     {areas}
-                    <Card padding="true">
-                        {tabs}
-                        {fields}
-                        <div className="clearfix"></div>
-                    </Card>
+                    {(tabs.length > 0 || fields.length > 0) &&
+                        <Card padding="true">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </Card>
+                    }
 
                     <div className="form-group">
                         <div className="text-right col-sm-12">

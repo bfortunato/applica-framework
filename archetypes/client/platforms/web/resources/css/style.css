@@ -90,6 +90,11 @@ html.ismobile .global-loader {
 /*-------------------------
     Forms
 --------------------------*/
+.form-group .toggle-switch {
+  margin-top: 9px; }
+  .form-group .toggle-switch .ts-label {
+    margin: 0px 0px 0px 10px; }
+
 /*-------------------------
     Grids
 --------------------------*/
