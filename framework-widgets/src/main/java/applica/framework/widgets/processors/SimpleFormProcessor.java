@@ -1,12 +1,10 @@
 package applica.framework.widgets.processors;
 
-import applica.framework.widgets.Form;
-import applica.framework.widgets.FormProcessException;
-import applica.framework.ValidationResult;
 import applica.framework.Entity;
-import applica.framework.widgets.mapping.FormDataMapper;
+import applica.framework.ValidationResult;
+import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.mapping.MappingException;
-import applica.framework.widgets.mapping.SimpleFormDataMapper;
+import applica.framework.widgets.mapping.DefaultEntityMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -17,7 +15,9 @@ public class SimpleFormProcessor implements FormProcessor {
 
     protected Log logger = LogFactory.getLog(getClass());
 
-    protected Entity instantiateEntity(Form form, Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException {
+    private Class<? extends Entity> entityType;
+
+    protected Entity instantiateEntity(Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException {
         Entity entity = null;
 
         try {
@@ -31,12 +31,12 @@ public class SimpleFormProcessor implements FormProcessor {
     }
 
     @Override
-    public Entity toEntity(Form form, Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException {
-        Entity entity = instantiateEntity(form, type, requestValues, validationResult);
+    public Entity toEntity(Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException, FormProcessException {
+        Entity entity = instantiateEntity(type, requestValues, validationResult);
 
-        FormDataMapper mapper = getFormDataMapper();
+        EntityMapper mapper = getFormDataMapper();
         try {
-            mapper.mapEntityFromRequestValues(form.getDescriptor(), entity, requestValues);
+            mapper.mapEntityFromRequestValues(entityType, entity, requestValues);
         } catch (MappingException e) {
             validationResult.rejectValue(e.getProperty(), e.getCause().getMessage());
         }
@@ -52,11 +52,11 @@ public class SimpleFormProcessor implements FormProcessor {
     }
 
     @Override
-    public Map<String, Object> toMap(Form form, Entity entity) throws FormProcessException {
+    public Map<String, Object> toMap(Entity entity) throws FormProcessException, FormProcessException {
         Map<String, Object> values = new HashMap<>();
-        FormDataMapper mapper = getFormDataMapper();
+        EntityMapper mapper = getFormDataMapper();
         try {
-            mapper.mapFormValuesFromEntity(form.getDescriptor(), values, entity);
+            mapper.mapFormValuesFromEntity(entityType, values, entity);
         } catch (MappingException e) {
             throw new FormProcessException(e);
         }
@@ -64,8 +64,17 @@ public class SimpleFormProcessor implements FormProcessor {
         return values;
     }
 
-    protected FormDataMapper getFormDataMapper() {
-        SimpleFormDataMapper mapper = new SimpleFormDataMapper();
+    protected EntityMapper getFormDataMapper() {
+        DefaultEntityMapper mapper = new DefaultEntityMapper();
         return mapper;
+    }
+
+    @Override
+    public Class<? extends Entity> getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(Class<? extends Entity> entityType) {
+        this.entityType = entityType;
     }
 }

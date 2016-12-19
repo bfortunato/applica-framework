@@ -1,5 +1,0 @@
-#if ($value && $value != "")
-<span>$localization.formatDate($value)</span>
-#else
-<span>NA</span>
-#end

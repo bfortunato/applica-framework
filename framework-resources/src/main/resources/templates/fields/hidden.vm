@@ -1,8 +1,0 @@
-<input
-        type="hidden"
-        name="$field.property"
-        data-component="hidden"
-        data-property="$field.property"
-        value='$value'/>
-	
-	

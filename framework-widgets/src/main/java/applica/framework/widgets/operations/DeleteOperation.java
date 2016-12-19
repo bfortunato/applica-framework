@@ -1,8 +1,9 @@
 package applica.framework.widgets.operations;
 
-import applica.framework.widgets.CrudConfigurationException;
-import applica.framework.Entity;
 import applica.framework.Repository;
+import applica.framework.library.utils.ProgramException;
+
+import java.util.List;
 
 public class DeleteOperation {
     private Repository repository;
@@ -15,28 +16,14 @@ public class DeleteOperation {
         this.repository = repository;
     }
 
-    public void delete(String id) throws CrudConfigurationException {
-        if (repository == null) throw new CrudConfigurationException("Missing repository");
+    public void delete(String id) {
+        if (repository == null) throw new ProgramException("Missing repository");
 
         repository.delete(id);
     }
 
-    public void delete(String[] ids) throws CrudConfigurationException {
-        if (repository == null) throw new CrudConfigurationException("Missing repository");
-
-        Entity e = new Entity() {
-            @Override
-            public Object getId() {
-                return null;  //To change body of implemented methods use File | Settings | File Templates.
-            }
-
-            @Override
-            public void setId(Object id) {
-                //To change body of implemented methods use File | Settings | File Templates.
-            }
-        };
-
-        e.setId(10);
+    public void delete(List<String> ids) {
+        if (repository == null) throw new ProgramException("Missing repository");
 
         for (String id : ids) {
             repository.delete(id);

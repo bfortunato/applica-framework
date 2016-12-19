@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -249,6 +249,27 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         deleteEntities.fail();
+    });
+});
+
+var SAVE_ENTITY = exports.SAVE_ENTITY = "SAVE_ENTITY";
+var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.data)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyData);
+        return;
+    }
+
+    entities.save(data.entity, data.data).then(function () {
+        saveEntity.complete();
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        saveEntity.fail();
     });
 });
 });
@@ -1738,12 +1759,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.load = load;
 exports.delete_ = delete_;
+exports.save = save;
 
 var _config = require("../framework/config");
 
 var config = _interopRequireWildcard(_config);
 
 var _utils = require("./utils");
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -1753,8 +1779,22 @@ function load(entity, query) {
 }
 
 function delete_(entity, ids) {
+    if (!_.isArray(ids)) {
+        throw new Error("ids is not an array");
+    }
+
+    var data = [];
+    for (var i = 0; i < ids.length; i++) {
+        data.push("" + ids[i]);
+    }
+
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.delete_)(url, { entityIds: ids });
+    return (0, _utils.delete_)(url, { entityIds: data.join() });
+}
+
+function save(entity, data) {
+    var url = config.get("entities.url") + "/" + entity;
+    return (0, _utils.post)(url, data);
 }
 });
 define('api/grids.js', function(module, exports) {
@@ -24188,7 +24228,8 @@ exports.default = {
     confirm: "Confirm",
     entityDeleteConfirm: "Are you sure to delete {0} entities?",
     submit: "Submit",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    pleaseSpecifyData: "Please specify data"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24478,6 +24519,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var VALIDATION_ERROR = {};
+
 var Model = exports.Model = function (_Observable) {
     _inherits(Model, _Observable);
 
@@ -24653,10 +24696,12 @@ var Model = exports.Model = function (_Observable) {
                 });
             }
 
-            var invalid = _.any(this.validationResult, function (k, v) {
+            var invalid = _.any(this.validationResult, function (v) {
                 return !v.valid;
             });
-            return !invalid;
+            if (invalid) {
+                throw VALIDATION_ERROR;
+            }
         }
     }]);
 
@@ -24995,15 +25040,18 @@ var Form = exports.Form = function (_React$Component6) {
         value: function submit(e) {
             e.preventDefault();
 
-            var valid = this.model.validate();
-            if (!valid) {
-                this.forceUpdate();
+            try {
+                this.model.validate();
+                if (_.isFunction(this.props.onSubmit)) {
+                    this.props.onSubmit(this.model.data);
+                }
+            } catch (e) {
+                if (e === VALIDATION_ERROR) {
+                    this.forceUpdate();
+                } else {
+                    throw e;
+                }
             }
-            var validationResult = this.model.validationResult;
-            var data = this.model.data;
-
-            console.log(validationResult);
-            console.log(data);
         }
     }, {
         key: "componentWillReceiveProps",
@@ -27360,7 +27408,7 @@ plugins.register();
 
 /* Admin routes */
 ui.addRoute("/admin/entities/:entity/", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(EntitiesGrid, { entity: params.entity, grid: params.grid }));
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { entity: params.entity, grid: params.grid }));
 });
 ui.addRoute("/admin/entities/:entity/edit", function (params) {
     return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity, form: params.form }));
@@ -27536,13 +27584,13 @@ function isEsc(which) {
     return which == 27;
 }
 
-var EntitiesList = function (_Screen) {
-    _inherits(EntitiesList, _Screen);
+var EntitiesGrid = function (_Screen) {
+    _inherits(EntitiesGrid, _Screen);
 
-    function EntitiesList(props) {
-        _classCallCheck(this, EntitiesList);
+    function EntitiesGrid(props) {
+        _classCallCheck(this, EntitiesGrid);
 
-        var _this = _possibleConstructorReturn(this, (EntitiesList.__proto__ || Object.getPrototypeOf(EntitiesList)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (EntitiesGrid.__proto__ || Object.getPrototypeOf(EntitiesGrid)).call(this, props));
 
         var _query = query.create();
         _query.page = 1;
@@ -27558,7 +27606,7 @@ var EntitiesList = function (_Screen) {
         return _this;
     }
 
-    _createClass(EntitiesList, [{
+    _createClass(EntitiesGrid, [{
         key: "componentDidMount",
         value: function componentDidMount() {
             (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
@@ -27691,13 +27739,10 @@ var EntitiesList = function (_Screen) {
         }
     }]);
 
-    return EntitiesList;
+    return EntitiesGrid;
 }(_layout.Screen);
 
-exports.default = EntitiesList;
-
-
-module.exports = EntitiesList;
+exports.default = EntitiesGrid;
 });
 define('web/screens/admin/entityForm.js', function(module, exports) {
 "use strict";
@@ -27723,6 +27768,8 @@ var _common = require("../../components/common");
 var _forms = require("../../components/forms");
 
 var _validator = require("../../../libs/validator");
+
+var _actions = require("../../../actions");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -27753,8 +27800,10 @@ var EntityForm = function (_Screen) {
     }
 
     _createClass(EntityForm, [{
-        key: "saveEntity",
-        value: function saveEntity() {}
+        key: "onSubmit",
+        value: function onSubmit(data) {
+            (0, _actions.saveEntity)({ entity: this.props.entity, data: data });
+        }
     }, {
         key: "render",
         value: function render() {
@@ -27818,7 +27867,7 @@ var EntityForm = function (_Screen) {
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "User", subtitle: "Edit user", actions: actions }),
-                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data })
+                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data, onSubmit: this.onSubmit.bind(this) })
             );
         }
     }]);

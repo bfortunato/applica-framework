@@ -2,14 +2,11 @@ package applica.framework.library.tests;
 
 import applica.framework.RepositoriesFactory;
 import applica.framework.library.tests.data.MockRepositoriesFactory;
-import applica.framework.library.utils.TypeUtils;
-import applica.framework.widgets.*;
 import applica.framework.widgets.mapping.MappingException;
 import applica.framework.widgets.mapping.SimplePropertyMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 
@@ -25,23 +22,6 @@ public class PropertyMapperTester {
     public void testMapping() {
         RepositoriesFactory repositoriesFactory = new MockRepositoriesFactory();
 
-        Form form = new Form();
-        form.setIdentifier("game");
-        form.setRenderer(new MockFormRenderer());
-
-        Type playersType = null;
-        try {
-            playersType = TypeUtils.getField(Game.class, "players").getGenericType();
-        } catch (NoSuchFieldException e) {
-            Assert.assertTrue(e.getMessage(), false);
-        }
-
-        FormDescriptor formDescriptor = new FormDescriptor(form);
-        FormField nameField = formDescriptor.addField("name", String.class, "name", null, new MockFormFieldRenderer());
-        FormField brandField = formDescriptor.addField("brand", Brand.class, "brand", null,  new MockFormFieldRenderer());
-        FormField playersField = formDescriptor.addField("players", playersType, "players", null,  new MockFormFieldRenderer());
-        FormField manyToManyPlayersField = formDescriptor.addField("manyToManyPlayers", playersType, "manyToManyPlayers", null,  new MockFormFieldRenderer());
-
         SimplePropertyMapper propertyMapper = new SimplePropertyMapper();
         propertyMapper.setRepositoriesFactory(repositoriesFactory);
 
@@ -52,10 +32,10 @@ public class PropertyMapperTester {
         values.put("players", new String[] {Player.BRUNO_ID, Player.MASSIMO_ID });
         values.put("manyToManyPlayers", new String[] {Player.BRUNO_ID, Player.MASSIMO_ID });
         try {
-            propertyMapper.toEntityProperty(formDescriptor, nameField, game, values);
-            propertyMapper.toEntityProperty(formDescriptor, brandField, game, values);
-            propertyMapper.toEntityProperty(formDescriptor, playersField, game, values);
-            propertyMapper.toEntityProperty(formDescriptor, manyToManyPlayersField, game, values);
+            propertyMapper.toEntityProperty("name", game, values);
+            propertyMapper.toEntityProperty("brand", game, values);
+            propertyMapper.toEntityProperty("players", game, values);
+            propertyMapper.toEntityProperty("manyToManyPlayers", game, values);
         } catch (MappingException e) {
             e.printStackTrace();
             Assert.assertTrue(e.getMessage(), false);
@@ -72,10 +52,10 @@ public class PropertyMapperTester {
 
         HashMap<String, Object> formValues = new HashMap<>();
         try {
-            propertyMapper.toFormValue(formDescriptor, nameField, formValues, game);
-            propertyMapper.toFormValue(formDescriptor, brandField, formValues, game);
-            propertyMapper.toFormValue(formDescriptor, playersField, formValues, game);
-            propertyMapper.toFormValue(formDescriptor, manyToManyPlayersField, formValues, game);
+            propertyMapper.toFormValue("name", formValues, game);
+            propertyMapper.toFormValue("brand", formValues, game);
+            propertyMapper.toFormValue("players", formValues, game);
+            propertyMapper.toFormValue("manyToManyPlayers", formValues, game);
         } catch (MappingException e) {
             e.printStackTrace();
             Assert.assertTrue(e.getMessage(), false);
@@ -90,9 +70,8 @@ public class PropertyMapperTester {
         Assert.assertEquals(Player.BRUNO_ID, ((List<Player>) formValues.get("players")).get(0).getSid());
         Assert.assertEquals(Player.MASSIMO_ID, ((List<Player>) formValues.get("manyToManyPlayers")).get(1).getSid());
 
-        form.setData(formValues);
         try {
-            System.out.println(form.writeToString());
+            System.out.println(formValues.toString());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.assertTrue(e.getMessage(), false);

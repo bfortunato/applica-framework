@@ -3,9 +3,7 @@ package applica.framework.widgets.forms.processors;
 import applica.framework.Entity;
 import applica.framework.ValidationResult;
 import applica.framework.library.i18n.Localization;
-import applica.framework.widgets.CrudConfiguration;
-import applica.framework.widgets.Form;
-import applica.framework.widgets.FormProcessException;
+import applica.framework.widgets.processors.FormProcessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.validation.Validator;
@@ -20,26 +18,22 @@ public class BaseFormProcessor extends ValidateableFormProcessor {
     private ApplicationContext applicationContext;
 
     @Override
-    public Map<String, Object> toMap(Form form, Entity entity) throws FormProcessException {
-        configure(form);
+    public Map<String, Object> toMap(Entity entity) throws FormProcessException {
+        configure();
 
-        return super.toMap(form, entity);
+        return super.toMap(entity);
     }
 
     @Override
-    public Entity toEntity(Form form, Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException {
-        configure(form);
-
-        return super.toEntity(form, type, requestValues, validationResult);
+    public Entity toEntity(Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException {
+        return super.toEntity(type, requestValues, validationResult);
     }
 
-    void configure(Form form) {
+    void configure() {
         List<Validator> validators = new ArrayList<>();
 
-        Class<? extends Entity> entityType = CrudConfiguration.instance().getFormTypeFromIdentifier(form.getIdentifier());
-
         applicationContext.getBeansOfType(Validator.class).values().stream()
-                .filter(r -> r.supports(entityType))
+                .filter(r -> r.supports(getEntityType()))
                 .findFirst()
                 .ifPresent(validators::add);
 
