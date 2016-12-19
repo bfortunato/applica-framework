@@ -58,7 +58,7 @@ public class EntitiesController {
         }
     }
 
-    @DeleteMapping("")
+    @PostMapping("")
     //@PreAuthorize("hasPermission('administrator')")
     public Response deleteEntities(@PathVariable("entity") String id, String entityIds) {
         try {
