@@ -18,7 +18,7 @@ function isEsc(which) {
     return which == 27
 }
 
-export default class EntitiesList extends Screen {
+export default class EntitiesGrid extends Screen {
     constructor(props) {
         super(props)
 

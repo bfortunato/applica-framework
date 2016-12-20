@@ -1,9 +1,7 @@
 package applica.framework.widgets.processors;
 
-import applica.framework.widgets.Form;
-import applica.framework.widgets.FormProcessException;
-import applica.framework.ValidationResult;
 import applica.framework.Entity;
+import applica.framework.ValidationResult;
 
 import java.util.Map;
 
@@ -13,21 +11,25 @@ import java.util.Map;
 public interface FormProcessor {
     /**
      * Convert request values in entity
-     * @param form
      * @param type
      * @param requestValues
      * @param validationResult
      * @return
      * @throws FormProcessException
      */
-    Entity toEntity(Form form, Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException;
+    Entity toEntity(Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException;
 
     /**
      * Convert entity in a map of values that can be used in rendering system
-     * @param form
      * @param entity
      * @return
      * @throws FormProcessException
      */
-    Map<String, Object> toMap(Form form, Entity entity) throws FormProcessException;
+    Map<String, Object> toMap(Entity entity) throws FormProcessException;
+
+    /**
+     * Returns the type of entity that will be created in the processing phase. This is also used to select the correct processor for entity in FormProcessorFactory
+     * @return
+     */
+    Class<? extends Entity> getEntityType();
 }

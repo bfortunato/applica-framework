@@ -7,6 +7,7 @@ import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Form, Text, Mail, Check, Select, Lookup} from "../../components/forms"
 import {check, sanitize} from "../../../libs/validator"
+import {saveEntity} from "../../../actions"
 
 function isCancel(which) {
     return which == 46 || which == 8
@@ -23,8 +24,8 @@ export default class EntityForm extends Screen {
         connect(this, EntitiesStore, {data: {name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: []}})
     }
 
-    saveEntity() {
-
+    onSubmit(data) {
+        saveEntity({entity: this.props.entity, data: data})
     }
 
     render() {
@@ -96,7 +97,7 @@ export default class EntityForm extends Screen {
         return (
             <Layout>
                 <HeaderBlock title="User" subtitle="Edit user" actions={actions}/>
-                <Form ref="form" descriptor={descriptor} data={this.state.data} />
+                <Form ref="form" descriptor={descriptor} data={this.state.data} onSubmit={this.onSubmit.bind(this)} />
             </Layout>
         )
     }

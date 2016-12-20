@@ -1,5 +1,0 @@
-#if($value && $value == true)
-<i class="glyphicon glyphicon-check" style="color: green;"></i>
-#else
-<i class="glyphicon glyphicon-unchecked" style="color: #666666;"></i>
-#end

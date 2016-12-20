@@ -235,3 +235,26 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
             deleteEntities.fail()
         })
 })
+
+export const SAVE_ENTITY = "SAVE_ENTITY"
+export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
+    if (_.isEmpty(data.entity)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.data)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyData)
+        return
+    }
+
+    entities.save(data.entity, data.data)
+        .then(() => {
+            saveEntity.complete()
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            saveEntity.fail()
+        })
+});

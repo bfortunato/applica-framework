@@ -6,6 +6,8 @@ import { format } from "../../utils/lang"
 import { Observable } from "../../aj/events"
 import {Grid} from "./grids"
 
+const VALIDATION_ERROR = {}
+
 export class Model extends Observable {
     constructor() {
         super()
@@ -168,8 +170,10 @@ export class Model extends Observable {
             })
         }
 
-        let invalid = _.any(this.validationResult, (k, v) => !v.valid)
-        return !invalid
+        let invalid = _.any(this.validationResult, v => !v.valid)
+        if (invalid) {
+            throw VALIDATION_ERROR
+        }
     }
 }
 
@@ -287,15 +291,18 @@ export class Form extends React.Component {
     submit(e) {
         e.preventDefault()
 
-        let valid = this.model.validate()
-        if (!valid) {
-            this.forceUpdate()
+        try {
+            this.model.validate()
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(this.model.data)
+            }
+        } catch (e) {
+            if (e === VALIDATION_ERROR) {
+                this.forceUpdate()
+            } else {
+                throw e
+            }
         }
-        let validationResult = this.model.validationResult
-        let data = this.model.data
-
-        console.log(validationResult)
-        console.log(data)
     }
 
     componentWillReceiveProps(nextProps) {

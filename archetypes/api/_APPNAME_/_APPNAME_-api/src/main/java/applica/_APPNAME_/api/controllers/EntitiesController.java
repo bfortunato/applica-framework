@@ -7,13 +7,20 @@ import applica.framework.Repository;
 import applica.framework.Result;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
+import applica.framework.widgets.builders.DeleteOperationBuilder;
+import applica.framework.widgets.builders.SaveOperationBuilder;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
+import applica.framework.widgets.operations.DeleteOperation;
+import applica.framework.widgets.operations.SaveOperation;
+import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.AutoPopulatingList;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -27,7 +34,10 @@ public class EntitiesController {
     private RepositoriesFactory repositoriesFactory;
 
     @Autowired
-    private ApplicationContext context;
+    private SaveOperationBuilder saveOperationBuilder;
+
+    @Autowired
+    private DeleteOperationBuilder deleteOperationBuilder;
 
     @GetMapping("")
     //@PreAuthorize("hasPermission('administrator')")
@@ -38,6 +48,7 @@ public class EntitiesController {
                 Repository repository = repositoriesFactory.createForEntity(definition.get().getType());
                 Query query = Query.fromJSON(queryJson);
                 Result result = repository.find(query);
+
                 return new ValueResponse(result);
             } else {
                 return new Response(ResponseCode.NOT_FOUND);
@@ -47,16 +58,38 @@ public class EntitiesController {
         }
     }
 
-    @DeleteMapping("")
+    @PostMapping("")
     //@PreAuthorize("hasPermission('administrator')")
-    public Response deleteEntities(@PathVariable("entity") String id, ArrayList<Object> entityIds) {
+    public Response deleteEntities(@PathVariable("entity") String id, String entityIds) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(id);
-            Repository repository = repositoriesFactory.createForEntity(definition.get().getType());
-            for (Object entityId : entityIds) {
-                repository.delete(entityId);
+            if (definition.isPresent()) {
+                DeleteOperation deleteOperation = deleteOperationBuilder.build(definition.get().getType());
+                deleteOperation.delete(Arrays.asList(entityIds.split(",")));
+
+                return new Response(Response.OK);
+            } else {
+                return new Response(ResponseCode.NOT_FOUND);
             }
-            return new Response(Response.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+    @PostMapping("")
+    //@PreAuthorize("hasPermission('administrator')")
+    public Response saveEntity(@PathVariable("entity") String id, HttpServletRequest request) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(id);
+            if (definition.isPresent()) {
+                SaveOperation saveOperation = saveOperationBuilder.build(definition.get().getType());
+                saveOperation.save(request.getParameterMap());
+
+                return new Response(Response.OK);
+            } else {
+                return new Response(ResponseCode.NOT_FOUND);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);

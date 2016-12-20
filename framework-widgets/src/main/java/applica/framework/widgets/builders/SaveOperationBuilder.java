@@ -1,43 +1,36 @@
 package applica.framework.widgets.builders;
 
-import applica.framework.widgets.CrudConfiguration;
-import applica.framework.widgets.CrudConfigurationException;
+import applica.framework.RepositoriesFactory;
 import applica.framework.Entity;
 import applica.framework.Repository;
+import applica.framework.library.utils.ProgramException;
+import applica.framework.widgets.factory.FormProcessorFactory;
 import applica.framework.widgets.operations.SaveOperation;
 import applica.framework.widgets.processors.FormProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class SaveOperationBuilder {
 
-    private static SaveOperationBuilder s_instance;
+    @Autowired
+    private FormProcessorFactory formProcessorFactory;
 
-    public static SaveOperationBuilder instance() {
-        if (s_instance == null) s_instance = new SaveOperationBuilder();
-        return s_instance;
-    }
-
-    private SaveOperationBuilder() {
-    }
+    @Autowired
+    private RepositoriesFactory repositoriesFactory;
 
     private Log logger = LogFactory.getLog(getClass());
 
-    public SaveOperation build(String identifier) throws CrudConfigurationException {
-        logger.info(String.format("Building save operation for identifier: %s", identifier));
+    public SaveOperation build(Class<? extends Entity> entityType) throws ProgramException {
+        logger.info(String.format("Building save operation for : %s", entityType.getName()));
 
-        Class<? extends Entity> type = CrudConfiguration.instance().getFormTypeFromIdentifier(identifier);
-
-        Repository repository = CrudConfiguration.instance().getFormRepository(type);
-        if (repository == null) throw new CrudConfigurationException("Cannot create repository");
-
-        FormProcessor formProcessor = CrudConfiguration.instance().getFormProcessor(type);
-        if (formProcessor == null) throw new CrudConfigurationException("Cannot create form processor");
+        Repository repository = repositoriesFactory.createForEntity(entityType);
+        FormProcessor formProcessor = formProcessorFactory.create(entityType);
 
         SaveOperation operation = new SaveOperation();
         operation.setRepository(repository);
         operation.setFormProcessor(formProcessor);
-        operation.setType(type);
+        operation.setEntityType(entityType);
 
         return operation;
     }

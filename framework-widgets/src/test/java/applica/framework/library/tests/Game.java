@@ -1,8 +1,8 @@
 package applica.framework.library.tests;
 
 import applica.framework.SEntity;
-import applica.framework.annotations.*;
-import applica.framework.widgets.annotations.*;
+import applica.framework.annotations.ManyToMany;
+import applica.framework.annotations.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,36 +13,20 @@ import java.util.List;
  * Date: 31/10/14
  * Time: 12:29
  */
-@Form("game")
 public class Game extends SEntity {
 
     public static final String GTA_ID = "game1";
-
-    @FormField(description = "name")
     private String name;
-
-    @FormField(description = "brand")
     private Brand brand;
-
-    @ManyToOne
-    @FormField(description = "manyToOneBrand")
     private Brand manyToOneBrand;
-
-    @FormField(description = "brandId")
     private String brandId;
-
-    @FormField(description = "players")
     private List<Player> players = new ArrayList<>();
-
     @OneToMany
-    @FormField(description = "oneToManyPlayers")
     private List<Player> oneToManyPlayers = new ArrayList<>();
 
     @ManyToMany
-    @FormField(description = "manyToManyPlayers")
     private List<Player> manyToManyPlayers = new ArrayList<>();
 
-    @FormField(description = "playerIds")
     private List<String> playerIds = new ArrayList<>();
 
     public Game(String id, String name, Brand brand, String brandId, List<Player> players, List<String> playerIds) {

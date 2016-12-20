@@ -12,12 +12,18 @@ import applica.framework.library.options.PropertiesOptionManager;
 import applica.framework.library.velocity.BaseVelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilderProvider;
+import applica.framework.widgets.builders.DeleteOperationBuilder;
+import applica.framework.widgets.builders.SaveOperationBuilder;
+import applica.framework.widgets.factory.DefaultFormProcessorFactory;
+import applica.framework.widgets.factory.FormProcessorFactory;
+import applica.framework.widgets.forms.processors.DefaultFormProcessor;
+import applica.framework.widgets.mapping.DefaultEntityMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -75,6 +81,27 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public VelocityBuilderProvider velocityBuilderProvider() {
         return new VelocityBuilderProvider();
+    }
+
+    @Bean
+    public SaveOperationBuilder saveOperationBuilder() {
+        return new SaveOperationBuilder();
+    }
+
+    @Bean
+    public DeleteOperationBuilder deleteOperationBuilder() {
+        return new DeleteOperationBuilder();
+    }
+
+    @Bean
+    public FormProcessorFactory formProcessorFactory() {
+        return new DefaultFormProcessorFactory();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public DefaultFormProcessor defaultFormProcessor() {
+        return new DefaultFormProcessor();
     }
 
     /* cors configuration */

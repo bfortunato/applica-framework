@@ -40,5 +40,6 @@ export default {
     entityDeleteConfirm: "Are you sure to delete {0} entities?",
     submit: "Submit",
     cancel: "Cancel",
-    add: "Add"
+    add: "Add",
+    pleaseSpecifyData: "Please specify data"
 }

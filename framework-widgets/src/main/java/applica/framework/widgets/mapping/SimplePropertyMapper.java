@@ -1,12 +1,11 @@
 package applica.framework.widgets.mapping;
 
 import applica.framework.ApplicationContextProvider;
-import applica.framework.library.utils.TypeUtils;
-import applica.framework.widgets.FormDescriptor;
-import applica.framework.widgets.FormField;
 import applica.framework.Entity;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.library.utils.ProgramException;
+import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -14,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +25,12 @@ public class SimplePropertyMapper implements PropertyMapper {
 
     private Log logger = LogFactory.getLog(getClass());
 
-    boolean isRelation(FormField formField) {
-        if (TypeUtils.isListOfEntities(formField.getDataType())) {
+    boolean isRelation(Field field) {
+        if (TypeUtils.isListOfEntities(field.getType())) {
             return true;
         }
 
-        if (TypeUtils.isEntity(formField.getDataType())) {
+        if (TypeUtils.isEntity(field.getType())) {
             return true;
         }
 
@@ -49,70 +49,87 @@ public class SimplePropertyMapper implements PropertyMapper {
         this.repositoriesFactory = repositoriesFactory;
     }
 
-    @SuppressWarnings({"rawtypes"})
     @Override
-    public void toFormValue(FormDescriptor formDescriptor, FormField formField, Map<String, Object> values, Entity entity)
+    public void toFormValue(String name, Map<String, Object> values, Entity entity)
             throws MappingException {
 
-        if (isRelation(formField)) {
-            logger.info(String.format("field %s is a related form field", formField.getProperty()));
+        Field field = null;
+        
+        try {
+            field = TypeUtils.getField(entity.getClass(), name);
+        } catch (Exception e) {}
+        
+        if (field == null) {
+            throw new ProgramException(String.format("Requesting field %s of class %s but not exists", name, entity.getClass().getName()));
+        }
+        
+        if (isRelation(field)) {
+            logger.info(String.format("field %s is a related form field", name));
 
             try {
                 Object finalValue = null;
                 Class<List> listType = List.class;
-                if (listType.isAssignableFrom(TypeUtils.getRawClassFromGeneric(formField.getDataType()))) {
-                    logger.info(String.format("related field %s is list of entity type", formField.getProperty()));
+                if (listType.isAssignableFrom(TypeUtils.getRawClassFromGeneric(field.getType()))) {
+                    logger.info(String.format("related field %s is list of entity type", name));
 
-                    List list = (List) PropertyUtils.getProperty(entity, formField.getProperty());
+                    List list = (List) PropertyUtils.getProperty(entity, name);
                     finalValue = list;
                 } else {
-                    logger.info(String.format("related field %s is single entity type", formField.getProperty()));
+                    logger.info(String.format("related field %s is single entity type", name));
 
-                    Entity relatedEntity = (Entity) PropertyUtils.getProperty(entity, formField.getProperty());
+                    Entity relatedEntity = (Entity) PropertyUtils.getProperty(entity, name);
                     finalValue = relatedEntity;
                 }
-                values.put(formField.getProperty(), finalValue);
+                values.put(name, finalValue);
             } catch (Exception e) {
-                throw new MappingException(formField.getProperty(), e);
+                throw new MappingException(name, e);
             }
         } else {
-            logger.info(String.format("field %s is standard field", formField.getProperty()));
+            logger.info(String.format("field %s is standard field", name));
             Object value = null;
             try {
-                value = PropertyUtils.getProperty(entity, formField.getProperty());
+                value = PropertyUtils.getProperty(entity, name);
             } catch (Exception e) {
-                throw new MappingException(formField.getProperty(), e);
+                throw new MappingException(name, e);
             }
 
-            values.put(formField.getProperty(), value);
+            values.put(name, value);
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public void toEntityProperty(FormDescriptor formDescriptor, FormField formField, Entity entity, Map<String, String[]> requestValues)
-            throws MappingException {
-        if (requestValues.containsKey(formField.getProperty())) {
-            String[] requestValueArray = requestValues.get(formField.getProperty());
+    public void toEntityProperty(String name, Entity entity, Map<String, String[]> requestValues) throws MappingException {
+
+        Field field = null;
+        try {
+            field = TypeUtils.getField(entity.getClass(), name);
+        } catch (Exception e) {}
+
+        if (field == null) {
+            throw new ProgramException(String.format("Requesting field %s of class %s but not exists", name, entity.getClass().getName()));
+        }
+
+        if (requestValues.containsKey(name)) {
+            String[] requestValueArray = requestValues.get(name);
             Object finalValue = null;
 
-            if (isRelation(formField)) {
-                logger.info(String.format("field %s is a related form field", formField.getProperty()));
+            if (isRelation(field)) {
+                logger.info(String.format("field %s is a related form field", name));
 
                 Repository repository = null;
 
                 Class<List> listType = List.class;
-                if (listType.isAssignableFrom(TypeUtils.getRawClassFromGeneric(formField.getDataType()))) {
-                    Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) formField.getDataType());
+                if (listType.isAssignableFrom(TypeUtils.getRawClassFromGeneric(field.getType()))) {
+                    Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                     if (repository == null) {
                         repository = getRepositoriesFactory().createForEntity((Class<? extends Entity>) typeArgument);
                     }
 
-                    logger.info(String.format("related field %s is list of entity type", formField.getProperty()));
+                    logger.info(String.format("related field %s is list of entity type", name));
 
                     List entities = null;
                     try {
-                        entities = ((List) PropertyUtils.getProperty(entity, formField.getProperty()));
+                        entities = ((List) PropertyUtils.getProperty(entity, name));
                         if (entities != null) {
                             entities.clear();
                         } else {
@@ -125,10 +142,10 @@ public class SimplePropertyMapper implements PropertyMapper {
 
                     finalValue = entities;
                 } else {
-                    logger.info(String.format("related field %s is single entity type", formField.getProperty()));
+                    logger.info(String.format("related field %s is single entity type", name));
 
                     if (repository == null) {
-                        repository = getRepositoriesFactory().createForEntity((Class<? extends Entity>) formField.getDataType());
+                        repository = getRepositoriesFactory().createForEntity((Class<? extends Entity>) field.getType());
                     }
 
                     String relatedId = requestValueArray[0];
@@ -141,15 +158,15 @@ public class SimplePropertyMapper implements PropertyMapper {
                 }
 
                 try {
-                    BeanUtils.setProperty(entity, formField.getProperty(), finalValue);
+                    BeanUtils.setProperty(entity, name, finalValue);
                 } catch (Exception e) {
-                    throw new MappingException(formField.getProperty(), e);
+                    throw new MappingException(name, e);
                 }
             } else {
-                logger.info(String.format("field %s is a standard type", formField.getProperty()));
+                logger.info(String.format("field %s is a standard type", name));
 
-                if (List.class.isAssignableFrom(TypeUtils.getRawClassFromGeneric(formField.getDataType()))) {
-                    Class<?> genericType = TypeUtils.getListGeneric(entity.getClass(), formField.getProperty());
+                if (List.class.isAssignableFrom(TypeUtils.getRawClassFromGeneric(field.getType()))) {
+                    Class<?> genericType = TypeUtils.getListGeneric(entity.getClass(), name);
                     if (genericType == null)
                         throw new RuntimeException("Trying to mapping a list without generic type");
                     List list = new ArrayList();
@@ -163,9 +180,9 @@ public class SimplePropertyMapper implements PropertyMapper {
                 }
 
                 try {
-                    BeanUtils.setProperty(entity, formField.getProperty(), finalValue);
+                    BeanUtils.setProperty(entity, name, finalValue);
                 } catch (Exception e) {
-                    throw new MappingException(formField.getProperty(), e);
+                    throw new MappingException(name, e);
                 }
 
 
@@ -174,10 +191,10 @@ public class SimplePropertyMapper implements PropertyMapper {
             //if value is a list and nothing comes from request, the list must be cleared
             Object finalValue = null;
 
-            if (List.class.isAssignableFrom(TypeUtils.getRawClassFromGeneric(formField.getDataType()))) {
+            if (List.class.isAssignableFrom(TypeUtils.getRawClassFromGeneric(field.getType()))) {
                 List entities = null;
                 try {
-                    entities = ((List) PropertyUtils.getProperty(entity, formField.getProperty()));
+                    entities = ((List) PropertyUtils.getProperty(entity, name));
                     if (entities != null) {
                         entities.clear();
                     }
@@ -186,9 +203,9 @@ public class SimplePropertyMapper implements PropertyMapper {
                 finalValue = entities;
 
                 try {
-                    BeanUtils.setProperty(entity, formField.getProperty(), finalValue);
+                    BeanUtils.setProperty(entity, name, finalValue);
                 } catch (Exception e) {
-                    throw new MappingException(formField.getProperty(), e);
+                    throw new MappingException(name, e);
                 }
             }
         }

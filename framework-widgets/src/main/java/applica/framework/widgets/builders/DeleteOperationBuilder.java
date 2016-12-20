@@ -1,34 +1,24 @@
 package applica.framework.widgets.builders;
 
-import applica.framework.widgets.CrudConfiguration;
-import applica.framework.widgets.CrudConfigurationException;
-import applica.framework.widgets.operations.DeleteOperation;
 import applica.framework.Entity;
+import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.widgets.operations.DeleteOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteOperationBuilder {
 
-    private static DeleteOperationBuilder s_instance;
-
-    public static DeleteOperationBuilder instance() {
-        if (s_instance == null) s_instance = new DeleteOperationBuilder();
-        return s_instance;
-    }
-
-    private DeleteOperationBuilder() {
-    }
-
     private Log logger = LogFactory.getLog(getClass());
 
-    public DeleteOperation build(String identifier) throws CrudConfigurationException {
-        logger.info(String.format("Building delete operation for identifier: %s", identifier));
+    @Autowired
+    private RepositoriesFactory repositoriesFactory;
 
-        Class<? extends Entity> type = CrudConfiguration.instance().getGridTypeFromIdentifier(identifier);
+    public DeleteOperation build(Class<? extends Entity> entityType) {
+        logger.info(String.format("Building delete operation for class: %s", entityType.getName()));
 
-        Repository repository = CrudConfiguration.instance().getGridRepository(type);
-        if (repository == null) throw new CrudConfigurationException("Cannot create repository");
+        Repository repository = repositoriesFactory.createForEntity(entityType);
 
         DeleteOperation operation = new DeleteOperation();
         operation.setRepository(repository);
