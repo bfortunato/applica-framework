@@ -168,5 +168,3 @@ export default class EntitiesList extends Screen {
     }
 }
 
-module.exports = EntitiesList
-

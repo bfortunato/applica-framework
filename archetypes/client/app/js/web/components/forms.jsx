@@ -4,6 +4,7 @@ import strings from "../../strings"
 import { Card, HeaderBlock } from "./common"
 import { format } from "../../utils/lang"
 import { Observable } from "../../aj/events"
+import {Grid} from "./grids"
 
 export class Model extends Observable {
     constructor() {
@@ -172,92 +173,6 @@ export class Model extends Observable {
     }
 }
 
-export class Field extends React.Component {
-    render() {
-        let model = this.props.model
-        let className = "form-group " + (this.props.field.size ? this.props.field.size : "")
-        let control = React.createElement(this.props.field.control, {field: this.props.field, model: this.props.model})
-        let hasLabel = this.props.field.label != undefined && this.props.field.label != null
-        let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
-        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
-        if (!validationResult.valid) {
-            className += " has-error"
-        }
-        return (
-            <div className={className}>
-                {hasLabel &&
-                    <div className="col-sm-2">
-                        <Label field={this.props.field}/>
-                    </div>
-                }
-                <div className={controlSize}>
-                    {control}
-                </div>
-            </div>
-        )
-    }
-}
-
-export class Control extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
-    onValueChange(e) {
-        let value = e.target.value
-        let model = this.props.model
-        let field = this.props.field
-        model.set(field.property, value)
-        this.forceUpdate()
-    }
-}
-
-export class Text extends Control {
-    render() {
-        let field = this.props.field
-
-        return (
-            <div className="fg-line">
-                <input type="text" className="form-control input-sm" id={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
-            </div>
-        )
-    }
-}
-
-export class Mail extends Control {
-    render() {
-        let field = this.props.field
-
-        return (
-            <div className="fg-line">
-                <input type="email" className="form-control input-sm" id={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
-            </div>
-        )
-    }
-}
-
-export class Check extends Control {
-    onValueChange(e) {
-        let value = e.target.checked
-        let model = this.props.model
-        let field = this.props.field
-        model.set(field.property, value)
-        this.forceUpdate()
-    }
-
-    render() {
-        let field = this.props.field
-
-        return (
-            <div className="toggle-switch" data-ts-color="blue">
-                <input type="checkbox" hidden="hidden" name={field.property} id={field.property} checked={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
-                <label htmlFor={field.property} className="ts-helper"></label>
-                <label htmlFor={field.property} className="ts-label">{field.placeholder}</label>
-            </div>
-        )
-    }
-}
-
 export class Label extends React.Component {
     render() {
         let field = this.props.field
@@ -418,6 +333,253 @@ export class Form extends React.Component {
                     </div>
                     <div className="clearfix"></div>
                 </form>
+            </div>
+        )
+    }
+}
+
+
+/************************
+    Controls and Fields
+ ************************/
+
+export class Field extends React.Component {
+    render() {
+        let model = this.props.model
+        let className = "form-group " + (this.props.field.size ? this.props.field.size : "")
+        let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.options))
+        let hasLabel = this.props.field.label != undefined && this.props.field.label != null
+        let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
+        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
+        if (!validationResult.valid) {
+            className += " has-error"
+        }
+        return (
+            <div className={className}>
+                {hasLabel &&
+                <div className="col-sm-2">
+                    <Label field={this.props.field}/>
+                </div>
+                }
+                <div className={controlSize}>
+                    {control}
+                </div>
+            </div>
+        )
+    }
+}
+
+export class Control extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+
+    onValueChange(e) {
+        let value = e.target.value
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, value)
+        this.forceUpdate()
+    }
+}
+
+export class Text extends Control {
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="fg-line">
+                <input type="text" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class Mail extends Control {
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="fg-line">
+                <input type="email" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class Check extends Control {
+    onValueChange(e) {
+        let value = e.target.checked
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, value)
+        this.forceUpdate()
+    }
+
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="toggle-switch" data-ts-color="blue">
+                <input type="checkbox" hidden="hidden" name={field.property} id={field.property} data-property={field.property} checked={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <label htmlFor={field.property} className="ts-helper"></label>
+                <label htmlFor={field.property} className="ts-label">{field.placeholder}</label>
+            </div>
+        )
+    }
+}
+
+export class Number extends Control {
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="fg-line">
+                <input type="number" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class Select extends Control {
+
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find("select").select2({
+            placeholder: this.props.field.placeholder,
+            data: [{id: 1, text: "Bruno"}, {id: 2, text: "Massimo"}, {id: 3, text: "Flavio"}]
+        })
+
+        $(me).find(".select2-search__field")
+            .focus(() => {
+                $(me).find(".fg-line").addClass("fg-toggled")
+            })
+            .blur(() => {
+                $(me).find(".fg-line").removeClass("fg-toggled")
+            })
+    }
+
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="fg-line">
+                <div className="select">
+                    <select
+                        id={field.property}
+                        className="form-control"
+                        data-property={field.property}
+                        placeholder={field.placeholder}
+                        value={this.props.model.get(field.property) || []}
+                        onChange={this.onValueChange.bind(this)}
+                        multiple={this.props.multiple}
+                    />
+                </div>
+            </div>
+        )
+    }
+}
+
+export class Lookup extends Control {
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find(".selection-row")
+            .mouseenter(function() {
+                $(this).find(".action").stop().fadeIn(250)
+            })
+            .mouseleave(function() {
+                $(this).find(".action").stop().fadeOut(250)
+            })
+            .find(".action").hide()
+
+        $(me)
+            .focus(() => {
+                $(me).addClass("fg-toggled")
+            })
+            .blur(() => {
+                $(me).removeClass("fg-toggled")
+            })
+
+        $(me).find(".lookup-grid").modal({show: false})
+    }
+
+    showEntities() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find(".lookup-grid").modal("show")
+    }
+
+    render() {
+        let descriptor = {
+            "id": "users",
+            "columns": [
+                {"property": "name", "header": "Name", "component": "text"},
+                {"property": "mail", "header": "Mail", "component": "text"}
+            ]
+        }
+
+        let rows = []
+        for (let x = 0; x < 2; x++) {
+            let xo = {
+                index: x,
+                selected: false,
+                expanded: false,
+                data: {name: "name" + x, mail: "mail" + x, active: true},
+                children: []
+            }
+
+            rows.push(xo)
+
+        }
+
+
+        return (
+            <div className="fg-line" tabIndex="0">
+                <div className="lookup">
+                    <div className="lookup-header">
+                        <div className="actions pull-right">
+                            <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className="zmdi zmdi-plus" /></a>
+                            <div className="clearfix"></div>
+                        </div>
+                    </div>
+
+                    <table className="table table-condensed table-hover">
+                       <tbody>
+                            <tr className="selection-row">
+                                <td>Bruno</td>
+                                <td>Fortunato</td>
+                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
+                            </tr>
+                            <tr className="selection-row">
+                                <td>Massimo</td>
+                                <td>Galante</td>
+                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
+                            </tr>
+                            <tr className="selection-row">
+                                <td>Nicola</td>
+                                <td>Matera</td>
+                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="lookup-grid modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 className="modal-title" id="myModalLabel">Select roles</h4>
+                            </div>
+                            <div className="modal-body">
+                                <Grid ref="grid" showInCard="false" descriptor={descriptor} data={{rows: rows, totalRows: 100}} />
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-default" data-dismiss="modal">{strings.cancel}</button>
+                                <button type="button" className="btn btn-primary">{strings.ok}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }

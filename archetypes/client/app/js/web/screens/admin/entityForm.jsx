@@ -5,7 +5,7 @@ import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Form, Text, Mail, Check} from "../../components/forms"
+import {Form, Text, Mail, Check, Select, Lookup} from "../../components/forms"
 import {check, sanitize} from "../../../libs/validator"
 
 function isCancel(which) {
@@ -20,7 +20,7 @@ export default class EntityForm extends Screen {
     constructor(props) {
         super(props)
 
-        connect(this, EntitiesStore, {data: {name: "Bruno", mail: "bimbobruno@gmail.com", active: true}})
+        connect(this, EntitiesStore, {data: {name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: []}})
     }
 
     saveEntity() {
@@ -75,6 +75,19 @@ export default class EntityForm extends Screen {
                             placeholder: "Active",
                             sanitizer: (value) => sanitize(value).toBoolean()
                         },
+                        {
+                            property: "roles",
+                            control: Select,
+                            options: {multiple: true},
+                            label: "Roles",
+                            placeholder: "Roles"
+                        },
+                        {
+                            property: "role",
+                            control: Lookup,
+                            label: "Role",
+                            placeholder: "Role"
+                        }
                     ]
                 }
             ]

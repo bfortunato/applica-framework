@@ -8,7 +8,7 @@ import Confirm from "./screens/confirm"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
 import { resumeSession } from "../actions"
-import { EntityForm } from "./screens/admin"
+import { EntitiesGrid, EntityForm } from "./screens/admin"
 
 function ifAdmin(fn, ...params) {
     if (true) {

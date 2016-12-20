@@ -24188,7 +24188,8 @@ exports.default = {
     confirm: "Confirm",
     entityDeleteConfirm: "Are you sure to delete {0} entities?",
     submit: "Submit",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    add: "Add"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24456,7 +24457,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Model = undefined;
+exports.Lookup = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -24469,6 +24470,8 @@ var _common = require("./common");
 var _lang = require("../../utils/lang");
 
 var _events = require("../../aj/events");
+
+var _grids = require("./grids");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -24663,162 +24666,8 @@ var Model = exports.Model = function (_Observable) {
     return Model;
 }(_events.Observable);
 
-var Field = exports.Field = function (_React$Component) {
-    _inherits(Field, _React$Component);
-
-    function Field() {
-        _classCallCheck(this, Field);
-
-        return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).apply(this, arguments));
-    }
-
-    _createClass(Field, [{
-        key: "render",
-        value: function render() {
-            var model = this.props.model;
-            var className = "form-group " + (this.props.field.size ? this.props.field.size : "");
-            var control = React.createElement(this.props.field.control, { field: this.props.field, model: this.props.model });
-            var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
-            var controlSize = hasLabel ? "col-sm-10" : "col-sm-12";
-            var validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : { valid: true };
-            if (!validationResult.valid) {
-                className += " has-error";
-            }
-            return React.createElement(
-                "div",
-                { className: className },
-                hasLabel && React.createElement(
-                    "div",
-                    { className: "col-sm-2" },
-                    React.createElement(Label, { field: this.props.field })
-                ),
-                React.createElement(
-                    "div",
-                    { className: controlSize },
-                    control
-                )
-            );
-        }
-    }]);
-
-    return Field;
-}(React.Component);
-
-var Control = exports.Control = function (_React$Component2) {
-    _inherits(Control, _React$Component2);
-
-    function Control(props) {
-        _classCallCheck(this, Control);
-
-        return _possibleConstructorReturn(this, (Control.__proto__ || Object.getPrototypeOf(Control)).call(this, props));
-    }
-
-    _createClass(Control, [{
-        key: "onValueChange",
-        value: function onValueChange(e) {
-            var value = e.target.value;
-            var model = this.props.model;
-            var field = this.props.field;
-            model.set(field.property, value);
-            this.forceUpdate();
-        }
-    }]);
-
-    return Control;
-}(React.Component);
-
-var Text = exports.Text = function (_Control) {
-    _inherits(Text, _Control);
-
-    function Text() {
-        _classCallCheck(this, Text);
-
-        return _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).apply(this, arguments));
-    }
-
-    _createClass(Text, [{
-        key: "render",
-        value: function render() {
-            var field = this.props.field;
-
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", { type: "text", className: "form-control input-sm", id: field.property, placeholder: field.placeholder, value: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) })
-            );
-        }
-    }]);
-
-    return Text;
-}(Control);
-
-var Mail = exports.Mail = function (_Control2) {
-    _inherits(Mail, _Control2);
-
-    function Mail() {
-        _classCallCheck(this, Mail);
-
-        return _possibleConstructorReturn(this, (Mail.__proto__ || Object.getPrototypeOf(Mail)).apply(this, arguments));
-    }
-
-    _createClass(Mail, [{
-        key: "render",
-        value: function render() {
-            var field = this.props.field;
-
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", { type: "email", className: "form-control input-sm", id: field.property, placeholder: field.placeholder, value: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) })
-            );
-        }
-    }]);
-
-    return Mail;
-}(Control);
-
-var Check = exports.Check = function (_Control3) {
-    _inherits(Check, _Control3);
-
-    function Check() {
-        _classCallCheck(this, Check);
-
-        return _possibleConstructorReturn(this, (Check.__proto__ || Object.getPrototypeOf(Check)).apply(this, arguments));
-    }
-
-    _createClass(Check, [{
-        key: "onValueChange",
-        value: function onValueChange(e) {
-            var value = e.target.checked;
-            var model = this.props.model;
-            var field = this.props.field;
-            model.set(field.property, value);
-            this.forceUpdate();
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            var field = this.props.field;
-
-            return React.createElement(
-                "div",
-                { className: "toggle-switch", "data-ts-color": "blue" },
-                React.createElement("input", { type: "checkbox", hidden: "hidden", name: field.property, id: field.property, checked: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) }),
-                React.createElement("label", { htmlFor: field.property, className: "ts-helper" }),
-                React.createElement(
-                    "label",
-                    { htmlFor: field.property, className: "ts-label" },
-                    field.placeholder
-                )
-            );
-        }
-    }]);
-
-    return Check;
-}(Control);
-
-var Label = exports.Label = function (_React$Component3) {
-    _inherits(Label, _React$Component3);
+var Label = exports.Label = function (_React$Component) {
+    _inherits(Label, _React$Component);
 
     function Label() {
         _classCallCheck(this, Label);
@@ -24842,8 +24691,8 @@ var Label = exports.Label = function (_React$Component3) {
     return Label;
 }(React.Component);
 
-var Area = exports.Area = function (_React$Component4) {
-    _inherits(Area, _React$Component4);
+var Area = exports.Area = function (_React$Component2) {
+    _inherits(Area, _React$Component2);
 
     function Area() {
         _classCallCheck(this, Area);
@@ -24854,12 +24703,12 @@ var Area = exports.Area = function (_React$Component4) {
     _createClass(Area, [{
         key: "render",
         value: function render() {
-            var _this10 = this;
+            var _this5 = this;
 
             var area = this.props.area;
             var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model });
             var fields = !_.isEmpty(area.fields) && area.fields.map(function (f) {
-                return React.createElement(Field, { key: f.property, model: _this10.props.model, field: f });
+                return React.createElement(Field, { key: f.property, model: _this5.props.model, field: f });
             });
 
             return React.createElement(
@@ -24874,8 +24723,8 @@ var Area = exports.Area = function (_React$Component4) {
     return Area;
 }(React.Component);
 
-var Tabs = exports.Tabs = function (_React$Component5) {
-    _inherits(Tabs, _React$Component5);
+var Tabs = exports.Tabs = function (_React$Component3) {
+    _inherits(Tabs, _React$Component3);
 
     function Tabs() {
         _classCallCheck(this, Tabs);
@@ -24886,20 +24735,20 @@ var Tabs = exports.Tabs = function (_React$Component5) {
     _createClass(Tabs, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this12 = this;
+            var _this7 = this;
 
             var me = ReactDOM.findDOMNode(this);
             console.log(me);
             $(me).find(".tab-button").click(function (e) {
                 console.log("ciao");
                 e.preventDefault();
-                $(_this12).tab("show");
+                $(_this7).tab("show");
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this13 = this;
+            var _this8 = this;
 
             var first = true;
             var tabs = this.props.tabs;
@@ -24919,7 +24768,7 @@ var Tabs = exports.Tabs = function (_React$Component5) {
             first = true;
             var panes = tabs.map(function (c) {
                 var fields = _.isEmpty(c.fields) && c.fields.map(function (f) {
-                    return React.createElement(Field, { key: f.property, model: _this13.props.model, field: f });
+                    return React.createElement(Field, { key: f.property, model: _this8.props.model, field: f });
                 });
                 var el = React.createElement(
                     "div",
@@ -24978,16 +24827,16 @@ function generateKeys(descriptor) {
     }
 }
 
-var Form = exports.Form = function (_React$Component6) {
-    _inherits(Form, _React$Component6);
+var Form = exports.Form = function (_React$Component4) {
+    _inherits(Form, _React$Component4);
 
     function Form(props) {
         _classCallCheck(this, Form);
 
-        var _this14 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
 
-        _this14.model = new Model();
-        return _this14;
+        _this9.model = new Model();
+        return _this9;
     }
 
     _createClass(Form, [{
@@ -25071,6 +24920,449 @@ var Form = exports.Form = function (_React$Component6) {
 
     return Form;
 }(React.Component);
+
+/************************
+    Controls and Fields
+ ************************/
+
+var Field = exports.Field = function (_React$Component5) {
+    _inherits(Field, _React$Component5);
+
+    function Field() {
+        _classCallCheck(this, Field);
+
+        return _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).apply(this, arguments));
+    }
+
+    _createClass(Field, [{
+        key: "render",
+        value: function render() {
+            var model = this.props.model;
+            var className = "form-group " + (this.props.field.size ? this.props.field.size : "");
+            var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.options));
+            var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
+            var controlSize = hasLabel ? "col-sm-10" : "col-sm-12";
+            var validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : { valid: true };
+            if (!validationResult.valid) {
+                className += " has-error";
+            }
+            return React.createElement(
+                "div",
+                { className: className },
+                hasLabel && React.createElement(
+                    "div",
+                    { className: "col-sm-2" },
+                    React.createElement(Label, { field: this.props.field })
+                ),
+                React.createElement(
+                    "div",
+                    { className: controlSize },
+                    control
+                )
+            );
+        }
+    }]);
+
+    return Field;
+}(React.Component);
+
+var Control = exports.Control = function (_React$Component6) {
+    _inherits(Control, _React$Component6);
+
+    function Control(props) {
+        _classCallCheck(this, Control);
+
+        return _possibleConstructorReturn(this, (Control.__proto__ || Object.getPrototypeOf(Control)).call(this, props));
+    }
+
+    _createClass(Control, [{
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var value = e.target.value;
+            var model = this.props.model;
+            var field = this.props.field;
+            model.set(field.property, value);
+            this.forceUpdate();
+        }
+    }]);
+
+    return Control;
+}(React.Component);
+
+var Text = exports.Text = function (_Control) {
+    _inherits(Text, _Control);
+
+    function Text() {
+        _classCallCheck(this, Text);
+
+        return _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).apply(this, arguments));
+    }
+
+    _createClass(Text, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", { type: "text", className: "form-control input-sm", id: field.property, "data-property": field.property, placeholder: field.placeholder, value: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) })
+            );
+        }
+    }]);
+
+    return Text;
+}(Control);
+
+var Mail = exports.Mail = function (_Control2) {
+    _inherits(Mail, _Control2);
+
+    function Mail() {
+        _classCallCheck(this, Mail);
+
+        return _possibleConstructorReturn(this, (Mail.__proto__ || Object.getPrototypeOf(Mail)).apply(this, arguments));
+    }
+
+    _createClass(Mail, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", { type: "email", className: "form-control input-sm", id: field.property, "data-property": field.property, placeholder: field.placeholder, value: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) })
+            );
+        }
+    }]);
+
+    return Mail;
+}(Control);
+
+var Check = exports.Check = function (_Control3) {
+    _inherits(Check, _Control3);
+
+    function Check() {
+        _classCallCheck(this, Check);
+
+        return _possibleConstructorReturn(this, (Check.__proto__ || Object.getPrototypeOf(Check)).apply(this, arguments));
+    }
+
+    _createClass(Check, [{
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var value = e.target.checked;
+            var model = this.props.model;
+            var field = this.props.field;
+            model.set(field.property, value);
+            this.forceUpdate();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "toggle-switch", "data-ts-color": "blue" },
+                React.createElement("input", { type: "checkbox", hidden: "hidden", name: field.property, id: field.property, "data-property": field.property, checked: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) }),
+                React.createElement("label", { htmlFor: field.property, className: "ts-helper" }),
+                React.createElement(
+                    "label",
+                    { htmlFor: field.property, className: "ts-label" },
+                    field.placeholder
+                )
+            );
+        }
+    }]);
+
+    return Check;
+}(Control);
+
+var Number = exports.Number = function (_Control4) {
+    _inherits(Number, _Control4);
+
+    function Number() {
+        _classCallCheck(this, Number);
+
+        return _possibleConstructorReturn(this, (Number.__proto__ || Object.getPrototypeOf(Number)).apply(this, arguments));
+    }
+
+    _createClass(Number, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", { type: "number", className: "form-control input-sm", id: field.property, "data-property": field.property, placeholder: field.placeholder, value: this.props.model.get(field.property), onChange: this.onValueChange.bind(this) })
+            );
+        }
+    }]);
+
+    return Number;
+}(Control);
+
+var Select = exports.Select = function (_Control5) {
+    _inherits(Select, _Control5);
+
+    function Select() {
+        _classCallCheck(this, Select);
+
+        return _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).apply(this, arguments));
+    }
+
+    _createClass(Select, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("select").select2({
+                placeholder: this.props.field.placeholder,
+                data: [{ id: 1, text: "Bruno" }, { id: 2, text: "Massimo" }, { id: 3, text: "Flavio" }]
+            });
+
+            $(me).find(".select2-search__field").focus(function () {
+                $(me).find(".fg-line").addClass("fg-toggled");
+            }).blur(function () {
+                $(me).find(".fg-line").removeClass("fg-toggled");
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement(
+                    "div",
+                    { className: "select" },
+                    React.createElement("select", {
+                        id: field.property,
+                        className: "form-control",
+                        "data-property": field.property,
+                        placeholder: field.placeholder,
+                        value: this.props.model.get(field.property) || [],
+                        onChange: this.onValueChange.bind(this),
+                        multiple: this.props.multiple
+                    })
+                )
+            );
+        }
+    }]);
+
+    return Select;
+}(Control);
+
+var Lookup = exports.Lookup = function (_Control6) {
+    _inherits(Lookup, _Control6);
+
+    function Lookup() {
+        _classCallCheck(this, Lookup);
+
+        return _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).apply(this, arguments));
+    }
+
+    _createClass(Lookup, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".selection-row").mouseenter(function () {
+                $(this).find(".action").stop().fadeIn(250);
+            }).mouseleave(function () {
+                $(this).find(".action").stop().fadeOut(250);
+            }).find(".action").hide();
+
+            $(me).focus(function () {
+                $(me).addClass("fg-toggled");
+            }).blur(function () {
+                $(me).removeClass("fg-toggled");
+            });
+
+            $(me).find(".lookup-grid").modal({ show: false });
+        }
+    }, {
+        key: "showEntities",
+        value: function showEntities() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".lookup-grid").modal("show");
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var descriptor = {
+                "id": "users",
+                "columns": [{ "property": "name", "header": "Name", "component": "text" }, { "property": "mail", "header": "Mail", "component": "text" }]
+            };
+
+            var rows = [];
+            for (var x = 0; x < 2; x++) {
+                var xo = {
+                    index: x,
+                    selected: false,
+                    expanded: false,
+                    data: { name: "name" + x, mail: "mail" + x, active: true },
+                    children: []
+                };
+
+                rows.push(xo);
+            }
+
+            return React.createElement(
+                "div",
+                { className: "fg-line", tabIndex: "0" },
+                React.createElement(
+                    "div",
+                    { className: "lookup" },
+                    React.createElement(
+                        "div",
+                        { className: "lookup-header" },
+                        React.createElement(
+                            "div",
+                            { className: "actions pull-right" },
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", title: _strings2.default.add, onClick: this.showEntities.bind(this) },
+                                React.createElement("i", { className: "zmdi zmdi-plus" })
+                            ),
+                            React.createElement("div", { className: "clearfix" })
+                        )
+                    ),
+                    React.createElement(
+                        "table",
+                        { className: "table table-condensed table-hover" },
+                        React.createElement(
+                            "tbody",
+                            null,
+                            React.createElement(
+                                "tr",
+                                { className: "selection-row" },
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Bruno"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Fortunato"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    { className: "actions" },
+                                    React.createElement(
+                                        "a",
+                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
+                                        React.createElement("i", { className: "zmdi zmdi-delete" })
+                                    )
+                                )
+                            ),
+                            React.createElement(
+                                "tr",
+                                { className: "selection-row" },
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Massimo"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Galante"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    { className: "actions" },
+                                    React.createElement(
+                                        "a",
+                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
+                                        React.createElement("i", { className: "zmdi zmdi-delete" })
+                                    )
+                                )
+                            ),
+                            React.createElement(
+                                "tr",
+                                { className: "selection-row" },
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Nicola"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    null,
+                                    "Matera"
+                                ),
+                                React.createElement(
+                                    "td",
+                                    { className: "actions" },
+                                    React.createElement(
+                                        "a",
+                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
+                                        React.createElement("i", { className: "zmdi zmdi-delete" })
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+                React.createElement(
+                    "div",
+                    { className: "lookup-grid modal fade", id: "myModal", tabIndex: "-1", role: "dialog", "aria-labelledby": "myModalLabel" },
+                    React.createElement(
+                        "div",
+                        { className: "modal-dialog", role: "document" },
+                        React.createElement(
+                            "div",
+                            { className: "modal-content" },
+                            React.createElement(
+                                "div",
+                                { className: "modal-header" },
+                                React.createElement(
+                                    "button",
+                                    { type: "button", className: "close", "data-dismiss": "modal", "aria-label": "Close" },
+                                    React.createElement(
+                                        "span",
+                                        { "aria-hidden": "true" },
+                                        "\xD7"
+                                    )
+                                ),
+                                React.createElement(
+                                    "h4",
+                                    { className: "modal-title", id: "myModalLabel" },
+                                    "Select roles"
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "modal-body" },
+                                React.createElement(_grids.Grid, { ref: "grid", showInCard: "false", descriptor: descriptor, data: { rows: rows, totalRows: 100 } })
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "modal-footer" },
+                                React.createElement(
+                                    "button",
+                                    { type: "button", className: "btn btn-default", "data-dismiss": "modal" },
+                                    _strings2.default.cancel
+                                ),
+                                React.createElement(
+                                    "button",
+                                    { type: "button", className: "btn btn-primary" },
+                                    _strings2.default.ok
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Lookup;
+}(Control);
 });
 define('web/components/grids.js', function(module, exports) {
 "use strict";
@@ -25078,7 +25370,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.FooterCell = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.FooterCell = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -25381,7 +25673,7 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
         value: function render() {
             return React.createElement(
                 "div",
-                { className: "search-dialog modal fade", role: "dialog", tabIndex: "-1", style: { display: "none" } },
+                { className: "search-dialog modal fade", role: "dialog", tabIndex: "-1", style: { display: "none", zIndex: 1500 } },
                 React.createElement(
                     "div",
                     { className: "modal-dialog" },
@@ -26183,17 +26475,40 @@ var ResultSummary = exports.ResultSummary = function (_React$Component13) {
     return ResultSummary;
 }(React.Component);
 
-var Grid = exports.Grid = function (_React$Component14) {
-    _inherits(Grid, _React$Component14);
+var NoCard = exports.NoCard = function (_React$Component14) {
+    _inherits(NoCard, _React$Component14);
+
+    function NoCard() {
+        _classCallCheck(this, NoCard);
+
+        return _possibleConstructorReturn(this, (NoCard.__proto__ || Object.getPrototypeOf(NoCard)).apply(this, arguments));
+    }
+
+    _createClass(NoCard, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                null,
+                this.props.children
+            );
+        }
+    }]);
+
+    return NoCard;
+}(React.Component);
+
+var Grid = exports.Grid = function (_React$Component15) {
+    _inherits(Grid, _React$Component15);
 
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this24 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this25 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        _this24.selection = null;
-        _this24.state = { rows: null };
-        return _this24;
+        _this25.selection = null;
+        _this25.state = { rows: null };
+        return _this25;
     }
 
     _createClass(Grid, [{
@@ -26273,7 +26588,7 @@ var Grid = exports.Grid = function (_React$Component14) {
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
-            var _this25 = this;
+            var _this26 = this;
 
             var expanded = !row.expanded;
 
@@ -26291,7 +26606,7 @@ var Grid = exports.Grid = function (_React$Component14) {
 
                 setTimeout(function () {
                     row.expanded = expanded;
-                    _this25.forceUpdate();
+                    _this26.forceUpdate();
                 }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
@@ -26301,15 +26616,15 @@ var Grid = exports.Grid = function (_React$Component14) {
     }, {
         key: "componentWillReceiveProps",
         value: function componentWillReceiveProps(nextProps) {
-            var _this26 = this;
+            var _this27 = this;
 
             var rows = nextProps.data && nextProps.data.rows;
             if (rows) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
-                    _this26.setState(_this26.state);
-                    if (_.isFunction(_this26.props.onSelectionChanged)) {
-                        _this26.props.onSelectionChanged(_this26.selection.getSelectedData());
+                    _this27.setState(_this27.state);
+                    if (_.isFunction(_this27.props.onSelectionChanged)) {
+                        _this27.props.onSelectionChanged(_this27.selection.getSelectedData());
                     }
                 });
             }
@@ -26362,11 +26677,13 @@ var Grid = exports.Grid = function (_React$Component14) {
             var rows = this.props.data && this.props.data.rows;
             var hasPagination = this.getTotalPages() > 1;
 
+            var container = this.props.showInCard === false ? NoCard : _common.Card;
+
             return React.createElement(
                 "div",
                 { className: "grid", tabIndex: "0", onBlur: this.onBlur.bind(this), onKeyPress: this.onKeyPress.bind(this), onKeyUp: this.onKeyUp.bind(this), onKeyDown: this.onKeyDown.bind(this) },
                 React.createElement(
-                    _common.Card,
+                    "container",
                     null,
                     React.createElement(
                         "div",
@@ -27360,7 +27677,7 @@ plugins.register();
 
 /* Admin routes */
 ui.addRoute("/admin/entities/:entity/", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(EntitiesGrid, { entity: params.entity, grid: params.grid }));
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { entity: params.entity, grid: params.grid }));
 });
 ui.addRoute("/admin/entities/:entity/edit", function (params) {
     return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity, form: params.form }));
@@ -27695,9 +28012,6 @@ var EntitiesList = function (_Screen) {
 }(_layout.Screen);
 
 exports.default = EntitiesList;
-
-
-module.exports = EntitiesList;
 });
 define('web/screens/admin/entityForm.js', function(module, exports) {
 "use strict";
@@ -27748,7 +28062,7 @@ var EntityForm = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (EntityForm.__proto__ || Object.getPrototypeOf(EntityForm)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.entities, { data: { name: "Bruno", mail: "bimbobruno@gmail.com", active: true } });
+        (0, _aj.connect)(_this, _stores.entities, { data: { name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: [] } });
         return _this;
     }
 
@@ -27810,6 +28124,17 @@ var EntityForm = function (_Screen) {
                         sanitizer: function sanitizer(value) {
                             return (0, _validator.sanitize)(value).toBoolean();
                         }
+                    }, {
+                        property: "roles",
+                        control: _forms.Select,
+                        options: { multiple: true },
+                        label: "Roles",
+                        placeholder: "Roles"
+                    }, {
+                        property: "role",
+                        control: _forms.Lookup,
+                        label: "Role",
+                        placeholder: "Role"
                     }]
                 }]
             };

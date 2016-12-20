@@ -231,7 +231,7 @@ export class SearchDialog extends React.Component {
 
     render() {
         return (
-            <div className="search-dialog modal fade" role="dialog" tabIndex="-1" style={{display: "none"}}>
+            <div className="search-dialog modal fade" role="dialog" tabIndex="-1" style={{display: "none", zIndex: 1500}}>
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
@@ -728,6 +728,13 @@ export class ResultSummary extends React.Component {
     }
 }
 
+export class NoCard extends React.Component {
+    render() {
+        return (
+            <div>{this.props.children}</div>
+        )
+    }
+}
 
 export class Grid extends React.Component {
     constructor(props) {
@@ -882,9 +889,11 @@ export class Grid extends React.Component {
         let rows = this.props.data && this.props.data.rows
         let hasPagination = this.getTotalPages() > 1
 
+        let container = this.props.showInCard === false ? NoCard : Card
+
         return (
             <div className="grid" tabIndex="0" onBlur={this.onBlur.bind(this)} onKeyPress={this.onKeyPress.bind(this)} onKeyUp={this.onKeyUp.bind(this)} onKeyDown={this.onKeyDown.bind(this)}>
-                <Card>
+                <container>
                     <div>
                         <div hidden={filtersHidden}>
                             <Filters query={myQuery} />
@@ -913,7 +922,7 @@ export class Grid extends React.Component {
                             </div>
                         }
                     </div>
-                </Card>
+                </container>
             </div>
         )
     }
