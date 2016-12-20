@@ -48,7 +48,7 @@ public class ApplicationInitializer {
         ConvertUtils.register(dateConverter, Date.class);
 
         try {
-            if (Boolean.parseBoolean(options.get("applica.framework.data.mongodb.default.embedded"))) {
+            if (true/*Boolean.parseBoolean(options.get("applica.framework.data.mongodb.default.embedded"))*/) {
                 createMockUsers();
             }
         } catch (Exception e) {}

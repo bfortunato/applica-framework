@@ -2,9 +2,9 @@
 
 import * as query from "../../api/query"
 import strings from "../../strings"
-import { Card, HeaderBlock } from "./common"
-import { format } from "../../utils/lang"
-import { Observable } from "../../aj/events"
+import {Card, HeaderBlock} from "./common"
+import {format, optional, parseBoolean} from "../../utils/lang"
+import {Observable} from "../../aj/events"
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
@@ -222,7 +222,7 @@ export class SearchDialog extends React.Component {
     }
 
     filter() {
-        if (this.props.query) {
+        if (this.props.query && this.props.column && this.props.column.property) {
             this.props.query.filter(this.state.type, this.props.column.property, this.state.value)
 
             this.close()
@@ -336,19 +336,23 @@ export class HeaderCell extends React.Component {
             <th className="hover" style={{position: "relative"}}>
                 <span onClick={this.changeSort.bind(this)} className="pointer-cursor">{this.props.column.header}</span>
 
-                {this.props.column.sortable ?
+                {this.props.column.sortable &&
                     <a className="pull-right" href="javascript:;" onClick={this.changeSort.bind(this)}><i className={sortIcon}/></a>
-                    : null}
+                }
 
-                <a ref="search" className="btn bgm-bluegray btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
+                {this.props.column.searchable &&
+                    <a ref="search" className="btn bgm-bluegray btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
+                }
 
-                <SearchDialog column={this.props.column} query={this.props.query}/>
+                {this.props.column.searchable &&
+                    <SearchDialog column={this.props.column} query={this.props.query}/>
+                }
             </th>
         )
     }
 }
 
-export class Header extends React.Component {
+export class GridHeader extends React.Component {
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -431,9 +435,9 @@ export class Row extends React.Component {
         let firstElement = true
         let key = 1
         let cells = this.props.descriptor.columns.map(c => {
-            let cell = createCell(c.component, c.property, this.props.row, firstElement, onExpand)
+            let cell = createCell(c, this.props.row, firstElement, onExpand)
             firstElement = false
-            return <td key={key++}><div className="grid-cell-container">{cell}</div></td>
+            return <td key={key++} className={c.tdClassName}><div className="grid-cell-container">{cell}</div></td>
         })
         let className = `level-${this.props.row.level} ` + (this.props.row.selected ? "selected" : "")
 
@@ -517,7 +521,7 @@ export class FooterCell extends React.Component {
     }
 }
 
-export class Footer extends React.Component {
+export class GridFooter extends React.Component {
     render() {
         if (_.isEmpty(this.props.descriptor)) {
             return null
@@ -581,6 +585,27 @@ export class CheckCell extends Cell {
 
         return (
             <i className={icon} />
+        )
+    }
+}
+
+export class ActionsCell extends Cell {
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).closest("tr")
+            .mouseenter(() => {
+                $(me).find(".grid-action").stop().fadeIn(250)
+            })
+            .mouseleave(() => {
+                $(me).find(".grid-action").stop().fadeOut(250)
+            })
+    }
+
+    render() {
+        let actions = this.props.column.actions.map(a => <a style={{display: "none"}} href="javascript:;" className="grid-action" onClick={a.action}><i className={a.icon} /></a>)
+
+        return (
+            <div>{actions}</div>
         )
     }
 }
@@ -736,12 +761,34 @@ export class NoCard extends React.Component {
     }
 }
 
+export class QuickSearch extends React.Component {
+    search(e) {
+        let keyword = e.target.value
+        if (!_.isEmpty(keyword)) {
+            console.log(keyword)            
+        }
+    }
+
+    render() {
+        return (
+            <div className="quick-search pull-right">
+                <i className="zmdi zmdi-search pull-right" />
+                <div className="quick-search-input-container">
+                    <input type="search" onChange={this.search.bind(this)} />
+                </div>
+            </div>
+        )
+    }
+}
+
 export class Grid extends React.Component {
     constructor(props) {
         super(props)
 
         this.selection = null
         this.state = {rows: null}
+
+        this.initSelection(props)
     }
 
     getTotalRows() {
@@ -807,6 +854,11 @@ export class Grid extends React.Component {
     }
 
     onRowMouseDown(row) {
+        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        if (!selectionEnabled) {
+            return
+        }
+
         this.selection.handle(row)
     }
 
@@ -834,8 +886,14 @@ export class Grid extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        let rows = nextProps.data && nextProps.data.rows
+    initSelection(props) {
+        let selectionEnabled = optional(parseBoolean(props.selectionEnabled), true)
+        if (!selectionEnabled) {
+            return
+        }
+
+
+        let rows = props.data && props.data.rows
         if (rows) {
             this.selection = new Selection(rows)
             this.selection.on("change", () => {
@@ -845,23 +903,44 @@ export class Grid extends React.Component {
                 }
             })
         }
+    }
 
+    componentWillReceiveProps(nextProps) {
+        this.initSelection(nextProps)
+
+        let rows = nextProps.data && nextProps.data.rows
         this.setState(_.assign(this.state, {rows}))
     }
 
     toggleSelectAll() {
+        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        if (!selectionEnabled) {
+            return
+        }
+
+
         if (this.selection) {
             this.selection.toggleAll()
         }
     }
 
     clearSelection() {
+        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        if (!selectionEnabled) {
+            return
+        }
+
         if (this.selection) {
             this.selection.clear()
         }
     }
 
     getSelection() {
+        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        if (!selectionEnabled) {
+            return
+        }
+
         if (this.selection) {
             return this.selection.getSelectedData()
         } else {
@@ -882,12 +961,22 @@ export class Grid extends React.Component {
         if (_.isEmpty(this.props.descriptor)) {
             return null
         }
-        
-        let myQuery = this.props.query || query.create()
-        let filtersHidden = myQuery.filters.length == 0
+
+        //customization properties
+        let quickSearchEnabled = optional(parseBoolean(this.props.quickSearchEnabled), false)
+        let headerVisible = optional(parseBoolean(this.props.headerVisible), true)
+        let footerVisible = optional(parseBoolean(this.props.footerVisible), true)
+        let summaryVisible = optional(parseBoolean(this.props.summaryVisible), true)    
+        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        let paginationEnabled = optional(parseBoolean(this.props.paginationEnabled), true)
+        let tableClassName = optional(this.props.tableClassName, "table table-striped table-hover")
+
+        let myQuery = optional(this.props.query, query.create())
+        let showFilters = myQuery.filters.length > 0
         let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
         let rows = this.props.data && this.props.data.rows
         let hasPagination = this.getTotalPages() > 1
+        let noResultsText = optional(this.props.noResultText, strings.noResults)
 
         let container = this.props.showInCard === false ? NoCard : Card
 
@@ -895,23 +984,35 @@ export class Grid extends React.Component {
             <div className="grid" tabIndex="0" onBlur={this.onBlur.bind(this)} onKeyPress={this.onKeyPress.bind(this)} onKeyUp={this.onKeyUp.bind(this)} onKeyDown={this.onKeyDown.bind(this)}>
                 <container>
                     <div>
-                        <div hidden={filtersHidden}>
+                        {quickSearchEnabled &&
+                            <QuickSearch query={myQuery} />
+                        }
+
+                        {showFilters &&
                             <Filters query={myQuery} />
-                        </div>
+                        }
 
                         {hasResults ?
                             <div className="with-result">
-                                <table className="table table-striped table-hover">
-                                    <Header descriptor={this.props.descriptor} query={myQuery}/>
+                                <table className={tableClassName}>
+                                    {headerVisible && 
+                                        <GridHeader descriptor={this.props.descriptor} query={myQuery}/>
+                                    }
                                     <GridBody descriptor={this.props.descriptor} data={this.props.data} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
-                                    <Footer descriptor={this.props.descriptor} />
+                                    {footerVisible &&
+                                        <GridFooter descriptor={this.props.descriptor} />
+                                    }
                                 </table>
 
-                                <div className="pull-right m-20" hidden={!hasPagination}>
-                                    <Pagination data={this.props.data} query={myQuery} />
-                                </div>
+                                {hasPagination && paginationEnabled &&
+                                    <div className="pull-right m-20">
+                                        <Pagination data={this.props.data} query={myQuery} />
+                                    </div>
+                                }
 
-                                <ResultSummary query={myQuery} data={this.props.data} />
+                                {summaryVisible && 
+                                    <ResultSummary query={myQuery} data={this.props.data} />
+                                }
 
                                 <div className="clearfix"></div>
                             </div>
@@ -930,18 +1031,10 @@ export class Grid extends React.Component {
 
 
 
-export function createCell(type, property, row, firstElement, onExpand) {
-    let key = property + "" + row.index
-    let value = row.data[property]
+export function createCell(column, row, firstElement, onExpand) {
+    let key = column.property + "" + row.index
+    let value = row.data[column.property]
 
-
-
-    switch (type) {
-        case "check":
-            return <CheckCell key={key} row={row} value={value} firstElement={firstElement} />
-
-        case "text":
-        default:
-            return <TextCell key={key} row={row} value={value} firstElement={firstElement} onExpand={onExpand}/>
-    }
+    return React.createElement(column.cell, {key, column, property: column.property, row, value, firstElement, onExpand})
+    
 }

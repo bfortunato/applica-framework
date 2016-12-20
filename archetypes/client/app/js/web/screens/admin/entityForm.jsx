@@ -6,8 +6,9 @@ import strings from "../../../strings"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Form, Text, Mail, Check, Select, Lookup} from "../../components/forms"
+import {Grid, TextCell, ActionsCell} from "../../components/grids"
 import {check, sanitize} from "../../../libs/validator"
-import {saveEntity} from "../../../actions"
+import {saveEntity, freeEntities} from "../../../actions"
 
 function isCancel(which) {
     return which == 46 || which == 8
@@ -17,11 +18,21 @@ function isEsc(which) {
     return which == 27
 }
 
+let discriminator = 1
+
 export default class EntityForm extends Screen {
     constructor(props) {
         super(props)
 
         connect(this, EntitiesStore, {data: {name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: []}})
+    }
+
+    componentDidMount() {
+        this.discriminator = discriminator++
+    }
+
+    componentWillUnmount() {
+        freeEntities(this.discriminator)
     }
 
     onSubmit(data) {
@@ -77,17 +88,30 @@ export default class EntityForm extends Screen {
                             sanitizer: (value) => sanitize(value).toBoolean()
                         },
                         {
-                            property: "roles",
-                            control: Select,
-                            options: {multiple: true},
-                            label: "Roles",
-                            placeholder: "Roles"
-                        },
-                        {
                             property: "role",
                             control: Lookup,
                             label: "Role",
-                            placeholder: "Role"
+                            placeholder: "Role",
+                            mode: "multiple",
+                            selectionGrid: {
+                                "columns": [
+                                    {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: false},
+                                    {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false},
+                                    {
+                                        cell: ActionsCell, 
+                                        tdClassName: "grid-actions",
+                                        actions: [
+                                            {icon: "zmdi zmdi-delete", action: () => console.log("action performed")}
+                                        ]
+                                    },
+                                ]
+                            },
+                            popupGrid: {
+                                columns: [
+                                    {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: false},
+                                    {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false}
+                                ]
+                            }
                         }
                     ]
                 }

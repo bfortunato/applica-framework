@@ -77,7 +77,7 @@ public class EntitiesController {
         }
     }
 
-    @PostMapping("")
+    @DeleteMapping("")
     //@PreAuthorize("hasPermission('administrator')")
     public Response saveEntity(@PathVariable("entity") String id, HttpServletRequest request) {
         try {

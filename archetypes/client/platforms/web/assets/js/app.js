@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.freeEntities = exports.FREE_ENTITIES = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -180,7 +180,6 @@ var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFI
 });
 
 /** Grids actions **/
-
 var GET_GRID = exports.GET_GRID = "GET_GRID";
 var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function (data) {
     if (_.isEmpty(data.id)) {
@@ -214,16 +213,21 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         return;
     }
 
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
     aj.dispatch({
-        type: LOAD_ENTITIES
+        type: LOAD_ENTITIES,
+        discriminator: data.discriminator
     });
 
     entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null).then(function (response) {
-        loadEntities.complete({ result: response.value });
+        loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        loadEntities.fail();
+        loadEntities.fail({ discriminator: data.discriminator });
     });
 });
 
@@ -239,16 +243,59 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         return;
     }
 
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
     aj.dispatch({
-        type: DELETE_ENTITIES
+        type: DELETE_ENTITIES,
+        discriminator: data.discriminator
     });
 
     entities.delete_(data.entity, data.ids).then(function () {
-        deleteEntities.complete();
+        deleteEntities.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        deleteEntities.fail();
+        deleteEntities.fail({ discriminator: data.discriminator });
+    });
+});
+
+var SAVE_ENTITY = exports.SAVE_ENTITY = "SAVE_ENTITY";
+var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.data)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyData);
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: SAVE_ENTITY,
+        discriminator: data.discriminator
+    });
+
+    entities.save(data.entity, data.data).then(function () {
+        saveEntity.complete({ discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        saveEntity.fail({ discriminator: data.discriminator });
+    });
+});
+
+var FREE_ENTITIES = exports.FREE_ENTITIES = "FREE_ENTITIES";
+var freeEntities = exports.freeEntities = aj.createAction(FREE_ENTITIES, function (data) {
+    aj.dispatch({
+        type: FREE_ENTITIES,
+        discriminator: data.discriminator
     });
 });
 });
@@ -1738,12 +1785,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.load = load;
 exports.delete_ = delete_;
+exports.save = save;
 
 var _config = require("../framework/config");
 
 var config = _interopRequireWildcard(_config);
 
 var _utils = require("./utils");
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -1753,8 +1805,22 @@ function load(entity, query) {
 }
 
 function delete_(entity, ids) {
+    if (!_.isArray(ids)) {
+        throw new Error("ids is not an array");
+    }
+
+    var data = [];
+    for (var i = 0; i < ids.length; i++) {
+        data.push("" + ids[i]);
+    }
+
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.delete_)(url, { entityIds: ids });
+    return (0, _utils.delete_)(url, { entityIds: data.join() });
+}
+
+function save(entity, data) {
+    var url = config.get("entities.url") + "/" + entity;
+    return (0, _utils.post)(url, data);
 }
 });
 define('api/grids.js', function(module, exports) {
@@ -24121,22 +24187,25 @@ var grids = exports.grids = aj.createStore(GRIDS, function () {
 
 var ENTITIES = exports.ENTITIES = "ENTITIES";
 var entities = exports.entities = aj.createStore(ENTITIES, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { error: false, result: null };
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
 
     switch (action.type) {
         case (0, _ajex.completed)(actions.LOAD_ENTITIES):
-            return _.assign(state, { error: false, result: action.result });
+            return (0, _ajex.discriminate)(action.discriminator, state, { error: false, result: action.result });
 
         case (0, _ajex.failed)(actions.LOAD_ENTITIES):
-            return _.assign(state, { error: true, result: null });
+            return (0, _ajex.discriminate)(action.discriminator, state, { error: true, result: null });
 
         case (0, _ajex.completed)(actions.DELETE_ENTITIES):
-            return _.assign(state, { error: false, result: action.result });
+            return (0, _ajex.discriminate)(action.discriminator, state, { error: false, result: action.result });
 
         case (0, _ajex.failed)(actions.DELETE_ENTITIES):
-            return _.assign(state, { error: true, result: null });
+            return (0, _ajex.discriminate)(action.discriminator, state, { error: true, result: null });
+
+        case actions.FREE_ENTITIES:
+            return _.omit(state, action.discriminator);
 
     }
 });
@@ -24189,7 +24258,9 @@ exports.default = {
     entityDeleteConfirm: "Are you sure to delete {0} entities?",
     submit: "Submit",
     cancel: "Cancel",
-    add: "Add"
+    add: "Add",
+    pleaseSpecifyData: "Please specify data",
+    ok: "OK"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24201,6 +24272,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.completed = completed;
 exports.failed = failed;
 exports.createAsyncAction = createAsyncAction;
+exports.discriminate = discriminate;
+exports.discriminated = discriminated;
 
 var _underscore = require("../libs/underscore");
 
@@ -24230,15 +24303,26 @@ function createAsyncAction(type, action) {
     });
     return normal;
 }
+
+function discriminate(state, discriminator, newValues) {
+    var ds = state[discriminator] = state[discriminator] || {};
+    _.assign(ds, newValues);
+    return state;
+}
+
+function discriminated(state, discriminator) {
+    return state[discriminator] || {};
+}
 });
 define('utils/lang.js', function(module, exports) {
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.format = format;
 exports.optional = optional;
+exports.parseBoolean = parseBoolean;
 /**
  * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")
  * @param fmt
@@ -24268,11 +24352,25 @@ function optional(val, def) {
         v = _.isFunction(val) ? val() : val;
     } catch (e) {}
 
-    if (v == undefined) {
+    if (v == undefined || v == null) {
         v = _.isFunction(def) ? def() : def;
     }
 
     return v;
+}
+
+/**
+ * Gets a boolean value casting from val if is not null or undefined
+ */
+function parseBoolean(val) {
+    if (val == null) {
+        return null;
+    }
+    if (val == undefined) {
+        return undefined;
+    }
+
+    return val == true || parseInt(val) > 0 || val == "true";
 }
 });
 define('web/components/common.js', function(module, exports) {
@@ -24481,6 +24579,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var VALIDATION_ERROR = {};
+
 var Model = exports.Model = function (_Observable) {
     _inherits(Model, _Observable);
 
@@ -24656,10 +24756,12 @@ var Model = exports.Model = function (_Observable) {
                 });
             }
 
-            var invalid = _.any(this.validationResult, function (k, v) {
+            var invalid = _.any(this.validationResult, function (v) {
                 return !v.valid;
             });
-            return !invalid;
+            if (invalid) {
+                throw VALIDATION_ERROR;
+            }
         }
     }]);
 
@@ -24844,15 +24946,18 @@ var Form = exports.Form = function (_React$Component4) {
         value: function submit(e) {
             e.preventDefault();
 
-            var valid = this.model.validate();
-            if (!valid) {
-                this.forceUpdate();
+            try {
+                this.model.validate();
+                if (_.isFunction(this.props.onSubmit)) {
+                    this.props.onSubmit(this.model.data);
+                }
+            } catch (e) {
+                if (e === VALIDATION_ERROR) {
+                    this.forceUpdate();
+                } else {
+                    throw e;
+                }
             }
-            var validationResult = this.model.validationResult;
-            var data = this.model.data;
-
-            console.log(validationResult);
-            console.log(data);
         }
     }, {
         key: "componentWillReceiveProps",
@@ -25117,10 +25222,6 @@ var Select = exports.Select = function (_Control5) {
         key: "componentDidMount",
         value: function componentDidMount() {
             var me = ReactDOM.findDOMNode(this);
-            $(me).find("select").select2({
-                placeholder: this.props.field.placeholder,
-                data: [{ id: 1, text: "Bruno" }, { id: 2, text: "Massimo" }, { id: 3, text: "Flavio" }]
-            });
 
             $(me).find(".select2-search__field").focus(function () {
                 $(me).find(".fg-line").addClass("fg-toggled");
@@ -25159,10 +25260,10 @@ var Select = exports.Select = function (_Control5) {
 var Lookup = exports.Lookup = function (_Control6) {
     _inherits(Lookup, _Control6);
 
-    function Lookup() {
+    function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        return _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
     }
 
     _createClass(Lookup, [{
@@ -25190,25 +25291,24 @@ var Lookup = exports.Lookup = function (_Control6) {
             $(me).find(".lookup-grid").modal("show");
         }
     }, {
+        key: "select",
+        value: function select() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var grid = this.refs.searchGrid;
+            var selection = optional(grid.getSelection(), []);
+            var current = optional(model.get(field.property), []);
+            var result = _.union(current, selection);
+            model.set(field.property, result);
+
+            this.forceUpdate();
+        }
+    }, {
         key: "render",
         value: function render() {
-            var descriptor = {
-                "id": "users",
-                "columns": [{ "property": "name", "header": "Name", "component": "text" }, { "property": "mail", "header": "Mail", "component": "text" }]
-            };
-
-            var rows = [];
-            for (var x = 0; x < 2; x++) {
-                var xo = {
-                    index: x,
-                    selected: false,
-                    expanded: false,
-                    data: { name: "name" + x, mail: "mail" + x, active: true },
-                    children: []
-                };
-
-                rows.push(xo);
-            }
+            var model = this.props.model;
+            var field = this.props.field;
+            var rows = model.get(field.property);
 
             return React.createElement(
                 "div",
@@ -25226,94 +25326,34 @@ var Lookup = exports.Lookup = function (_Control6) {
                                 "a",
                                 { href: "javascript:;", title: _strings2.default.add, onClick: this.showEntities.bind(this) },
                                 React.createElement("i", { className: "zmdi zmdi-plus" })
-                            ),
-                            React.createElement("div", { className: "clearfix" })
-                        )
-                    ),
-                    React.createElement(
-                        "table",
-                        { className: "table table-condensed table-hover" },
-                        React.createElement(
-                            "tbody",
-                            null,
-                            React.createElement(
-                                "tr",
-                                { className: "selection-row" },
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Bruno"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Fortunato"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    { className: "actions" },
-                                    React.createElement(
-                                        "a",
-                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
-                                        React.createElement("i", { className: "zmdi zmdi-delete" })
-                                    )
-                                )
-                            ),
-                            React.createElement(
-                                "tr",
-                                { className: "selection-row" },
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Massimo"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Galante"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    { className: "actions" },
-                                    React.createElement(
-                                        "a",
-                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
-                                        React.createElement("i", { className: "zmdi zmdi-delete" })
-                                    )
-                                )
-                            ),
-                            React.createElement(
-                                "tr",
-                                { className: "selection-row" },
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Nicola"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    null,
-                                    "Matera"
-                                ),
-                                React.createElement(
-                                    "td",
-                                    { className: "actions" },
-                                    React.createElement(
-                                        "a",
-                                        { href: "javascript:;", className: "action", title: _strings2.default.delete },
-                                        React.createElement("i", { className: "zmdi zmdi-delete" })
-                                    )
-                                )
                             )
-                        )
-                    )
+                        ),
+                        React.createElement(
+                            "span",
+                            { className: "lookup-current-value" },
+                            "2 Elements selected"
+                        ),
+                        React.createElement("div", { className: "clearfix" })
+                    ),
+                    React.createElement(_grids.Grid, {
+                        descriptor: this.props.selectionGrid,
+                        data: { rows: rows, totalRows: rows.length },
+                        showInCard: "false",
+                        quickSearchEnabled: "false",
+                        headerVisible: "false",
+                        footerVisible: "false",
+                        summaryVisible: "false",
+                        paginationEnabled: "false",
+                        selectionEnabled: "false",
+                        tableClassName: "table table-condensed table-hover"
+                    })
                 ),
                 React.createElement(
                     "div",
                     { className: "lookup-grid modal fade", id: "myModal", tabIndex: "-1", role: "dialog", "aria-labelledby": "myModalLabel" },
                     React.createElement(
                         "div",
-                        { className: "modal-dialog", role: "document" },
+                        { className: "modal-dialog modal-lg", role: "document" },
                         React.createElement(
                             "div",
                             { className: "modal-content" },
@@ -25338,20 +25378,30 @@ var Lookup = exports.Lookup = function (_Control6) {
                             React.createElement(
                                 "div",
                                 { className: "modal-body" },
-                                React.createElement(_grids.Grid, { ref: "grid", showInCard: "false", descriptor: descriptor, data: { rows: rows, totalRows: 100 } })
+                                React.createElement(_grids.Grid, {
+                                    ref: "searchGrid",
+                                    descriptor: this.props.popupGrid,
+                                    data: { rows: rows, totalRows: rows.length },
+                                    showInCard: "false",
+                                    quickSearchEnabled: "true",
+                                    footerVisible: "false",
+                                    summaryVisible: "false",
+                                    paginationEnabled: "false",
+                                    tableClassName: "table table-condensed table-striped table-hover"
+                                })
                             ),
                             React.createElement(
                                 "div",
                                 { className: "modal-footer" },
                                 React.createElement(
                                     "button",
-                                    { type: "button", className: "btn btn-default", "data-dismiss": "modal" },
-                                    _strings2.default.cancel
+                                    { type: "button", className: "btn btn-link", action: this.select.bind(this) },
+                                    _strings2.default.ok
                                 ),
                                 React.createElement(
                                     "button",
-                                    { type: "button", className: "btn btn-primary" },
-                                    _strings2.default.ok
+                                    { type: "button", className: "btn btn-link", "data-dismiss": "modal" },
+                                    _strings2.default.cancel
                                 )
                             )
                         )
@@ -25370,7 +25420,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.CheckCell = exports.TextCell = exports.Cell = exports.Footer = exports.FooterCell = exports.GridBody = exports.Row = exports.Header = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -25662,7 +25712,7 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
     }, {
         key: "filter",
         value: function filter() {
-            if (this.props.query) {
+            if (this.props.query && this.props.column && this.props.column.property) {
                 this.props.query.filter(this.state.type, this.props.column.property, this.state.value);
 
                 this.close();
@@ -25846,17 +25896,17 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
                     { onClick: this.changeSort.bind(this), className: "pointer-cursor" },
                     this.props.column.header
                 ),
-                this.props.column.sortable ? React.createElement(
+                this.props.column.sortable && React.createElement(
                     "a",
                     { className: "pull-right", href: "javascript:;", onClick: this.changeSort.bind(this) },
                     React.createElement("i", { className: sortIcon })
-                ) : null,
-                React.createElement(
+                ),
+                this.props.column.searchable && React.createElement(
                     "a",
                     { ref: "search", className: "btn bgm-bluegray btn-no-shadow", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-5px", position: "absolute", right: "30px" } },
                     React.createElement("i", { className: "zmdi zmdi-search" })
                 ),
-                React.createElement(SearchDialog, { column: this.props.column, query: this.props.query })
+                this.props.column.searchable && React.createElement(SearchDialog, { column: this.props.column, query: this.props.query })
             );
         }
     }]);
@@ -25864,16 +25914,16 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     return HeaderCell;
 }(React.Component);
 
-var Header = exports.Header = function (_React$Component3) {
-    _inherits(Header, _React$Component3);
+var GridHeader = exports.GridHeader = function (_React$Component3) {
+    _inherits(GridHeader, _React$Component3);
 
-    function Header() {
-        _classCallCheck(this, Header);
+    function GridHeader() {
+        _classCallCheck(this, GridHeader);
 
-        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (GridHeader.__proto__ || Object.getPrototypeOf(GridHeader)).apply(this, arguments));
     }
 
-    _createClass(Header, [{
+    _createClass(GridHeader, [{
         key: "render",
         value: function render() {
             var _this7 = this;
@@ -25899,7 +25949,7 @@ var Header = exports.Header = function (_React$Component3) {
         }
     }]);
 
-    return Header;
+    return GridHeader;
 }(React.Component);
 
 var Row = exports.Row = function (_React$Component4) {
@@ -25965,11 +26015,11 @@ var Row = exports.Row = function (_React$Component4) {
             var firstElement = true;
             var key = 1;
             var cells = this.props.descriptor.columns.map(function (c) {
-                var cell = createCell(c.component, c.property, _this9.props.row, firstElement, onExpand);
+                var cell = createCell(c, _this9.props.row, firstElement, onExpand);
                 firstElement = false;
                 return React.createElement(
                     "td",
-                    { key: key++ },
+                    { key: key++, className: c.tdClassName },
                     React.createElement(
                         "div",
                         { className: "grid-cell-container" },
@@ -26093,16 +26143,16 @@ var FooterCell = exports.FooterCell = function (_React$Component6) {
     return FooterCell;
 }(React.Component);
 
-var Footer = exports.Footer = function (_React$Component7) {
-    _inherits(Footer, _React$Component7);
+var GridFooter = exports.GridFooter = function (_React$Component7) {
+    _inherits(GridFooter, _React$Component7);
 
-    function Footer() {
-        _classCallCheck(this, Footer);
+    function GridFooter() {
+        _classCallCheck(this, GridFooter);
 
-        return _possibleConstructorReturn(this, (Footer.__proto__ || Object.getPrototypeOf(Footer)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (GridFooter.__proto__ || Object.getPrototypeOf(GridFooter)).apply(this, arguments));
     }
 
-    _createClass(Footer, [{
+    _createClass(GridFooter, [{
         key: "render",
         value: function render() {
             var _this14 = this;
@@ -26128,7 +26178,7 @@ var Footer = exports.Footer = function (_React$Component7) {
         }
     }]);
 
-    return Footer;
+    return GridFooter;
 }(React.Component);
 
 var Cell = exports.Cell = function (_React$Component8) {
@@ -26223,6 +26273,47 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
     }]);
 
     return CheckCell;
+}(Cell);
+
+var ActionsCell = exports.ActionsCell = function (_Cell3) {
+    _inherits(ActionsCell, _Cell3);
+
+    function ActionsCell() {
+        _classCallCheck(this, ActionsCell);
+
+        return _possibleConstructorReturn(this, (ActionsCell.__proto__ || Object.getPrototypeOf(ActionsCell)).apply(this, arguments));
+    }
+
+    _createClass(ActionsCell, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).closest("tr").mouseenter(function () {
+                $(me).find(".grid-action").stop().fadeIn(250);
+            }).mouseleave(function () {
+                $(me).find(".grid-action").stop().fadeOut(250);
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var actions = this.props.column.actions.map(function (a) {
+                return React.createElement(
+                    "a",
+                    { style: { display: "none" }, href: "javascript:;", className: "grid-action", onClick: a.action },
+                    React.createElement("i", { className: a.icon })
+                );
+            });
+
+            return React.createElement(
+                "div",
+                null,
+                actions
+            );
+        }
+    }]);
+
+    return ActionsCell;
 }(Cell);
 
 var KeywordSearch = exports.KeywordSearch = function (_React$Component9) {
@@ -26320,12 +26411,12 @@ var Filters = exports.Filters = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this21 = this;
+            var _this22 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this21.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this22.props.query });
                 });
             }
 
@@ -26498,17 +26589,55 @@ var NoCard = exports.NoCard = function (_React$Component14) {
     return NoCard;
 }(React.Component);
 
-var Grid = exports.Grid = function (_React$Component15) {
-    _inherits(Grid, _React$Component15);
+var QuickSearch = exports.QuickSearch = function (_React$Component15) {
+    _inherits(QuickSearch, _React$Component15);
+
+    function QuickSearch() {
+        _classCallCheck(this, QuickSearch);
+
+        return _possibleConstructorReturn(this, (QuickSearch.__proto__ || Object.getPrototypeOf(QuickSearch)).apply(this, arguments));
+    }
+
+    _createClass(QuickSearch, [{
+        key: "search",
+        value: function search(e) {
+            var keyword = e.target.value;
+            if (!_.isEmpty(keyword)) {
+                console.log(keyword);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "quick-search pull-right" },
+                React.createElement("i", { className: "zmdi zmdi-search pull-right" }),
+                React.createElement(
+                    "div",
+                    { className: "quick-search-input-container" },
+                    React.createElement("input", { type: "search", onChange: this.search.bind(this) })
+                )
+            );
+        }
+    }]);
+
+    return QuickSearch;
+}(React.Component);
+
+var Grid = exports.Grid = function (_React$Component16) {
+    _inherits(Grid, _React$Component16);
 
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this25 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this27 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        _this25.selection = null;
-        _this25.state = { rows: null };
-        return _this25;
+        _this27.selection = null;
+        _this27.state = { rows: null };
+
+        _this27.initSelection(props);
+        return _this27;
     }
 
     _createClass(Grid, [{
@@ -26580,6 +26709,11 @@ var Grid = exports.Grid = function (_React$Component15) {
     }, {
         key: "onRowMouseDown",
         value: function onRowMouseDown(row) {
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            if (!selectionEnabled) {
+                return;
+            }
+
             this.selection.handle(row);
         }
     }, {
@@ -26588,7 +26722,7 @@ var Grid = exports.Grid = function (_React$Component15) {
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
-            var _this26 = this;
+            var _this28 = this;
 
             var expanded = !row.expanded;
 
@@ -26606,7 +26740,7 @@ var Grid = exports.Grid = function (_React$Component15) {
 
                 setTimeout(function () {
                     row.expanded = expanded;
-                    _this26.forceUpdate();
+                    _this28.forceUpdate();
                 }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
@@ -26614,26 +26748,42 @@ var Grid = exports.Grid = function (_React$Component15) {
             }
         }
     }, {
-        key: "componentWillReceiveProps",
-        value: function componentWillReceiveProps(nextProps) {
-            var _this27 = this;
+        key: "initSelection",
+        value: function initSelection(props) {
+            var _this29 = this;
 
-            var rows = nextProps.data && nextProps.data.rows;
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(props.selectionEnabled), true);
+            if (!selectionEnabled) {
+                return;
+            }
+
+            var rows = props.data && props.data.rows;
             if (rows) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
-                    _this27.setState(_this27.state);
-                    if (_.isFunction(_this27.props.onSelectionChanged)) {
-                        _this27.props.onSelectionChanged(_this27.selection.getSelectedData());
+                    _this29.setState(_this29.state);
+                    if (_.isFunction(_this29.props.onSelectionChanged)) {
+                        _this29.props.onSelectionChanged(_this29.selection.getSelectedData());
                     }
                 });
             }
+        }
+    }, {
+        key: "componentWillReceiveProps",
+        value: function componentWillReceiveProps(nextProps) {
+            this.initSelection(nextProps);
 
+            var rows = nextProps.data && nextProps.data.rows;
             this.setState(_.assign(this.state, { rows: rows }));
         }
     }, {
         key: "toggleSelectAll",
         value: function toggleSelectAll() {
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            if (!selectionEnabled) {
+                return;
+            }
+
             if (this.selection) {
                 this.selection.toggleAll();
             }
@@ -26641,6 +26791,11 @@ var Grid = exports.Grid = function (_React$Component15) {
     }, {
         key: "clearSelection",
         value: function clearSelection() {
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            if (!selectionEnabled) {
+                return;
+            }
+
             if (this.selection) {
                 this.selection.clear();
             }
@@ -26648,6 +26803,11 @@ var Grid = exports.Grid = function (_React$Component15) {
     }, {
         key: "getSelection",
         value: function getSelection() {
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            if (!selectionEnabled) {
+                return;
+            }
+
             if (this.selection) {
                 return this.selection.getSelectedData();
             } else {
@@ -26671,11 +26831,21 @@ var Grid = exports.Grid = function (_React$Component15) {
                 return null;
             }
 
-            var myQuery = this.props.query || query.create();
-            var filtersHidden = myQuery.filters.length == 0;
+            //customization properties
+            var quickSearchEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.quickSearchEnabled), false);
+            var headerVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.headerVisible), true);
+            var footerVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.footerVisible), true);
+            var summaryVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.summaryVisible), true);
+            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            var paginationEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.paginationEnabled), true);
+            var tableClassName = (0, _lang.optional)(this.props.tableClassName, "table table-striped table-hover");
+
+            var myQuery = (0, _lang.optional)(this.props.query, query.create());
+            var showFilters = myQuery.filters.length > 0;
             var hasResults = this.props.data && this.props.data.rows ? this.props.data.rows.length > 0 : false;
             var rows = this.props.data && this.props.data.rows;
             var hasPagination = this.getTotalPages() > 1;
+            var noResultsText = (0, _lang.optional)(this.props.noResultText, _strings2.default.noResults);
 
             var container = this.props.showInCard === false ? NoCard : _common.Card;
 
@@ -26688,27 +26858,24 @@ var Grid = exports.Grid = function (_React$Component15) {
                     React.createElement(
                         "div",
                         null,
-                        React.createElement(
-                            "div",
-                            { hidden: filtersHidden },
-                            React.createElement(Filters, { query: myQuery })
-                        ),
+                        quickSearchEnabled && React.createElement(QuickSearch, { query: myQuery }),
+                        showFilters && React.createElement(Filters, { query: myQuery }),
                         hasResults ? React.createElement(
                             "div",
                             { className: "with-result" },
                             React.createElement(
                                 "table",
-                                { className: "table table-striped table-hover" },
-                                React.createElement(Header, { descriptor: this.props.descriptor, query: myQuery }),
+                                { className: tableClassName },
+                                headerVisible && React.createElement(GridHeader, { descriptor: this.props.descriptor, query: myQuery }),
                                 React.createElement(GridBody, { descriptor: this.props.descriptor, data: this.props.data, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
-                                React.createElement(Footer, { descriptor: this.props.descriptor })
+                                footerVisible && React.createElement(GridFooter, { descriptor: this.props.descriptor })
                             ),
-                            React.createElement(
+                            hasPagination && paginationEnabled && React.createElement(
                                 "div",
-                                { className: "pull-right m-20", hidden: !hasPagination },
+                                { className: "pull-right m-20" },
                                 React.createElement(Pagination, { data: this.props.data, query: myQuery })
                             ),
-                            React.createElement(ResultSummary, { query: myQuery, data: this.props.data }),
+                            summaryVisible && React.createElement(ResultSummary, { query: myQuery, data: this.props.data }),
                             React.createElement("div", { className: "clearfix" })
                         ) : //no results
                         React.createElement(
@@ -26734,18 +26901,11 @@ var Grid = exports.Grid = function (_React$Component15) {
     return Grid;
 }(React.Component);
 
-function createCell(type, property, row, firstElement, onExpand) {
-    var key = property + "" + row.index;
-    var value = row.data[property];
+function createCell(column, row, firstElement, onExpand) {
+    var key = column.property + "" + row.index;
+    var value = row.data[column.property];
 
-    switch (type) {
-        case "check":
-            return React.createElement(CheckCell, { key: key, row: row, value: value, firstElement: firstElement });
-
-        case "text":
-        default:
-            return React.createElement(TextCell, { key: key, row: row, value: value, firstElement: firstElement, onExpand: onExpand });
-    }
+    return React.createElement(column.cell, { key: key, column: column, property: column.property, row: row, value: value, firstElement: firstElement, onExpand: onExpand });
 }
 });
 define('web/components/layout.js', function(module, exports) {
@@ -27835,6 +27995,8 @@ var query = _interopRequireWildcard(_query2);
 
 var _lang = require("../../../utils/lang");
 
+var _ajex = require("../../../utils/ajex");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -27853,13 +28015,13 @@ function isEsc(which) {
     return which == 27;
 }
 
-var EntitiesList = function (_Screen) {
-    _inherits(EntitiesList, _Screen);
+var EntitiesGrid = function (_Screen) {
+    _inherits(EntitiesGrid, _Screen);
 
-    function EntitiesList(props) {
-        _classCallCheck(this, EntitiesList);
+    function EntitiesGrid(props) {
+        _classCallCheck(this, EntitiesGrid);
 
-        var _this = _possibleConstructorReturn(this, (EntitiesList.__proto__ || Object.getPrototypeOf(EntitiesList)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (EntitiesGrid.__proto__ || Object.getPrototypeOf(EntitiesGrid)).call(this, props));
 
         var _query = query.create();
         _query.page = 1;
@@ -27871,19 +28033,21 @@ var EntitiesList = function (_Screen) {
             _this.onQueryChanged();
         });
 
-        (0, _aj.connect)(_this, [_stores.entities]);
+        _this.discriminator = "entity_grid_" + _this.props.entity;
+
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_stores.entities]);
         return _this;
     }
 
-    _createClass(EntitiesList, [{
+    _createClass(EntitiesGrid, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
+            (0, _actions.loadEntities)({ discriminator: this.discriminator, entity: this.props.entity, query: this.state.query });
         }
     }, {
         key: "onQueryChanged",
         value: function onQueryChanged() {
-            (0, _actions.loadEntities)({ entity: this.props.entity, query: this.state.query });
+            (0, _actions.loadEntities)({ discriminator: this.discriminator, entity: this.props.entity, query: this.state.query });
         }
     }, {
         key: "createEntity",
@@ -27923,7 +28087,7 @@ var EntitiesList = function (_Screen) {
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: _strings2.default.refresh,
                 action: function action() {
-                    (0, _actions.loadEntities)({ entity: _this3.props.entity, query: _this3.state.query });
+                    (0, _actions.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.props.entity, query: _this3.state.query });
                 }
             }, {
                 type: "button",
@@ -28008,10 +28172,10 @@ var EntitiesList = function (_Screen) {
         }
     }]);
 
-    return EntitiesList;
+    return EntitiesGrid;
 }(_layout.Screen);
 
-exports.default = EntitiesList;
+exports.default = EntitiesGrid;
 });
 define('web/screens/admin/entityForm.js', function(module, exports) {
 "use strict";
@@ -28036,7 +28200,11 @@ var _common = require("../../components/common");
 
 var _forms = require("../../components/forms");
 
+var _grids = require("../../components/grids");
+
 var _validator = require("../../../libs/validator");
+
+var _actions = require("../../../actions");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -28054,6 +28222,8 @@ function isEsc(which) {
     return which == 27;
 }
 
+var discriminator = 1;
+
 var EntityForm = function (_Screen) {
     _inherits(EntityForm, _Screen);
 
@@ -28067,8 +28237,20 @@ var EntityForm = function (_Screen) {
     }
 
     _createClass(EntityForm, [{
-        key: "saveEntity",
-        value: function saveEntity() {}
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.discriminator = discriminator++;
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            (0, _actions.freeEntities)(this.discriminator);
+        }
+    }, {
+        key: "onSubmit",
+        value: function onSubmit(data) {
+            (0, _actions.saveEntity)({ entity: this.props.entity, data: data });
+        }
     }, {
         key: "render",
         value: function render() {
@@ -28125,16 +28307,23 @@ var EntityForm = function (_Screen) {
                             return (0, _validator.sanitize)(value).toBoolean();
                         }
                     }, {
-                        property: "roles",
-                        control: _forms.Select,
-                        options: { multiple: true },
-                        label: "Roles",
-                        placeholder: "Roles"
-                    }, {
                         property: "role",
                         control: _forms.Lookup,
                         label: "Role",
-                        placeholder: "Role"
+                        placeholder: "Role",
+                        mode: "multiple",
+                        selectionGrid: {
+                            "columns": [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }, {
+                                cell: _grids.ActionsCell,
+                                tdClassName: "grid-actions",
+                                actions: [{ icon: "zmdi zmdi-delete", action: function action() {
+                                        return console.log("action performed");
+                                    } }]
+                            }]
+                        },
+                        popupGrid: {
+                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
+                        }
                     }]
                 }]
             };
@@ -28143,7 +28332,7 @@ var EntityForm = function (_Screen) {
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "User", subtitle: "Edit user", actions: actions }),
-                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data })
+                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data, onSubmit: this.onSubmit.bind(this) })
             );
         }
     }]);
@@ -28960,9 +29149,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.connect = connect;
-function connect(component, stores) {
-    var localState = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+exports.connectDiscriminated = connectDiscriminated;
 
+var _ajex = require("../../utils/ajex");
+
+function connectInternal(setState, component, stores, localState) {
     var singleStore = !_.isArray(stores);
 
     if (!_.isArray(stores)) {
@@ -28981,9 +29172,9 @@ function connect(component, stores) {
     component.componentDidMount = function () {
         _.each(stores, function (store) {
             store.subscribe(component, function (state) {
-                return component.setState(state);
+                return setState(component, state);
             });
-            component.setState(store.state || {});
+            setState(component, store.state || {});
         });
 
         if (_.isFunction(originals.componentDidMount)) {
@@ -29000,6 +29191,22 @@ function connect(component, stores) {
             originals.componentWillUnmount.call(component);
         }
     };
+}
+
+function connect(component, stores) {
+    var localState = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return connectInternal(function (component, state) {
+        return component.setState(state);
+    }, component, stores, localState);
+}
+
+function connectDiscriminated(discriminator, component, stores) {
+    var localState = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+    return connectInternal(function (component, state) {
+        return component.setState((0, _ajex.discriminated)(discriminator, state));
+    }, component, stores, localState);
 }
 });
 define('web/utils/events.js', function(module, exports) {

@@ -1,10 +1,10 @@
 "use strict"
 
 import strings from "../../strings"
-import { Card, HeaderBlock } from "./common"
-import { format } from "../../utils/lang"
-import { Observable } from "../../aj/events"
-import {Grid} from "./grids"
+import {Card, HeaderBlock} from "./common"
+import {format} from "../../utils/lang"
+import {Observable} from "../../aj/events"
+import {Grid, TextCell, ActionsCell} from "./grids"
 
 const VALIDATION_ERROR = {}
 
@@ -452,11 +452,7 @@ export class Select extends Control {
 
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
-        $(me).find("select").select2({
-            placeholder: this.props.field.placeholder,
-            data: [{id: 1, text: "Bruno"}, {id: 2, text: "Massimo"}, {id: 3, text: "Flavio"}]
-        })
-
+        
         $(me).find(".select2-search__field")
             .focus(() => {
                 $(me).find(".fg-line").addClass("fg-toggled")
@@ -488,6 +484,10 @@ export class Select extends Control {
 }
 
 export class Lookup extends Control {
+    constructor(props) {
+        super(props)
+    }
+
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
         $(me).find(".selection-row")
@@ -515,29 +515,22 @@ export class Lookup extends Control {
         $(me).find(".lookup-grid").modal("show")
     }
 
+    select() {
+        let model = this.props.model
+        let field = this.props.field
+        let grid = this.refs.searchGrid
+        let selection = optional(grid.getSelection(), [])
+        let current = optional(model.get(field.property), [])
+        let result = _.union(current, selection)
+        model.set(field.property, result)
+
+        this.forceUpdate()
+    }
+
     render() {
-        let descriptor = {
-            "id": "users",
-            "columns": [
-                {"property": "name", "header": "Name", "component": "text"},
-                {"property": "mail", "header": "Mail", "component": "text"}
-            ]
-        }
-
-        let rows = []
-        for (let x = 0; x < 2; x++) {
-            let xo = {
-                index: x,
-                selected: false,
-                expanded: false,
-                data: {name: "name" + x, mail: "mail" + x, active: true},
-                children: []
-            }
-
-            rows.push(xo)
-
-        }
-
+        let model = this.props.model
+        let field = this.props.field
+        let rows = model.get(field.property)
 
         return (
             <div className="fg-line" tabIndex="0">
@@ -545,44 +538,48 @@ export class Lookup extends Control {
                     <div className="lookup-header">
                         <div className="actions pull-right">
                             <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className="zmdi zmdi-plus" /></a>
-                            <div className="clearfix"></div>
                         </div>
+                        <span className="lookup-current-value">2 Elements selected</span>
+                        <div className="clearfix"></div>
                     </div>
 
-                    <table className="table table-condensed table-hover">
-                       <tbody>
-                            <tr className="selection-row">
-                                <td>Bruno</td>
-                                <td>Fortunato</td>
-                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
-                            </tr>
-                            <tr className="selection-row">
-                                <td>Massimo</td>
-                                <td>Galante</td>
-                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
-                            </tr>
-                            <tr className="selection-row">
-                                <td>Nicola</td>
-                                <td>Matera</td>
-                                <td className="actions"><a href="javascript:;" className="action" title={strings.delete}><i className="zmdi zmdi-delete" /></a></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <Grid 
+                        descriptor={this.props.selectionGrid} 
+                        data={{rows: rows, totalRows: rows.length}} 
+                        showInCard="false" 
+                        quickSearchEnabled="false"
+                        headerVisible="false"
+                        footerVisible="false"
+                        summaryVisible="false"
+                        paginationEnabled="false"
+                        selectionEnabled="false"
+                        tableClassName="table table-condensed table-hover"
+                    />
                 </div>
 
                 <div className="lookup-grid modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
-                    <div className="modal-dialog" role="document">
+                    <div className="modal-dialog modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                 <h4 className="modal-title" id="myModalLabel">Select roles</h4>
                             </div>
                             <div className="modal-body">
-                                <Grid ref="grid" showInCard="false" descriptor={descriptor} data={{rows: rows, totalRows: 100}} />
+                                <Grid 
+                                    ref="searchGrid" 
+                                    descriptor={this.props.popupGrid} 
+                                    data={{rows: rows, totalRows: rows.length}} 
+                                    showInCard="false" 
+                                    quickSearchEnabled="true"
+                                    footerVisible="false"
+                                    summaryVisible="false"
+                                    paginationEnabled="false"
+                                    tableClassName="table table-condensed table-striped table-hover"
+                                />
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-default" data-dismiss="modal">{strings.cancel}</button>
-                                <button type="button" className="btn btn-primary">{strings.ok}</button>
+                                <button type="button" className="btn btn-link" action={this.select.bind(this)}>{strings.ok}</button>
+                                <button type="button" className="btn btn-link" data-dismiss="modal">{strings.cancel}</button>
                             </div>
                         </div>
                     </div>

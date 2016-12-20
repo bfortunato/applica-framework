@@ -157,7 +157,6 @@ export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
 
 
 /** Grids actions **/
-
 export const GET_GRID = "GET_GRID"
 export const getGrid = createAsyncAction(GET_GRID, data => {
     if (_.isEmpty(data.id)) {
@@ -194,18 +193,23 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         return
     }
 
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
     aj.dispatch({
-        type: LOAD_ENTITIES
+        type: LOAD_ENTITIES,
+        discriminator: data.discriminator
     })
 
     entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null)
         .then(response => {
-            loadEntities.complete({result: response.value})
+            loadEntities.complete({result: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
             alert(strings.ooops, responses.msg(e), "error")
 
-            loadEntities.fail()
+            loadEntities.fail({discriminator: data.discriminator})
         })
 })
 
@@ -221,18 +225,23 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
         return
     }
 
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
     aj.dispatch({
-        type: DELETE_ENTITIES
+        type: DELETE_ENTITIES,
+        discriminator: data.discriminator
     })
 
     entities.delete_(data.entity, data.ids)
         .then(() => {
-            deleteEntities.complete()
+            deleteEntities.complete({discriminator: data.discriminator})
         })
         .catch(e => {
             alert(strings.ooops, responses.msg(e), "error")
 
-            deleteEntities.fail()
+            deleteEntities.fail({discriminator: data.discriminator})
         })
 })
 
@@ -248,13 +257,30 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         return
     }
 
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: SAVE_ENTITY,
+        discriminator: data.discriminator
+    })
+
     entities.save(data.entity, data.data)
         .then(() => {
-            saveEntity.complete()
+            saveEntity.complete({discriminator: data.discriminator})
         })
         .catch(e => {
             alert(strings.ooops, responses.msg(e), "error")
 
-            saveEntity.fail()
+            saveEntity.fail({discriminator: data.discriminator})
         })
 });
+
+export const FREE_ENTITIES = "FREE_ENTITIES"
+export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
+    aj.dispatch({
+        type: FREE_ENTITIES,
+        discriminator: data.discriminator
+    })
+})

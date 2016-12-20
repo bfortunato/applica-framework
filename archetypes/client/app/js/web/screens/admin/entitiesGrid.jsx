@@ -4,11 +4,12 @@ import {entities as EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
-import {connect} from "../../utils/aj"
+import {connect, connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Grid, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
+import {discriminated} from "../../../utils/ajex"
 
 function isCancel(which) {
     return which == 46 || which == 8
@@ -32,15 +33,17 @@ export default class EntitiesGrid extends Screen {
             this.onQueryChanged()
         })
 
-        connect(this, [EntitiesStore])
+        this.discriminator = "entity_grid_" + this.props.entity
+
+        connectDiscriminated(this.discriminator, this, [EntitiesStore])
     }
 
     componentDidMount() {
-        loadEntities({entity: this.props.entity, query: this.state.query})
+        loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query})
     }
 
     onQueryChanged() {
-        loadEntities({entity: this.props.entity, query: this.state.query})
+        loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query})
     }
 
     createEntity() {
@@ -74,7 +77,7 @@ export default class EntitiesGrid extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: strings.refresh,
-                action: () => { loadEntities({entity: this.props.entity, query: this.state.query}) }
+                action: () => { loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query}) }
             },
             {
                 type: "button",

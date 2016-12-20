@@ -41,5 +41,6 @@ export default {
     submit: "Submit",
     cancel: "Cancel",
     add: "Add",
-    pleaseSpecifyData: "Please specify data"
+    pleaseSpecifyData: "Please specify data",
+    ok: "OK"
 }

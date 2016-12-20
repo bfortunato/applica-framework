@@ -3,6 +3,7 @@ import { createAsyncAction, completed, failed } from "./utils/ajex"
 import * as actions from "./actions"
 import * as _ from "./libs/underscore"
 import strings from "./strings"
+import {discriminate} from "./utils/ajex"
 
 export const SESSION = "SESSION";
 export const session = aj.createStore(SESSION, (state = {}, action) => {
@@ -84,20 +85,23 @@ export const grids = aj.createStore(GRIDS, (state = {grid: null}, action) => {
 })
 
 export const ENTITIES = "ENTITIES"
-export const entities = aj.createStore(ENTITIES, (state = {error: false, result: null}, action) => {
+export const entities = aj.createStore(ENTITIES, (state = {}, action) => {
 
     switch (action.type) {
         case completed(actions.LOAD_ENTITIES):
-        return _.assign(state, { error: false, result: action.result })
+            return discriminate(action.discriminator, state, { error: false, result: action.result })
 
         case failed(actions.LOAD_ENTITIES):
-            return _.assign(state, { error: true, result: null })
+            return discriminate(action.discriminator, state, { error: true, result: null })
 
         case completed(actions.DELETE_ENTITIES):
-            return _.assign(state, { error: false, result: action.result })
+            return discriminate(action.discriminator, state, { error: false, result: action.result })
 
         case failed(actions.DELETE_ENTITIES):
-            return _.assign(state, { error: true, result: null })
+            return discriminate(action.discriminator, state, { error: true, result: null })
+
+        case actions.FREE_ENTITIES:
+            return _.omit(state, action.discriminator)
 
     }
 

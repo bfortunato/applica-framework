@@ -21,3 +21,13 @@ export function createAsyncAction(type, action) {
     })
     return normal
 }
+
+export function discriminate(state, discriminator, newValues) {
+    let ds = state[discriminator] = state[discriminator] || {}
+    _.assign(ds, newValues)
+    return state
+}
+
+export function discriminated(state, discriminator) {
+    return state[discriminator] || {}
+}

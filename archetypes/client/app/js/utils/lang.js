@@ -26,9 +26,21 @@ export function optional(val, def) {
         v = _.isFunction(val) ? val() : val
     } catch(e) {}
 
-    if (v == undefined) {
+    if (v == undefined || v == null) {
         v = _.isFunction(def) ? def() : def
     }
 
     return v
 }
+
+/**
+ * Gets a boolean value casting from val if is not null or undefined
+ */
+export function parseBoolean(val) {
+    if (val == null) { return null }
+    if (val == undefined) { return undefined }
+
+    return (val == true || parseInt(val) > 0 || val == "true")
+}
+
+

@@ -1,6 +1,8 @@
 "use strict"
 
-export function connect(component, stores, localState = {}) {
+import {discriminated} from "../../utils/ajex"
+
+function connectInternal(setState, component, stores, localState) {
     let singleStore = !_.isArray(stores)
 
     if (!_.isArray(stores)) {
@@ -18,8 +20,8 @@ export function connect(component, stores, localState = {}) {
 
     component.componentDidMount = function() {
         _.each(stores, store => {
-            store.subscribe(component, state => component.setState(state))
-            component.setState(store.state || {})
+            store.subscribe(component, state => setState(component, state))
+            setState(component, store.state || {})
         })
 
         if (_.isFunction(originals.componentDidMount)) {
@@ -38,3 +40,10 @@ export function connect(component, stores, localState = {}) {
     }
 }
 
+export function connect(component, stores, localState = {}) {
+    return connectInternal((component, state) => component.setState(state), component, stores, localState)
+}
+
+export function connectDiscriminated(discriminator, component, stores, localState = {}) {
+    return connectInternal((component, state) => component.setState(discriminated(discriminator, state)), component, stores, localState)
+}
