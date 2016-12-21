@@ -549,7 +549,7 @@ export class TextCell extends Cell {
             e.preventDefault()
             e.stopPropagation()
             e.nativeEvent.stopImmediatePropagation()
-            console.log("propagation stopped")
+            logger.i("propagation stopped")
         }
     }
 
@@ -765,7 +765,7 @@ export class QuickSearch extends React.Component {
     search(e) {
         let keyword = e.target.value
         if (!_.isEmpty(keyword)) {
-            console.log(keyword)            
+            logger.i(keyword)
         }
     }
 

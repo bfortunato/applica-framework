@@ -4,6 +4,7 @@ import * as actions from "./actions"
 import * as _ from "./libs/underscore"
 import strings from "./strings"
 import {discriminate} from "./utils/ajex"
+import {walk} from "./utils/lang"
 
 export const SESSION = "SESSION";
 export const session = aj.createStore(SESSION, (state = {}, action) => {
@@ -102,6 +103,20 @@ export const entities = aj.createStore(ENTITIES, (state = {}, action) => {
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator)
+
+    }
+
+})
+
+export const MENU = "MENU"
+export const menu = aj.createStore(MENU, (state = {}, action) => {
+
+    switch (action.type) {
+        case actions.SETUP_MENU:
+            return _.assign(state, {menu: action.menu})
+
+        case actions.SET_ACTIVE_MENU_ITEM:
+            return _.assign(state, {menu: walk(state.menu, "children", i => { i.active = i == action.item})})
 
     }
 

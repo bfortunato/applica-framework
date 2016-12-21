@@ -109,7 +109,7 @@ if (platform.engine == "node") {
             }
 
             __trigger(store, state) {
-                logger.i("Triggering ", store);
+                logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                 return new Promise((resolve, reject) => {
                     this.socket.emit("trigger", store, state, function() {
@@ -203,7 +203,7 @@ if (platform.engine == "node") {
                     throw "__trigger function not defined";
                 }
 
-                logger.i("Triggering ", store);
+                logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                 return new Promise((resolve, reject) => {
                     async(() => {
@@ -403,7 +403,7 @@ function createAction(type, fn) {
 }
 
 function dispatch(action) {
-    logger.i("Dispatching action", action);
+    logger.i("Dispatching action", JSON.stringify(action));
 
     _.each(__stores, (store) => {
         try {

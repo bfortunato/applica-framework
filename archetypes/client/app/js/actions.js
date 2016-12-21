@@ -6,8 +6,8 @@ import * as responses from "./api/responses"
 import { alert, confirm, showLoader, hideLoader, toast } from "./plugins"
 import { format } from "./utils/lang"
 import strings from "./strings"
-import * as grids from "./api/grids"
-import * as entities from "./api/entities"
+import * as GridsApi from "./api/grids"
+import * as EntitiesApi from "./api/entities"
 
 export const LOGIN = "LOGIN";
 export const login = createAsyncAction(LOGIN, data => {
@@ -169,7 +169,7 @@ export const getGrid = createAsyncAction(GET_GRID, data => {
     })
 
     showLoader()
-    grids.getGrid(data.id)
+    GridsApi.getGrid(data.id)
         .then(response => {
             hideLoader()
 
@@ -202,7 +202,7 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         discriminator: data.discriminator
     })
 
-    entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null)
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null)
         .then(response => {
             loadEntities.complete({result: response.value, discriminator: data.discriminator})
         })
@@ -234,7 +234,7 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
         discriminator: data.discriminator
     })
 
-    entities.delete_(data.entity, data.ids)
+    EntitiesApi.delete_(data.entity, data.ids)
         .then(() => {
             deleteEntities.complete({discriminator: data.discriminator})
         })
@@ -266,7 +266,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         discriminator: data.discriminator
     })
 
-    entities.save(data.entity, data.data)
+    EntitiesApi.save(data.entity, data.data)
         .then(() => {
             saveEntity.complete({discriminator: data.discriminator})
         })
@@ -277,10 +277,63 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         })
 });
 
+export const GET_ENTITY = "GET_ENTITY"
+export const getEntity = createAsyncAction(GET_ENTITY, data => {
+    if (_.isEmpty(data.entity)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.id)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyId)
+        return
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: GET_ENTITY,
+        discriminator: data.discriminator
+    })
+
+    EntitiesApi.get(data.entity, data.id)
+        .then(response => {
+            getEntity.complete({result: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getEntity.fail({discriminator: data.discriminator})
+        })
+})
+
 export const FREE_ENTITIES = "FREE_ENTITIES"
 export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
     aj.dispatch({
         type: FREE_ENTITIES,
         discriminator: data.discriminator
+    })
+})
+
+
+/**
+ * MENU ACTIONS
+ */
+
+export const SETUP_MENU = "SETUP_MENU"
+export const setupMenu = aj.createAction(SETUP_MENU, data => {
+    aj.dispatch({
+        type: SETUP_MENU,
+        menu: data.menu
+    })
+})
+
+export const SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
+export const setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, data => {
+    aj.dispatch({
+        type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
     })
 })

@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.freeEntities = exports.FREE_ENTITIES = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -34,11 +34,11 @@ var _strings2 = _interopRequireDefault(_strings);
 
 var _grids = require("./api/grids");
 
-var grids = _interopRequireWildcard(_grids);
+var GridsApi = _interopRequireWildcard(_grids);
 
 var _entities = require("./api/entities");
 
-var entities = _interopRequireWildcard(_entities);
+var EntitiesApi = _interopRequireWildcard(_entities);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -192,7 +192,7 @@ var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function 
     });
 
     (0, _plugins.showLoader)();
-    grids.getGrid(data.id).then(function (response) {
+    GridsApi.getGrid(data.id).then(function (response) {
         (0, _plugins.hideLoader)();
 
         getGrid.complete({ grid: JSON.parse(response.value) });
@@ -222,7 +222,7 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         discriminator: data.discriminator
     });
 
-    entities.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null).then(function (response) {
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null).then(function (response) {
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -252,7 +252,7 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         discriminator: data.discriminator
     });
 
-    entities.delete_(data.entity, data.ids).then(function () {
+    EntitiesApi.delete_(data.entity, data.ids).then(function () {
         deleteEntities.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -282,7 +282,7 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
         discriminator: data.discriminator
     });
 
-    entities.save(data.entity, data.data).then(function () {
+    EntitiesApi.save(data.entity, data.data).then(function () {
         saveEntity.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -291,11 +291,61 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
     });
 });
 
+var GET_ENTITY = exports.GET_ENTITY = "GET_ENTITY";
+var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.id)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: GET_ENTITY,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.get(data.entity, data.id).then(function (response) {
+        getEntity.complete({ result: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getEntity.fail({ discriminator: data.discriminator });
+    });
+});
+
 var FREE_ENTITIES = exports.FREE_ENTITIES = "FREE_ENTITIES";
 var freeEntities = exports.freeEntities = aj.createAction(FREE_ENTITIES, function (data) {
     aj.dispatch({
         type: FREE_ENTITIES,
         discriminator: data.discriminator
+    });
+});
+
+/**
+ * MENU ACTIONS
+ */
+
+var SETUP_MENU = exports.SETUP_MENU = "SETUP_MENU";
+var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) {
+    aj.dispatch({
+        type: SETUP_MENU,
+        menu: data.menu
+    });
+});
+
+var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
+var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
+    aj.dispatch({
+        type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
     });
 });
 });
@@ -1019,7 +1069,7 @@ if (platform.engine == "node") {
                 value: function __trigger(store, state) {
                     var _this4 = this;
 
-                    logger.i("Triggering ", store);
+                    logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                     return new Promise(function (resolve, reject) {
                         _this4.socket.emit("trigger", store, state, function () {
@@ -1141,7 +1191,7 @@ if (platform.engine == "node") {
                         throw "__trigger function not defined";
                     }
 
-                    logger.i("Triggering ", store);
+                    logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                     return new Promise(function (resolve, reject) {
                         async(function () {
@@ -1371,7 +1421,7 @@ function createAction(type, fn) {
 }
 
 function dispatch(action) {
-    logger.i("Dispatching action", action);
+    logger.i("Dispatching action", JSON.stringify(action));
 
     _.each(__stores, function (store) {
         try {
@@ -1786,12 +1836,15 @@ Object.defineProperty(exports, "__esModule", {
 exports.load = load;
 exports.delete_ = delete_;
 exports.save = save;
+exports.get = get;
 
 var _config = require("../framework/config");
 
 var config = _interopRequireWildcard(_config);
 
 var _utils = require("./utils");
+
+var utils = _interopRequireWildcard(_utils);
 
 var _underscore = require("../libs/underscore");
 
@@ -1801,7 +1854,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.get)(url, { queryJson: query });
+    return utils.get(url, { queryJson: query });
 }
 
 function delete_(entity, ids) {
@@ -1815,12 +1868,17 @@ function delete_(entity, ids) {
     }
 
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.delete_)(url, { entityIds: data.join() });
+    return utils.delete_(url, { entityIds: data.join() });
 }
 
 function save(entity, data) {
     var url = config.get("entities.url") + "/" + entity;
-    return (0, _utils.post)(url, data);
+    return utils.post(url, data);
+}
+
+function get(entity, id) {
+    var url = config.get("entities.url") + "/" + entity + "/" + id;
+    return utils.get(url);
 }
 });
 define('api/grids.js', function(module, exports) {
@@ -22923,7 +22981,7 @@ define('libs/underscore.js', function(module, exports) {
             return new Date().getTime();
         };
 
-    // List of HTML entities for escaping.
+    // List of HTML EntitiesApi for escaping.
     var escapeMap = {
         '&': '&amp;',
         '<': '&lt;',
@@ -23422,17 +23480,17 @@ define('libs/validator.js', function(module, exports) {
     var decode = function (str) {
         if (!~str.indexOf('&')) return str;
 
-        //Decode literal entities
+        //Decode literal EntitiesApi
         for (var i in entities) {
             str = str.replace(new RegExp(i, 'g'), entities[i]);
         }
 
-        //Decode hex entities
+        //Decode hex EntitiesApi
         str = str.replace(/&#x(0*[0-9a-f]{2,5});?/gi, function (m, code) {
             return String.fromCharCode(parseInt(+code, 16));
         });
 
-        //Decode numeric entities
+        //Decode numeric EntitiesApi
         str = str.replace(/&#([0-9]{2,4});?/gi, function (m, code) {
             return String.fromCharCode(+code);
         });
@@ -23448,7 +23506,7 @@ define('libs/validator.js', function(module, exports) {
         //IE doesn't accept &apos;
         str = str.replace(/'/g, '&#39;');
 
-        //Encode literal entities
+        //Encode literal EntitiesApi
         for (var i in entities) {
             str = str.replace(new RegExp(entities[i], 'g'), i);
         }
@@ -23513,8 +23571,8 @@ define('libs/validator.js', function(module, exports) {
         //Protect query string variables in URLs => 901119URL5918AMP18930PROTECT8198
         str = str.replace(/\&([a-z\_0-9]+)\=([a-z\_0-9]+)/i, xss_hash() + '$1=$2');
 
-        //Validate standard character entities - add a semicolon if missing.  We do this to enable
-        //the conversion of entities to ASCII later.
+        //Validate standard character EntitiesApi - add a semicolon if missing.  We do this to enable
+        //the conversion of EntitiesApi to ASCII later.
         str = str.replace(/(&\#?[0-9a-z]{2,})([\x00-\x20])*;?/i, '$1;$2');
 
         //Validate UTF16 two byte encoding (x00) - just as above, adds a semicolon if missing.
@@ -23527,8 +23585,8 @@ define('libs/validator.js', function(module, exports) {
         //<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>
         str = decodeURIComponent(str);
 
-        //Convert character entities to ASCII - this permits our tests below to work reliably.
-        //We only convert entities that are within tags since these are the ones that will pose security problems.
+        //Convert character EntitiesApi to ASCII - this permits our tests below to work reliably.
+        //We only convert EntitiesApi that are within tags since these are the ones that will pose security problems.
         str = str.replace(/[a-z]+=([\'\"]).*?\\1/gi, function(m, match) {
             return m.replace(match, convert_attribute(match));
         });
@@ -23600,7 +23658,7 @@ define('libs/validator.js', function(module, exports) {
 
         //Sanitize naughty HTML elements
         //If a tag containing any of the words in the list
-        //below is found, the tag gets converted to entities.
+        //below is found, the tag gets converted to EntitiesApi.
         //So this: <blink>
         //Becomes: &lt;blink&gt;
         naughty = 'alert|applet|audio|basefont|base|behavior|bgsound|blink|body|embed|expression|form|frameset|frame|head|html|ilayer|iframe|input|isindex|layer|link|meta|object|plaintext|style|script|textarea|title|video|xml|xss';
@@ -23610,7 +23668,7 @@ define('libs/validator.js', function(module, exports) {
 
         //Sanitize naughty scripting elements Similar to above, only instead of looking for
         //tags it looks for PHP and JavaScript commands that are disallowed.  Rather than removing the
-        //code, it simply converts the parenthesis to entities rendering the code un-executable.
+        //code, it simply converts the parenthesis to EntitiesApi rendering the code un-executable.
         //For example:  eval('some code')
         //Becomes:      eval&#40;'some code'&#41;
         str = str.replace(/(alert|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\\s*)\((.*?)\)/gi, '$1$2&#40;$3&#41;');
@@ -24077,7 +24135,7 @@ define('stores.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.entities = exports.ENTITIES = exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
+exports.menu = exports.MENU = exports.entities = exports.ENTITIES = exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
 
 var _aj = require("./aj");
 
@@ -24096,6 +24154,8 @@ var _ = _interopRequireWildcard(_underscore);
 var _strings = require("./strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _lang = require("./utils/lang");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -24209,6 +24269,24 @@ var entities = exports.entities = aj.createStore(ENTITIES, function () {
 
     }
 });
+
+var MENU = exports.MENU = "MENU";
+var menu = exports.menu = aj.createStore(MENU, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.SETUP_MENU:
+            return _.assign(state, { menu: action.menu });
+
+        case actions.SET_ACTIVE_MENU_ITEM:
+            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
+                    i.active = i == action.item;
+                }) });
+
+    }
+});
 });
 define('strings.js', function(module, exports) {
 "use strict";
@@ -24255,12 +24333,17 @@ exports.default = {
     create: "Create",
     refresh: "Refresh",
     confirm: "Confirm",
-    entityDeleteConfirm: "Are you sure to delete {0} entities?",
+    entityDeleteConfirm: "Are you sure to delete {0} EntitiesApi?",
     submit: "Submit",
     cancel: "Cancel",
     add: "Add",
     pleaseSpecifyData: "Please specify data",
-    ok: "OK"
+    ok: "OK",
+    security: "Securiry",
+    users: "Users",
+    roles: "Roles",
+    setup: "Setup",
+    categories: "Categorie"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24323,6 +24406,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.format = format;
 exports.optional = optional;
 exports.parseBoolean = parseBoolean;
+exports.walk = walk;
 /**
  * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")
  * @param fmt
@@ -24371,6 +24455,39 @@ function parseBoolean(val) {
     }
 
     return val == true || parseInt(val) > 0 || val == "true";
+}
+
+/**
+ * Walk in a composite object
+ * @param tree
+ * @param property
+ * @param action
+ */
+function walk(tree) {
+    var property = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "children";
+    var action = arguments[2];
+
+    if (_.isArray(tree)) {
+        _.each(tree, function (i) {
+            action(i);
+
+            if (!_.isArray(i[property])) {
+                _.each(i[property], function (t) {
+                    return walk(t);
+                });
+            }
+        });
+    } else {
+        action(tree);
+
+        if (!_.isArray(tree[property])) {
+            _.each(tree[property], function (t) {
+                return walk(t);
+            });
+        }
+    }
+
+    return tree;
 }
 });
 define('web/components/common.js', function(module, exports) {
@@ -24840,9 +24957,9 @@ var Tabs = exports.Tabs = function (_React$Component3) {
             var _this7 = this;
 
             var me = ReactDOM.findDOMNode(this);
-            console.log(me);
+            logger.i(me);
             $(me).find(".tab-button").click(function (e) {
-                console.log("ciao");
+                logger.i("ciao");
                 e.preventDefault();
                 $(_this7).tab("show");
             });
@@ -26210,7 +26327,7 @@ var TextCell = exports.TextCell = function (_Cell) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.nativeEvent.stopImmediatePropagation();
-                console.log("propagation stopped");
+                logger.i("propagation stopped");
             }
         }
     }, {
@@ -26603,7 +26720,7 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
         value: function search(e) {
             var keyword = e.target.value;
             if (!_.isEmpty(keyword)) {
-                console.log(keyword);
+                logger.i(keyword);
             }
         }
     }, {
@@ -26912,27 +27029,27 @@ define('web/components/layout.js', function(module, exports) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../stores");
+
+var _actions = require("../../actions");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _loader = require("./loader");
+
+var _aj = require("../utils/aj");
+
 var _lang = require("../../utils/lang");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var SessionStore = require("../../stores").session;
-
-var _require = require("../../actions"),
-    _logout = _require.logout;
-
-var ui = require("../utils/ui");
-
-var _require2 = require("./loader"),
-    PageLoader = _require2.PageLoader,
-    GlobalLoader = _require2.GlobalLoader;
-
-var _require3 = require("../utils/aj"),
-    connect = _require3.connect;
 
 function showPageLoader() {
     $(".page-loader").show();
@@ -27063,14 +27180,14 @@ var ProfileBox = function (_React$Component2) {
 
         var _this2 = _possibleConstructorReturn(this, (ProfileBox.__proto__ || Object.getPrototypeOf(ProfileBox)).call(this, props));
 
-        connect(_this2, SessionStore);
+        (0, _aj.connect)(_this2, _stores.session);
         return _this2;
     }
 
     _createClass(ProfileBox, [{
         key: "logout",
         value: function logout() {
-            _logout();
+            (0, _actions.logout)();
             ui.navigate("/login");
         }
     }, {
@@ -27149,8 +27266,87 @@ var ProfileBox = function (_React$Component2) {
     return ProfileBox;
 }(React.Component);
 
-var SideBar = function (_React$Component3) {
-    _inherits(SideBar, _React$Component3);
+var MenuLevel = function (_React$Component3) {
+    _inherits(MenuLevel, _React$Component3);
+
+    function MenuLevel() {
+        _classCallCheck(this, MenuLevel);
+
+        return _possibleConstructorReturn(this, (MenuLevel.__proto__ || Object.getPrototypeOf(MenuLevel)).apply(this, arguments));
+    }
+
+    _createClass(MenuLevel, [{
+        key: "activate",
+        value: function activate(item) {
+            (0, _actions.setActiveMenuItem)({ item: item });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this5 = this;
+
+            var menu = (0, _lang.optional)(this.props.menu, []);
+            var isMainMenu = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.isMainMenu), false);
+
+            var key = 1;
+            var items = menu.map(function (i) {
+                var className = "";
+                if (i.active) {
+                    className += "active";
+                }
+                var hasChildren = !_.isEmpty(i.children);
+                if (hasChildren) {
+                    className += " sub-menu";
+                }
+
+                return React.createElement(
+                    "li",
+                    { key: key++, className: className },
+                    React.createElement(
+                        "a",
+                        { href: i.href || "javascript:;", onClick: _this5.activate.bind(_this5, i), "data-ma-action": hasChildren ? "submenu-toggle" : undefined },
+                        React.createElement("i", { className: i.icon }),
+                        " ",
+                        i.text
+                    ),
+                    hasChildren && React.createElement(MenuLevel, { menu: i.children })
+                );
+            });
+
+            return React.createElement(
+                "ul",
+                { className: isMainMenu ? "main-menu" : undefined },
+                items
+            );
+        }
+    }]);
+
+    return MenuLevel;
+}(React.Component);
+
+var MainMenu = function (_React$Component4) {
+    _inherits(MainMenu, _React$Component4);
+
+    function MainMenu() {
+        _classCallCheck(this, MainMenu);
+
+        return _possibleConstructorReturn(this, (MainMenu.__proto__ || Object.getPrototypeOf(MainMenu)).apply(this, arguments));
+    }
+
+    _createClass(MainMenu, [{
+        key: "render",
+        value: function render() {
+            var menu = this.props.menu;
+
+            return React.createElement(MenuLevel, { menu: menu, isMainMenu: "true" });
+        }
+    }]);
+
+    return MainMenu;
+}(React.Component);
+
+var SideBar = function (_React$Component5) {
+    _inherits(SideBar, _React$Component5);
 
     function SideBar() {
         _classCallCheck(this, SideBar);
@@ -27165,223 +27361,7 @@ var SideBar = function (_React$Component3) {
                 "aside",
                 { id: "sidebar", className: "sidebar c-overflow" },
                 React.createElement(ProfileBox, null),
-                React.createElement(
-                    "ul",
-                    { className: "main-menu" },
-                    React.createElement(
-                        "li",
-                        { className: "active" },
-                        React.createElement(
-                            "a",
-                            { href: "index.html" },
-                            React.createElement("i", { className: "zmdi zmdi-home" }),
-                            " Home"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "theme/typography.html" },
-                            React.createElement("i", { className: "zmdi zmdi-format-underlined" }),
-                            " Typography"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "theme/tables.html" },
-                            React.createElement("i", { className: "zmdi zmdi-view-list" }),
-                            " Tables"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "theme/form-elements.html" },
-                            React.createElement("i", { className: "zmdi zmdi-collection-text" }),
-                            " Form Elements"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "theme/buttons.html" },
-                            React.createElement("i", { className: "zmdi zmdi-crop-16-9" }),
-                            " Buttons"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "theme/icons.html" },
-                            React.createElement("i", { className: "zmdi zmdi-airplane" }),
-                            "Icons"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        { className: "sub-menu" },
-                        React.createElement(
-                            "a",
-                            { href: "", "data-ma-action": "submenu-toggle" },
-                            React.createElement("i", { className: "zmdi zmdi-collection-item" }),
-                            " Sample Pages"
-                        ),
-                        React.createElement(
-                            "ul",
-                            null,
-                            React.createElement(
-                                "li",
-                                null,
-                                React.createElement(
-                                    "a",
-                                    { href: "theme/login.html" },
-                                    "Login and Sign Up"
-                                )
-                            ),
-                            React.createElement(
-                                "li",
-                                null,
-                                React.createElement(
-                                    "a",
-                                    { href: "theme/lockscreen.html" },
-                                    "Lockscreen"
-                                )
-                            ),
-                            React.createElement(
-                                "li",
-                                null,
-                                React.createElement(
-                                    "a",
-                                    { href: "theme/404.html" },
-                                    "Error 404"
-                                )
-                            )
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        { className: "sub-menu" },
-                        React.createElement(
-                            "a",
-                            { href: "", "data-ma-action": "submenu-toggle" },
-                            React.createElement("i", { className: "zmdi zmdi-menu" }),
-                            " 3 Level Menu"
-                        ),
-                        React.createElement(
-                            "ul",
-                            null,
-                            React.createElement(
-                                "li",
-                                null,
-                                React.createElement(
-                                    "a",
-                                    { href: "theme/form-elements.html" },
-                                    "Level 2 link"
-                                )
-                            ),
-                            React.createElement(
-                                "li",
-                                { className: "sub-menu" },
-                                React.createElement(
-                                    "a",
-                                    { href: "", "data-ma-action": "submenu-toggle" },
-                                    "I have children too"
-                                ),
-                                React.createElement(
-                                    "ul",
-                                    null,
-                                    React.createElement(
-                                        "li",
-                                        null,
-                                        React.createElement(
-                                            "a",
-                                            { href: "" },
-                                            "Level 3 link"
-                                        )
-                                    ),
-                                    React.createElement(
-                                        "li",
-                                        null,
-                                        React.createElement(
-                                            "a",
-                                            { href: "" },
-                                            "Another Level 3 link"
-                                        )
-                                    ),
-                                    React.createElement(
-                                        "li",
-                                        null,
-                                        React.createElement(
-                                            "a",
-                                            { href: "" },
-                                            "Third one"
-                                        )
-                                    ),
-                                    React.createElement(
-                                        "li",
-                                        { className: "sub-menu" },
-                                        React.createElement(
-                                            "a",
-                                            { href: "", "data-ma-action": "submenu-toggle" },
-                                            "I have children too"
-                                        ),
-                                        React.createElement(
-                                            "ul",
-                                            null,
-                                            React.createElement(
-                                                "li",
-                                                null,
-                                                React.createElement(
-                                                    "a",
-                                                    { href: "" },
-                                                    "Level 3 link"
-                                                )
-                                            ),
-                                            React.createElement(
-                                                "li",
-                                                null,
-                                                React.createElement(
-                                                    "a",
-                                                    { href: "" },
-                                                    "Another Level 3 link"
-                                                )
-                                            ),
-                                            React.createElement(
-                                                "li",
-                                                null,
-                                                React.createElement(
-                                                    "a",
-                                                    { href: "" },
-                                                    "Third one"
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            ),
-                            React.createElement(
-                                "li",
-                                null,
-                                React.createElement(
-                                    "a",
-                                    { href: "" },
-                                    "One more 2"
-                                )
-                            )
-                        )
-                    )
-                )
+                React.createElement(MainMenuContainer, null)
             );
         }
     }]);
@@ -27389,8 +27369,30 @@ var SideBar = function (_React$Component3) {
     return SideBar;
 }(React.Component);
 
-var Footer = function (_React$Component4) {
-    _inherits(Footer, _React$Component4);
+var MainMenuContainer = function (_React$Component6) {
+    _inherits(MainMenuContainer, _React$Component6);
+
+    function MainMenuContainer(props) {
+        _classCallCheck(this, MainMenuContainer);
+
+        var _this8 = _possibleConstructorReturn(this, (MainMenuContainer.__proto__ || Object.getPrototypeOf(MainMenuContainer)).call(this, props));
+
+        (0, _aj.connect)(_this8, _stores.menu, { menu: [] });
+        return _this8;
+    }
+
+    _createClass(MainMenuContainer, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(MainMenu, { menu: this.state.menu });
+        }
+    }]);
+
+    return MainMenuContainer;
+}(React.Component);
+
+var Footer = function (_React$Component7) {
+    _inherits(Footer, _React$Component7);
 
     function Footer() {
         _classCallCheck(this, Footer);
@@ -27461,8 +27463,8 @@ var Footer = function (_React$Component4) {
     return Footer;
 }(React.Component);
 
-var Layout = function (_React$Component5) {
-    _inherits(Layout, _React$Component5);
+var Layout = function (_React$Component8) {
+    _inherits(Layout, _React$Component8);
 
     function Layout() {
         _classCallCheck(this, Layout);
@@ -27499,8 +27501,8 @@ var Layout = function (_React$Component5) {
     return Layout;
 }(React.Component);
 
-var FullScreenLayout = function (_React$Component6) {
-    _inherits(FullScreenLayout, _React$Component6);
+var FullScreenLayout = function (_React$Component9) {
+    _inherits(FullScreenLayout, _React$Component9);
 
     function FullScreenLayout() {
         _classCallCheck(this, FullScreenLayout);
@@ -27522,28 +27524,28 @@ var FullScreenLayout = function (_React$Component6) {
     return FullScreenLayout;
 }(React.Component);
 
-var ScreenContainer = function (_React$Component7) {
-    _inherits(ScreenContainer, _React$Component7);
+var ScreenContainer = function (_React$Component10) {
+    _inherits(ScreenContainer, _React$Component10);
 
     function ScreenContainer(props) {
         _classCallCheck(this, ScreenContainer);
 
-        var _this8 = _possibleConstructorReturn(this, (ScreenContainer.__proto__ || Object.getPrototypeOf(ScreenContainer)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (ScreenContainer.__proto__ || Object.getPrototypeOf(ScreenContainer)).call(this, props));
 
-        _this8.state = {
+        _this12.state = {
             currentScreen: null
         };
-        return _this8;
+        return _this12;
     }
 
     _createClass(ScreenContainer, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this9 = this;
+            var _this13 = this;
 
             ui.addScreenChangeListener(function (screen) {
                 showPageLoader();
-                _this9.setState(_.assign(_this9.state, { currentScreen: screen }));
+                _this13.setState(_.assign(_this13.state, { currentScreen: screen }));
                 hidePageLoader();
             });
         }
@@ -27560,8 +27562,8 @@ var ScreenContainer = function (_React$Component7) {
     return ScreenContainer;
 }(React.Component);
 
-var Screen = function (_React$Component8) {
-    _inherits(Screen, _React$Component8);
+var Screen = function (_React$Component11) {
+    _inherits(Screen, _React$Component11);
 
     function Screen() {
         _classCallCheck(this, Screen);
@@ -27572,16 +27574,16 @@ var Screen = function (_React$Component8) {
     return Screen;
 }(React.Component);
 
-var Index = function (_React$Component9) {
-    _inherits(Index, _React$Component9);
+var Index = function (_React$Component12) {
+    _inherits(Index, _React$Component12);
 
     function Index(props) {
         _classCallCheck(this, Index);
 
-        var _this11 = _possibleConstructorReturn(this, (Index.__proto__ || Object.getPrototypeOf(Index)).call(this, props));
+        var _this15 = _possibleConstructorReturn(this, (Index.__proto__ || Object.getPrototypeOf(Index)).call(this, props));
 
-        _this11.state = {};
-        return _this11;
+        _this15.state = {};
+        return _this15;
     }
 
     _createClass(Index, [{
@@ -27590,8 +27592,8 @@ var Index = function (_React$Component9) {
             return React.createElement(
                 "div",
                 null,
-                React.createElement(PageLoader, null),
-                React.createElement(GlobalLoader, null),
+                React.createElement(_loader.PageLoader, null),
+                React.createElement(_loader.GlobalLoader, null),
                 React.createElement(ScreenContainer, null)
             );
         }
@@ -27817,6 +27819,10 @@ var _actions = require("../actions");
 
 var _admin = require("./screens/admin");
 
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -27866,6 +27872,29 @@ ui.addRoute("/", function (params) {
 
 /* render main index page into dom */
 ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
+
+/* Setup menu voices */
+(0, _actions.setupMenu)({ menu: [{
+        icon: "zmdi zmdi-shield-security",
+        text: _strings2.default.security,
+        children: [{
+            icon: "zmdi zmdi-accounts-alt",
+            text: _strings2.default.users,
+            href: "/#/admin/entities/user?grid=users"
+        }, {
+            icon: "zmdi zmdi-key",
+            text: _strings2.default.roles,
+            href: "/#/admin/entities/role?grid=roles"
+        }]
+    }, {
+        icon: "zmdi zmdi-wrench",
+        text: _strings2.default.setup,
+        children: [{
+            icon: "zmdi zmdi-labels",
+            text: _strings2.default.categories,
+            href: "/#/admin/entities/category?grid=categories"
+        }]
+    }] });
 
 /* automatic login, if possible */
 (0, _actions.resumeSession)();
@@ -28157,7 +28186,7 @@ var EntitiesGrid = function (_Screen) {
                     }
                 }
                  rows.push(xo)
-             }
+            }
             */
 
             return React.createElement(
@@ -28315,7 +28344,7 @@ var EntityForm = function (_Screen) {
                                 cell: _grids.ActionsCell,
                                 tdClassName: "grid-actions",
                                 actions: [{ icon: "zmdi zmdi-delete", action: function action() {
-                                        return console.log("action performed");
+                                        return logger.i("action performed");
                                     } }]
                             }]
                         },

@@ -101,7 +101,7 @@ export default class EntityForm extends Screen {
                                         cell: ActionsCell, 
                                         tdClassName: "grid-actions",
                                         actions: [
-                                            {icon: "zmdi zmdi-delete", action: () => console.log("action performed")}
+                                            {icon: "zmdi zmdi-delete", action: () => logger.i("action performed")}
                                         ]
                                     },
                                 ]

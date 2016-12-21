@@ -1,11 +1,11 @@
 "use strict"
 
-const SessionStore = require("../../stores").session
-const { logout } = require("../../actions")
-const ui = require("../utils/ui")
-const { PageLoader, GlobalLoader } = require("./loader")
-const { connect } = require("../utils/aj")
-import { optional } from "../../utils/lang"
+import {session as SessionStore, menu as MenuStore} from "../../stores"
+import {logout, setActiveMenuItem} from "../../actions"
+import * as ui from "../utils/ui"
+import {PageLoader, GlobalLoader} from "./loader"
+import {connect} from "../utils/aj"
+import {optional, parseBoolean} from "../../utils/lang"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -115,59 +115,73 @@ class ProfileBox extends React.Component {
     }
 }
 
+class MenuLevel extends React.Component {
+    activate(item) {
+        setActiveMenuItem({item})
+    }
+
+    render() {
+        let menu = optional(this.props.menu, [])
+        let isMainMenu = optional(parseBoolean(this.props.isMainMenu), false)
+
+        let key = 1
+        let items = menu.map(i => {
+            let className = ""
+            if (i.active) { className += "active" }
+            let hasChildren = !_.isEmpty(i.children)
+            if (hasChildren) { className += " sub-menu" }
+
+            return (
+                <li key={key++} className={className}>
+                    <a href={i.href || "javascript:;"} onClick={this.activate.bind(this, i)} data-ma-action={hasChildren ? "submenu-toggle" : undefined} >
+                        <i className={i.icon}></i> {i.text}
+                    </a>
+
+                    {hasChildren &&
+                        <MenuLevel menu={i.children} />
+                    }
+                </li>
+            )
+        })
+
+        return (
+            <ul className={isMainMenu ? "main-menu" : undefined}>
+                {items}
+            </ul>
+        )
+    }
+}
+
+class MainMenu extends React.Component {
+    render() {
+        let menu = this.props.menu
+
+        return (
+            <MenuLevel menu={menu} isMainMenu="true"/>
+        )
+    }
+}
+
 class SideBar extends React.Component {
     render() {
         return (
             <aside id="sidebar" className="sidebar c-overflow">
                 <ProfileBox />
-
-                <ul className="main-menu">
-                    <li className="active"><a href="index.html"><i className="zmdi zmdi-home"></i> Home</a></li>
-                    <li><a href="theme/typography.html"><i className="zmdi zmdi-format-underlined"></i> Typography</a></li>
-                    <li><a href="theme/tables.html"><i className="zmdi zmdi-view-list"></i> Tables</a></li>
-                    <li><a href="theme/form-elements.html"><i className="zmdi zmdi-collection-text"></i> Form Elements</a></li>
-                    <li><a href="theme/buttons.html"><i className="zmdi zmdi-crop-16-9"></i> Buttons</a></li>
-                    <li><a href="theme/icons.html"><i className="zmdi zmdi-airplane"></i>Icons</a></li>
-                    <li className="sub-menu">
-                        <a href="" data-ma-action="submenu-toggle"><i className="zmdi zmdi-collection-item"></i> Sample Pages</a>
-                        <ul>
-                            <li><a href="theme/login.html">Login and Sign Up</a></li>
-                            <li><a href="theme/lockscreen.html">Lockscreen</a></li>
-                            <li><a href="theme/404.html">Error 404</a></li>
-                        </ul>
-                    </li>
-                    <li className="sub-menu">
-                        <a href="" data-ma-action="submenu-toggle"><i className="zmdi zmdi-menu"></i> 3 Level Menu</a>
-
-                        <ul>
-                            <li><a href="theme/form-elements.html">Level 2 link</a></li>
-                            <li className="sub-menu">
-                                <a href="" data-ma-action="submenu-toggle">I have children too</a>
-
-                                <ul>
-                                    <li><a href="">Level 3 link</a></li>
-                                    <li><a href="">Another Level 3 link</a></li>
-                                    <li><a href="">Third one</a></li>
-
-                                    <li className="sub-menu">
-                                        <a href="" data-ma-action="submenu-toggle">I have children too</a>
-
-                                        <ul>
-                                            <li><a href="">Level 3 link</a></li>
-                                            <li><a href="">Another Level 3 link</a></li>
-                                            <li><a href="">Third one</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-
-
-                            </li>
-                            <li><a href="">One more 2</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                <MainMenuContainer />
             </aside>
         )
+    }
+}
+
+class MainMenuContainer extends React.Component {
+    constructor(props) {
+        super(props)
+
+        connect(this, MenuStore, {menu: []})
+    }
+
+    render() {
+        return <MainMenu menu={this.state.menu} />
     }
 }
 

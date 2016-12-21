@@ -104,7 +104,7 @@ export default class EntitiesGrid extends Screen {
             columns: [
                 {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: true},
                 {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: true},
-                {property: "active", header: "Active", cell: CheckCell, sortable: true, searchable: true},
+                {property: "active", header: "Active", cell: CheckCell, sortable: true, searchable: true}
             ]
         }
 
@@ -156,7 +156,6 @@ export default class EntitiesGrid extends Screen {
             }
 
             rows.push(xo)
-
         }
         */
 

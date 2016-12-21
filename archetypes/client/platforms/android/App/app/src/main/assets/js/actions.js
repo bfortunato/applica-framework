@@ -31,11 +31,11 @@ var _strings = require("./strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _grids = require("./api/grids");
+var _grids = require("./api/GridsApi");
 
 var grids = _interopRequireWildcard(_grids);
 
-var _entities = require("./api/entities");
+var _entities = require("./api/EntitiesApi");
 
 var entities = _interopRequireWildcard(_entities);
 

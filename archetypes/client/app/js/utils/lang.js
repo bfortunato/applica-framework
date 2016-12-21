@@ -43,4 +43,28 @@ export function parseBoolean(val) {
     return (val == true || parseInt(val) > 0 || val == "true")
 }
 
+/**
+ * Walk in a composite object
+ * @param tree
+ * @param property
+ * @param action
+ */
+export function walk(tree, property = "children", action) {
+    if (_.isArray(tree)) {
+        _.each(tree, i => {
+            action(i)
 
+            if (!_.isArray(i[property])) {
+                _.each(i[property], t => walk(t))
+            }
+        })
+    } else {
+        action(tree)
+
+        if (!_.isArray(tree[property])) {
+            _.each(tree[property], t => walk(t))
+        }
+    }
+
+    return tree
+}

@@ -1,12 +1,12 @@
 "use strict"
 
 import * as config from "../framework/config"
-import { get, post, delete_ as delete__ } from "./utils"
+import * as utils from "./utils"
 import * as _ from "../libs/underscore"
 
 export function load(entity, query) {
     let url = config.get("entities.url") + "/" + entity
-    return get(url, {queryJson: query})
+    return utils.get(url, {queryJson: query})
 }
 
 export function delete_(entity, ids) {
@@ -20,10 +20,15 @@ export function delete_(entity, ids) {
     }
 
     let url = config.get("entities.url") + "/" + entity
-    return delete__(url, {entityIds: data.join()})
+    return utils.delete_(url, {entityIds: data.join()})
 }
 
 export function save(entity, data) {
     let url = config.get("entities.url") + "/" + entity
-    return post(url, data)
+    return utils.post(url, data)
+}
+
+export function get(entity, id) {
+    let url = config.get("entities.url") + "/" + entity + "/" + id
+    return utils.get(url)
 }

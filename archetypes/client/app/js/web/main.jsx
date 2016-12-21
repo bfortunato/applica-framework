@@ -1,4 +1,4 @@
-import { Index } from "./components/layout"
+import {Index} from "./components/layout"
 import Login from "./screens/login"
 import Register from "./screens/register"
 import Recover from "./screens/recover"
@@ -7,8 +7,9 @@ import RegistrationOk from "./screens/registrationOk"
 import Confirm from "./screens/confirm"
 import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
-import { resumeSession } from "../actions"
-import { EntitiesGrid, EntityForm } from "./screens/admin"
+import {resumeSession, setupMenu} from "../actions"
+import {EntitiesGrid, EntityForm} from "./screens/admin"
+import strings from "../strings"
 
 function ifAdmin(fn, ...params) {
     if (true) {
@@ -35,6 +36,37 @@ ui.addRoute("/", params => ui.changeScreen(<Home />))
 
 /* render main index page into dom */
 ReactDOM.render(<Index />, document.getElementById("entry-point"))
+
+/* Setup menu voices */
+setupMenu({menu: [
+    {
+        icon: "zmdi zmdi-shield-security",
+        text: strings.security,
+        children: [
+            {
+                icon: "zmdi zmdi-accounts-alt",
+                text: strings.users,
+                href: "/#/admin/entities/user?grid=users"
+            },
+            {
+                icon: "zmdi zmdi-key",
+                text: strings.roles,
+                href: "/#/admin/entities/role?grid=roles"
+            }
+        ]
+    },
+    {
+        icon: "zmdi zmdi-wrench",
+        text: strings.setup,
+        children: [
+            {
+                icon: "zmdi zmdi-labels",
+                text: strings.categories,
+                href: "/#/admin/entities/category?grid=categories"
+            }
+        ]
+    }
+]})
 
 /* automatic login, if possible */
 resumeSession()

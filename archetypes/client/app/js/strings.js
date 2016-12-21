@@ -37,10 +37,15 @@ export default {
     create: "Create",
     refresh: "Refresh",
     confirm: "Confirm",
-    entityDeleteConfirm: "Are you sure to delete {0} entities?",
+    entityDeleteConfirm: "Are you sure to delete {0} EntitiesApi?",
     submit: "Submit",
     cancel: "Cancel",
     add: "Add",
     pleaseSpecifyData: "Please specify data",
-    ok: "OK"
+    ok: "OK",
+    security: "Securiry",
+    users: "Users",
+    roles: "Roles",
+    setup: "Setup",
+    categories: "Categorie"
 }

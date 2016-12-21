@@ -207,9 +207,9 @@ export class Tabs extends React.Component {
 
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
-        console.log(me)
+        logger.i(me)
         $(me).find(".tab-button").click((e) => {
-            console.log("ciao")
+            logger.i("ciao")
             e.preventDefault()
             $(this).tab("show")
         })

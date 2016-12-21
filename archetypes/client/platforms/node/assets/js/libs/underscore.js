@@ -1332,7 +1332,7 @@
             return new Date().getTime();
         };
 
-    // List of HTML entities for escaping.
+    // List of HTML EntitiesApi for escaping.
     var escapeMap = {
         '&': '&amp;',
         '<': '&lt;',

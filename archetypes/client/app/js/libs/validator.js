@@ -281,17 +281,17 @@
     var decode = function (str) {
         if (!~str.indexOf('&')) return str;
 
-        //Decode literal entities
+        //Decode literal EntitiesApi
         for (var i in entities) {
             str = str.replace(new RegExp(i, 'g'), entities[i]);
         }
 
-        //Decode hex entities
+        //Decode hex EntitiesApi
         str = str.replace(/&#x(0*[0-9a-f]{2,5});?/gi, function (m, code) {
             return String.fromCharCode(parseInt(+code, 16));
         });
 
-        //Decode numeric entities
+        //Decode numeric EntitiesApi
         str = str.replace(/&#([0-9]{2,4});?/gi, function (m, code) {
             return String.fromCharCode(+code);
         });
@@ -307,7 +307,7 @@
         //IE doesn't accept &apos;
         str = str.replace(/'/g, '&#39;');
 
-        //Encode literal entities
+        //Encode literal EntitiesApi
         for (var i in entities) {
             str = str.replace(new RegExp(entities[i], 'g'), i);
         }
@@ -372,8 +372,8 @@
         //Protect query string variables in URLs => 901119URL5918AMP18930PROTECT8198
         str = str.replace(/\&([a-z\_0-9]+)\=([a-z\_0-9]+)/i, xss_hash() + '$1=$2');
 
-        //Validate standard character entities - add a semicolon if missing.  We do this to enable
-        //the conversion of entities to ASCII later.
+        //Validate standard character EntitiesApi - add a semicolon if missing.  We do this to enable
+        //the conversion of EntitiesApi to ASCII later.
         str = str.replace(/(&\#?[0-9a-z]{2,})([\x00-\x20])*;?/i, '$1;$2');
 
         //Validate UTF16 two byte encoding (x00) - just as above, adds a semicolon if missing.
@@ -386,8 +386,8 @@
         //<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>
         str = decodeURIComponent(str);
 
-        //Convert character entities to ASCII - this permits our tests below to work reliably.
-        //We only convert entities that are within tags since these are the ones that will pose security problems.
+        //Convert character EntitiesApi to ASCII - this permits our tests below to work reliably.
+        //We only convert EntitiesApi that are within tags since these are the ones that will pose security problems.
         str = str.replace(/[a-z]+=([\'\"]).*?\\1/gi, function(m, match) {
             return m.replace(match, convert_attribute(match));
         });
@@ -459,7 +459,7 @@
 
         //Sanitize naughty HTML elements
         //If a tag containing any of the words in the list
-        //below is found, the tag gets converted to entities.
+        //below is found, the tag gets converted to EntitiesApi.
         //So this: <blink>
         //Becomes: &lt;blink&gt;
         naughty = 'alert|applet|audio|basefont|base|behavior|bgsound|blink|body|embed|expression|form|frameset|frame|head|html|ilayer|iframe|input|isindex|layer|link|meta|object|plaintext|style|script|textarea|title|video|xml|xss';
@@ -469,7 +469,7 @@
 
         //Sanitize naughty scripting elements Similar to above, only instead of looking for
         //tags it looks for PHP and JavaScript commands that are disallowed.  Rather than removing the
-        //code, it simply converts the parenthesis to entities rendering the code un-executable.
+        //code, it simply converts the parenthesis to EntitiesApi rendering the code un-executable.
         //For example:  eval('some code')
         //Becomes:      eval&#40;'some code'&#41;
         str = str.replace(/(alert|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\\s*)\((.*?)\)/gi, '$1$2&#40;$3&#41;');
