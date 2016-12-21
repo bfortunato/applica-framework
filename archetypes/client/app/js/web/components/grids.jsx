@@ -977,12 +977,11 @@ export class Grid extends React.Component {
         let rows = this.props.data && this.props.data.rows
         let hasPagination = this.getTotalPages() > 1
         let noResultsText = optional(this.props.noResultText, strings.noResults)
-
-        let container = this.props.showInCard === false ? NoCard : Card
+        let Container = optional(parseBoolean(this.props.showInCard), true) ? Card : NoCard
 
         return (
             <div className="grid" tabIndex="0" onBlur={this.onBlur.bind(this)} onKeyPress={this.onKeyPress.bind(this)} onKeyUp={this.onKeyUp.bind(this)} onKeyDown={this.onKeyDown.bind(this)}>
-                <container>
+                <Container>
                     <div>
                         {quickSearchEnabled &&
                             <QuickSearch query={myQuery} />
@@ -1023,7 +1022,7 @@ export class Grid extends React.Component {
                             </div>
                         }
                     </div>
-                </container>
+                </Container>
             </div>
         )
     }

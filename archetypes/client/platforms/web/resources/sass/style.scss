@@ -166,6 +166,10 @@ $darken-value: 10%;
   }
 }
 
+.grid .table>thead>tr>th:last-child {
+  padding-right: 15px;
+}
+
 tr.collapsible {
   -webkit-transition: transform 0.25s;
   -moz-transition: transform 0.25s;

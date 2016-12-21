@@ -6,7 +6,7 @@ import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connect, connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid, resultToGridData} from "../../components/grids"
+import {Grid, TextCell, CheckCell, ActionsCell, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 import {discriminated} from "../../../utils/ajex"
@@ -101,11 +101,10 @@ export default class EntitiesGrid extends Screen {
         ]
 
         let descriptor = {
-            "id": "users",
-            "columns": [
-                {"property": "name", "header": "Name", "component": "text", "sortable": true},
-                {"property": "mail", "header": "Mail", "component": "text", "sortable": true},
-                {"property": "active", "header": "Active", "component": "check"}
+            columns: [
+                {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: true},
+                {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: true},
+                {property: "active", header: "Active", cell: CheckCell, sortable: true, searchable: true},
             ]
         }
 

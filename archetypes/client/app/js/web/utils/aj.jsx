@@ -45,5 +45,5 @@ export function connect(component, stores, localState = {}) {
 }
 
 export function connectDiscriminated(discriminator, component, stores, localState = {}) {
-    return connectInternal((component, state) => component.setState(discriminated(discriminator, state)), component, stores, localState)
+    return connectInternal((component, state) => component.setState(discriminated(state, discriminator)), component, stores, localState)
 }

@@ -24193,16 +24193,16 @@ var entities = exports.entities = aj.createStore(ENTITIES, function () {
 
     switch (action.type) {
         case (0, _ajex.completed)(actions.LOAD_ENTITIES):
-            return (0, _ajex.discriminate)(action.discriminator, state, { error: false, result: action.result });
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, result: action.result });
 
         case (0, _ajex.failed)(actions.LOAD_ENTITIES):
-            return (0, _ajex.discriminate)(action.discriminator, state, { error: true, result: null });
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
 
         case (0, _ajex.completed)(actions.DELETE_ENTITIES):
-            return (0, _ajex.discriminate)(action.discriminator, state, { error: false, result: action.result });
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, result: action.result });
 
         case (0, _ajex.failed)(actions.DELETE_ENTITIES):
-            return (0, _ajex.discriminate)(action.discriminator, state, { error: true, result: null });
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator);
@@ -26846,14 +26846,13 @@ var Grid = exports.Grid = function (_React$Component16) {
             var rows = this.props.data && this.props.data.rows;
             var hasPagination = this.getTotalPages() > 1;
             var noResultsText = (0, _lang.optional)(this.props.noResultText, _strings2.default.noResults);
-
-            var container = this.props.showInCard === false ? NoCard : _common.Card;
+            var Container = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.showInCard), true) ? _common.Card : NoCard;
 
             return React.createElement(
                 "div",
                 { className: "grid", tabIndex: "0", onBlur: this.onBlur.bind(this), onKeyPress: this.onKeyPress.bind(this), onKeyUp: this.onKeyUp.bind(this), onKeyDown: this.onKeyDown.bind(this) },
                 React.createElement(
-                    "container",
+                    Container,
                     null,
                     React.createElement(
                         "div",
@@ -28113,8 +28112,7 @@ var EntitiesGrid = function (_Screen) {
             }];
 
             var descriptor = {
-                "id": "users",
-                "columns": [{ "property": "name", "header": "Name", "component": "text", "sortable": true }, { "property": "mail", "header": "Mail", "component": "text", "sortable": true }, { "property": "active", "header": "Active", "component": "check" }]
+                columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
             };
 
             var data = (0, _grids.resultToGridData)(this.state.result);
@@ -29205,7 +29203,7 @@ function connectDiscriminated(discriminator, component, stores) {
     var localState = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
     return connectInternal(function (component, state) {
-        return component.setState((0, _ajex.discriminated)(discriminator, state));
+        return component.setState((0, _ajex.discriminated)(state, discriminator));
     }, component, stores, localState);
 }
 });
