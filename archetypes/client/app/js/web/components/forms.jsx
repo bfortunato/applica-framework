@@ -588,3 +588,32 @@ export class Lookup extends Control {
         )
     }
 }
+
+export class Image extends Control {
+    constructor(props) {
+        super(props)
+
+        this.state = { imageData: null}
+    }
+
+    onFileSelected(e) {
+        let file = e.target.files[0]
+        let reader = new FileReader()
+        reader.onload = (e) => {
+            this.setState({imageData: e.target.result})
+        }
+        reader.readAsDataURL(file)
+        console.log("ciao")
+    }
+
+    render() {
+        return (
+            <div className="form-control">
+                <input type="file" onChange={this.onFileSelected.bind(this)} />
+                 {!_.isEmpty(this.state.imageData) &&
+                    <img src={this.state.imageData} style={{width: 200}} />
+                 }
+            </div>
+        )
+    }
+}

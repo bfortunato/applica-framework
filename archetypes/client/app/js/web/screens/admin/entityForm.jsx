@@ -5,7 +5,7 @@ import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Form, Text, Mail, Check, Select, Lookup} from "../../components/forms"
+import {Form, Text, Mail, Check, Select, Lookup, Image} from "../../components/forms"
 import {Grid, TextCell, ActionsCell} from "../../components/grids"
 import {check, sanitize} from "../../../libs/validator"
 import {saveEntity, freeEntities} from "../../../actions"
@@ -112,6 +112,10 @@ export default class EntityForm extends Screen {
                                     {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false}
                                 ]
                             }
+                        },
+                        {
+                            property: "image",
+                            control: Image
                         }
                     ]
                 }

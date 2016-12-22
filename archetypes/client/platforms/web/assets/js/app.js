@@ -24672,7 +24672,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Lookup = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
+exports.Image = exports.Lookup = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -25529,6 +25529,46 @@ var Lookup = exports.Lookup = function (_Control6) {
     }]);
 
     return Lookup;
+}(Control);
+
+var Image = exports.Image = function (_Control7) {
+    _inherits(Image, _Control7);
+
+    function Image(props) {
+        _classCallCheck(this, Image);
+
+        var _this18 = _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, props));
+
+        _this18.state = { imageData: null };
+        return _this18;
+    }
+
+    _createClass(Image, [{
+        key: "onFileSelected",
+        value: function onFileSelected(e) {
+            var _this19 = this;
+
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                _this19.setState({ imageData: e.target.result });
+            };
+            reader.readAsDataURL(file);
+            console.log("ciao");
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "form-control" },
+                React.createElement("input", { type: "file", onChange: this.onFileSelected.bind(this) }),
+                !_.isEmpty(this.state.imageData) && React.createElement("img", { src: this.state.imageData, style: { width: 200 } })
+            );
+        }
+    }]);
+
+    return Image;
 }(Control);
 });
 define('web/components/grids.js', function(module, exports) {
@@ -28351,6 +28391,9 @@ var EntityForm = function (_Screen) {
                         popupGrid: {
                             columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
                         }
+                    }, {
+                        property: "image",
+                        control: _forms.Image
                     }]
                 }]
             };
