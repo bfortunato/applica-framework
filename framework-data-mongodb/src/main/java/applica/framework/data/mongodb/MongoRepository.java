@@ -68,7 +68,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 		
 		if(query == null) query = new applica.framework.Query();
-		
+
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
+            query = this.keywordQuery(query);
+        }
+
 		Result response = crudStrategy.find(query, this);
 		
 		return response;
@@ -183,7 +187,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     @Override
-    public void addKeywordFilter(applica.framework.Query query, String keyword) {
-
+    public Query keywordQuery(Query query) {
+        return query;
     }
 }

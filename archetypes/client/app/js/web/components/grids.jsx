@@ -602,7 +602,8 @@ export class ActionsCell extends Cell {
     }
 
     render() {
-        let actions = this.props.column.actions.map(a => <a style={{display: "none"}} href="javascript:;" className="grid-action" onClick={a.action}><i className={a.icon} /></a>)
+        let key = 1
+        let actions = this.props.column.actions.map(a => <a key={key++} style={{display: "none"}} href="javascript:;" className="grid-action" onClick={a.action.bind(this, this.props.row.data)}><i className={a.icon} /></a>)
 
         return (
             <div>{actions}</div>
@@ -764,8 +765,8 @@ export class NoCard extends React.Component {
 export class QuickSearch extends React.Component {
     search(e) {
         let keyword = e.target.value
-        if (!_.isEmpty(keyword)) {
-            logger.i(keyword)
+        if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
+            this.props.query.setKeyword(keyword)
         }
     }
 
@@ -966,17 +967,17 @@ export class Grid extends React.Component {
         let quickSearchEnabled = optional(parseBoolean(this.props.quickSearchEnabled), false)
         let headerVisible = optional(parseBoolean(this.props.headerVisible), true)
         let footerVisible = optional(parseBoolean(this.props.footerVisible), true)
-        let summaryVisible = optional(parseBoolean(this.props.summaryVisible), true)    
-        let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
+        let summaryVisible = optional(parseBoolean(this.props.summaryVisible), true)
+        let noResultsVisible = optional(parseBoolean(this.props.noResultsVisible), true)
+        //let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
         let paginationEnabled = optional(parseBoolean(this.props.paginationEnabled), true)
         let tableClassName = optional(this.props.tableClassName, "table table-striped table-hover")
 
         let myQuery = optional(this.props.query, query.create())
         let showFilters = myQuery.filters.length > 0
         let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
-        let rows = this.props.data && this.props.data.rows
         let hasPagination = this.getTotalPages() > 1
-        let noResultsText = optional(this.props.noResultText, strings.noResults)
+        let noResultsText = optional(this.props.noResultsText, strings.noResults)
         let Container = optional(parseBoolean(this.props.showInCard), true) ? Card : NoCard
 
         return (
@@ -990,6 +991,8 @@ export class Grid extends React.Component {
                         {showFilters &&
                             <Filters query={myQuery} />
                         }
+
+                        <div className="clearfix"></div>
 
                         {hasResults ?
                             <div className="with-result">
@@ -1016,9 +1019,10 @@ export class Grid extends React.Component {
                                 <div className="clearfix"></div>
                             </div>
                             : //no results
+                            noResultsVisible &&
                             <div className="no-results text-center p-30">
                                 <h1><i className="zmdi zmdi-info-outline" /></h1>
-                                <h4>{strings.noResults}</h4>
+                                <h4>{noResultsText}</h4>
                             </div>
                         }
                     </div>

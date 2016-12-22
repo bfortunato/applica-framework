@@ -109,7 +109,7 @@ export default class EntitiesGrid extends Screen {
         }
 
         let data = resultToGridData(this.state.result)
-        /*
+
         let rows = []
         for (let x = 0; x < 34; x++) {
             let xo = {
@@ -157,12 +157,12 @@ export default class EntitiesGrid extends Screen {
 
             rows.push(xo)
         }
-        */
+
 
         return (
             <Layout>
                 <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
-                <Grid ref="grid" descriptor={descriptor} data={data} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
+                <Grid ref="grid" descriptor={descriptor} data={{rows: rows, totalRows: 100}} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

@@ -15,12 +15,19 @@ public class Query {
 
     private int page;
     private int rowsPerPage;
+    private String keyword;
     private List<Sort> sorts = new ArrayList<>();
     private List<Filter> filters = new ArrayList<>();
-    private Restriction restriction = null;
 
+    public static QueryBuilder build(Query initialQuery) {
+        return new QueryBuilder(initialQuery);
+    }
     public static QueryBuilder build() {
         return new QueryBuilder();
+    }
+
+    public QueryBuilder builder() {
+        return new QueryBuilder(this);
     }
 
     public int getPage() {
@@ -145,11 +152,11 @@ public class Query {
         return Optional.ofNullable(filter);
     }
 
-    public Restriction getRestriction() {
-        return restriction;
+    public String getKeyword() {
+        return keyword;
     }
 
-    public void setRestriction(Restriction restriction) {
-        this.restriction = restriction;
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
     }
 }

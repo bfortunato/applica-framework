@@ -1,5 +1,6 @@
 package applica._APPNAME_.data.mongodb;
 
+import applica.framework.Query;
 import applica.framework.Sort;
 import applica.framework.data.mongodb.MongoRepository;
 import applica._APPNAME_.domain.data.UsersRepository;
@@ -26,5 +27,14 @@ public class UsersMongoRepository extends MongoRepository<User> implements Users
     @Override
     public List<Sort> getDefaultSorts() {
         return Arrays.asList(new Sort("mail", false));
+    }
+
+    @Override
+    public Query keywordQuery(Query initialQuery) {
+        return initialQuery.builder()
+                .disjunction()
+                    .like("name", initialQuery.getKeyword())
+                    .like("mail", initialQuery.getKeyword())
+                    .finish();
     }
 }

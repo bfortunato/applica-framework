@@ -60,6 +60,10 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     public Result<T> find(Query query) {
         if(query == null) query = new Query();
 
+        if (StringUtils.isNotEmpty(query.getKeyword())) {
+            query = this.keywordQuery(query);
+        }
+
         Result response = crudStrategy.find(query, this);
 
         return response;
@@ -431,7 +435,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     }
 
     @Override
-    public void addKeywordFilter(Query query, String keyword) {
-
+    public Query keywordQuery(Query query) {
+        return query;
     }
 }

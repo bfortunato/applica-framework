@@ -1,10 +1,12 @@
 "use strict"
 
 import strings from "../../strings"
-import {Card, HeaderBlock} from "./common"
-import {format} from "../../utils/lang"
+import {Card} from "./common"
+import {format, optional} from "../../utils/lang"
 import {Observable} from "../../aj/events"
-import {Grid, TextCell, ActionsCell} from "./grids"
+import {Grid, ActionsCell, resultToGridData} from "./grids"
+
+import * as query from "../../api/query"
 
 const VALIDATION_ERROR = {}
 
@@ -445,7 +447,7 @@ export class Number extends Control {
                 <input type="number" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
             </div>
         )
-    }
+    }0
 }
 
 export class Select extends Control {
@@ -486,6 +488,15 @@ export class Select extends Control {
 export class Lookup extends Control {
     constructor(props) {
         super(props)
+
+        this.state = {
+            data: {rows: [], totalRows: 0}
+        }
+
+        this.query = query.create()
+        this.query.on("change", () => {
+            this.loadData(this.query.keyword)
+        })
     }
 
     componentDidMount() {
@@ -511,11 +522,29 @@ export class Lookup extends Control {
     }
 
     showEntities() {
+        this.loadData("")
+
         let me = ReactDOM.findDOMNode(this)
         $(me).find(".lookup-grid").modal("show")
     }
 
+    loadData(keyword) {
+        logger.i("Load data with keyword", this.query.keyword)
+
+        if (_.isFunction(this.props.field.dataSource)) {
+            this.props.field.dataSource(keyword)
+                .then(result => {
+                    this.setState(_.assign(this.state, {data: resultToGridData(result)}))
+                })
+                .catch(e => {
+                })
+        }
+    }
+
     select() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find(".lookup-grid").modal("hide")
+
         let model = this.props.model
         let field = this.props.field
         let grid = this.refs.searchGrid
@@ -527,10 +556,29 @@ export class Lookup extends Control {
         this.forceUpdate()
     }
 
+    remove(row) {
+        let model = this.props.model
+        let field = this.props.field
+        let grid = this.refs.searchGrid
+        let selection = optional(grid.getSelection(), [])
+        let current = optional(model.get(field.property), [])
+        let result = _.filter(current, r => r != row)
+        model.set(field.property, result)
+
+        this.forceUpdate()
+    }
+
     render() {
         let model = this.props.model
         let field = this.props.field
         let rows = model.get(field.property)
+        let selectionGrid = _.assign({}, this.props.field.selectionGrid, {columns: _.union(this.props.field.selectionGrid.columns, [{
+            cell: ActionsCell,
+            tdClassName: "grid-actions",
+            actions: [
+                {icon: "zmdi zmdi-delete", action: (row) => this.remove(row)}
+            ]
+        }])})
 
         return (
             <div className="fg-line" tabIndex="0">
@@ -539,18 +587,19 @@ export class Lookup extends Control {
                         <div className="actions pull-right">
                             <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className="zmdi zmdi-plus" /></a>
                         </div>
-                        <span className="lookup-current-value">2 Elements selected</span>
+                        <span className="lookup-current-value">{rows.length == 1 ? strings.oneElementSelected : format(strings.nElementsSelected, rows.length)}</span>
                         <div className="clearfix"></div>
                     </div>
 
                     <Grid 
-                        descriptor={this.props.selectionGrid} 
-                        data={{rows: rows, totalRows: rows.length}} 
+                        descriptor={selectionGrid}
+                        data={resultToGridData({rows: rows, totalRows: rows.length})}
                         showInCard="false" 
                         quickSearchEnabled="false"
                         headerVisible="false"
                         footerVisible="false"
                         summaryVisible="false"
+                        noResultsVisible="false"
                         paginationEnabled="false"
                         selectionEnabled="false"
                         tableClassName="table table-condensed table-hover"
@@ -567,18 +616,20 @@ export class Lookup extends Control {
                             <div className="modal-body">
                                 <Grid 
                                     ref="searchGrid" 
-                                    descriptor={this.props.popupGrid} 
-                                    data={{rows: rows, totalRows: rows.length}} 
+                                    descriptor={this.props.field.popupGrid}
+                                    data={this.state.data}
+                                    query={this.query}
                                     showInCard="false" 
                                     quickSearchEnabled="true"
                                     footerVisible="false"
                                     summaryVisible="false"
                                     paginationEnabled="false"
                                     tableClassName="table table-condensed table-striped table-hover"
+                                    onRowDoubleClick={this.select.bind(this)}
                                 />
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-link" action={this.select.bind(this)}>{strings.ok}</button>
+                                <button type="button" className="btn btn-link" onClick={this.select.bind(this)}>{strings.ok}</button>
                                 <button type="button" className="btn btn-link" data-dismiss="modal">{strings.cancel}</button>
                             </div>
                         </div>

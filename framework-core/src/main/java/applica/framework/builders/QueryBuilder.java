@@ -5,8 +5,30 @@ import applica.framework.Query;
 import applica.framework.Sort;
 
 public class QueryBuilder extends Query {
+    public QueryBuilder() {
+        this(null);
+    }
+
+    public QueryBuilder(Query initialQuery) {
+        if (initialQuery != null) {
+            setFilters(initialQuery.getFilters());
+            setKeyword(initialQuery.getKeyword());
+            setPage(initialQuery.getPage());
+            setRowsPerPage(initialQuery.getRowsPerPage());
+            setSorts(initialQuery.getSorts());
+        }
+    }
+
     public static QueryBuilder build() {
         return new QueryBuilder();
+    }
+
+    public void fill(Query query) {
+        query.setFilters(getFilters());
+        query.setKeyword(getKeyword());
+        query.setPage(getPage());
+        query.setRowsPerPage(getRowsPerPage());
+        query.setSorts(getSorts());
     }
 
     public QueryBuilder filter(String property, Object value) {

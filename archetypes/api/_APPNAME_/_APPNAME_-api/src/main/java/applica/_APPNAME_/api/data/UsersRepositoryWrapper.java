@@ -56,7 +56,7 @@ public class UsersRepositoryWrapper implements Repository<User> {
     }
 
     @Override
-    public void addKeywordFilter(Query query, String keyword) {
+    public void keywordQuery(Query query) {
 
     }
 }

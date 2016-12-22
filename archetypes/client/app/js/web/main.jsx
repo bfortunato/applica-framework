@@ -9,7 +9,7 @@ import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
 import {resumeSession, setupMenu} from "../actions"
 import {EntitiesGrid, EntityForm} from "./screens/admin"
-import strings from "../strings"
+import menu from "./menu"
 
 function ifAdmin(fn, ...params) {
     if (true) {
@@ -38,38 +38,10 @@ ui.addRoute("/", params => ui.changeScreen(<Home />))
 ReactDOM.render(<Index />, document.getElementById("entry-point"))
 
 /* Setup menu voices */
-setupMenu({menu: [
-    {
-        icon: "zmdi zmdi-shield-security",
-        text: strings.security,
-        children: [
-            {
-                icon: "zmdi zmdi-accounts-alt",
-                text: strings.users,
-                href: "/#/admin/entities/user?grid=users"
-            },
-            {
-                icon: "zmdi zmdi-key",
-                text: strings.roles,
-                href: "/#/admin/entities/role?grid=roles"
-            }
-        ]
-    },
-    {
-        icon: "zmdi zmdi-wrench",
-        text: strings.setup,
-        children: [
-            {
-                icon: "zmdi zmdi-labels",
-                text: strings.categories,
-                href: "/#/admin/entities/category?grid=categories"
-            }
-        ]
-    }
-]})
+setupMenu({menu})
 
 /* automatic login, if possible */
 resumeSession()
 
-/* starts navigation demon */
+/* starts navigation daemon */
 ui.startNavigation()

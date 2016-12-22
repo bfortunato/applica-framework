@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setupMenu = exports.SETUP_MENU = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -338,14 +338,6 @@ var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) 
     aj.dispatch({
         type: SETUP_MENU,
         menu: data.menu
-    });
-});
-
-var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
-var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
-    aj.dispatch({
-        type: SET_ACTIVE_MENU_ITEM,
-        item: data.item
     });
 });
 });
@@ -1954,6 +1946,7 @@ var Query = exports.Query = function (_Observable) {
         _this.rowsPerPage = 0;
         _this.sorts = [];
         _this.filters = [];
+        _this.keyword = null;
 
         _.assign(_this, init);
         return _this;
@@ -1973,6 +1966,8 @@ var Query = exports.Query = function (_Observable) {
             }
 
             this.invoke("change");
+
+            return this;
         }
     }, {
         key: "unfilter",
@@ -1982,81 +1977,97 @@ var Query = exports.Query = function (_Observable) {
             });
 
             this.invoke("change");
+            return this;
         }
     }, {
         key: "like",
         value: function like(prop, value) {
             this.filter(LIKE, prop, value);
+            return this;
         }
     }, {
         key: "gt",
         value: function gt(prop, value) {
             this.filter(GT, prop, value);
+            return this;
         }
     }, {
         key: "ne",
         value: function ne(prop, value) {
             this.filter(NE, prop, value);
+            return this;
         }
     }, {
         key: "gte",
         value: function gte(prop, value) {
             this.filter(GTE, prop, value);
+            return this;
         }
     }, {
         key: "lt",
         value: function lt(prop, value) {
             this.filter(LT, prop, value);
+            return this;
         }
     }, {
         key: "lte",
         value: function lte(prop, value) {
             this.filter(LTE, prop, value);
+            return this;
         }
     }, {
         key: "eq",
         value: function eq(prop, value) {
             this.filter(EQ, prop, value);
+            return this;
         }
     }, {
         key: "in",
         value: function _in(prop, value) {
             this.filter(IN, prop, value);
+            return this;
         }
     }, {
         key: "nin",
         value: function nin(prop, value) {
             this.filter(NE, prop, value);
+            return this;
         }
     }, {
         key: "id",
         value: function id(prop, value) {
             this.filter(ID, prop, value);
+            return this;
         }
     }, {
         key: "or",
         value: function or(prop, value) {
             this.filter(OR, prop, value);
+            return this;
         }
     }, {
         key: "and",
         value: function and(prop, value) {
             this.filter(AND, prop, value);
+            return this;
         }
     }, {
         key: "range",
         value: function range(prop, value) {
             this.filter(RANGE, prop, value);
+            return this;
         }
     }, {
         key: "gt",
         value: function gt(prop, value) {
             this.filter(GT, prop, value);
+            return this;
         }
     }, {
         key: "ne",
         value: function ne(prop, value) {
             this.filter(NE, prop, value);
+            return this;
         }
     }, {
         key: "sort",
@@ -2071,6 +2082,7 @@ var Query = exports.Query = function (_Observable) {
             }
 
             this.invoke("change");
+            return this;
         }
     }, {
         key: "unsort",
@@ -2080,18 +2092,28 @@ var Query = exports.Query = function (_Observable) {
             });
 
             this.invoke("change");
+            return this;
         }
     }, {
         key: "clearFilters",
         value: function clearFilters() {
             this.filters = [];
             this.invoke("change");
+            return this;
         }
     }, {
         key: "changePage",
         value: function changePage(page) {
             this.page = page;
             this.invoke("change");
+            return this;
+        }
+    }, {
+        key: "setKeyword",
+        value: function setKeyword(newValue) {
+            this.keyword = newValue;
+            this.invoke("change");
+            return this;
         }
     }, {
         key: "toJSON",
@@ -24343,7 +24365,9 @@ exports.default = {
     users: "Users",
     roles: "Roles",
     setup: "Setup",
-    categories: "Categorie"
+    categories: "Categorie",
+    nElementsSelected: "{0} elements selected",
+    oneElementSelected: "1 element selected"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24687,6 +24711,12 @@ var _lang = require("../../utils/lang");
 var _events = require("../../aj/events");
 
 var _grids = require("./grids");
+
+var _query = require("../../api/query");
+
+var query = _interopRequireWildcard(_query);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -25380,7 +25410,17 @@ var Lookup = exports.Lookup = function (_Control6) {
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        return _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this17 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+
+        _this17.state = {
+            data: { rows: [], totalRows: 0 }
+        };
+
+        _this17.query = query.create();
+        _this17.query.on("change", function () {
+            _this17.loadData(_this17.query.keyword);
+        });
+        return _this17;
     }
 
     _createClass(Lookup, [{
@@ -25404,18 +25444,51 @@ var Lookup = exports.Lookup = function (_Control6) {
     }, {
         key: "showEntities",
         value: function showEntities() {
+            this.loadData("");
+
             var me = ReactDOM.findDOMNode(this);
             $(me).find(".lookup-grid").modal("show");
         }
     }, {
+        key: "loadData",
+        value: function loadData(keyword) {
+            var _this18 = this;
+
+            logger.i("Load data with keyword", this.query.keyword);
+
+            if (_.isFunction(this.props.field.dataSource)) {
+                this.props.field.dataSource(keyword).then(function (result) {
+                    _this18.setState(_.assign(_this18.state, { data: (0, _grids.resultToGridData)(result) }));
+                }).catch(function (e) {});
+            }
+        }
+    }, {
         key: "select",
         value: function select() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".lookup-grid").modal("hide");
+
             var model = this.props.model;
             var field = this.props.field;
             var grid = this.refs.searchGrid;
-            var selection = optional(grid.getSelection(), []);
-            var current = optional(model.get(field.property), []);
+            var selection = (0, _lang.optional)(grid.getSelection(), []);
+            var current = (0, _lang.optional)(model.get(field.property), []);
             var result = _.union(current, selection);
+            model.set(field.property, result);
+
+            this.forceUpdate();
+        }
+    }, {
+        key: "remove",
+        value: function remove(row) {
+            var model = this.props.model;
+            var field = this.props.field;
+            var grid = this.refs.searchGrid;
+            var selection = (0, _lang.optional)(grid.getSelection(), []);
+            var current = (0, _lang.optional)(model.get(field.property), []);
+            var result = _.filter(current, function (r) {
+                return r != row;
+            });
             model.set(field.property, result);
 
             this.forceUpdate();
@@ -25423,9 +25496,18 @@ var Lookup = exports.Lookup = function (_Control6) {
     }, {
         key: "render",
         value: function render() {
+            var _this19 = this;
+
             var model = this.props.model;
             var field = this.props.field;
             var rows = model.get(field.property);
+            var selectionGrid = _.assign({}, this.props.field.selectionGrid, { columns: _.union(this.props.field.selectionGrid.columns, [{
+                    cell: _grids.ActionsCell,
+                    tdClassName: "grid-actions",
+                    actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
+                            return _this19.remove(row);
+                        } }]
+                }]) });
 
             return React.createElement(
                 "div",
@@ -25448,18 +25530,19 @@ var Lookup = exports.Lookup = function (_Control6) {
                         React.createElement(
                             "span",
                             { className: "lookup-current-value" },
-                            "2 Elements selected"
+                            rows.length == 1 ? _strings2.default.oneElementSelected : (0, _lang.format)(_strings2.default.nElementsSelected, rows.length)
                         ),
                         React.createElement("div", { className: "clearfix" })
                     ),
                     React.createElement(_grids.Grid, {
-                        descriptor: this.props.selectionGrid,
-                        data: { rows: rows, totalRows: rows.length },
+                        descriptor: selectionGrid,
+                        data: (0, _grids.resultToGridData)({ rows: rows, totalRows: rows.length }),
                         showInCard: "false",
                         quickSearchEnabled: "false",
                         headerVisible: "false",
                         footerVisible: "false",
                         summaryVisible: "false",
+                        noResultsVisible: "false",
                         paginationEnabled: "false",
                         selectionEnabled: "false",
                         tableClassName: "table table-condensed table-hover"
@@ -25497,14 +25580,16 @@ var Lookup = exports.Lookup = function (_Control6) {
                                 { className: "modal-body" },
                                 React.createElement(_grids.Grid, {
                                     ref: "searchGrid",
-                                    descriptor: this.props.popupGrid,
-                                    data: { rows: rows, totalRows: rows.length },
+                                    descriptor: this.props.field.popupGrid,
+                                    data: this.state.data,
+                                    query: this.query,
                                     showInCard: "false",
                                     quickSearchEnabled: "true",
                                     footerVisible: "false",
                                     summaryVisible: "false",
                                     paginationEnabled: "false",
-                                    tableClassName: "table table-condensed table-striped table-hover"
+                                    tableClassName: "table table-condensed table-striped table-hover",
+                                    onRowDoubleClick: this.select.bind(this)
                                 })
                             ),
                             React.createElement(
@@ -25512,7 +25597,7 @@ var Lookup = exports.Lookup = function (_Control6) {
                                 { className: "modal-footer" },
                                 React.createElement(
                                     "button",
-                                    { type: "button", className: "btn btn-link", action: this.select.bind(this) },
+                                    { type: "button", className: "btn btn-link", onClick: this.select.bind(this) },
                                     _strings2.default.ok
                                 ),
                                 React.createElement(
@@ -26414,10 +26499,13 @@ var ActionsCell = exports.ActionsCell = function (_Cell3) {
     }, {
         key: "render",
         value: function render() {
+            var _this19 = this;
+
+            var key = 1;
             var actions = this.props.column.actions.map(function (a) {
                 return React.createElement(
                     "a",
-                    { style: { display: "none" }, href: "javascript:;", className: "grid-action", onClick: a.action },
+                    { key: key++, style: { display: "none" }, href: "javascript:;", className: "grid-action", onClick: a.action.bind(_this19, _this19.props.row.data) },
                     React.createElement("i", { className: a.icon })
                 );
             });
@@ -26528,12 +26616,12 @@ var Filters = exports.Filters = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this22 = this;
+            var _this23 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this22.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this23.props.query });
                 });
             }
 
@@ -26719,8 +26807,8 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
         key: "search",
         value: function search(e) {
             var keyword = e.target.value;
-            if (!_.isEmpty(keyword)) {
-                logger.i(keyword);
+            if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
+                this.props.query.setKeyword(keyword);
             }
         }
     }, {
@@ -26748,13 +26836,13 @@ var Grid = exports.Grid = function (_React$Component16) {
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this27 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this28 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        _this27.selection = null;
-        _this27.state = { rows: null };
+        _this28.selection = null;
+        _this28.state = { rows: null };
 
-        _this27.initSelection(props);
-        return _this27;
+        _this28.initSelection(props);
+        return _this28;
     }
 
     _createClass(Grid, [{
@@ -26839,7 +26927,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
-            var _this28 = this;
+            var _this29 = this;
 
             var expanded = !row.expanded;
 
@@ -26857,7 +26945,7 @@ var Grid = exports.Grid = function (_React$Component16) {
 
                 setTimeout(function () {
                     row.expanded = expanded;
-                    _this28.forceUpdate();
+                    _this29.forceUpdate();
                 }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
@@ -26867,7 +26955,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "initSelection",
         value: function initSelection(props) {
-            var _this29 = this;
+            var _this30 = this;
 
             var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(props.selectionEnabled), true);
             if (!selectionEnabled) {
@@ -26878,9 +26966,9 @@ var Grid = exports.Grid = function (_React$Component16) {
             if (rows) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
-                    _this29.setState(_this29.state);
-                    if (_.isFunction(_this29.props.onSelectionChanged)) {
-                        _this29.props.onSelectionChanged(_this29.selection.getSelectedData());
+                    _this30.setState(_this30.state);
+                    if (_.isFunction(_this30.props.onSelectionChanged)) {
+                        _this30.props.onSelectionChanged(_this30.selection.getSelectedData());
                     }
                 });
             }
@@ -26953,16 +27041,16 @@ var Grid = exports.Grid = function (_React$Component16) {
             var headerVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.headerVisible), true);
             var footerVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.footerVisible), true);
             var summaryVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.summaryVisible), true);
-            var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.selectionEnabled), true);
+            var noResultsVisible = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.noResultsVisible), true);
+            //let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
             var paginationEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.paginationEnabled), true);
             var tableClassName = (0, _lang.optional)(this.props.tableClassName, "table table-striped table-hover");
 
             var myQuery = (0, _lang.optional)(this.props.query, query.create());
             var showFilters = myQuery.filters.length > 0;
             var hasResults = this.props.data && this.props.data.rows ? this.props.data.rows.length > 0 : false;
-            var rows = this.props.data && this.props.data.rows;
             var hasPagination = this.getTotalPages() > 1;
-            var noResultsText = (0, _lang.optional)(this.props.noResultText, _strings2.default.noResults);
+            var noResultsText = (0, _lang.optional)(this.props.noResultsText, _strings2.default.noResults);
             var Container = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.showInCard), true) ? _common.Card : NoCard;
 
             return React.createElement(
@@ -26976,6 +27064,7 @@ var Grid = exports.Grid = function (_React$Component16) {
                         null,
                         quickSearchEnabled && React.createElement(QuickSearch, { query: myQuery }),
                         showFilters && React.createElement(Filters, { query: myQuery }),
+                        React.createElement("div", { className: "clearfix" }),
                         hasResults ? React.createElement(
                             "div",
                             { className: "with-result" },
@@ -26994,7 +27083,7 @@ var Grid = exports.Grid = function (_React$Component16) {
                             summaryVisible && React.createElement(ResultSummary, { query: myQuery, data: this.props.data }),
                             React.createElement("div", { className: "clearfix" })
                         ) : //no results
-                        React.createElement(
+                        noResultsVisible && React.createElement(
                             "div",
                             { className: "no-results text-center p-30" },
                             React.createElement(
@@ -27005,7 +27094,7 @@ var Grid = exports.Grid = function (_React$Component16) {
                             React.createElement(
                                 "h4",
                                 null,
-                                _strings2.default.noResults
+                                noResultsText
                             )
                         )
                     )
@@ -27819,9 +27908,9 @@ var _actions = require("../actions");
 
 var _admin = require("./screens/admin");
 
-var _strings = require("../strings");
+var _menu = require("./menu");
 
-var _strings2 = _interopRequireDefault(_strings);
+var _menu2 = _interopRequireDefault(_menu);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -27874,33 +27963,48 @@ ui.addRoute("/", function (params) {
 ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
 
 /* Setup menu voices */
-(0, _actions.setupMenu)({ menu: [{
-        icon: "zmdi zmdi-shield-security",
-        text: _strings2.default.security,
-        children: [{
-            icon: "zmdi zmdi-accounts-alt",
-            text: _strings2.default.users,
-            href: "/#/admin/entities/user?grid=users"
-        }, {
-            icon: "zmdi zmdi-key",
-            text: _strings2.default.roles,
-            href: "/#/admin/entities/role?grid=roles"
-        }]
-    }, {
-        icon: "zmdi zmdi-wrench",
-        text: _strings2.default.setup,
-        children: [{
-            icon: "zmdi zmdi-labels",
-            text: _strings2.default.categories,
-            href: "/#/admin/entities/category?grid=categories"
-        }]
-    }] });
+(0, _actions.setupMenu)({ menu: _menu2.default });
 
 /* automatic login, if possible */
 (0, _actions.resumeSession)();
 
-/* starts navigation demon */
+/* starts navigation daemon */
 ui.startNavigation();
+});
+define('web/menu.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = [{
+    icon: "zmdi zmdi-shield-security",
+    text: _strings2.default.security,
+    children: [{
+        icon: "zmdi zmdi-accounts-alt",
+        text: _strings2.default.users,
+        href: "/#/admin/entities/user?grid=users"
+    }, {
+        icon: "zmdi zmdi-key",
+        text: _strings2.default.roles,
+        href: "/#/admin/entities/role?grid=roles"
+    }]
+}, {
+    icon: "zmdi zmdi-wrench",
+    text: _strings2.default.setup,
+    children: [{
+        icon: "zmdi zmdi-labels",
+        text: _strings2.default.categories,
+        href: "/#/admin/entities/category?grid=categories"
+    }]
+}];
 });
 define('web/pluginsimpl.js', function(module, exports) {
 "use strict";
@@ -28145,55 +28249,60 @@ var EntitiesGrid = function (_Screen) {
             };
 
             var data = (0, _grids.resultToGridData)(this.state.result);
-            /*
-            let rows = []
-            for (let x = 0; x < 34; x++) {
-                let xo = {
+
+            var rows = [];
+            for (var x = 0; x < 34; x++) {
+                var xo = {
                     index: x,
                     selected: false,
                     expanded: false,
                     data: { name: "name" + x, mail: "mail" + x, active: true },
                     children: []
-                }
-                for (let y = 0; y < 4; y++) {
-                    let yo = {
+                };
+                for (var y = 0; y < 4; y++) {
+                    var yo = {
                         index: y,
                         selected: false,
                         expanded: false,
                         data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
                         children: []
-                    }
-                     xo.children.push(yo)
-                     for (let z = 0; z < 5; z++) {
-                        let zo = {
+                    };
+
+                    xo.children.push(yo);
+
+                    for (var z = 0; z < 5; z++) {
+                        var zo = {
                             index: z,
                             selected: false,
                             expanded: false,
                             data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
                             children: []
-                        }
-                         for (let h = 0; h < 5; h++) {
-                            let ho = {
+                        };
+
+                        for (var h = 0; h < 5; h++) {
+                            var ho = {
                                 index: h,
                                 selected: false,
                                 expanded: false,
                                 data: { name: "name" + x + y + z + h, mail: "mail" + x + y + z + h, active: true },
                                 children: null
-                            }
-                             zo.children.push(ho)
+                            };
+
+                            zo.children.push(ho);
                         }
-                         yo.children.push(zo)
+
+                        yo.children.push(zo);
                     }
                 }
-                 rows.push(xo)
+
+                rows.push(xo);
             }
-            */
 
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
-                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, data: data, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
+                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, data: { rows: rows, totalRows: 100 }, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
@@ -28334,22 +28443,24 @@ var EntityForm = function (_Screen) {
                             return (0, _validator.sanitize)(value).toBoolean();
                         }
                     }, {
-                        property: "role",
+                        property: "roles",
                         control: _forms.Lookup,
-                        label: "Role",
-                        placeholder: "Role",
+                        label: "Roles",
+                        placeholder: "Roles",
                         mode: "multiple",
                         selectionGrid: {
-                            "columns": [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }, {
-                                cell: _grids.ActionsCell,
-                                tdClassName: "grid-actions",
-                                actions: [{ icon: "zmdi zmdi-delete", action: function action() {
-                                        return logger.i("action performed");
-                                    } }]
-                            }]
+                            "columns": [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
                         },
                         popupGrid: {
                             columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
+                        },
+                        dataSource: function dataSource(query) {
+                            return new Promise(function (resolve, reject) {
+                                resolve({
+                                    totalRows: 2,
+                                    rows: [{ name: "Bruno Fortunato", mail: "bimbobruno@gmail.com" }, { name: "Ciccio Randazzo", mail: "ciccio@gmail.com" }]
+                                });
+                            });
                         }
                     }]
                 }]
