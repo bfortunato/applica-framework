@@ -2,9 +2,11 @@
 
 import {Form, Text, Mail, Check, Select, Lookup, Image, Control} from "/forms"
 import {connectDiscriminated} from "../../utils/aj"
-import {entities as EntitiesStore} from "../../../stores"
+import {lookup as LookupStore} from "../../../stores"
+import {loadLookupResultByKeyword} from "../../../action"
 import {discriminated} from "../../../../utils/ajex"
 import {resultToGridData} from "./grids"
+import * as query from "../../../api/query"
 
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {
@@ -16,17 +18,16 @@ export class LookupContainer extends Control  {
 		super(props)
 
 		this.discriminator = nextLookupDiscriminator()
+		this.query = query.create()
 
-		connectDiscriminated(this.discriminator, this, EntitiesStore, { descriptor: null, result: []] })
+		connectDiscriminated(this.discriminator, this, LookupStore, {})
 	}
 
-	getDataSource() {
-		return query => new Promise((resolve, reject) => {
-                resolve(discriminated(EntitiesStore.state, this.discriminator).result)
-            }
-		}
+	onKeywordChange(keyword) {
+		loadLookupResultByKeyword({discriminator: this.discriminator, keyword})
+	}
 
 	render() {
-		return React.createElement(Lookup, _.assign({}, this.props, {dataSource: this.getDataSource()})
+		return React.createElement(Lookup, _.assign({}, this.props, {ref: "lookup", onKeyworkChange: this.onKeyworkChange.bind(this), result: this.state.result}))
 	}
 }

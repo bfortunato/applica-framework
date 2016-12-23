@@ -24690,6 +24690,75 @@ var FloatingButton = exports.FloatingButton = function (_React$Component4) {
     return FloatingButton;
 }(React.Component);
 });
+define('web/components/containers/forms.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.LookupContainer = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _forms = require("/forms");
+
+var _aj = require("../../utils/aj");
+
+var _stores = require("../../../stores");
+
+var _action = require("../../../action");
+
+var _ajex = require("../../../../utils/ajex");
+
+var _grids = require("./grids");
+
+var _query = require("../../../api/query");
+
+var query = _interopRequireWildcard(_query);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var LOOKUP_DISCRIMINATOR = 1;
+function nextLookupDiscriminator() {
+	return "lookup_" + LOOKUP_DISCRIMINATOR++;
+}
+
+var LookupContainer = exports.LookupContainer = function (_Control) {
+	_inherits(LookupContainer, _Control);
+
+	function LookupContainer(props) {
+		_classCallCheck(this, LookupContainer);
+
+		var _this = _possibleConstructorReturn(this, (LookupContainer.__proto__ || Object.getPrototypeOf(LookupContainer)).call(this, props));
+
+		_this.discriminator = nextLookupDiscriminator();
+		_this.query = query.create();
+
+		(0, _aj.connectDiscriminated)(_this.discriminator, _this, _stores.lookup, {});
+		return _this;
+	}
+
+	_createClass(LookupContainer, [{
+		key: "onKeywordChange",
+		value: function onKeywordChange(keyword) {
+			(0, _action.loadLookupResultByKeyword)({ discriminator: this.discriminator, keyword: keyword });
+		}
+	}, {
+		key: "render",
+		value: function render() {
+			return React.createElement(_forms.Lookup, _.assign({}, this.props, { ref: "lookup", onKeyworkChange: this.onKeyworkChange.bind(this), result: this.state.result }));
+		}
+	}]);
+
+	return LookupContainer;
+}(_forms.Control);
+});
 define('web/components/forms.js', function(module, exports) {
 "use strict";
 
@@ -28509,14 +28578,6 @@ var EntityForm = function (_Screen) {
                         },
                         popupGrid: {
                             columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
-                        },
-                        dataSource: function dataSource(query) {
-                            return new Promise(function (resolve, reject) {
-                                resolve({
-                                    totalRows: 2,
-                                    rows: [{ name: "Bruno Fortunato", mail: "bimbobruno@gmail.com" }, { name: "Ciccio Randazzo", mail: "ciccio@gmail.com" }]
-                                });
-                            });
                         }
                     }, {
                         property: "image",
