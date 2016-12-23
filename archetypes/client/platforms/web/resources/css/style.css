@@ -369,28 +369,42 @@ tr.collapsible {
     Lookup
 --------------------------*/
 .lookup {
-  background-color: #ffffff; }
+  background-color: #ffffff;
+  border: solid 1px #f0f0f0; }
   .lookup .lookup-header {
     background-color: #FFFFFF;
-    border-bottom: solid 1px #f0f0f0;
-    height: 30px; }
-  .lookup table thead th {
-    background-color: #FFFFFF; }
-  .lookup table td {
-    background-color: #fafafa; }
-  .lookup table tr:first-child td {
-    border-top: 0px; }
-  .lookup table tr:hover td {
-    background-color: #f0f0f0; }
-  .lookup table th.actions, .lookup table td.actions {
-    width: 1%;
-    padding: 0px;
-    text-align: center;
-    vertical-align: middle;
-    position: relative; }
-    .lookup table th.actions .action, .lookup table td.actions .action {
-      position: absolute;
-      bottom: 3px; }
+    height: 30px;
+    padding-left: 10px;
+    font-weight: 500; }
+  .lookup table {
+    /*
+    thead {
+      th {
+        background-color: #FFFFFF;
+      }
+    }
+
+    td {
+      background-color: #fafafa;
+    }
+
+    tr:first-child td {
+      border-top: 0px;
+    }
+
+    tr:hover td {
+      background-color: #f0f0f0;
+    }
+    */ }
+    .lookup table th.actions, .lookup table td.actions {
+      width: 1%;
+      padding: 0px;
+      text-align: center;
+      vertical-align: middle;
+      position: relative; }
+      .lookup table th.actions .action, .lookup table td.actions .action {
+        position: absolute;
+        bottom: 3px; }
   .lookup .lookup-current-value {
     display: inline-block;
     margin-top: 7px; }

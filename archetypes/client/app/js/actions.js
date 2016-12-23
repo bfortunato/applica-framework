@@ -202,7 +202,7 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         discriminator: data.discriminator
     })
 
-    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null)
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null)
         .then(response => {
             loadEntities.complete({result: response.value, discriminator: data.discriminator})
         })
@@ -317,6 +317,45 @@ export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
     })
 })
 
+
+/**
+ * LOOKUP ACTIONS
+ */
+
+export const GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT"
+export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
+    if (_.isEmpty(data.entity)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: GET_LOOKUP_RESULT,
+        discriminator: data.discriminator
+    })
+
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null)
+        .then(response => {
+            getLookupResult.complete({result: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getLookupResult.fail({discriminator: data.discriminator})
+        })
+})
+
+export const FREE_LOOKUP_RESULT = "FREE_LOOKUP_RESULT"
+export const freeLookupResult = aj.createAction(FREE_LOOKUP_RESULT, data => {
+    aj.dispatch({
+        type: FREE_LOOKUP_RESULT,
+        discriminator: data.discriminator
+    })
+})
 
 /**
  * MENU ACTIONS

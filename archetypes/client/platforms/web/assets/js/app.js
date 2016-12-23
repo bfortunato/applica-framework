@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setupMenu = exports.SETUP_MENU = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setupMenu = exports.SETUP_MENU = exports.freeLookupResult = exports.FREE_LOOKUP_RESULT = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -222,7 +222,7 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         discriminator: data.discriminator
     });
 
-    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query.toJSON() : null).then(function (response) {
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -325,6 +325,43 @@ var FREE_ENTITIES = exports.FREE_ENTITIES = "FREE_ENTITIES";
 var freeEntities = exports.freeEntities = aj.createAction(FREE_ENTITIES, function (data) {
     aj.dispatch({
         type: FREE_ENTITIES,
+        discriminator: data.discriminator
+    });
+});
+
+/**
+ * LOOKUP ACTIONS
+ */
+
+var GET_LOOKUP_RESULT = exports.GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT";
+var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET_LOOKUP_RESULT, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: GET_LOOKUP_RESULT,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
+        getLookupResult.complete({ result: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getLookupResult.fail({ discriminator: data.discriminator });
+    });
+});
+
+var FREE_LOOKUP_RESULT = exports.FREE_LOOKUP_RESULT = "FREE_LOOKUP_RESULT";
+var freeLookupResult = exports.freeLookupResult = aj.createAction(FREE_LOOKUP_RESULT, function (data) {
+    aj.dispatch({
+        type: FREE_LOOKUP_RESULT,
         discriminator: data.discriminator
     });
 });
@@ -690,6 +727,10 @@ EventEmitter.on = function (obj, evt, handler) {
     }
 };
 
+EventEmitter.off = function (obj, evt, handler) {
+    EventEmitter.removeListener(obj, evt, handler);
+};
+
 EventEmitter.live = function (obj, evt) {
     if (!obj.__events_offs) obj.__events_offs = {};
     if (evt) {
@@ -738,6 +779,11 @@ var Observable = exports.Observable = function () {
         key: "on",
         value: function on(evt, handler) {
             EventEmitter.on(this, evt, handler);
+        }
+    }, {
+        key: "off",
+        value: function off(evt, handler) {
+            EventEmitter.off(this, evt, handler);
         }
     }, {
         key: "invoke",
@@ -1846,7 +1892,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
-    return utils.get(url, { queryJson: query });
+    return utils.get(url, { queryJson: JSON.stringify(query) });
 }
 
 function delete_(entity, ids) {
@@ -1965,7 +2011,7 @@ var Query = exports.Query = function (_Observable) {
                 this.filters.push({ property: property, type: type, value: value });
             }
 
-            this.invoke("change");
+            this.invokeChange();
 
             return this;
         }
@@ -1976,7 +2022,7 @@ var Query = exports.Query = function (_Observable) {
                 return f.property != property;
             });
 
-            this.invoke("change");
+            this.invokeChange();
             return this;
         }
     }, {
@@ -2081,7 +2127,7 @@ var Query = exports.Query = function (_Observable) {
                 this.sorts.push({ property: prop, descending: descending });
             }
 
-            this.invoke("change");
+            this.invokeChange();
             return this;
         }
     }, {
@@ -2091,28 +2137,35 @@ var Query = exports.Query = function (_Observable) {
                 return s.property != prop;
             });
 
-            this.invoke("change");
+            this.invokeChange();
             return this;
         }
     }, {
         key: "clearFilters",
         value: function clearFilters() {
             this.filters = [];
-            this.invoke("change");
+            this.invokeChange();
             return this;
         }
     }, {
-        key: "changePage",
-        value: function changePage(page) {
+        key: "setPage",
+        value: function setPage(page) {
             this.page = page;
-            this.invoke("change");
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "setRowsPerPage",
+        value: function setRowsPerPage(rowsPerPage) {
+            this.rowsPerPage = rowsPerPage;
+            this.invokeChange();
             return this;
         }
     }, {
         key: "setKeyword",
         value: function setKeyword(newValue) {
             this.keyword = newValue;
-            this.invoke("change");
+            this.invokeChange();
             return this;
         }
     }, {
@@ -2124,6 +2177,11 @@ var Query = exports.Query = function (_Observable) {
                 page: this.page,
                 rowsPerPage: this.rowsPerPage
             });
+        }
+    }, {
+        key: "invokeChange",
+        value: function invokeChange() {
+            this.invoke("change");
         }
     }]);
 
@@ -24157,7 +24215,7 @@ define('stores.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.menu = exports.MENU = exports.entities = exports.ENTITIES = exports.grids = exports.GRIDS = exports.account = exports.ACCOUNT = exports.session = exports.SESSION = undefined;
+exports.MenuStore = exports.MENU = exports.LookupStore = exports.LOOKUP = exports.EntitiesStore = exports.ENTITIES = exports.GridsStore = exports.GRIDS = exports.AccountStore = exports.ACCOUNT = exports.SessionStore = exports.SESSION = undefined;
 
 var _aj = require("./aj");
 
@@ -24184,7 +24242,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var SESSION = exports.SESSION = "SESSION";
-var session = exports.session = aj.createStore(SESSION, function () {
+var SessionStore = exports.SessionStore = aj.createStore(SESSION, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -24211,7 +24269,7 @@ var session = exports.session = aj.createStore(SESSION, function () {
 });
 
 var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
-var account = exports.account = aj.createStore(ACCOUNT, function () {
+var AccountStore = exports.AccountStore = aj.createStore(ACCOUNT, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { activationCode: "" };
     var action = arguments[1];
 
@@ -24250,7 +24308,7 @@ var account = exports.account = aj.createStore(ACCOUNT, function () {
 });
 
 var GRIDS = exports.GRIDS = "GRIDS";
-var grids = exports.grids = aj.createStore(GRIDS, function () {
+var GridsStore = exports.GridsStore = aj.createStore(GRIDS, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { grid: null };
     var action = arguments[1];
 
@@ -24268,7 +24326,7 @@ var grids = exports.grids = aj.createStore(GRIDS, function () {
 });
 
 var ENTITIES = exports.ENTITIES = "ENTITIES";
-var entities = exports.entities = aj.createStore(ENTITIES, function () {
+var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -24292,8 +24350,24 @@ var entities = exports.entities = aj.createStore(ENTITIES, function () {
     }
 });
 
+var LOOKUP = exports.LOOKUP = "LOOKUP";
+var LookupStore = exports.LookupStore = aj.createStore(LOOKUP, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case (0, _ajex.completed)(actions.GET_LOOKUP_RESULT):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, result: action.result });
+
+        case actions.FREE_LOOKUP_RESULT:
+            return _.omit(state, action.discriminator);
+
+    }
+});
+
 var MENU = exports.MENU = "MENU";
-var menu = exports.menu = aj.createStore(MENU, function () {
+var MenuStore = exports.MenuStore = aj.createStore(MENU, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -24690,82 +24764,13 @@ var FloatingButton = exports.FloatingButton = function (_React$Component4) {
     return FloatingButton;
 }(React.Component);
 });
-define('web/components/containers/forms.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.LookupContainer = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _forms = require("/forms");
-
-var _aj = require("../../utils/aj");
-
-var _stores = require("../../../stores");
-
-var _action = require("../../../action");
-
-var _ajex = require("../../../../utils/ajex");
-
-var _grids = require("./grids");
-
-var _query = require("../../../api/query");
-
-var query = _interopRequireWildcard(_query);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var LOOKUP_DISCRIMINATOR = 1;
-function nextLookupDiscriminator() {
-	return "lookup_" + LOOKUP_DISCRIMINATOR++;
-}
-
-var LookupContainer = exports.LookupContainer = function (_Control) {
-	_inherits(LookupContainer, _Control);
-
-	function LookupContainer(props) {
-		_classCallCheck(this, LookupContainer);
-
-		var _this = _possibleConstructorReturn(this, (LookupContainer.__proto__ || Object.getPrototypeOf(LookupContainer)).call(this, props));
-
-		_this.discriminator = nextLookupDiscriminator();
-		_this.query = query.create();
-
-		(0, _aj.connectDiscriminated)(_this.discriminator, _this, _stores.lookup, {});
-		return _this;
-	}
-
-	_createClass(LookupContainer, [{
-		key: "onKeywordChange",
-		value: function onKeywordChange(keyword) {
-			(0, _action.loadLookupResultByKeyword)({ discriminator: this.discriminator, keyword: keyword });
-		}
-	}, {
-		key: "render",
-		value: function render() {
-			return React.createElement(_forms.Lookup, _.assign({}, this.props, { ref: "lookup", onKeyworkChange: this.onKeyworkChange.bind(this), result: this.state.result }));
-		}
-	}]);
-
-	return LookupContainer;
-}(_forms.Control);
-});
 define('web/components/forms.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Image = exports.Lookup = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
+exports.Image = exports.Lookup = exports.LookupContainer = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -24780,6 +24785,14 @@ var _lang = require("../../utils/lang");
 var _events = require("../../aj/events");
 
 var _grids = require("./grids");
+
+var _aj = require("../utils/aj");
+
+var _stores = require("../../stores");
+
+var _actions = require("../../actions");
+
+var _ajex = require("../../../utils/ajex");
 
 var _query = require("../../api/query");
 
@@ -25473,23 +25486,70 @@ var Select = exports.Select = function (_Control5) {
     return Select;
 }(Control);
 
-var Lookup = exports.Lookup = function (_Control6) {
-    _inherits(Lookup, _Control6);
+var LOOKUP_DISCRIMINATOR = 1;
+function nextLookupDiscriminator() {
+    return "lookup_" + LOOKUP_DISCRIMINATOR++;
+}
+
+var LookupContainer = exports.LookupContainer = function (_Control6) {
+    _inherits(LookupContainer, _Control6);
+
+    function LookupContainer(props) {
+        _classCallCheck(this, LookupContainer);
+
+        var _this17 = _possibleConstructorReturn(this, (LookupContainer.__proto__ || Object.getPrototypeOf(LookupContainer)).call(this, props));
+
+        _this17.discriminator = nextLookupDiscriminator();
+
+        _this17.query = query.create();
+        _this17.query.setPage(1);
+        _this17.query.setRowsPerPage(20);
+        _this17.__queryOnChange = function () {
+            (0, _actions.getLookupResult)({ discriminator: _this17.discriminator, entity: _this17.props.field.entity, query: _this17.query });
+        };
+
+        (0, _aj.connectDiscriminated)(_this17.discriminator, _this17, _stores.LookupStore);
+
+        _this17.state = { result: {} };
+        return _this17;
+    }
+
+    _createClass(LookupContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.query.on("change", this.__queryOnChange);
+
+            //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            this.query.off("change", this.__queryOnChange);
+
+            //freeLookupResult({discriminator: this.discriminator, entity: this.props.field.entity})
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(Lookup, _.assign({}, this.props, { query: this.query, result: this.state.result }));
+        }
+    }]);
+
+    return LookupContainer;
+}(Control);
+
+var Lookup = exports.Lookup = function (_Control7) {
+    _inherits(Lookup, _Control7);
 
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        var _this17 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this17.state = {
+        _this18.state = {
             data: { rows: [], totalRows: 0 }
         };
-
-        _this17.query = query.create();
-        _this17.query.on("change", function () {
-            _this17.loadData(_this17.query.keyword);
-        });
-        return _this17;
+        return _this18;
     }
 
     _createClass(Lookup, [{
@@ -25513,23 +25573,15 @@ var Lookup = exports.Lookup = function (_Control6) {
     }, {
         key: "showEntities",
         value: function showEntities() {
-            this.loadData("");
+            if (!this.dialogAlreadyOpened) {
+                if (this.props.query) {
+                    this.props.query.invokeChange();
+                }
+            }
+            this.dialogAlreadyOpened = true;
 
             var me = ReactDOM.findDOMNode(this);
             $(me).find(".lookup-grid").modal("show");
-        }
-    }, {
-        key: "loadData",
-        value: function loadData(keyword) {
-            var _this18 = this;
-
-            logger.i("Load data with keyword", this.query.keyword);
-
-            if (_.isFunction(this.props.field.dataSource)) {
-                this.props.field.dataSource(keyword).then(function (result) {
-                    _this18.setState(_.assign(_this18.state, { data: (0, _grids.resultToGridData)(result) }));
-                }).catch(function (e) {});
-            }
         }
     }, {
         key: "select",
@@ -25541,37 +25593,56 @@ var Lookup = exports.Lookup = function (_Control6) {
             var field = this.props.field;
             var grid = this.refs.searchGrid;
             var selection = (0, _lang.optional)(grid.getSelection(), []);
-            var current = (0, _lang.optional)(model.get(field.property), []);
-            var result = _.union(current, []);
-            selection.forEach(function (s) {
-                var comparer = function comparer(r) {
-                    if (_.has(s, "id")) {
-                        return s.id == r.id;
-                    } else {
-                        return _.isEqual(s, r);
-                    }
-                };
-                if (!_.any(result, comparer)) {
-                    result.push(s);
+            var mode = this.checkedMode();
+            var result = null;
+            if (mode == "single") {
+                if (selection.length == 0) {
+                    return;
                 }
-            });
+
+                result = selection[0];
+            } else if (mode == "multiple") {
+                result = _.union(current, []);
+                selection.forEach(function (s) {
+                    var comparer = function comparer(r) {
+                        if (_.has(s, "id")) {
+                            return s.id == r.id;
+                        } else {
+                            return _.isEqual(s, r);
+                        }
+                    };
+                    if (!_.any(result, comparer)) {
+                        result.push(s);
+                    }
+                });
+            }
+            var current = (0, _lang.optional)(model.get(field.property), []);
+
             model.set(field.property, result);
 
             this.forceUpdate();
         }
     }, {
         key: "remove",
-        value: function remove(row) {
+        value: function remove() {
+            var mode = this.checkedMode();
+            if (mode == "single") {
+                this.removeAll();
+            } else if (mode == "multiple") {
+                this.removeSelection();
+            }
+        }
+    }, {
+        key: "removeRow",
+        value: function removeRow(row) {
             var model = this.props.model;
             var field = this.props.field;
-            var grid = this.refs.searchGrid;
-            var selection = (0, _lang.optional)(grid.getSelection(), []);
             var current = (0, _lang.optional)(model.get(field.property), []);
             var result = _.filter(current, function (r) {
-                if (_.has(s, "id")) {
-                    return s.id == r.id;
+                if (_.has(row, "id")) {
+                    return row.id != r.id;
                 } else {
-                    return _.isEqual(s, r);
+                    return !_.isEqual(row, r);
                 }
             });
             model.set(field.property, result);
@@ -25579,20 +25650,96 @@ var Lookup = exports.Lookup = function (_Control6) {
             this.forceUpdate();
         }
     }, {
+        key: "removeSelection",
+        value: function removeSelection() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var grid = this.refs.selectionGrid;
+            var selection = grid.getSelection();
+            var current = (0, _lang.optional)(model.get(field.property), []);
+            var result = _.filter(current, function (c) {
+                return !_.any(selection, function (r) {
+                    if (_.has(c, "id")) {
+                        return c.id == r.id;
+                    } else {
+                        return _.isEqual(c, r);
+                    }
+                });
+            });
+            model.set(field.property, result);
+
+            this.forceUpdate();
+        }
+    }, {
+        key: "removeAll",
+        value: function removeAll() {
+            var mode = this.checkedMode();
+            var model = this.props.model;
+            var field = this.props.field;
+            var v = null;
+            if (mode == "single") {
+                v = null;
+            } else if (mode == "multiple") {
+                v = [];
+            }
+            model.set(field.property, v);
+
+            this.forceUpdate();
+        }
+    }, {
+        key: "checkedMode",
+        value: function checkedMode() {
+            var mode = this.props.field.mode;
+            if ("multiple" != mode && "single" != mode) {
+                throw new Error("Please specify a mode for lookup: [single|multiple]");
+            }
+            return mode;
+        }
+    }, {
+        key: "getCurrentValueDescription",
+        value: function getCurrentValueDescription() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var mode = this.checkedMode();
+
+            if (mode == "multiple") {
+                var rows = model.get(field.property);
+                return rows.length == 1 ? _strings2.default.oneElementSelected : (0, _lang.format)(_strings2.default.nElementsSelected, rows.length);
+            } else if (mode == "single") {
+                var row = model.get(field.property);
+                if (row == null) {
+                    return "";
+                }
+
+                var formatter = _.isFunction(field.formatter) ? field.formatter : function (row) {
+                    if (_.has(row, "name")) {
+                        return row["name"];
+                    } else if (_.has(row, "description")) {
+                        return row["description"];
+                    } else {
+                        return JSON.stringify(row);
+                    }
+                };
+
+                return formatter(row);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this19 = this;
 
+            var mode = this.checkedMode();
             var model = this.props.model;
             var field = this.props.field;
             var rows = model.get(field.property);
-            var selectionGrid = _.assign({}, this.props.field.selectionGrid, { columns: _.union(this.props.field.selectionGrid.columns, [{
+            var selectionGrid = mode == "multiple" ? _.assign({}, field.selectionGrid, { columns: _.union(field.selectionGrid.columns, [{
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this19.remove(row);
+                            return _this19.removeRow(row);
                         } }]
-                }]) });
+                }]) }) : null;
 
             return React.createElement(
                 "div",
@@ -25608,6 +25755,11 @@ var Lookup = exports.Lookup = function (_Control6) {
                             { className: "actions pull-right" },
                             React.createElement(
                                 "a",
+                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this) },
+                                React.createElement("i", { className: "zmdi zmdi-close" })
+                            ),
+                            React.createElement(
+                                "a",
                                 { href: "javascript:;", title: _strings2.default.add, onClick: this.showEntities.bind(this) },
                                 React.createElement("i", { className: "zmdi zmdi-plus" })
                             )
@@ -25615,11 +25767,12 @@ var Lookup = exports.Lookup = function (_Control6) {
                         React.createElement(
                             "span",
                             { className: "lookup-current-value" },
-                            rows.length == 1 ? _strings2.default.oneElementSelected : (0, _lang.format)(_strings2.default.nElementsSelected, rows.length)
+                            this.getCurrentValueDescription()
                         ),
                         React.createElement("div", { className: "clearfix" })
                     ),
-                    React.createElement(_grids.Grid, {
+                    mode == "multiple" && React.createElement(_grids.Grid, {
+                        ref: "selectionGrid",
                         descriptor: selectionGrid,
                         data: (0, _grids.resultToGridData)({ rows: rows, totalRows: rows.length }),
                         showInCard: "false",
@@ -25629,7 +25782,6 @@ var Lookup = exports.Lookup = function (_Control6) {
                         summaryVisible: "false",
                         noResultsVisible: "false",
                         paginationEnabled: "false",
-                        selectionEnabled: "false",
                         tableClassName: "table table-condensed table-hover"
                     })
                 ),
@@ -25666,8 +25818,8 @@ var Lookup = exports.Lookup = function (_Control6) {
                                 React.createElement(_grids.Grid, {
                                     ref: "searchGrid",
                                     descriptor: this.props.field.popupGrid,
-                                    data: this.state.data,
-                                    query: this.query,
+                                    data: (0, _grids.resultToGridData)(this.props.result),
+                                    query: this.props.query,
                                     showInCard: "false",
                                     quickSearchEnabled: "true",
                                     footerVisible: "false",
@@ -25701,8 +25853,8 @@ var Lookup = exports.Lookup = function (_Control6) {
     return Lookup;
 }(Control);
 
-var Image = exports.Image = function (_Control7) {
-    _inherits(Image, _Control7);
+var Image = exports.Image = function (_Control8) {
+    _inherits(Image, _Control8);
 
     function Image(props) {
         _classCallCheck(this, Image);
@@ -25768,6 +25920,8 @@ var _lang = require("../../utils/lang");
 
 var _events = require("../../aj/events");
 
+var _keyboard = require("../utils/keyboard");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -25781,30 +25935,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var EXPAND_ANIMATION_TIME = 250;
 var CELL_PADDING_TOP = 15;
 var CELL_PADDING_BOTTOM = 15;
-
-function isMac() {
-    return navigator.platform.indexOf('Mac') > -1;
-}
-
-function isControl(which) {
-    if (isMac()) {
-        return which == 91 || which == 93;
-    } else {
-        return which == 17;
-    }
-}
-
-function isShift(which) {
-    return which == 16;
-}
-
-function isUp(which) {
-    return which == 38;
-}
-
-function isDown(which) {
-    return which == 40;
-}
 
 function eachChildren(root, action) {
     if (_.isArray(root)) {
@@ -26780,7 +26910,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     _createClass(Pagination, [{
         key: "changePage",
         value: function changePage(page) {
-            this.props.query.changePage(page);
+            this.props.query.setPage(page);
         }
     }, {
         key: "getTotalPages",
@@ -26797,14 +26927,14 @@ var Pagination = exports.Pagination = function (_React$Component12) {
         value: function nextPage() {
             var totalPages = this.getTotalPages();
             if (this.props.query.page < totalPages) {
-                this.props.query.changePage(this.props.query.page + 1);
+                this.props.query.setPage(this.props.query.page + 1);
             }
         }
     }, {
         key: "previousPage",
         value: function previousPage() {
             if (this.props.query.page > 1) {
-                this.props.query.changePage(this.props.query.page - 1);
+                this.props.query.setPage(this.props.query.page - 1);
             }
         }
     }, {
@@ -26929,11 +27059,18 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
     }
 
     _createClass(QuickSearch, [{
-        key: "search",
-        value: function search(e) {
+        key: "onChange",
+        value: function onChange(e) {
             var keyword = e.target.value;
             if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
                 this.props.query.setKeyword(keyword);
+            }
+        }
+    }, {
+        key: "onKeyDown",
+        value: function onKeyDown(e) {
+            if ((0, _keyboard.isEnter)(e.which)) {
+                e.preventDefault();
             }
         }
     }, {
@@ -26946,7 +27083,7 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
                 React.createElement(
                     "div",
                     { className: "quick-search-input-container" },
-                    React.createElement("input", { type: "search", onChange: this.search.bind(this) })
+                    React.createElement("input", { type: "search", onKeyDown: this.onKeyDown.bind(this), onChange: this.onChange.bind(this) })
                 )
             );
         }
@@ -26989,22 +27126,22 @@ var Grid = exports.Grid = function (_React$Component16) {
         value: function onKeyDown(e) {
             var me = ReactDOM.findDOMNode(this);
             if (this.selection != null) {
-                if (isShift(e.which)) {
+                if ((0, _keyboard.isShift)(e.which)) {
                     me.onselectstart = function () {
                         return false;
                     };
                     this.selection.shiftPressed = true;
                     e.preventDefault();
                     return;
-                } else if (isControl(e.which)) {
+                } else if ((0, _keyboard.isControl)(e.which)) {
                     this.selection.controlPressed = true;
                     e.preventDefault();
                     return;
-                } else if (isUp(e.which)) {
+                } else if ((0, _keyboard.isUp)(e.which)) {
                     this.selection.up();
                     e.preventDefault();
                     return;
-                } else if (isDown(e.which)) {
+                } else if ((0, _keyboard.isDown)(e.which)) {
                     this.selection.down();
                     e.preventDefault();
                     return;
@@ -27020,12 +27157,12 @@ var Grid = exports.Grid = function (_React$Component16) {
         value: function onKeyUp(e) {
             var me = ReactDOM.findDOMNode(this);
             if (this.selection != null) {
-                if (isShift(e.which)) {
+                if ((0, _keyboard.isShift)(e.which)) {
                     me.onselectstart = null;
                     this.selection.shiftPressed = false;
                     e.preventDefault();
                     return;
-                } else if (isControl(e.which)) {
+                } else if ((0, _keyboard.isControl)(e.which)) {
                     this.selection.controlPressed = false;
                     e.preventDefault();
                     return;
@@ -27394,7 +27531,7 @@ var ProfileBox = function (_React$Component2) {
 
         var _this2 = _possibleConstructorReturn(this, (ProfileBox.__proto__ || Object.getPrototypeOf(ProfileBox)).call(this, props));
 
-        (0, _aj.connect)(_this2, _stores.session);
+        (0, _aj.connect)(_this2, _stores.SessionStore);
         return _this2;
     }
 
@@ -27492,7 +27629,7 @@ var MenuLevel = function (_React$Component3) {
     _createClass(MenuLevel, [{
         key: "activate",
         value: function activate(item) {
-            (0, _actions.setActiveMenuItem)({ item: item });
+            setActiveMenuItem({ item: item });
         }
     }, {
         key: "render",
@@ -27591,7 +27728,7 @@ var MainMenuContainer = function (_React$Component6) {
 
         var _this8 = _possibleConstructorReturn(this, (MainMenuContainer.__proto__ || Object.getPrototypeOf(MainMenuContainer)).call(this, props));
 
-        (0, _aj.connect)(_this8, _stores.menu, { menu: [] });
+        (0, _aj.connect)(_this8, _stores.MenuStore, { menu: [] });
         return _this8;
     }
 
@@ -28252,7 +28389,7 @@ var query = _interopRequireWildcard(_query2);
 
 var _lang = require("../../../utils/lang");
 
-var _ajex = require("../../../utils/ajex");
+var _keyboard = require("../../utils/keyboard");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -28263,14 +28400,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function isCancel(which) {
-    return which == 46 || which == 8;
-}
-
-function isEsc(which) {
-    return which == 27;
-}
 
 var EntitiesGrid = function (_Screen) {
     _inherits(EntitiesGrid, _Screen);
@@ -28292,7 +28421,7 @@ var EntitiesGrid = function (_Screen) {
 
         _this.discriminator = "entity_grid_" + _this.props.entity;
 
-        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_stores.entities]);
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_stores.EntitiesStore]);
         return _this;
     }
 
@@ -28328,9 +28457,9 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "onGridKeyDown",
         value: function onGridKeyDown(e) {
-            if (isCancel(e.which)) {
+            if ((0, _keyboard.isCancel)(e.which)) {
                 this.deleteEntities();
-            } else if (isEsc(e.which)) {
+            } else if ((0, _keyboard.isEsc)(e.which)) {
                 this.refs.grid.clearSelection();
             }
         }
@@ -28493,7 +28622,7 @@ var EntityForm = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (EntityForm.__proto__ || Object.getPrototypeOf(EntityForm)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.entities, { data: { name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: [] } });
+        (0, _aj.connect)(_this, _stores.EntitiesStore, { data: { name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: [] } });
         return _this;
     }
 
@@ -28569,15 +28698,39 @@ var EntityForm = function (_Screen) {
                         }
                     }, {
                         property: "roles",
-                        control: _forms.Lookup,
-                        label: "Role",
-                        placeholder: "Role",
+                        control: _forms.LookupContainer,
+                        entity: "role",
+                        label: "Roles",
                         mode: "multiple",
                         selectionGrid: {
-                            "columns": [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
+                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
                         },
                         popupGrid: {
-                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]
+                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+                        }
+                    }, {
+                        property: "group",
+                        control: _forms.LookupContainer,
+                        entity: "role",
+                        label: "Group",
+                        mode: "single",
+                        formatter: function formatter(row) {
+                            return row.role;
+                        },
+                        popupGrid: {
+                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+                        }
+                    }, {
+                        property: "parents",
+                        control: _forms.LookupContainer,
+                        entity: "user",
+                        label: "Parents",
+                        mode: "multiple",
+                        selectionGrid: {
+                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
+                        },
+                        popupGrid: {
+                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
                         }
                     }, {
                         property: "image",
@@ -28967,11 +29120,27 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../stores");
+
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
 var _aj = require("../utils/aj");
+
+var _layout = require("../components/layout");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _actions = require("../../actions");
+
+var _forms = require("../utils/forms");
+
+var forms = _interopRequireWildcard(_forms);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -28981,19 +29150,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var AccountStore = require("../../stores").account;
-
-var _require = require("../components/layout"),
-    FullScreenLayout = _require.FullScreenLayout,
-    Screen = _require.Screen;
-
-var ui = require("../utils/ui");
-
-var _require2 = require("../../actions"),
-    recoverAccount = _require2.recoverAccount;
-
-var forms = require("../utils/forms");
-
 var Recover = function (_Screen) {
     _inherits(Recover, _Screen);
 
@@ -29002,7 +29158,7 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, AccountStore);
+        (0, _aj.connect)(_this, _stores.AccountStore);
         return _this;
     }
 
@@ -29010,7 +29166,7 @@ var Recover = function (_Screen) {
         key: "recover",
         value: function recover() {
             var data = forms.serialize(this.refs.recover_form);
-            recoverAccount(data);
+            (0, _actions.recoverAccount)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -29023,7 +29179,7 @@ var Recover = function (_Screen) {
         key: "render",
         value: function render() {
             return React.createElement(
-                FullScreenLayout,
+                _layout.FullScreenLayout,
                 null,
                 React.createElement(
                     "div",
@@ -29092,7 +29248,7 @@ var Recover = function (_Screen) {
     }]);
 
     return Recover;
-}(Screen);
+}(_layout.Screen);
 
 exports.default = Recover;
 });
@@ -29105,11 +29261,27 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../stores");
+
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
 var _aj = require("../utils/aj");
+
+var _layout = require("../components/layout");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _actions = require("../../actions");
+
+var _forms = require("../utils/forms");
+
+var forms = _interopRequireWildcard(_forms);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29119,19 +29291,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var AccountStore = require("../../stores").account;
-
-var _require = require("../components/layout"),
-    FullScreenLayout = _require.FullScreenLayout,
-    Screen = _require.Screen;
-
-var ui = require("../utils/ui");
-
-var _require2 = require("../../actions"),
-    _register = _require2.register;
-
-var forms = require("../utils/forms");
-
 var Register = function (_Screen) {
     _inherits(Register, _Screen);
 
@@ -29140,7 +29299,7 @@ var Register = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Register.__proto__ || Object.getPrototypeOf(Register)).call(this, props));
 
-        (0, _aj.connect)(_this, AccountStore);
+        (0, _aj.connect)(_this, _stores.AccountStore);
         return _this;
     }
 
@@ -29148,7 +29307,7 @@ var Register = function (_Screen) {
         key: "register",
         value: function register() {
             var data = forms.serialize(this.refs.register_form);
-            _register(data);
+            (0, _actions.register)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -29161,7 +29320,7 @@ var Register = function (_Screen) {
         key: "render",
         value: function render() {
             return React.createElement(
-                FullScreenLayout,
+                _layout.FullScreenLayout,
                 null,
                 React.createElement(
                     "div",
@@ -29257,7 +29416,7 @@ var Register = function (_Screen) {
     }]);
 
     return Register;
-}(Screen);
+}(_layout.Screen);
 
 exports.default = Register;
 });
@@ -29270,9 +29429,21 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../stores");
+
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _aj = require("../utils/aj");
+
+var _layout = require("../components/layout");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29282,25 +29453,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var AccountStore = require("../../stores").account;
-
-var _require = require("../components/layout"),
-    FullScreenLayout = _require.FullScreenLayout,
-    Screen = _require.Screen;
-
-var ui = require("../utils/ui");
-
-var _require2 = require("../../actions"),
-    login = _require2.login;
-
-var forms = require("../utils/forms");
-
-var _require3 = require("../components/loader"),
-    Preloader = _require3.Preloader;
-
-var _require4 = require("../utils/aj"),
-    connect = _require4.connect;
-
 var RegistrationOk = function (_Screen) {
     _inherits(RegistrationOk, _Screen);
 
@@ -29309,7 +29461,7 @@ var RegistrationOk = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (RegistrationOk.__proto__ || Object.getPrototypeOf(RegistrationOk)).call(this, props));
 
-        connect(_this, AccountStore);
+        (0, _aj.connect)(_this, _stores.AccountStore);
         return _this;
     }
 
@@ -29322,7 +29474,7 @@ var RegistrationOk = function (_Screen) {
         key: "render",
         value: function render() {
             return React.createElement(
-                FullScreenLayout,
+                _layout.FullScreenLayout,
                 null,
                 React.createElement(
                     "div",
@@ -29396,7 +29548,7 @@ var RegistrationOk = function (_Screen) {
     }]);
 
     return RegistrationOk;
-}(Screen);
+}(_layout.Screen);
 
 exports.default = RegistrationOk;
 });
@@ -29769,6 +29921,55 @@ exports.addScreenChangeListener = function (listener) {
 exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
+});
+define('web/utils/keyboard.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isControl = isControl;
+exports.isShift = isShift;
+exports.isUp = isUp;
+exports.isDown = isDown;
+exports.isEnter = isEnter;
+exports.isCancel = isCancel;
+exports.isEsc = isEsc;
+function isMac() {
+    return navigator.platform.indexOf('Mac') > -1;
+}
+
+function isControl(which) {
+    if (isMac()) {
+        return which == 91 || which == 93;
+    } else {
+        return which == 17;
+    }
+}
+
+function isShift(which) {
+    return which == 16;
+}
+
+function isUp(which) {
+    return which == 38;
+}
+
+function isDown(which) {
+    return which == 40;
+}
+
+function isEnter(which) {
+    return which == 13;
+}
+
+function isCancel(which) {
+    return which == 46 || which == 8;
+}
+
+function isEsc(which) {
+    return which == 27;
+}
 });
 
 require('./aj').createRuntime();

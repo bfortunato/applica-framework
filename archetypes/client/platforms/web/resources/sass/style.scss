@@ -292,14 +292,17 @@ tr.collapsible {
 
 .lookup {
   background-color: #ffffff;
+  border: solid 1px #f0f0f0;
 
   .lookup-header {
     background-color: #FFFFFF;
-    border-bottom: solid 1px #f0f0f0;
     height: 30px;
+    padding-left: 10px;
+    font-weight: 500;
   }
 
   table {
+    /*
     thead {
       th {
         background-color: #FFFFFF;
@@ -317,6 +320,7 @@ tr.collapsible {
     tr:hover td {
       background-color: #f0f0f0;
     }
+    */
 
     th.actions, td.actions {
       width: 1%;

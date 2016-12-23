@@ -1,13 +1,10 @@
 "use strict";
 
-const AccountStore = require("../../stores").account
-const { FullScreenLayout, Screen } = require("../components/layout")
-const ui = require("../utils/ui")
-const { login } = require("../../actions")
-const forms = require("../utils/forms")
-const { Preloader } = require("../components/loader")
-const { connect } = require("../utils/aj")
+import {AccountStore} from "../../stores"
 import strings from "../../strings"
+import {connect} from "../utils/aj"
+import {FullScreenLayout, Screen} from "../components/layout"
+import * as ui from "../utils/ui"
 
 export default class RegistrationOk extends Screen {
 

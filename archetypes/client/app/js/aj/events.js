@@ -36,6 +36,10 @@ EventEmitter.on = function(obj, evt, handler) {
     }
 };
 
+EventEmitter.off = function(obj, evt, handler) {
+    EventEmitter.removeListener(obj, evt, handler);
+};
+
 EventEmitter.live = function(obj, evt) {
     if(!obj.__events_offs) obj.__events_offs = {};
     if(evt) {
@@ -78,6 +82,10 @@ EventEmitter.invoke = function(obj, evt) {
 export class Observable {
     on(evt, handler) {
         EventEmitter.on(this, evt, handler);
+    }
+
+    off(evt, handler) {
+        EventEmitter.off(this, evt, handler);
     }
 
     invoke(evt) {

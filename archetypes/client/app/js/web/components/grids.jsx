@@ -5,34 +5,11 @@ import strings from "../../strings"
 import {Card, HeaderBlock} from "./common"
 import {format, optional, parseBoolean} from "../../utils/lang"
 import {Observable} from "../../aj/events"
+import {isControl, isDown, isEnter, isShift, isUp} from "../utils/keyboard"
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
 const CELL_PADDING_BOTTOM = 15
-
-function isMac() {
-    return navigator.platform.indexOf('Mac') > -1
-}
-
-function isControl(which) {
-    if (isMac()) {
-        return which == 91 || which == 93
-    } else {
-        return which == 17
-    }
-}
-
-function isShift(which) {
-    return which == 16
-}
-
-function isUp(which) {
-    return which == 38
-}
-
-function isDown(which) {
-    return which == 40
-}
 
 function eachChildren(root, action) {
     if (_.isArray(root)) {
@@ -675,7 +652,7 @@ export class Filters extends React.Component {
 
 export class Pagination extends React.Component {
     changePage(page) {
-        this.props.query.changePage(page)
+        this.props.query.setPage(page)
     }
 
     getTotalPages() {
@@ -690,13 +667,13 @@ export class Pagination extends React.Component {
     nextPage() {
         let totalPages = this.getTotalPages()
         if (this.props.query.page < totalPages) {
-            this.props.query.changePage(this.props.query.page + 1)
+            this.props.query.setPage(this.props.query.page + 1)
         }
     }
 
     previousPage() {
         if (this.props.query.page > 1) {
-            this.props.query.changePage(this.props.query.page - 1)
+            this.props.query.setPage(this.props.query.page - 1)
         }
     }
 
@@ -763,10 +740,16 @@ export class NoCard extends React.Component {
 }
 
 export class QuickSearch extends React.Component {
-    search(e) {
+    onChange(e) {
         let keyword = e.target.value
         if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
             this.props.query.setKeyword(keyword)
+        }
+    }
+
+    onKeyDown(e) {
+        if (isEnter(e.which)) {
+            e.preventDefault()
         }
     }
 
@@ -775,7 +758,7 @@ export class QuickSearch extends React.Component {
             <div className="quick-search pull-right">
                 <i className="zmdi zmdi-search pull-right" />
                 <div className="quick-search-input-container">
-                    <input type="search" onChange={this.search.bind(this)} />
+                    <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} />
                 </div>
             </div>
         )

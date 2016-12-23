@@ -1,7 +1,7 @@
 "use strict"
 
-import {session as SessionStore, menu as MenuStore} from "../../stores"
-import {logout, setActiveMenuItem} from "../../actions"
+import {SessionStore, MenuStore} from "../../stores"
+import {logout} from "../../actions"
 import * as ui from "../utils/ui"
 import {PageLoader, GlobalLoader} from "./loader"
 import {connect} from "../utils/aj"

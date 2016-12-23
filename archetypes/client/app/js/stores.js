@@ -7,7 +7,7 @@ import {discriminate} from "./utils/ajex"
 import {walk} from "./utils/lang"
 
 export const SESSION = "SESSION";
-export const session = aj.createStore(SESSION, (state = {}, action) => {
+export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
 
     switch (action.type) {
         case actions.LOGIN:
@@ -32,7 +32,7 @@ export const session = aj.createStore(SESSION, (state = {}, action) => {
 });
 
 export const ACCOUNT = "ACCOUNT";
-export const account = aj.createStore(ACCOUNT, (state = {activationCode: ""}, action) => {
+export const AccountStore = aj.createStore(ACCOUNT, (state = {activationCode: ""}, action) => {
 
     switch (action.type) {
         case actions.REGISTER:
@@ -70,7 +70,7 @@ export const account = aj.createStore(ACCOUNT, (state = {activationCode: ""}, ac
 
 
 export const GRIDS = "GRIDS"
-export const grids = aj.createStore(GRIDS, (state = {grid: null}, action) => {
+export const GridsStore = aj.createStore(GRIDS, (state = {grid: null}, action) => {
 
     switch (action.type) {
         case actions.GET_GRID:
@@ -86,7 +86,7 @@ export const grids = aj.createStore(GRIDS, (state = {grid: null}, action) => {
 })
 
 export const ENTITIES = "ENTITIES"
-export const entities = aj.createStore(ENTITIES, (state = {}, action) => {
+export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
 
     switch (action.type) {
         case completed(actions.LOAD_ENTITIES):
@@ -108,8 +108,22 @@ export const entities = aj.createStore(ENTITIES, (state = {}, action) => {
 
 })
 
+export const LOOKUP = "LOOKUP"
+export const LookupStore = aj.createStore(LOOKUP, (state = {}, action) => {
+
+    switch (action.type) {
+        case completed(actions.GET_LOOKUP_RESULT):
+            return discriminate(state, action.discriminator, { error: false, result: action.result })
+
+        case actions.FREE_LOOKUP_RESULT:
+            return _.omit(state, action.discriminator)
+
+    }
+
+})
+
 export const MENU = "MENU"
-export const menu = aj.createStore(MENU, (state = {}, action) => {
+export const MenuStore = aj.createStore(MENU, (state = {}, action) => {
 
     switch (action.type) {
         case actions.SETUP_MENU:

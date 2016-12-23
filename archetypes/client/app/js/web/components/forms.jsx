@@ -5,7 +5,10 @@ import {Card} from "./common"
 import {format, optional} from "../../utils/lang"
 import {Observable} from "../../aj/events"
 import {Grid, ActionsCell, resultToGridData} from "./grids"
-
+import {connectDiscriminated} from "../utils/aj"
+import {LookupStore} from "../../stores"
+import {getLookupResult, freeLookupResult} from "../../actions"
+import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 
 const VALIDATION_ERROR = {}
@@ -485,6 +488,47 @@ export class Select extends Control {
     }
 }
 
+let LOOKUP_DISCRIMINATOR = 1
+function nextLookupDiscriminator() {
+    return "lookup_" + LOOKUP_DISCRIMINATOR++
+}
+
+export class LookupContainer extends Control  {
+    constructor(props) {
+        super(props)
+
+        this.discriminator = nextLookupDiscriminator()
+
+        this.query = query.create()
+        this.query.setPage(1)
+        this.query.setRowsPerPage(20)
+        this.__queryOnChange = () => {
+            getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+        }
+
+        connectDiscriminated(this.discriminator, this, LookupStore)
+
+        this.state = {result: {}}
+    }
+
+    componentDidMount() {
+        this.query.on("change", this.__queryOnChange)
+
+        //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+    }
+
+    componentWillUnmount() {
+        this.query.off("change", this.__queryOnChange)
+
+        //freeLookupResult({discriminator: this.discriminator, entity: this.props.field.entity})
+    }
+
+    render() {
+        return React.createElement(Lookup, _.assign({}, this.props, {query: this.query, result: this.state.result}))
+    }
+}
+
+
 export class Lookup extends Control {
     constructor(props) {
         super(props)
@@ -492,11 +536,6 @@ export class Lookup extends Control {
         this.state = {
             data: {rows: [], totalRows: 0}
         }
-
-        this.query = query.create()
-        this.query.on("change", () => {
-            this.loadData(this.query.keyword)
-        })
     }
 
     componentDidMount() {
@@ -522,23 +561,15 @@ export class Lookup extends Control {
     }
 
     showEntities() {
-        this.loadData("")
+        if (!this.dialogAlreadyOpened) {
+            if (this.props.query) {
+                this.props.query.invokeChange()
+            }
+        }
+        this.dialogAlreadyOpened = true
 
         let me = ReactDOM.findDOMNode(this)
         $(me).find(".lookup-grid").modal("show")
-    }
-
-    loadData(keyword) {
-        logger.i("Load data with keyword", this.query.keyword)
-
-        if (_.isFunction(this.props.field.dataSource)) {
-            this.props.field.dataSource(keyword)
-                .then(result => {
-                    this.setState(_.assign(this.state, {data: resultToGridData(result)}))
-                })
-                .catch(e => {
-                })
-        }
     }
 
     select() {
@@ -549,18 +580,54 @@ export class Lookup extends Control {
         let field = this.props.field
         let grid = this.refs.searchGrid
         let selection = optional(grid.getSelection(), [])
-        let current = optional(model.get(field.property), [])
-        let result = _.union(current, [])
-        selection.forEach(s => {
-            let comparer = r => {
-                if (_.has(s, "id")) {
-                        return s.id == r.id 
+        let mode = this.checkedMode()
+        let result = null
+        if (mode == "single") {
+            if (selection.length == 0) {
+                return
+            }
+
+            result = selection[0]
+        } else if (mode == "multiple") {
+            result = _.union(current, [])
+            selection.forEach(s => {
+                let comparer = r => {
+                    if (_.has(s, "id")) {
+                        return s.id == r.id
                     } else {
                         return _.isEqual(s, r)
                     }
                 }
-            if (!_.any(result, comparer)) {
-                result.push(s)
+                if (!_.any(result, comparer)) {
+                    result.push(s)
+                }
+            })
+        }
+        let current = optional(model.get(field.property), [])
+
+        model.set(field.property, result)
+
+        this.forceUpdate()
+    }
+
+    remove() {
+        let mode = this.checkedMode()
+        if (mode == "single") {
+            this.removeAll()
+        } else if (mode == "multiple") {
+            this.removeSelection()
+        }
+    }
+
+    removeRow(row) {
+        let model = this.props.model
+        let field = this.props.field
+        let current = optional(model.get(field.property), [])
+        let result = _.filter(current, r => {
+            if (_.has(row, "id")) {
+                return row.id != r.id
+            } else {
+                return !_.isEqual(row, r)
             }
         })
         model.set(field.property, result)
@@ -568,60 +635,118 @@ export class Lookup extends Control {
         this.forceUpdate()
     }
 
-    remove(row) {
+    removeSelection() {
         let model = this.props.model
         let field = this.props.field
-        let grid = this.refs.searchGrid
-        let selection = optional(grid.getSelection(), [])
+        let grid = this.refs.selectionGrid
+        let selection = grid.getSelection()
         let current = optional(model.get(field.property), [])
-        let result = _.filter(current, r => {
-            if (_.has(s, "id")) {
-                return s.id == r.id 
-            } else {
-                return _.isEqual(s, r)
-            }
+        let result = _.filter(current, (c) => {
+            return !_.any(selection, r => {
+                if (_.has(c, "id")) {
+                    return c.id == r.id
+                } else {
+                    return _.isEqual(c, r)
+                }
+            })
         })
         model.set(field.property, result)
 
         this.forceUpdate()
+    }
+
+    removeAll() {
+        let mode = this.checkedMode()
+        let model = this.props.model
+        let field = this.props.field
+        let v = null
+        if (mode == "single") {
+            v = null
+        } else if (mode == "multiple") {
+            v = []
+        }
+        model.set(field.property, v)
+
+        this.forceUpdate()
+    }
+
+    checkedMode() {
+        let mode = this.props.field.mode
+        if ("multiple" != mode && "single" != mode) {
+            throw new Error("Please specify a mode for lookup: [single|multiple]")
+        }
+        return mode
+    }
+
+    getCurrentValueDescription() {
+        let model = this.props.model
+        let field = this.props.field
+        let mode = this.checkedMode()
+
+        if (mode == "multiple") {
+            let rows = model.get(field.property)
+            return rows.length == 1 ? strings.oneElementSelected : format(strings.nElementsSelected, rows.length)
+        } else if (mode == "single") {
+            let row = model.get(field.property)
+            if (row == null) {
+                return ""
+            }
+
+            let formatter = _.isFunction(field.formatter) ? field.formatter : (row) => {
+                if (_.has(row, "name")) {
+                    return row["name"]
+                } else if (_.has(row, "description")) {
+                    return row["description"]
+                } else {
+                    return JSON.stringify(row)
+                }
+            }
+
+            return formatter(row)
+        }
+
     }
 
     render() {
+        let mode = this.checkedMode()
         let model = this.props.model
         let field = this.props.field
         let rows = model.get(field.property)
-        let selectionGrid = _.assign({}, this.props.field.selectionGrid, {columns: _.union(this.props.field.selectionGrid.columns, [{
+        let selectionGrid = mode == "multiple" ? _.assign({}, field.selectionGrid, {columns: _.union(field.selectionGrid.columns, [{
             cell: ActionsCell,
             tdClassName: "grid-actions",
             actions: [
-                {icon: "zmdi zmdi-delete", action: (row) => this.remove(row)}
+                {icon: "zmdi zmdi-delete", action: (row) => this.removeRow(row)}
             ]
-        }])})
+        }])}) : null
 
         return (
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
                     <div className="lookup-header">
                         <div className="actions pull-right">
+                            <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)}><i className="zmdi zmdi-close" /></a>
                             <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className="zmdi zmdi-plus" /></a>
                         </div>
-                        <span className="lookup-current-value">{rows.length == 1 ? strings.oneElementSelected : format(strings.nElementsSelected, rows.length)}</span>
+                        <span className="lookup-current-value">{this.getCurrentValueDescription()}</span>
                         <div className="clearfix"></div>
                     </div>
 
-                    <Grid 
-                        descriptor={selectionGrid}
-                        data={resultToGridData({rows: rows, totalRows: rows.length})}
-                        showInCard="false" 
-                        quickSearchEnabled="false"
-                        headerVisible="false"
-                        footerVisible="false"
-                        summaryVisible="false"
-                        noResultsVisible="false"
-                        paginationEnabled="false"
-                        selectionEnabled="false"
-                        tableClassName="table table-condensed table-hover"
-                    />
+                    {mode == "multiple" &&
+                        <Grid
+                            ref="selectionGrid"
+                            descriptor={selectionGrid}
+                            data={resultToGridData({rows: rows, totalRows: rows.length})}
+                            showInCard="false"
+                            quickSearchEnabled="false"
+                            headerVisible="false"
+                            footerVisible="false"
+                            summaryVisible="false"
+                            noResultsVisible="false"
+                            paginationEnabled="false"
+                            tableClassName="table table-condensed table-hover"
+                        />
+                    }
                 </div>
 
                 <div className="lookup-grid modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -635,8 +760,8 @@ export class Lookup extends Control {
                                 <Grid 
                                     ref="searchGrid" 
                                     descriptor={this.props.field.popupGrid}
-                                    data={this.state.data}
-                                    query={this.query}
+                                    data={resultToGridData(this.props.result)}
+                                    query={this.props.query}
                                     showInCard="false" 
                                     quickSearchEnabled="true"
                                     footerVisible="false"

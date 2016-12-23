@@ -39,7 +39,7 @@ export class Query extends Observable {
             this.filters.push({property, type, value})
         }
 
-        this.invoke("change")
+        this.invokeChange()
 
         return this
     }
@@ -47,7 +47,7 @@ export class Query extends Observable {
     unfilter(property) {
         this.filters = _.filter(this.filters, f => f.property != property)
 
-        this.invoke("change")
+        this.invokeChange()
         return this
     }
 
@@ -134,32 +134,38 @@ export class Query extends Observable {
             this.sorts.push({property: prop, descending})
         }
 
-        this.invoke("change")
+        this.invokeChange()
         return this
     }
 
     unsort(prop) {
         this.sorts = _.filter(this.sorts, s => s.property != prop)
 
-        this.invoke("change")
+        this.invokeChange()
         return this
     }
 
     clearFilters() {
         this.filters = []
-        this.invoke("change")
+        this.invokeChange()
         return this
     }
 
-    changePage(page) {
+    setPage(page) {
         this.page = page
-        this.invoke("change")
+        this.invokeChange()
+        return this
+    }
+
+    setRowsPerPage(rowsPerPage) {
+        this.rowsPerPage = rowsPerPage
+        this.invokeChange()
         return this
     }
 
     setKeyword(newValue) {
         this.keyword = newValue
-        this.invoke("change")
+        this.invokeChange()
         return this
     }
 
@@ -172,6 +178,10 @@ export class Query extends Observable {
                 rowsPerPage: this.rowsPerPage
             }
         )
+    }
+    
+    invokeChange() {
+        this.invoke("change")
     }
 }
 

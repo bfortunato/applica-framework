@@ -1,11 +1,11 @@
 "use strict";
 
-import {entities as EntitiesStore} from "../../../stores"
+import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Form, Text, Mail, Check, Select, Lookup, Image} from "../../components/forms"
+import {Form, Text, Mail, Check, Select, Image, LookupContainer} from "../../components/forms"
 import {Grid, TextCell, ActionsCell} from "../../components/grids"
 import {check, sanitize} from "../../../libs/validator"
 import {saveEntity, freeEntities} from "../../../actions"
@@ -89,20 +89,50 @@ export default class EntityForm extends Screen {
                         },
                         {
                             property: "roles",
-                            control: Lookup,
-                            label: "Role",
-                            placeholder: "Role",
+                            control: LookupContainer,
+                            entity: "role",
+                            label: "Roles",
                             mode: "multiple",
                             selectionGrid: {
-                                "columns": [
-                                    {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: false},
-                                    {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false}
+                                columns: [
+                                    {property: "role", header: "Name", cell: TextCell}
                                 ]
                             },
                             popupGrid: {
                                 columns: [
-                                    {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: false},
-                                    {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false}
+                                    {property: "role", header: "Name", cell: TextCell}
+                                ]
+                            }
+                        },
+                        {
+                            property: "group",
+                            control: LookupContainer,
+                            entity: "role",
+                            label: "Group",
+                            mode: "single",
+                            formatter: (row) => row.role,
+                            popupGrid: {
+                                columns: [
+                                    {property: "role", header: "Name", cell: TextCell}
+                                ]
+                            }
+                        },
+                        {
+                            property: "parents",
+                            control: LookupContainer,
+                            entity: "user",
+                            label: "Parents",
+                            mode: "multiple",
+                            selectionGrid: {
+                                columns: [
+                                    {property: "name", header: "Name", cell: TextCell},
+                                    {property: "mail", header: "Mail", cell: TextCell}
+                                ]
+                            },
+                            popupGrid: {
+                                columns: [
+                                    {property: "name", header: "Name", cell: TextCell},
+                                    {property: "mail", header: "Mail", cell: TextCell}
                                 ]
                             }
                         },

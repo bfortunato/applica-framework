@@ -1,23 +1,15 @@
 "use strict";
 
-import {entities as EntitiesStore} from "../../../stores"
+import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
-import {connect, connectDiscriminated} from "../../utils/aj"
+import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid, TextCell, CheckCell, ActionsCell, resultToGridData} from "../../components/grids"
+import {Grid, TextCell, CheckCell, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
-import {discriminated} from "../../../utils/ajex"
-
-function isCancel(which) {
-    return which == 46 || which == 8
-}
-
-function isEsc(which) {
-    return which == 27
-}
+import {isEsc, isCancel} from "../../utils/keyboard"
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {

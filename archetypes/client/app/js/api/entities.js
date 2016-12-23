@@ -6,7 +6,7 @@ import * as _ from "../libs/underscore"
 
 export function load(entity, query) {
     let url = config.get("entities.url") + "/" + entity
-    return utils.get(url, {queryJson: query})
+    return utils.get(url, {queryJson: JSON.stringify(query)})
 }
 
 export function delete_(entity, ids) {
