@@ -40,7 +40,7 @@ public class MockGamesRepository extends MockRepository<Game> {
     }
 
     @Override
-    public void addKeywordFilter(Query query, String keyword) {
-
+    public Query keywordQuery(Query query) {
+        return query;
     }
 }

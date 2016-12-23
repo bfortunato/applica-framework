@@ -25,6 +25,7 @@ export class Query extends Observable {
         this.rowsPerPage = 0
         this.sorts = []
         this.filters = []
+        this.keyword = null
 
         _.assign(this, init)
     }
@@ -39,72 +40,90 @@ export class Query extends Observable {
         }
 
         this.invoke("change")
+
+        return this
     }
 
     unfilter(property) {
         this.filters = _.filter(this.filters, f => f.property != property)
 
         this.invoke("change")
+        return this
     }
 
     like(prop, value) {
         this.filter(LIKE, prop, value)
+        return this
     }
 
     gt(prop, value) {
         this.filter(GT, prop, value)
+        return this
     }
 
     ne(prop, value) {
         this.filter(NE, prop, value)
+        return this
     }
 
     gte(prop, value) {
         this.filter(GTE, prop, value)
+        return this
     }
 
     lt(prop, value) {
         this.filter(LT, prop, value)
+        return this
     }
 
     lte(prop, value) {
         this.filter(LTE, prop, value)
+        return this
     }
 
     eq(prop, value) {
         this.filter(EQ, prop, value)
+        return this
     }
 
     in(prop, value) {
         this.filter(IN, prop, value)
+        return this
     }
 
     nin(prop, value) {
         this.filter(NE, prop, value)
+        return this
     }
 
     id(prop, value) {
         this.filter(ID, prop, value)
+        return this
     }
 
     or(prop, value) {
         this.filter(OR, prop, value)
+        return this
     }
 
     and(prop, value) {
         this.filter(AND, prop, value)
+        return this
     }
 
     range(prop, value) {
         this.filter(RANGE, prop, value)
+        return this
     }
 
     gt(prop, value) {
         this.filter(GT, prop, value)
+        return this
     }
 
     ne(prop, value) {
         this.filter(NE, prop, value)
+        return this
     }
 
     sort(prop, descending) {
@@ -116,22 +135,32 @@ export class Query extends Observable {
         }
 
         this.invoke("change")
+        return this
     }
 
     unsort(prop) {
         this.sorts = _.filter(this.sorts, s => s.property != prop)
 
         this.invoke("change")
+        return this
     }
 
     clearFilters() {
         this.filters = []
         this.invoke("change")
+        return this
     }
 
     changePage(page) {
         this.page = page
         this.invoke("change")
+        return this
+    }
+
+    setKeyword(newValue) {
+        this.keyword = newValue
+        this.invoke("change")
+        return this
     }
 
     toJSON() {

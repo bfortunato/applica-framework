@@ -66,20 +66,17 @@ public class HibernateCrudStrategy implements CrudStrategy {
             if (sorts == null) {
                 sorts = hibernateRepository.getDefaultSorts();
             }
-            // if there is a restriction sort are superfluous
-            if( query.getRestriction() != null){
-                criteria.add(Restrictions.sqlRestriction(query.getRestriction().getSqlResriction()));
-            }else {
-                if (sorts != null) {
-                    for (Sort sort : sorts) {
-                        if (sort.isDescending()) {
-                            criteria.addOrder(Order.desc(sort.getProperty()));
-                        } else {
-                            criteria.addOrder(Order.asc(sort.getProperty()));
-                        }
+
+            if (sorts != null) {
+                for (Sort sort : sorts) {
+                    if (sort.isDescending()) {
+                        criteria.addOrder(Order.desc(sort.getProperty()));
+                    } else {
+                        criteria.addOrder(Order.asc(sort.getProperty()));
                     }
                 }
             }
+
             result.setRows(criteria.list());
             result.setTotalRows(count);
 

@@ -47,5 +47,7 @@ export default {
     users: "Users",
     roles: "Roles",
     setup: "Setup",
-    categories: "Categorie"
+    categories: "Categorie",
+    nElementsSelected: "{0} elements selected",
+    oneElementSelected: "1 element selected"
 }

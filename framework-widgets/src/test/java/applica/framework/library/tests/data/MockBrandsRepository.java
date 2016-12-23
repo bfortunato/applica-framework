@@ -22,7 +22,7 @@ public class MockBrandsRepository extends MockRepository<Brand> {
     }
 
     @Override
-    public void addKeywordFilter(Query query, String keyword) {
-
+    public Query keywordQuery(Query query) {
+        return query;
     }
 }

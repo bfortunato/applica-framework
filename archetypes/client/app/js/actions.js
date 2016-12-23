@@ -329,11 +329,3 @@ export const setupMenu = aj.createAction(SETUP_MENU, data => {
         menu: data.menu
     })
 })
-
-export const SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
-export const setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, data => {
-    aj.dispatch({
-        type: SET_ACTIVE_MENU_ITEM,
-        item: data.item
-    })
-})
