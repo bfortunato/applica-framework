@@ -2,6 +2,7 @@ package applica._APPNAME_.data.mongodb;
 
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.model.Role;
+import applica.framework.Query;
 import applica.framework.Sort;
 import applica.framework.data.mongodb.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -26,5 +27,11 @@ public class RolesMongoRepository extends MongoRepository<Role> implements Roles
     @Override
     public Class<Role> getEntityType() {
         return Role.class;
+    }
+
+    @Override
+    public Query keywordQuery(Query initialQuery) {
+        return initialQuery.builder()
+                .like("role", initialQuery.getKeyword());
     }
 }

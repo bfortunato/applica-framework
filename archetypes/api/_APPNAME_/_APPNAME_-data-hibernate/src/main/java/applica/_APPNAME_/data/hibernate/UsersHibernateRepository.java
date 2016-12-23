@@ -1,5 +1,6 @@
 package applica._APPNAME_.data.hibernate;
 
+import applica.framework.Query;
 import applica.framework.Sort;
 import applica.framework.data.hibernate.HibernateRepository;
 import applica._APPNAME_.domain.data.UsersRepository;
@@ -28,5 +29,13 @@ public class UsersHibernateRepository extends HibernateRepository<User> implemen
         return Arrays.asList(new Sort("mail", false));
     }
 
+    @Override
+    public Query keywordQuery(Query initialQuery) {
+        return initialQuery.builder()
+                .disjunction()
+                .like("name", initialQuery.getKeyword())
+                .like("mail", initialQuery.getKeyword())
+                .finish();
+    }
 
 }
