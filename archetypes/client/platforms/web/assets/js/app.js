@@ -25473,7 +25473,19 @@ var Lookup = exports.Lookup = function (_Control6) {
             var grid = this.refs.searchGrid;
             var selection = (0, _lang.optional)(grid.getSelection(), []);
             var current = (0, _lang.optional)(model.get(field.property), []);
-            var result = _.union(current, selection);
+            var result = _.union(current, []);
+            selection.forEach(function (s) {
+                var comparer = function comparer(r) {
+                    if (_.has(s, "id")) {
+                        return s.id == r.id;
+                    } else {
+                        return _.isEqual(s, r);
+                    }
+                };
+                if (!_.any(result, comparer)) {
+                    result.push(s);
+                }
+            });
             model.set(field.property, result);
 
             this.forceUpdate();
@@ -25487,7 +25499,11 @@ var Lookup = exports.Lookup = function (_Control6) {
             var selection = (0, _lang.optional)(grid.getSelection(), []);
             var current = (0, _lang.optional)(model.get(field.property), []);
             var result = _.filter(current, function (r) {
-                return r != row;
+                if (_.has(s, "id")) {
+                    return s.id == r.id;
+                } else {
+                    return _.isEqual(s, r);
+                }
             });
             model.set(field.property, result);
 
@@ -25622,21 +25638,21 @@ var Image = exports.Image = function (_Control7) {
     function Image(props) {
         _classCallCheck(this, Image);
 
-        var _this18 = _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, props));
 
-        _this18.state = { imageData: null };
-        return _this18;
+        _this20.state = { imageData: null };
+        return _this20;
     }
 
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this19 = this;
+            var _this21 = this;
 
             var file = e.target.files[0];
             var reader = new FileReader();
             reader.onload = function (e) {
-                _this19.setState({ imageData: e.target.result });
+                _this21.setState({ imageData: e.target.result });
             };
             reader.readAsDataURL(file);
             console.log("ciao");
@@ -28485,8 +28501,8 @@ var EntityForm = function (_Screen) {
                     }, {
                         property: "roles",
                         control: _forms.Lookup,
-                        label: "Roles",
-                        placeholder: "Roles",
+                        label: "Role",
+                        placeholder: "Role",
                         mode: "multiple",
                         selectionGrid: {
                             "columns": [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: false }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: false }]

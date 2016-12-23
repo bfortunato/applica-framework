@@ -550,7 +550,19 @@ export class Lookup extends Control {
         let grid = this.refs.searchGrid
         let selection = optional(grid.getSelection(), [])
         let current = optional(model.get(field.property), [])
-        let result = _.union(current, selection)
+        let result = _.union(current, [])
+        selection.forEach(s => {
+            let comparer = r => {
+                if (_.has(s, "id")) {
+                        return s.id == r.id 
+                    } else {
+                        return _.isEqual(s, r)
+                    }
+                }
+            if (!_.any(result, comparer)) {
+                result.push(s)
+            }
+        })
         model.set(field.property, result)
 
         this.forceUpdate()
@@ -562,7 +574,13 @@ export class Lookup extends Control {
         let grid = this.refs.searchGrid
         let selection = optional(grid.getSelection(), [])
         let current = optional(model.get(field.property), [])
-        let result = _.filter(current, r => r != row)
+        let result = _.filter(current, r => {
+            if (_.has(s, "id")) {
+                return s.id == r.id 
+            } else {
+                return _.isEqual(s, r)
+            }
+        })
         model.set(field.property, result)
 
         this.forceUpdate()

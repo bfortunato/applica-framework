@@ -104,16 +104,7 @@ export default class EntityForm extends Screen {
                                     {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: false},
                                     {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: false}
                                 ]
-                            },
-                            dataSource: query => new Promise((resolve, reject) => {
-                                resolve({
-                                    totalRows: 2,
-                                    rows: [
-                                        {name: "Bruno Fortunato", mail: "bimbobruno@gmail.com"},
-                                        {name: "Ciccio Randazzo", mail: "ciccio@gmail.com"}
-                                    ]
-                                })
-                            })
+                            }
                         },
                         {
                             property: "image",
