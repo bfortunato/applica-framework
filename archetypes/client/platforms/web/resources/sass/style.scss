@@ -4,6 +4,8 @@
 
 $primary-color: #2196F3;
 $hover-color: #ebebeb;
+$placeholder-color: #AEAEAE;
+$border-color: #f0f0f0;
 
 /*-------------------------
     Global Loader
@@ -292,13 +294,21 @@ tr.collapsible {
 
 .lookup {
   background-color: #ffffff;
-  border: solid 1px #f0f0f0;
+  border: solid 1px $border-color;
 
   .lookup-header {
     background-color: #FFFFFF;
     height: 30px;
-    padding-left: 10px;
-    font-weight: 500;
+    padding-left: 7px;
+    cursor: pointer;
+
+    .placeholder {
+      color: $placeholder-color
+    }
+  }
+
+  .lookup-header:hover {
+    background-color: $hover-color;
   }
 
   table {

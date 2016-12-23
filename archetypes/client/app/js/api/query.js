@@ -169,19 +169,18 @@ export class Query extends Observable {
         return this
     }
 
-    toJSON() {
-        return JSON.stringify(
-            {
-                filters: this.filters,
-                sorts: this.sorts,
-                page: this.page,
-                rowsPerPage: this.rowsPerPage
-            }
-        )
-    }
-    
     invokeChange() {
         this.invoke("change")
+    }
+
+    cleaned() {
+        return {
+            page: this.page,
+            rowsPerPage: this.rowsPerPage,
+            sorts: this.sorts,
+            filters: this.filters,
+            keyword: this.keyword
+        }
     }
 }
 

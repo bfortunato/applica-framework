@@ -1892,7 +1892,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
-    return utils.get(url, { queryJson: JSON.stringify(query) });
+    logger.i("quering with ", JSON.stringify(query.cleaned));
+    return utils.get(url, { queryJson: JSON.stringify(query.cleaned()) });
 }
 
 function delete_(entity, ids) {
@@ -2169,19 +2170,20 @@ var Query = exports.Query = function (_Observable) {
             return this;
         }
     }, {
-        key: "toJSON",
-        value: function toJSON() {
-            return JSON.stringify({
-                filters: this.filters,
-                sorts: this.sorts,
-                page: this.page,
-                rowsPerPage: this.rowsPerPage
-            });
-        }
-    }, {
         key: "invokeChange",
         value: function invokeChange() {
             this.invoke("change");
+        }
+    }, {
+        key: "cleaned",
+        value: function cleaned() {
+            return {
+                page: this.page,
+                rowsPerPage: this.rowsPerPage,
+                sorts: this.sorts,
+                filters: this.filters,
+                keyword: this.keyword
+            };
         }
     }]);
 
@@ -24441,7 +24443,8 @@ exports.default = {
     setup: "Setup",
     categories: "Categorie",
     nElementsSelected: "{0} elements selected",
-    oneElementSelected: "1 element selected"
+    oneElementSelected: "1 element selected",
+    nothingSelected: "Nothing selected"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -24797,6 +24800,8 @@ var _ajex = require("../../../utils/ajex");
 var _query = require("../../api/query");
 
 var query = _interopRequireWildcard(_query);
+
+var _keyboard = require("../utils/keyboard");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -25572,7 +25577,9 @@ var Lookup = exports.Lookup = function (_Control7) {
         }
     }, {
         key: "showEntities",
-        value: function showEntities() {
+        value: function showEntities(e) {
+            e.stopPropagation();
+
             if (!this.dialogAlreadyOpened) {
                 if (this.props.query) {
                     this.props.query.invokeChange();
@@ -25592,6 +25599,7 @@ var Lookup = exports.Lookup = function (_Control7) {
             var model = this.props.model;
             var field = this.props.field;
             var grid = this.refs.searchGrid;
+            var current = (0, _lang.optional)(model.get(field.property), []);
             var selection = (0, _lang.optional)(grid.getSelection(), []);
             var mode = this.checkedMode();
             var result = null;
@@ -25616,7 +25624,6 @@ var Lookup = exports.Lookup = function (_Control7) {
                     }
                 });
             }
-            var current = (0, _lang.optional)(model.get(field.property), []);
 
             model.set(field.property, result);
 
@@ -25624,7 +25631,9 @@ var Lookup = exports.Lookup = function (_Control7) {
         }
     }, {
         key: "remove",
-        value: function remove() {
+        value: function remove(e) {
+            e.stopPropagation();
+
             var mode = this.checkedMode();
             if (mode == "single") {
                 this.removeAll();
@@ -25696,6 +25705,24 @@ var Lookup = exports.Lookup = function (_Control7) {
             return mode;
         }
     }, {
+        key: "getHeaderText",
+        value: function getHeaderText() {
+            var field = this.props.field;
+            var mode = this.checkedMode();
+            var model = this.props.model;
+            var value = model.get(field.property);
+
+            if (_.isEmpty(value)) {
+                return React.createElement(
+                    "span",
+                    { className: "placeholder" },
+                    this.getPlaceholderText()
+                );
+            } else {
+                return this.getCurrentValueDescription();
+            }
+        }
+    }, {
         key: "getCurrentValueDescription",
         value: function getCurrentValueDescription() {
             var model = this.props.model;
@@ -25725,6 +25752,25 @@ var Lookup = exports.Lookup = function (_Control7) {
             }
         }
     }, {
+        key: "onGridKeyDown",
+        value: function onGridKeyDown(e) {
+            if ((0, _keyboard.isCancel)(e.which)) {
+                this.remove(e);
+                e.preventDefault();
+            }
+        }
+    }, {
+        key: "getPlaceholderText",
+        value: function getPlaceholderText() {
+            var field = this.props.field;
+
+            if (field.placeholder) {
+                return field.placeholder;
+            } else {
+                return _strings2.default.nothingSelected;
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this19 = this;
@@ -25740,6 +25786,12 @@ var Lookup = exports.Lookup = function (_Control7) {
                             return _this19.removeRow(row);
                         } }]
                 }]) }) : null;
+            var addClassName = void 0;
+            if (mode == "single") {
+                addClassName = "zmdi zmdi-more";
+            } else if (mode == "multiple") {
+                addClassName = "zmdi zmdi-plus";
+            }
 
             return React.createElement(
                 "div",
@@ -25749,25 +25801,25 @@ var Lookup = exports.Lookup = function (_Control7) {
                     { className: "lookup" },
                     React.createElement(
                         "div",
-                        { className: "lookup-header" },
+                        { className: "lookup-header", onClick: this.showEntities.bind(this) },
                         React.createElement(
                             "div",
                             { className: "actions pull-right" },
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this) },
+                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this), className: "m-r-0" },
                                 React.createElement("i", { className: "zmdi zmdi-close" })
                             ),
                             React.createElement(
                                 "a",
                                 { href: "javascript:;", title: _strings2.default.add, onClick: this.showEntities.bind(this) },
-                                React.createElement("i", { className: "zmdi zmdi-plus" })
+                                React.createElement("i", { className: addClassName })
                             )
                         ),
                         React.createElement(
                             "span",
                             { className: "lookup-current-value" },
-                            this.getCurrentValueDescription()
+                            this.getHeaderText()
                         ),
                         React.createElement("div", { className: "clearfix" })
                     ),
@@ -25782,7 +25834,8 @@ var Lookup = exports.Lookup = function (_Control7) {
                         summaryVisible: "false",
                         noResultsVisible: "false",
                         paginationEnabled: "false",
-                        tableClassName: "table table-condensed table-hover"
+                        tableClassName: "table table-condensed table-hover",
+                        onKeyDown: this.onGridKeyDown.bind(this)
                     })
                 ),
                 React.createElement(
@@ -27145,6 +27198,10 @@ var Grid = exports.Grid = function (_React$Component16) {
                     this.selection.down();
                     e.preventDefault();
                     return;
+                } else if ((0, _keyboard.isEsc)(e.which)) {
+                    this.selection.clear();
+                    e.preventDefault();
+                    return;
                 }
             }
 
@@ -27185,7 +27242,11 @@ var Grid = exports.Grid = function (_React$Component16) {
         }
     }, {
         key: "onRowDoubleClick",
-        value: function onRowDoubleClick() {}
+        value: function onRowDoubleClick(row) {
+            if (_.isFunction(this.props.onRowDoubleClick)) {
+                this.props.onRowDoubleClick(row);
+            }
+        }
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
@@ -28459,8 +28520,6 @@ var EntitiesGrid = function (_Screen) {
         value: function onGridKeyDown(e) {
             if ((0, _keyboard.isCancel)(e.which)) {
                 this.deleteEntities();
-            } else if ((0, _keyboard.isEsc)(e.which)) {
-                this.refs.grid.clearSelection();
             }
         }
     }, {
@@ -28732,9 +28791,6 @@ var EntityForm = function (_Screen) {
                         popupGrid: {
                             columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
                         }
-                    }, {
-                        property: "image",
-                        control: _forms.Image
                     }]
                 }]
             };

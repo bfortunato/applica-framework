@@ -9,7 +9,7 @@ import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Grid, TextCell, CheckCell, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
-import {isEsc, isCancel} from "../../utils/keyboard"
+import {isCancel} from "../../utils/keyboard"
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
@@ -58,8 +58,6 @@ export default class EntitiesGrid extends Screen {
     onGridKeyDown(e) {
         if (isCancel(e.which)) {
             this.deleteEntities()
-        } else if (isEsc(e.which)) {
-            this.refs.grid.clearSelection()
         }
     }
 

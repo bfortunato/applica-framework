@@ -5,7 +5,7 @@ import strings from "../../strings"
 import {Card, HeaderBlock} from "./common"
 import {format, optional, parseBoolean} from "../../utils/lang"
 import {Observable} from "../../aj/events"
-import {isControl, isDown, isEnter, isShift, isUp} from "../utils/keyboard"
+import {isControl, isDown, isEnter, isShift, isUp, isEsc} from "../utils/keyboard"
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
@@ -808,6 +808,10 @@ export class Grid extends React.Component {
                 this.selection.down()
                 e.preventDefault()
                 return
+            } else if (isEsc(e.which)) {
+                this.selection.clear()
+                e.preventDefault()
+                return
             }
         }
 
@@ -846,7 +850,10 @@ export class Grid extends React.Component {
         this.selection.handle(row)
     }
 
-    onRowDoubleClick() {
+    onRowDoubleClick(row) {
+        if (_.isFunction(this.props.onRowDoubleClick)) {
+            this.props.onRowDoubleClick(row)
+        }
     }
 
     onRowExpand(row) {

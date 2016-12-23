@@ -10,6 +10,7 @@ import {LookupStore} from "../../stores"
 import {getLookupResult, freeLookupResult} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
+import {isCancel} from "../utils/keyboard"
 
 const VALIDATION_ERROR = {}
 
@@ -560,7 +561,9 @@ export class Lookup extends Control {
         $(me).find(".lookup-grid").modal({show: false})
     }
 
-    showEntities() {
+    showEntities(e) {
+        e.stopPropagation()
+
         if (!this.dialogAlreadyOpened) {
             if (this.props.query) {
                 this.props.query.invokeChange()
@@ -579,6 +582,7 @@ export class Lookup extends Control {
         let model = this.props.model
         let field = this.props.field
         let grid = this.refs.searchGrid
+        let current = optional(model.get(field.property), [])
         let selection = optional(grid.getSelection(), [])
         let mode = this.checkedMode()
         let result = null
@@ -603,14 +607,15 @@ export class Lookup extends Control {
                 }
             })
         }
-        let current = optional(model.get(field.property), [])
 
         model.set(field.property, result)
 
         this.forceUpdate()
     }
 
-    remove() {
+    remove(e) {
+        e.stopPropagation()
+
         let mode = this.checkedMode()
         if (mode == "single") {
             this.removeAll()
@@ -678,6 +683,19 @@ export class Lookup extends Control {
         return mode
     }
 
+    getHeaderText() {
+        let field = this.props.field
+        let mode = this.checkedMode()
+        let model = this.props.model
+        let value = model.get(field.property)
+
+        if (_.isEmpty(value)) {
+            return <span className="placeholder">{this.getPlaceholderText()}</span>
+        } else {
+            return this.getCurrentValueDescription()
+        }
+    }
+
     getCurrentValueDescription() {
         let model = this.props.model
         let field = this.props.field
@@ -704,7 +722,23 @@ export class Lookup extends Control {
 
             return formatter(row)
         }
+    }
 
+    onGridKeyDown(e) {
+        if (isCancel(e.which)) {
+            this.remove(e)
+            e.preventDefault()
+        }
+    }
+
+    getPlaceholderText() {
+        let field = this.props.field
+
+        if (field.placeholder) {
+            return field.placeholder
+        } else {
+            return strings.nothingSelected
+        }
     }
 
     render() {
@@ -719,16 +753,22 @@ export class Lookup extends Control {
                 {icon: "zmdi zmdi-delete", action: (row) => this.removeRow(row)}
             ]
         }])}) : null
+        let addClassName
+        if (mode == "single") {
+            addClassName = "zmdi zmdi-more"
+        } else if (mode == "multiple") {
+            addClassName = "zmdi zmdi-plus"
+        }
 
         return (
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
-                    <div className="lookup-header">
+                    <div className="lookup-header" onClick={this.showEntities.bind(this)}>
                         <div className="actions pull-right">
-                            <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)}><i className="zmdi zmdi-close" /></a>
-                            <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className="zmdi zmdi-plus" /></a>
+                            <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
+                            <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
                         </div>
-                        <span className="lookup-current-value">{this.getCurrentValueDescription()}</span>
+                        <span className="lookup-current-value">{this.getHeaderText()}</span>
                         <div className="clearfix"></div>
                     </div>
 
@@ -745,6 +785,7 @@ export class Lookup extends Control {
                             noResultsVisible="false"
                             paginationEnabled="false"
                             tableClassName="table table-condensed table-hover"
+                            onKeyDown={this.onGridKeyDown.bind(this)}
                         />
                     }
                 </div>

@@ -135,10 +135,6 @@ export default class EntityForm extends Screen {
                                     {property: "mail", header: "Mail", cell: TextCell}
                                 ]
                             }
-                        },
-                        {
-                            property: "image",
-                            control: Image
                         }
                     ]
                 }

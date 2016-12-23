@@ -374,8 +374,12 @@ tr.collapsible {
   .lookup .lookup-header {
     background-color: #FFFFFF;
     height: 30px;
-    padding-left: 10px;
-    font-weight: 500; }
+    padding-left: 7px;
+    cursor: pointer; }
+    .lookup .lookup-header .placeholder {
+      color: #AEAEAE; }
+  .lookup .lookup-header:hover {
+    background-color: #ebebeb; }
   .lookup table {
     /*
     thead {

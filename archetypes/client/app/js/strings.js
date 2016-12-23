@@ -49,5 +49,6 @@ export default {
     setup: "Setup",
     categories: "Categorie",
     nElementsSelected: "{0} elements selected",
-    oneElementSelected: "1 element selected"
+    oneElementSelected: "1 element selected",
+    nothingSelected: "Nothing selected"
 }
