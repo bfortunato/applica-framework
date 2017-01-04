@@ -48,6 +48,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         web
                 .ignoring()
                 .antMatchers(
+                        "/**",
                         "/public/**",
                         "/static/**",
                         "/auth/**",

@@ -21,8 +21,9 @@ function ifAdmin(fn, ...params) {
 plugins.register()
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity/", params => ifAdmin(ui.changeScreen, <EntitiesGrid entity={params.entity} grid={params.grid} />))
-ui.addRoute("/admin/entities/:entity/edit", params => ifAdmin(ui.changeScreen, <EntityForm entity={params.entity} form={params.form} />))
+ui.addRoute("/admin/entities/:entity/", params => ifAdmin(ui.changeScreen, <EntitiesGrid entity={params.entity} />))
+ui.addRoute("/admin/entities/:entity/edit", params => ifAdmin(ui.changeScreen, <EntityForm entity={params.entity} />))
+
 
 /* Account routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))

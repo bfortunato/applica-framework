@@ -5,13 +5,10 @@ import {Card} from "./common"
 import {format, optional} from "../../utils/lang"
 import {Observable} from "../../aj/events"
 import {Grid, ActionsCell, resultToGridData} from "./grids"
-import {connectDiscriminated} from "../utils/aj"
-import {LookupStore} from "../../stores"
-import {getLookupResult, freeLookupResult} from "../../actions"
-import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
+import * as datasource from "../../utils/datasource"
 
 const VALIDATION_ERROR = {}
 
@@ -265,19 +262,21 @@ let AREA_KEY = 1
 let TAB_KEY = 1
 
 function generateKeys(descriptor) {
-    descriptor.areas.forEach(a => {
-        if (_.isEmpty(a.key)) {
-            a.key = "area" + AREA_KEY++
-        }
+    if (!_.isEmpty(descriptor.areas)) {
+        descriptor.areas.forEach(a => {
+            if (_.isEmpty(a.key)) {
+                a.key = "area" + AREA_KEY++
+            }
 
-        if (!_.isEmpty(a.tabs)) {
-            a.tabs.forEach(t => {
-                if (_.isEmpty(t.key)) {
-                    t.key = "tab" + TAB_KEY++
-                }
-            })
-        }
-    })
+            if (!_.isEmpty(a.tabs)) {
+                a.tabs.forEach(t => {
+                    if (_.isEmpty(t.key)) {
+                        t.key = "tab" + TAB_KEY++
+                    }
+                })
+            }
+        })
+    }
 
     if (!_.isEmpty(descriptor.tabs)) {
         descriptor.tabs.forEach(t => {
@@ -361,7 +360,7 @@ export class Field extends React.Component {
     render() {
         let model = this.props.model
         let className = "form-group " + (this.props.field.size ? this.props.field.size : "")
-        let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.options))
+        let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.props))
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
         let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
         let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
@@ -490,45 +489,6 @@ export class Select extends Control {
     }
 }
 
-let LOOKUP_DISCRIMINATOR = 1
-function nextLookupDiscriminator() {
-    return "lookup_" + LOOKUP_DISCRIMINATOR++
-}
-
-export class EntitiesLookupContainer extends Control  {
-    constructor(props) {
-        super(props)
-
-        this.discriminator = nextLookupDiscriminator()
-
-        this.query = query.create()
-        this.query.setPage(1)
-        this.query.setRowsPerPage(20)
-        this.__queryOnChange = () => {
-            getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
-        }
-
-        connectDiscriminated(this.discriminator, this, LookupStore)
-
-        this.state = {result: {}}
-    }
-
-    componentDidMount() {
-        this.query.on("change", this.__queryOnChange)
-
-        //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
-    }
-
-    componentWillUnmount() {
-        this.query.off("change", this.__queryOnChange)
-
-        //freeLookupResult({discriminator: this.discriminator, entity: this.props.field.entity})
-    }
-
-    render() {
-        return React.createElement(Lookup, _.assign({}, this.props, {query: this.query, result: this.state.result}))
-    }
-}
 
 export class Lookup extends Control {
     constructor(props) {
@@ -537,18 +497,29 @@ export class Lookup extends Control {
         this.state = {
             data: {rows: [], totalRows: 0}
         }
+
+        this.query = null
+
+        this.__dataSourceOnChange = (data) => {
+            this.setState(_.assign(this.state, {data}))
+        }
+
+        this.__queryChange = () => {
+            let datasource = this.props.datasource
+            datasource.load(this.query.keyword)
+        }
     }
 
     componentDidMount() {
-        let dataSource = this.props.field.dataSource
-        if (_.isEmpty(dataSource)) {
+        let datasource = this.props.datasource
+        if (_.isEmpty(datasource)) {
             throw new Error("Please specify a data source for this lookup: " + this.props.field.property)
         }
+        
+        datasource.on("change", this.__dataSourceOnChange)
 
-        this.__dataSourceOnChange = (data) => {
-            this.setState(data)
-        }
-        dataSource.on("change", this.__dataSourceOnChange)
+        this.query = this.props.query || query.create()
+        this.query.on("change", this.__queryChange)
 
         let me = ReactDOM.findDOMNode(this)
         $(me).find(".selection-row")
@@ -572,10 +543,12 @@ export class Lookup extends Control {
     }
 
     componentWillUnmount() {
-        let dataSource = this.props.field.dataSource
-        if (!_.isEmpty(dataSource)) {
-            dataSource.off("change", this.__dataSourceOnChange)
+        let datasource = this.props.datasource
+        if (!_.isEmpty(datasource)) {
+            datasource.off("change", this.__dataSourceOnChange)
         }
+
+        this.query.off("change", this.__queryChange)
     }
 
     showEntities(e) {
@@ -693,7 +666,7 @@ export class Lookup extends Control {
     }
 
     checkedMode() {
-        let mode = this.props.field.mode
+        let mode = this.props.mode
         if ("multiple" != mode && "single" != mode) {
             throw new Error("Please specify a mode for lookup: [single|multiple]")
         }
@@ -763,7 +736,7 @@ export class Lookup extends Control {
         let model = this.props.model
         let field = this.props.field
         let rows = model.get(field.property)
-        let selectionGrid = mode == "multiple" ? _.assign({}, field.selectionGrid, {columns: _.union(field.selectionGrid.columns, [{
+        let selectionGrid = mode == "multiple" ? _.assign({}, this.props.selectionGrid, {columns: _.union(this.props.selectionGrid.columns, [{
             cell: ActionsCell,
             tdClassName: "grid-actions",
             actions: [
@@ -817,7 +790,7 @@ export class Lookup extends Control {
                             <div className="modal-body">
                                 <Grid 
                                     ref="searchGrid" 
-                                    descriptor={this.props.field.popupGrid}
+                                    descriptor={this.props.popupGrid}
                                     data={resultToGridData(this.props.result)}
                                     query={this.props.query}
                                     showInCard="false" 

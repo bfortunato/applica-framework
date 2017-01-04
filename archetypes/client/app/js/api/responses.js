@@ -33,3 +33,26 @@ export function msg(code) {
 
     return "Code: = " + code
 }
+
+/**
+ * Returns value of value responses. If o is a promise, a wrapped promise thar returns value will be returned
+ */
+export function value(o) {
+	if (o instanceof Promise) {
+		return new Promise((resolve, reject) => {
+			o
+				.then(result => {
+					resolve(result.value)
+				})
+				.catch(e => reject(e))
+		})		
+	} else {
+		if (_.isObject(o)) {
+			return o.value
+		}
+	}
+
+	logger.w(o, "is not a value response")
+
+	return null
+}

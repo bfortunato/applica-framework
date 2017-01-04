@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
  * Date: 3/3/13
  * Time: 11:11 PM
  */
-@Controller
+@RestController
 @RequestMapping("/values")
 public class ValuesController {
 
@@ -27,7 +28,7 @@ public class ValuesController {
     RolesRepository rolesRepository;
 
     @RequestMapping("/roles")
-    public @ResponseBody ValueResponse roles(String keyword) {
+    public ValueResponse roles(String keyword) {
         List<Role> roles = rolesRepository.find(
                 Query.build()
                         .like("role", keyword)
@@ -37,7 +38,7 @@ public class ValuesController {
     }
 
     @RequestMapping("/permissions")
-    public @ResponseBody ValueResponse permissions(String keyword) {
+    public ValueResponse permissions(String keyword) {
         return new ValueResponse(
             SimpleItem.createList(Permissions.instance().allPermissions(), (p) -> (String) p, (p) -> (String) p)
         );

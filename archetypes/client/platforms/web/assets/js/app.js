@@ -2199,9 +2199,10 @@ define('api/responses.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
 exports.msg = msg;
+exports.value = value;
 var OK = exports.OK = 0;
 var ERROR = exports.ERROR = 1;
 var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
@@ -2229,11 +2230,34 @@ messages[ERROR_PASSWORD_NOT_VALID] = "Password not valid";
 messages[ERROR_VALIDATION] = "Please check your data and try again";
 
 function msg(code) {
-    if (_.has(messages, code)) {
-        return messages[code];
-    }
+	if (_.has(messages, code)) {
+		return messages[code];
+	}
 
-    return "Code: = " + code;
+	return "Code: = " + code;
+}
+
+/**
+ * Returns value of value responses. If o is a promise, a wrapped promise thar returns value will be returned
+ */
+function value(o) {
+	if (o instanceof Promise) {
+		return new Promise(function (resolve, reject) {
+			o.then(function (result) {
+				resolve(result.value);
+			}).catch(function (e) {
+				return reject(e);
+			});
+		});
+	} else {
+		if (_.isObject(o)) {
+			return o.value;
+		}
+	}
+
+	logger.w(o, "is not a value response");
+
+	return null;
 }
 });
 define('api/session.js', function(module, exports) {
@@ -2250,6 +2274,7 @@ exports.destroy = destroy;
 exports.getLoggedUser = getLoggedUser;
 exports.isLoggedIn = isLoggedIn;
 exports.getSessionToken = getSessionToken;
+exports.loadAllPermissions = loadAllPermissions;
 
 var _underscore = require("../libs/underscore");
 
@@ -2258,6 +2283,8 @@ var _ = _interopRequireWildcard(_underscore);
 var _responses = require("./responses");
 
 var responses = _interopRequireWildcard(_responses);
+
+var _utils = require("./utils");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -2398,6 +2425,11 @@ function isLoggedIn() {
 function getSessionToken() {
     return _sessionToken;
 }
+
+function loadAllPermissions() {
+    var url = config.get("values.permissions.url");
+    return (0, _utils.get)(url);
+}
 });
 define('api/utils.js', function(module, exports) {
 "use strict";
@@ -2494,7 +2526,8 @@ module.exports = {
     "account.recover.url": serviceBase + "account/recover",
     "account.reset.url": serviceBase + "account/reset",
     "grids.url": serviceBase + "grids",
-    "entities.url": serviceBase + "entities"
+    "entities.url": serviceBase + "entities",
+    "values.permissions.url": serviceBase + "values/permissions"
 };
 });
 define('framework/config.js', function(module, exports) {
@@ -24504,10 +24537,17 @@ define('utils/lang.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 exports.format = format;
 exports.optional = optional;
 exports.parseBoolean = parseBoolean;
 exports.walk = walk;
+exports.use = use;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /**
  * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")
  * @param fmt
@@ -24589,6 +24629,38 @@ function walk(tree) {
     }
 
     return tree;
+}
+
+var ObjectUser = function () {
+    function ObjectUser(o) {
+        _classCallCheck(this, ObjectUser);
+
+        this.o = o;
+    }
+
+    _createClass(ObjectUser, [{
+        key: "run",
+        value: function run(fn) {
+            fn(this.o);
+            return this.o;
+        }
+    }, {
+        key: "get",
+        value: function get() {
+            return this.o;
+        }
+    }]);
+
+    return ObjectUser;
+}();
+
+/**
+ * A strategy to do something with an object and get it
+ */
+
+
+function use(o) {
+    return new ObjectUser(o);
 }
 });
 define('web/components/common.js', function(module, exports) {
@@ -24773,7 +24845,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Image = exports.File = exports.Lookup = exports.EntitiesLookupContainer = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
+exports.Image = exports.File = exports.Lookup = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -24789,14 +24861,6 @@ var _events = require("../../aj/events");
 
 var _grids = require("./grids");
 
-var _aj = require("../utils/aj");
-
-var _stores = require("../../stores");
-
-var _actions = require("../../actions");
-
-var _ajex = require("../../../utils/ajex");
-
 var _query = require("../../api/query");
 
 var query = _interopRequireWildcard(_query);
@@ -24806,6 +24870,10 @@ var _keyboard = require("../utils/keyboard");
 var _inputfile = require("../utils/inputfile");
 
 var inputfile = _interopRequireWildcard(_inputfile);
+
+var _datasource = require("../../utils/datasource");
+
+var datasource = _interopRequireWildcard(_datasource);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -25144,19 +25212,21 @@ var AREA_KEY = 1;
 var TAB_KEY = 1;
 
 function generateKeys(descriptor) {
-    descriptor.areas.forEach(function (a) {
-        if (_.isEmpty(a.key)) {
-            a.key = "area" + AREA_KEY++;
-        }
+    if (!_.isEmpty(descriptor.areas)) {
+        descriptor.areas.forEach(function (a) {
+            if (_.isEmpty(a.key)) {
+                a.key = "area" + AREA_KEY++;
+            }
 
-        if (!_.isEmpty(a.tabs)) {
-            a.tabs.forEach(function (t) {
-                if (_.isEmpty(t.key)) {
-                    t.key = "tab" + TAB_KEY++;
-                }
-            });
-        }
-    });
+            if (!_.isEmpty(a.tabs)) {
+                a.tabs.forEach(function (t) {
+                    if (_.isEmpty(t.key)) {
+                        t.key = "tab" + TAB_KEY++;
+                    }
+                });
+            }
+        });
+    }
 
     if (!_.isEmpty(descriptor.tabs)) {
         descriptor.tabs.forEach(function (t) {
@@ -25282,7 +25352,7 @@ var Field = exports.Field = function (_React$Component5) {
         value: function render() {
             var model = this.props.model;
             var className = "form-group " + (this.props.field.size ? this.props.field.size : "");
-            var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.options));
+            var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.props));
             var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
             var controlSize = hasLabel ? "col-sm-10" : "col-sm-12";
             var validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : { valid: true };
@@ -25495,86 +25565,43 @@ var Select = exports.Select = function (_Control5) {
     return Select;
 }(Control);
 
-var LOOKUP_DISCRIMINATOR = 1;
-function nextLookupDiscriminator() {
-    return "lookup_" + LOOKUP_DISCRIMINATOR++;
-}
-
-var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control6) {
-    _inherits(EntitiesLookupContainer, _Control6);
-
-    function EntitiesLookupContainer(props) {
-        _classCallCheck(this, EntitiesLookupContainer);
-
-        var _this17 = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
-
-        _this17.discriminator = nextLookupDiscriminator();
-
-        _this17.query = query.create();
-        _this17.query.setPage(1);
-        _this17.query.setRowsPerPage(20);
-        _this17.__queryOnChange = function () {
-            (0, _actions.getLookupResult)({ discriminator: _this17.discriminator, entity: _this17.props.field.entity, query: _this17.query });
-        };
-
-        (0, _aj.connectDiscriminated)(_this17.discriminator, _this17, _stores.LookupStore);
-
-        _this17.state = { result: {} };
-        return _this17;
-    }
-
-    _createClass(EntitiesLookupContainer, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            this.query.on("change", this.__queryOnChange);
-
-            //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
-        }
-    }, {
-        key: "componentWillUnmount",
-        value: function componentWillUnmount() {
-            this.query.off("change", this.__queryOnChange);
-
-            //freeLookupResult({discriminator: this.discriminator, entity: this.props.field.entity})
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            return React.createElement(Lookup, _.assign({}, this.props, { query: this.query, result: this.state.result }));
-        }
-    }]);
-
-    return EntitiesLookupContainer;
-}(Control);
-
-var Lookup = exports.Lookup = function (_Control7) {
-    _inherits(Lookup, _Control7);
+var Lookup = exports.Lookup = function (_Control6) {
+    _inherits(Lookup, _Control6);
 
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        var _this18 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this17 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this18.state = {
+        _this17.state = {
             data: { rows: [], totalRows: 0 }
         };
-        return _this18;
+
+        _this17.query = null;
+
+        _this17.__dataSourceOnChange = function (data) {
+            _this17.setState(_.assign(_this17.state, { data: data }));
+        };
+
+        _this17.__queryChange = function () {
+            var datasource = _this17.props.datasource;
+            datasource.load(_this17.query.keyword);
+        };
+        return _this17;
     }
 
     _createClass(Lookup, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this19 = this;
-
-            var dataSource = this.props.field.dataSource;
-            if (_.isEmpty(dataSource)) {
+            var datasource = this.props.datasource;
+            if (_.isEmpty(datasource)) {
                 throw new Error("Please specify a data source for this lookup: " + this.props.field.property);
             }
 
-            this.__dataSourceOnChange = function (data) {
-                _this19.setState(data);
-            };
-            dataSource.on("change", this.__dataSourceOnChange);
+            datasource.on("change", this.__dataSourceOnChange);
+
+            this.query = this.props.query || query.create();
+            this.query.on("change", this.__queryChange);
 
             var me = ReactDOM.findDOMNode(this);
             $(me).find(".selection-row").mouseenter(function () {
@@ -25594,10 +25621,12 @@ var Lookup = exports.Lookup = function (_Control7) {
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            var dataSource = this.props.field.dataSource;
-            if (!_.isEmpty(dataSource)) {
-                dataSource.off("change", this.__dataSourceOnChange);
+            var datasource = this.props.datasource;
+            if (!_.isEmpty(datasource)) {
+                datasource.off("change", this.__dataSourceOnChange);
             }
+
+            this.query.off("change", this.__queryChange);
         }
     }, {
         key: "showEntities",
@@ -25722,7 +25751,7 @@ var Lookup = exports.Lookup = function (_Control7) {
     }, {
         key: "checkedMode",
         value: function checkedMode() {
-            var mode = this.props.field.mode;
+            var mode = this.props.mode;
             if ("multiple" != mode && "single" != mode) {
                 throw new Error("Please specify a mode for lookup: [single|multiple]");
             }
@@ -25797,17 +25826,17 @@ var Lookup = exports.Lookup = function (_Control7) {
     }, {
         key: "render",
         value: function render() {
-            var _this20 = this;
+            var _this18 = this;
 
             var mode = this.checkedMode();
             var model = this.props.model;
             var field = this.props.field;
             var rows = model.get(field.property);
-            var selectionGrid = mode == "multiple" ? _.assign({}, field.selectionGrid, { columns: _.union(field.selectionGrid.columns, [{
+            var selectionGrid = mode == "multiple" ? _.assign({}, this.props.selectionGrid, { columns: _.union(this.props.selectionGrid.columns, [{
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this20.removeRow(row);
+                            return _this18.removeRow(row);
                         } }]
                 }]) }) : null;
             var addClassName = void 0;
@@ -25894,7 +25923,7 @@ var Lookup = exports.Lookup = function (_Control7) {
                                 { className: "modal-body" },
                                 React.createElement(_grids.Grid, {
                                     ref: "searchGrid",
-                                    descriptor: this.props.field.popupGrid,
+                                    descriptor: this.props.popupGrid,
                                     data: (0, _grids.resultToGridData)(this.props.result),
                                     query: this.props.query,
                                     showInCard: "false",
@@ -25930,29 +25959,29 @@ var Lookup = exports.Lookup = function (_Control7) {
     return Lookup;
 }(Control);
 
-var File = exports.File = function (_Control8) {
-    _inherits(File, _Control8);
+var File = exports.File = function (_Control7) {
+    _inherits(File, _Control7);
 
     function File(props) {
         _classCallCheck(this, File);
 
-        var _this21 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
+        var _this19 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
 
-        _this21.state = { filename: null };
-        return _this21;
+        _this19.state = { filename: null };
+        return _this19;
     }
 
     _createClass(File, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this22 = this;
+            var _this20 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this22.setState({ filename: file.name });
+                _this20.setState({ filename: file.name });
             });
         }
     }, {
@@ -26035,8 +26064,8 @@ var File = exports.File = function (_Control8) {
     return File;
 }(Control);
 
-var Image = exports.Image = function (_Control9) {
-    _inherits(Image, _Control9);
+var Image = exports.Image = function (_Control8) {
+    _inherits(Image, _Control8);
 
     function Image(props) {
         _classCallCheck(this, Image);
@@ -26047,14 +26076,14 @@ var Image = exports.Image = function (_Control9) {
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this24 = this;
+            var _this22 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this24.forceUpdate();
+                _this22.forceUpdate();
             });
         }
     }, {
@@ -28370,6 +28399,160 @@ var Secure = function (_React$Component) {
 
 module.exports = Secure;
 });
+define('web/entities.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _grids = require("./components/grids");
+
+var _validator = require("../libs/validator");
+
+var _forms = require("./components/forms");
+
+var _containers = require("./components/containers");
+
+var _datasource = require("../utils/datasource");
+
+var datasource = _interopRequireWildcard(_datasource);
+
+var _session = require("../api/session");
+
+var SessionApi = _interopRequireWildcard(_session);
+
+var _responses = require("../api/responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _lang = require("../utils/lang");
+
+var _query = require("../api/query");
+
+var query = _interopRequireWildcard(_query);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var entities = {
+	user: {
+		grid: {
+			title: "Users list",
+			subtitle: "Create, edit or delete system users",
+			descriptor: {
+				columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
+			}
+		},
+		form: {
+			title: "Edit user",
+			subtitle: "Manage user properties",
+			descriptor: {
+				areas: [{
+					title: "General informations",
+					subtitle: "Insert all information about user",
+					fields: [{
+						property: "name",
+						control: _forms.Text,
+						label: "Name",
+						placeholder: "Name",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).trim();
+						},
+						validator: function validator(value) {
+							return (0, _validator.check)(value).notEmpty();
+						}
+					}, {
+						property: "mail",
+						control: _forms.Mail,
+						label: "Mail",
+						placeholder: "Mail",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).trim();
+						},
+						validator: function validator(value) {
+							return (0, _validator.check)(value).isEmail();
+						}
+					}, {
+						property: "active",
+						control: _forms.Check,
+						label: "Active",
+						placeholder: "Active",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).toBoolean();
+						}
+					}, {
+						property: "roles",
+						entity: "role",
+						label: "Roles",
+						control: _containers.LookupContainer,
+						props: {
+							mode: "multiple",
+							selectionGrid: {
+								columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+							},
+							popupGrid: {
+								columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+							}
+						}
+					}]
+				}]
+			}
+		}
+	},
+
+	role: {
+		grid: {
+			title: "Roles list",
+			subtitle: "A role is an entity that gives to user authorization to do something",
+			descriptor: {
+				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
+			}
+		},
+		form: {
+			title: "Edit role",
+			subtitle: null,
+			descriptor: {
+				fields: [{
+					property: "role",
+					control: _forms.Text,
+					label: "Role",
+					placeholder: "Name of role",
+					sanitizer: function sanitizer(value) {
+						return (0, _validator.sanitize)(value).trim();
+					},
+					validator: function validator(value) {
+						return (0, _validator.check)(value).notEmpty();
+					}
+				}, {
+					property: "permissions",
+					label: "Permissions",
+					placeholder: "Select permissions for role",
+					control: _forms.Lookup,
+					props: {
+						datasource: datasource.loadable(function (ds, keyword) {
+							SessionApi.loadAllPermissions(keyword).then(function (response) {
+								ds.setData(response.value);
+							}).catch(function (e) {
+								return logger.e(e);
+							});
+						}),
+						mode: "multiple",
+						selectionGrid: {
+							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }]
+						},
+						popupGrid: {
+							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }]
+						}
+					}
+
+				}]
+			}
+		}
+	}
+};
+
+exports.default = entities;
+});
 define('web/main.js', function(module, exports) {
 "use strict";
 
@@ -28434,10 +28617,10 @@ plugins.register();
 
 /* Admin routes */
 ui.addRoute("/admin/entities/:entity/", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { entity: params.entity, grid: params.grid }));
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { entity: params.entity }));
 });
 ui.addRoute("/admin/entities/:entity/edit", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity, form: params.form }));
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity }));
 });
 
 /* Account routes */
@@ -30145,139 +30328,20 @@ exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
 });
-define('web/entities.js', function(module, exports) {
+define('utils/datasource.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-
-var _grids = require("./components/grids");
-
-var _validator = require("../libs/validator");
-
-var _forms = require("./components/forms");
-
-exports.default = {
-	user: {
-		grid: {
-			title: "Users list",
-			subtitle: "Create, edit or delete system users",
-			descriptor: {
-				columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
-			}
-		},
-		form: {
-			title: "Edit user",
-			subtitle: "Manage user properties",
-			descriptor: {
-				id: "user",
-				submitText: "Save",
-				areas: [{
-					title: "General informations",
-					subtitle: "Insert all information about user",
-					fields: [{
-						property: "name",
-						control: _forms.Text,
-						label: "Name",
-						placeholder: "Name",
-						sanitizer: function sanitizer(value) {
-							return (0, _validator.sanitize)(value).trim();
-						},
-						validator: function validator(value) {
-							return (0, _validator.check)(value).notEmpty();
-						}
-					}, {
-						property: "mail",
-						control: _forms.Mail,
-						label: "Mail",
-						placeholder: "Mail",
-						sanitizer: function sanitizer(value) {
-							return (0, _validator.sanitize)(value).trim();
-						},
-						validator: function validator(value) {
-							return (0, _validator.check)(value).isEmail();
-						}
-					}, {
-						property: "active",
-						control: _forms.Check,
-						label: "Active",
-						placeholder: "Active",
-						sanitizer: function sanitizer(value) {
-							return (0, _validator.sanitize)(value).toBoolean();
-						}
-					}, {
-						property: "roles",
-						control: _forms.LookupContainer,
-						entity: "role",
-						label: "Roles",
-						mode: "multiple",
-						selectionGrid: {
-							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-						},
-						popupGrid: {
-							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-						}
-					}, {
-						property: "group",
-						control: _forms.LookupContainer,
-						entity: "role",
-						label: "Group",
-						mode: "single",
-						formatter: function formatter(row) {
-							return row.role;
-						},
-						popupGrid: {
-							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-						}
-					}, {
-						property: "parents",
-						control: _forms.LookupContainer,
-						entity: "user",
-						label: "Parents",
-						mode: "multiple",
-						selectionGrid: {
-							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
-						},
-						popupGrid: {
-							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
-						}
-					}, {
-						property: "file",
-						control: _forms.File,
-						label: "File",
-						placeholder: "Select file",
-						accept: ".zip"
-					}, {
-						property: "image",
-						control: _forms.Image,
-						label: "Image"
-					}]
-				}]
-			}
-		}
-	},
-
-	role: {
-		grid: {
-			title: "Roles list",
-			subtitle: "A role is an entity that gives to user authorization to do something",
-			descriptor: {
-				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
-			}
-		}
-	}
-};
-});
-define('utils/dataSource.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.DataSource = undefined;
+exports.LoaderDataSource = exports.DataSource = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.fixed = fixed;
+exports.promised = promised;
+exports.loadable = loadable;
+exports.create = create;
 
 var _events = require("../aj/events");
 
@@ -30287,15 +30351,27 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+function normalizeData(data) {
+	var result = null;
+	if (data) {
+		if (_.isArray(initialData)) {
+			result = { rows: initialData, totalRows: initialData.length };
+		} else if (_.isObject(initialData)) {
+			result = initialData;
+		}
+	}
+	return result;
+}
+
 var DataSource = exports.DataSource = function (_Observable) {
 	_inherits(DataSource, _Observable);
 
-	function DataSource() {
+	function DataSource(initialData) {
 		_classCallCheck(this, DataSource);
 
 		var _this = _possibleConstructorReturn(this, (DataSource.__proto__ || Object.getPrototypeOf(DataSource)).call(this));
 
-		_this.data = null;
+		_this.data = normalizeData(initialData);
 		return _this;
 	}
 
@@ -30304,10 +30380,163 @@ var DataSource = exports.DataSource = function (_Observable) {
 		value: function notifyChanged() {
 			this.invoke("change", this.data);
 		}
+	}, {
+		key: "setData",
+		value: function setData(data) {
+			this.data = normalizeData(data);
+			this.notifyChanged();
+		}
+	}, {
+		key: "load",
+		value: function load(keyword) {}
 	}]);
 
 	return DataSource;
 }(_events.Observable);
+
+var LoaderDataSource = exports.LoaderDataSource = function (_DataSource) {
+	_inherits(LoaderDataSource, _DataSource);
+
+	function LoaderDataSource(loader) {
+		_classCallCheck(this, LoaderDataSource);
+
+		var _this2 = _possibleConstructorReturn(this, (LoaderDataSource.__proto__ || Object.getPrototypeOf(LoaderDataSource)).call(this));
+
+		_this2.loader = loader;
+		return _this2;
+	}
+
+	_createClass(LoaderDataSource, [{
+		key: "load",
+		value: function load(keyword) {
+			if (_.isFunction(this.loader)) {
+				this.loader.bind(this, keyword);
+			}
+		}
+	}]);
+
+	return LoaderDataSource;
+}(DataSource);
+
+function fixed(data) {
+	return new DataSource(data);
+}
+
+function promised(promise) {
+	var dataSource = new DataSource();
+
+	promise.then(function (data) {
+		dataSource.notifyChanged();
+	}).catch(function (r) {
+		logger.e(r);
+	});
+
+	return dataSource;
+}
+
+function loadable(loader) {
+	var ds = new LoaderDataSource(loader);
+	ds.load(null);
+	return ds;
+}
+
+function create() {
+	return new DataSource();
+}
+});
+define('web/components/containers.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.EntitiesLookupContainer = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _datasource = require("../../utils/datasource");
+
+var datasource = _interopRequireWildcard(_datasource);
+
+var _stores = require("../../stores");
+
+var _actions = require("../../actions");
+
+var _ajex = require("../../../utils/ajex");
+
+var _query = require("../../api/query");
+
+var query = _interopRequireWildcard(_query);
+
+var _forms = require("./forms");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var LOOKUP_DISCRIMINATOR = 1;
+function nextLookupDiscriminator() {
+    return "lookup_" + LOOKUP_DISCRIMINATOR++;
+}
+
+var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control) {
+    _inherits(EntitiesLookupContainer, _Control);
+
+    function EntitiesLookupContainer(props) {
+        _classCallCheck(this, EntitiesLookupContainer);
+
+        var _this = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
+
+        _this.discriminator = nextLookupDiscriminator();
+
+        _this.query = query.create();
+        _this.query.setPage(1);
+        _this.query.setRowsPerPage(20);
+        _this.__queryOnChange = function () {
+            (0, _actions.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.field.entity, query: _this.query });
+        };
+
+        _this.datasource = datasource.create();
+
+        _this.state = { result: {} };
+        return _this;
+    }
+
+    _createClass(EntitiesLookupContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            _stores.LookupStore.subscribe(this, function (state) {
+                _this2.datasource.setData((0, _ajex.discriminated)(_this2.discriminator));
+            });
+
+            this.query.on("change", this.__queryOnChange);
+
+            //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            _stores.LookupStore.unsubscribe(this);
+
+            this.query.off("change", this.__queryOnChange);
+
+            (0, _actions.freeLookupResult)({ discriminator: this.discriminator, entity: this.props.field.entity });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(Lookup, _.assign({}, this.props, { query: this.query, datasource: this.datasource }));
+        }
+    }]);
+
+    return EntitiesLookupContainer;
+}(_forms.Control);
 });
 
 require('./aj').createRuntime();

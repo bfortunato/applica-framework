@@ -68,3 +68,25 @@ export function walk(tree, property = "children", action) {
 
     return tree
 }
+
+class ObjectUser {
+    constructor(o) {
+        this.o = o
+    }
+
+    run(fn) {
+        fn(this.o)
+        return this.o
+    }
+
+    get() {
+        return this.o
+    }
+}
+
+/**
+ * A strategy to do something with an object and get it
+ */
+export function use(o) {
+    return new ObjectUser(o)
+}

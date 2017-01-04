@@ -7,6 +7,7 @@ const preferences = require("../framework/preferences")
 const config = require("../framework/config")
 import * as _ from "../libs/underscore"
 import * as responses from "./responses"
+import {get} from "./utils"
 
 let _loggedUser
 let _sessionToken
@@ -146,5 +147,10 @@ export function isLoggedIn() {
 
 export function getSessionToken() {
     return _sessionToken
+}
+
+export function loadAllPermissions() {
+    let url = config.get("values.permissions.url")
+    return get(url)
 }
 
