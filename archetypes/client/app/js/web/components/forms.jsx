@@ -11,6 +11,7 @@ import {getLookupResult, freeLookupResult} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
+import * as inputfile from "../utils/inputfile"
 
 const VALIDATION_ERROR = {}
 
@@ -494,7 +495,7 @@ function nextLookupDiscriminator() {
     return "lookup_" + LOOKUP_DISCRIMINATOR++
 }
 
-export class LookupContainer extends Control  {
+export class EntitiesLookupContainer extends Control  {
     constructor(props) {
         super(props)
 
@@ -529,7 +530,6 @@ export class LookupContainer extends Control  {
     }
 }
 
-
 export class Lookup extends Control {
     constructor(props) {
         super(props)
@@ -540,6 +540,16 @@ export class Lookup extends Control {
     }
 
     componentDidMount() {
+        let dataSource = this.props.field.dataSource
+        if (_.isEmpty(dataSource)) {
+            throw new Error("Please specify a data source for this lookup: " + this.props.field.property)
+        }
+
+        this.__dataSourceOnChange = (data) => {
+            this.setState(data)
+        }
+        dataSource.on("change", this.__dataSourceOnChange)
+
         let me = ReactDOM.findDOMNode(this)
         $(me).find(".selection-row")
             .mouseenter(function() {
@@ -559,6 +569,13 @@ export class Lookup extends Control {
             })
 
         $(me).find(".lookup-grid").modal({show: false})
+    }
+
+    componentWillUnmount() {
+        let dataSource = this.props.field.dataSource
+        if (!_.isEmpty(dataSource)) {
+            dataSource.off("change", this.__dataSourceOnChange)
+        }
     }
 
     showEntities(e) {
@@ -824,30 +841,139 @@ export class Lookup extends Control {
     }
 }
 
-export class Image extends Control {
+export class File extends Control {
     constructor(props) {
         super(props)
 
-        this.state = { imageData: null}
+        this.state = {filename: null}
     }
 
     onFileSelected(e) {
+        let model = this.props.model
+        let field = this.props.field
         let file = e.target.files[0]
-        let reader = new FileReader()
-        reader.onload = (e) => {
-            this.setState({imageData: e.target.result})
-        }
-        reader.readAsDataURL(file)
-        console.log("ciao")
+        inputfile.readDataUrl(file).then(result => {
+            model.set(field.property, result)
+            this.setState({filename: file.name})
+        })
+    }
+
+    remove(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, null)
+        this.setState({filename: null})
+    }
+
+    search(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find("input[type=file]").click()
     }
 
     render() {
+        let model = this.props.model
+        let field = this.props.field
+        let value = model.get(field.property)
+        let hasValue = !_.isEmpty(value)
+
         return (
-            <div className="form-control">
-                <input type="file" onChange={this.onFileSelected.bind(this)} />
-                 {!_.isEmpty(this.state.imageData) &&
-                    <img src={this.state.imageData} style={{width: 200}} />
-                 }
+            <div className="input-file fg-line" tabIndex="0">
+                <div onClick={this.search.bind(this)}>
+                    {!hasValue ?
+                        <div>
+                            <div className="actions pull-right">
+                                <a href="javascript:;" title={strings.search} onClick={this.search.bind(this)} className="m-r-0"><i className="zmdi zmdi-search" /></a>
+                            </div>
+                            <span className="placeholder">{field.placeholder}</span>
+                        </div>
+                    : 
+                        <div>
+                            <div className="actions pull-right">
+                                <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
+                            </div>
+                            <span className="input-file-name"><span className="zmdi zmdi-file"></span> {this.state.filename}</span>
+                        </div>
+                    }
+                </div>
+
+                <input type="file" accept={field.accept} onChange={this.onFileSelected.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class Image extends Control {
+    constructor(props) {
+        super(props)
+    }
+
+    onFileSelected(e) {
+        let model = this.props.model
+        let field = this.props.field
+        let file = e.target.files[0]
+        inputfile.readDataUrl(file).then(result => {
+            model.set(field.property, result)
+            this.forceUpdate()
+        })
+    }
+
+    delete(e) {
+        e.stopPropagation()
+        e.preventDefault()
+
+        let model = this.props.model
+        let field = this.props.field
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find("input[type=file]").val(null)
+
+        model.set(field.property, null)
+        this.forceUpdate()
+    }
+
+    search(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let me = ReactDOM.findDOMNode(this)
+        $(me).find("input[type=file]").click()
+    }
+
+    render() {
+        let model = this.props.model
+        let field = this.props.field
+        let accept = field.accept || ".jpg,.png,.jpeg,.gif,.bmp"
+
+        let imgStyle = {}
+        if (field.imageWidth) {
+            imgStyle.width = field.imageWidth
+        }
+        if (field.imageHeight) {
+            imgStyle.height = field.imageHeight
+        }
+
+        let imageData = model.get(field.property)
+
+        return (
+            <div className="input-image fg-line">
+                <div onClick={this.search.bind(this)}>
+                    {!_.isEmpty(imageData) ?
+                        <div className="input-image-container">
+                            <div className="actions">
+                                <a href="javascript:;" onClick={this.delete.bind(this)} className="delete-button"><i className="zmdi zmdi-close"></i></a>
+                            </div>
+                            <img src={imageData} className="img-thumbnail img-responsive animated fadeIn" />
+                        </div>
+                    :
+                        <img src="resources/images/noimage.png" className="img-thumbnail img-responsive" />
+                    }
+                </div>
+                <input type="file" accept={accept} onChange={this.onFileSelected.bind(this)} />
             </div>
         )
     }

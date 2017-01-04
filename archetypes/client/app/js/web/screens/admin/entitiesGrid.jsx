@@ -6,10 +6,11 @@ import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid, TextCell, CheckCell, resultToGridData} from "../../components/grids"
+import {Grid} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 import {isCancel} from "../../utils/keyboard"
+import entities from "../../entities"
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
@@ -62,6 +63,8 @@ export default class EntitiesGrid extends Screen {
     }
 
     render() {
+        let grid = entities[this.props.entity].grid
+
         let actions = [
             {
                 type: "button",
@@ -90,68 +93,13 @@ export default class EntitiesGrid extends Screen {
 
         ]
 
-        let descriptor = {
-            columns: [
-                {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: true},
-                {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: true},
-                {property: "active", header: "Active", cell: CheckCell, sortable: true, searchable: true}
-            ]
-        }
-
+        let descriptor = grid.descriptor
         let data = resultToGridData(this.state.result)
-
-        let rows = []
-        for (let x = 0; x < 34; x++) {
-            let xo = {
-                index: x,
-                selected: false,
-                expanded: false,
-                data: { name: "name" + x, mail: "mail" + x, active: true },
-                children: []
-            }
-            for (let y = 0; y < 4; y++) {
-                let yo = {
-                    index: y,
-                    selected: false,
-                    expanded: false,
-                    data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
-                    children: []
-                }
-
-                xo.children.push(yo)
-
-                for (let z = 0; z < 5; z++) {
-                    let zo = {
-                        index: z,
-                        selected: false,
-                        expanded: false,
-                        data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
-                        children: []
-                    }
-
-                    for (let h = 0; h < 5; h++) {
-                        let ho = {
-                            index: h,
-                            selected: false,
-                            expanded: false,
-                            data: { name: "name" + x + y + z + h, mail: "mail" + x + y + z + h, active: true },
-                            children: null
-                        }
-
-                        zo.children.push(ho)
-                    }
-
-                    yo.children.push(zo)
-                }
-            }
-
-            rows.push(xo)
-        }
-
+        let rows = data.rows
 
         return (
             <Layout>
-                <HeaderBlock title="Users" subtitle="Manage system users" actions={actions}/>
+                <HeaderBlock title={grid.title} subtitle={grid.subtitle} actions={actions}/>
                 <Grid ref="grid" descriptor={descriptor} data={{rows: rows, totalRows: 100}} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>

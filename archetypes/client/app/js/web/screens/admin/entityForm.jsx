@@ -5,10 +5,9 @@ import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {connect} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Form, Text, Mail, Check, Select, Image, LookupContainer} from "../../components/forms"
-import {Grid, TextCell, ActionsCell} from "../../components/grids"
-import {check, sanitize} from "../../../libs/validator"
+import {Form} from "../../components/forms"
 import {saveEntity, freeEntities} from "../../../actions"
+import entities from "../../entities"
 
 function isCancel(which) {
     return which == 46 || which == 8
@@ -40,6 +39,8 @@ export default class EntityForm extends Screen {
     }
 
     render() {
+        let form = entities[this.props.entity].form
+
         let actions = [
             {
                 type: "button",
@@ -56,94 +57,11 @@ export default class EntityForm extends Screen {
 
         ]
 
-        let descriptor = {
-            id: "user",
-            submitText: "Save",
-            areas: [
-                {
-                    title: "General informations",
-                    subtitle: "Insert all information about user",
-                    fields: [
-                        {
-                            property: "name",
-                            control: Text,
-                            label: "Name",
-                            placeholder: "Name",
-                            sanitizer: (value) => sanitize(value).trim(),
-                            validator: (value) => check(value).notEmpty()
-                        },
-                        {
-                            property: "mail",
-                            control: Mail,
-                            label: "Mail",
-                            placeholder: "Mail",
-                            sanitizer: (value) => sanitize(value).trim(),
-                            validator: (value) => check(value).isEmail()
-                        },
-                        {
-                            property: "active",
-                            control: Check,
-                            label: "Active",
-                            placeholder: "Active",
-                            sanitizer: (value) => sanitize(value).toBoolean()
-                        },
-                        {
-                            property: "roles",
-                            control: LookupContainer,
-                            entity: "role",
-                            label: "Roles",
-                            mode: "multiple",
-                            selectionGrid: {
-                                columns: [
-                                    {property: "role", header: "Name", cell: TextCell}
-                                ]
-                            },
-                            popupGrid: {
-                                columns: [
-                                    {property: "role", header: "Name", cell: TextCell}
-                                ]
-                            }
-                        },
-                        {
-                            property: "group",
-                            control: LookupContainer,
-                            entity: "role",
-                            label: "Group",
-                            mode: "single",
-                            formatter: (row) => row.role,
-                            popupGrid: {
-                                columns: [
-                                    {property: "role", header: "Name", cell: TextCell}
-                                ]
-                            }
-                        },
-                        {
-                            property: "parents",
-                            control: LookupContainer,
-                            entity: "user",
-                            label: "Parents",
-                            mode: "multiple",
-                            selectionGrid: {
-                                columns: [
-                                    {property: "name", header: "Name", cell: TextCell},
-                                    {property: "mail", header: "Mail", cell: TextCell}
-                                ]
-                            },
-                            popupGrid: {
-                                columns: [
-                                    {property: "name", header: "Name", cell: TextCell},
-                                    {property: "mail", header: "Mail", cell: TextCell}
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
+        let descriptor = form.descriptor
 
         return (
             <Layout>
-                <HeaderBlock title="User" subtitle="Edit user" actions={actions}/>
+                <HeaderBlock title={form.title} subtitle={form.subtitle} actions={actions}/>
                 <Form ref="form" descriptor={descriptor} data={this.state.data} onSubmit={this.onSubmit.bind(this)} />
             </Layout>
         )

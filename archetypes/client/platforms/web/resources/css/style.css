@@ -415,3 +415,60 @@ tr.collapsible {
 
 .table > tbody > tr:last-child > td, .table > tfoot > tr:last-child > td {
   padding-bottom: 10px; }
+
+/*-------------------------
+    input-file
+--------------------------*/
+.input-file {
+  background-color: #ffffff;
+  border: solid 1px #f0f0f0;
+  cursor: pointer;
+  height: 30px;
+  position: relative;
+  overflow: hidden; }
+  .input-file .input-file-name {
+    padding-left: 7px;
+    padding-top: 6px;
+    display: block; }
+  .input-file .placeholder {
+    color: #AEAEAE;
+    padding-left: 7px;
+    padding-top: 6px;
+    display: block;
+    cursor: pointer; }
+  .input-file input[type=file] {
+    position: absolute;
+    height: 0%;
+    width: 0%;
+    top: -100%;
+    left: 0px;
+    opacity: 0; }
+
+.input-file:hover {
+  background-color: #ebebeb; }
+
+/*-------------------------
+    input-image
+--------------------------*/
+.input-image {
+  background-color: #ffffff;
+  cursor: pointer;
+  overflow: hidden; }
+  .input-image .img-responsive {
+    border-radius: 0px; }
+  .input-image .input-image-container {
+    position: relative;
+    display: inline-block; }
+    .input-image .input-image-container .actions {
+      position: absolute;
+      top: 5px;
+      right: 5px; }
+  .input-image img {
+    max-height: 250px; }
+  .input-image input[type=file] {
+    position: absolute;
+    height: 0%;
+    width: 0%;
+    top: -100%;
+    left: 0px;
+    opacity: 0; }

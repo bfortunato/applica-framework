@@ -24773,7 +24773,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Image = exports.Lookup = exports.LookupContainer = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
+exports.Image = exports.File = exports.Lookup = exports.EntitiesLookupContainer = exports.Select = exports.Number = exports.Check = exports.Mail = exports.Text = exports.Control = exports.Field = exports.Form = exports.Tabs = exports.Area = exports.Label = exports.Model = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -24802,6 +24802,10 @@ var _query = require("../../api/query");
 var query = _interopRequireWildcard(_query);
 
 var _keyboard = require("../utils/keyboard");
+
+var _inputfile = require("../utils/inputfile");
+
+var inputfile = _interopRequireWildcard(_inputfile);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -25496,13 +25500,13 @@ function nextLookupDiscriminator() {
     return "lookup_" + LOOKUP_DISCRIMINATOR++;
 }
 
-var LookupContainer = exports.LookupContainer = function (_Control6) {
-    _inherits(LookupContainer, _Control6);
+var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control6) {
+    _inherits(EntitiesLookupContainer, _Control6);
 
-    function LookupContainer(props) {
-        _classCallCheck(this, LookupContainer);
+    function EntitiesLookupContainer(props) {
+        _classCallCheck(this, EntitiesLookupContainer);
 
-        var _this17 = _possibleConstructorReturn(this, (LookupContainer.__proto__ || Object.getPrototypeOf(LookupContainer)).call(this, props));
+        var _this17 = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
 
         _this17.discriminator = nextLookupDiscriminator();
 
@@ -25519,7 +25523,7 @@ var LookupContainer = exports.LookupContainer = function (_Control6) {
         return _this17;
     }
 
-    _createClass(LookupContainer, [{
+    _createClass(EntitiesLookupContainer, [{
         key: "componentDidMount",
         value: function componentDidMount() {
             this.query.on("change", this.__queryOnChange);
@@ -25540,7 +25544,7 @@ var LookupContainer = exports.LookupContainer = function (_Control6) {
         }
     }]);
 
-    return LookupContainer;
+    return EntitiesLookupContainer;
 }(Control);
 
 var Lookup = exports.Lookup = function (_Control7) {
@@ -25560,6 +25564,18 @@ var Lookup = exports.Lookup = function (_Control7) {
     _createClass(Lookup, [{
         key: "componentDidMount",
         value: function componentDidMount() {
+            var _this19 = this;
+
+            var dataSource = this.props.field.dataSource;
+            if (_.isEmpty(dataSource)) {
+                throw new Error("Please specify a data source for this lookup: " + this.props.field.property);
+            }
+
+            this.__dataSourceOnChange = function (data) {
+                _this19.setState(data);
+            };
+            dataSource.on("change", this.__dataSourceOnChange);
+
             var me = ReactDOM.findDOMNode(this);
             $(me).find(".selection-row").mouseenter(function () {
                 $(this).find(".action").stop().fadeIn(250);
@@ -25574,6 +25590,14 @@ var Lookup = exports.Lookup = function (_Control7) {
             });
 
             $(me).find(".lookup-grid").modal({ show: false });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            var dataSource = this.props.field.dataSource;
+            if (!_.isEmpty(dataSource)) {
+                dataSource.off("change", this.__dataSourceOnChange);
+            }
         }
     }, {
         key: "showEntities",
@@ -25773,7 +25797,7 @@ var Lookup = exports.Lookup = function (_Control7) {
     }, {
         key: "render",
         value: function render() {
-            var _this19 = this;
+            var _this20 = this;
 
             var mode = this.checkedMode();
             var model = this.props.model;
@@ -25783,7 +25807,7 @@ var Lookup = exports.Lookup = function (_Control7) {
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this19.removeRow(row);
+                            return _this20.removeRow(row);
                         } }]
                 }]) }) : null;
             var addClassName = void 0;
@@ -25906,39 +25930,195 @@ var Lookup = exports.Lookup = function (_Control7) {
     return Lookup;
 }(Control);
 
-var Image = exports.Image = function (_Control8) {
-    _inherits(Image, _Control8);
+var File = exports.File = function (_Control8) {
+    _inherits(File, _Control8);
+
+    function File(props) {
+        _classCallCheck(this, File);
+
+        var _this21 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
+
+        _this21.state = { filename: null };
+        return _this21;
+    }
+
+    _createClass(File, [{
+        key: "onFileSelected",
+        value: function onFileSelected(e) {
+            var _this22 = this;
+
+            var model = this.props.model;
+            var field = this.props.field;
+            var file = e.target.files[0];
+            inputfile.readDataUrl(file).then(function (result) {
+                model.set(field.property, result);
+                _this22.setState({ filename: file.name });
+            });
+        }
+    }, {
+        key: "remove",
+        value: function remove(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var model = this.props.model;
+            var field = this.props.field;
+            model.set(field.property, null);
+            this.setState({ filename: null });
+        }
+    }, {
+        key: "search",
+        value: function search(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("input[type=file]").click();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var value = model.get(field.property);
+            var hasValue = !_.isEmpty(value);
+
+            return React.createElement(
+                "div",
+                { className: "input-file fg-line", tabIndex: "0" },
+                React.createElement(
+                    "div",
+                    { onClick: this.search.bind(this) },
+                    !hasValue ? React.createElement(
+                        "div",
+                        null,
+                        React.createElement(
+                            "div",
+                            { className: "actions pull-right" },
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", title: _strings2.default.search, onClick: this.search.bind(this), className: "m-r-0" },
+                                React.createElement("i", { className: "zmdi zmdi-search" })
+                            )
+                        ),
+                        React.createElement(
+                            "span",
+                            { className: "placeholder" },
+                            field.placeholder
+                        )
+                    ) : React.createElement(
+                        "div",
+                        null,
+                        React.createElement(
+                            "div",
+                            { className: "actions pull-right" },
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this), className: "m-r-0" },
+                                React.createElement("i", { className: "zmdi zmdi-close" })
+                            )
+                        ),
+                        React.createElement(
+                            "span",
+                            { className: "input-file-name" },
+                            React.createElement("span", { className: "zmdi zmdi-file" }),
+                            " ",
+                            this.state.filename
+                        )
+                    )
+                ),
+                React.createElement("input", { type: "file", accept: field.accept, onChange: this.onFileSelected.bind(this) })
+            );
+        }
+    }]);
+
+    return File;
+}(Control);
+
+var Image = exports.Image = function (_Control9) {
+    _inherits(Image, _Control9);
 
     function Image(props) {
         _classCallCheck(this, Image);
 
-        var _this20 = _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, props));
-
-        _this20.state = { imageData: null };
-        return _this20;
+        return _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, props));
     }
 
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this21 = this;
+            var _this24 = this;
 
+            var model = this.props.model;
+            var field = this.props.field;
             var file = e.target.files[0];
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                _this21.setState({ imageData: e.target.result });
-            };
-            reader.readAsDataURL(file);
-            console.log("ciao");
+            inputfile.readDataUrl(file).then(function (result) {
+                model.set(field.property, result);
+                _this24.forceUpdate();
+            });
+        }
+    }, {
+        key: "delete",
+        value: function _delete(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            var model = this.props.model;
+            var field = this.props.field;
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("input[type=file]").val(null);
+
+            model.set(field.property, null);
+            this.forceUpdate();
+        }
+    }, {
+        key: "search",
+        value: function search(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("input[type=file]").click();
         }
     }, {
         key: "render",
         value: function render() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var accept = field.accept || ".jpg,.png,.jpeg,.gif,.bmp";
+
+            var imgStyle = {};
+            if (field.imageWidth) {
+                imgStyle.width = field.imageWidth;
+            }
+            if (field.imageHeight) {
+                imgStyle.height = field.imageHeight;
+            }
+
+            var imageData = model.get(field.property);
+
             return React.createElement(
                 "div",
-                { className: "form-control" },
-                React.createElement("input", { type: "file", onChange: this.onFileSelected.bind(this) }),
-                !_.isEmpty(this.state.imageData) && React.createElement("img", { src: this.state.imageData, style: { width: 200 } })
+                { className: "input-image fg-line" },
+                React.createElement(
+                    "div",
+                    { onClick: this.search.bind(this) },
+                    !_.isEmpty(imageData) ? React.createElement(
+                        "div",
+                        { className: "input-image-container" },
+                        React.createElement(
+                            "div",
+                            { className: "actions" },
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", onClick: this.delete.bind(this), className: "delete-button" },
+                                React.createElement("i", { className: "zmdi zmdi-close" })
+                            )
+                        ),
+                        React.createElement("img", { src: imageData, className: "img-thumbnail img-responsive animated fadeIn" })
+                    ) : React.createElement("img", { src: "resources/images/noimage.png", className: "img-thumbnail img-responsive" })
+                ),
+                React.createElement("input", { type: "file", accept: accept, onChange: this.onFileSelected.bind(this) })
             );
         }
     }]);
@@ -28174,7 +28354,7 @@ var Secure = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Secure.__proto__ || Object.getPrototypeOf(Secure)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.session);
+        (0, _aj.connect)(_this, _stores.SessionStore);
         return _this;
     }
 
@@ -28452,6 +28632,10 @@ var _lang = require("../../../utils/lang");
 
 var _keyboard = require("../../utils/keyboard");
 
+var _entities = require("../../entities");
+
+var _entities2 = _interopRequireDefault(_entities);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -28527,6 +28711,8 @@ var EntitiesGrid = function (_Screen) {
         value: function render() {
             var _this3 = this;
 
+            var grid = _entities2.default[this.props.entity].grid;
+
             var actions = [{
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
@@ -28557,64 +28743,14 @@ var EntitiesGrid = function (_Screen) {
                 }
             }];
 
-            var descriptor = {
-                columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
-            };
-
-            var data = (0, _grids.resultToGridData)(this.state.result);
-
-            var rows = [];
-            for (var x = 0; x < 34; x++) {
-                var xo = {
-                    index: x,
-                    selected: false,
-                    expanded: false,
-                    data: { name: "name" + x, mail: "mail" + x, active: true },
-                    children: []
-                };
-                for (var y = 0; y < 4; y++) {
-                    var yo = {
-                        index: y,
-                        selected: false,
-                        expanded: false,
-                        data: { name: "name" + x + y, mail: "mail" + x + y, active: true },
-                        children: []
-                    };
-
-                    xo.children.push(yo);
-
-                    for (var z = 0; z < 5; z++) {
-                        var zo = {
-                            index: z,
-                            selected: false,
-                            expanded: false,
-                            data: { name: "name" + x + y + z, mail: "mail" + x + y + z, active: true },
-                            children: []
-                        };
-
-                        for (var h = 0; h < 5; h++) {
-                            var ho = {
-                                index: h,
-                                selected: false,
-                                expanded: false,
-                                data: { name: "name" + x + y + z + h, mail: "mail" + x + y + z + h, active: true },
-                                children: null
-                            };
-
-                            zo.children.push(ho);
-                        }
-
-                        yo.children.push(zo);
-                    }
-                }
-
-                rows.push(xo);
-            }
+            var descriptor = grid.descriptor;
+            var data = resultToGridData(this.state.result);
+            var rows = data.rows;
 
             return React.createElement(
                 _layout.Layout,
                 null,
-                React.createElement(_common.HeaderBlock, { title: "Users", subtitle: "Manage system users", actions: actions }),
+                React.createElement(_common.HeaderBlock, { title: grid.title, subtitle: grid.subtitle, actions: actions }),
                 React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, data: { rows: rows, totalRows: 100 }, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
@@ -28649,11 +28785,11 @@ var _common = require("../../components/common");
 
 var _forms = require("../../components/forms");
 
-var _grids = require("../../components/grids");
-
-var _validator = require("../../../libs/validator");
-
 var _actions = require("../../../actions");
+
+var _entities = require("../../entities");
+
+var _entities2 = _interopRequireDefault(_entities);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -28703,6 +28839,8 @@ var EntityForm = function (_Screen) {
     }, {
         key: "render",
         value: function render() {
+            var form = _entities2.default[this.props.entity].form;
+
             var actions = [{
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
@@ -28719,86 +28857,12 @@ var EntityForm = function (_Screen) {
                 }
             }];
 
-            var descriptor = {
-                id: "user",
-                submitText: "Save",
-                areas: [{
-                    title: "General informations",
-                    subtitle: "Insert all information about user",
-                    fields: [{
-                        property: "name",
-                        control: _forms.Text,
-                        label: "Name",
-                        placeholder: "Name",
-                        sanitizer: function sanitizer(value) {
-                            return (0, _validator.sanitize)(value).trim();
-                        },
-                        validator: function validator(value) {
-                            return (0, _validator.check)(value).notEmpty();
-                        }
-                    }, {
-                        property: "mail",
-                        control: _forms.Mail,
-                        label: "Mail",
-                        placeholder: "Mail",
-                        sanitizer: function sanitizer(value) {
-                            return (0, _validator.sanitize)(value).trim();
-                        },
-                        validator: function validator(value) {
-                            return (0, _validator.check)(value).isEmail();
-                        }
-                    }, {
-                        property: "active",
-                        control: _forms.Check,
-                        label: "Active",
-                        placeholder: "Active",
-                        sanitizer: function sanitizer(value) {
-                            return (0, _validator.sanitize)(value).toBoolean();
-                        }
-                    }, {
-                        property: "roles",
-                        control: _forms.LookupContainer,
-                        entity: "role",
-                        label: "Roles",
-                        mode: "multiple",
-                        selectionGrid: {
-                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-                        },
-                        popupGrid: {
-                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-                        }
-                    }, {
-                        property: "group",
-                        control: _forms.LookupContainer,
-                        entity: "role",
-                        label: "Group",
-                        mode: "single",
-                        formatter: function formatter(row) {
-                            return row.role;
-                        },
-                        popupGrid: {
-                            columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
-                        }
-                    }, {
-                        property: "parents",
-                        control: _forms.LookupContainer,
-                        entity: "user",
-                        label: "Parents",
-                        mode: "multiple",
-                        selectionGrid: {
-                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
-                        },
-                        popupGrid: {
-                            columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
-                        }
-                    }]
-                }]
-            };
+            var descriptor = form.descriptor;
 
             return React.createElement(
                 _layout.Layout,
                 null,
-                React.createElement(_common.HeaderBlock, { title: "User", subtitle: "Edit user", actions: actions }),
+                React.createElement(_common.HeaderBlock, { title: form.title, subtitle: form.subtitle, actions: actions }),
                 React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data, onSubmit: this.onSubmit.bind(this) })
             );
         }
@@ -29828,6 +29892,109 @@ function serialize(form) {
 
 exports.serialize = serialize;
 });
+define('web/utils/inputfile.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.cleanedData = cleanedData;
+exports.dataUrl = dataUrl;
+exports.readData = readData;
+exports.readDataUrl = readDataUrl;
+function cleanedData(data) {
+    if (_.isEmpty(data)) {
+        return null;
+    }
+    var search = ";base64,";
+    var index = data.indexOf(search);
+    if (index == -1) {
+        return null;
+    }
+
+    var startIndex = index + search.length;
+    return data.substring(startIndex);
+}
+
+function dataUrl(data, format) {
+    return "data;base64," + data;
+}
+
+function _unchangedData(data) {
+    return data;
+}
+
+function _readDataInternal(file, cleaner) {
+    return new Promise(function (resolve, reject) {
+        try {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                resolve(cleaner(e.target.result));
+            };
+            reader.readAsDataURL(file);
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
+function readData(file) {
+    return _readDataInternal(file, cleanedData);
+}
+
+function readDataUrl(file) {
+    return _readDataInternal(file, _unchangedData);
+}
+});
+define('web/utils/keyboard.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isControl = isControl;
+exports.isShift = isShift;
+exports.isUp = isUp;
+exports.isDown = isDown;
+exports.isEnter = isEnter;
+exports.isCancel = isCancel;
+exports.isEsc = isEsc;
+function isMac() {
+    return navigator.platform.indexOf('Mac') > -1;
+}
+
+function isControl(which) {
+    if (isMac()) {
+        return which == 91 || which == 93;
+    } else {
+        return which == 17;
+    }
+}
+
+function isShift(which) {
+    return which == 16;
+}
+
+function isUp(which) {
+    return which == 38;
+}
+
+function isDown(which) {
+    return which == 40;
+}
+
+function isEnter(which) {
+    return which == 13;
+}
+
+function isCancel(which) {
+    return which == 46 || which == 8;
+}
+
+function isEsc(which) {
+    return which == 27;
+}
+});
 define('web/utils/path.js', function(module, exports) {
 "use strict";
 
@@ -29978,54 +30145,169 @@ exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
 });
-define('web/utils/keyboard.js', function(module, exports) {
+define('web/entities.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
-exports.isControl = isControl;
-exports.isShift = isShift;
-exports.isUp = isUp;
-exports.isDown = isDown;
-exports.isEnter = isEnter;
-exports.isCancel = isCancel;
-exports.isEsc = isEsc;
-function isMac() {
-    return navigator.platform.indexOf('Mac') > -1;
-}
 
-function isControl(which) {
-    if (isMac()) {
-        return which == 91 || which == 93;
-    } else {
-        return which == 17;
-    }
-}
+var _grids = require("./components/grids");
 
-function isShift(which) {
-    return which == 16;
-}
+var _validator = require("../libs/validator");
 
-function isUp(which) {
-    return which == 38;
-}
+var _forms = require("./components/forms");
 
-function isDown(which) {
-    return which == 40;
-}
+exports.default = {
+	user: {
+		grid: {
+			title: "Users list",
+			subtitle: "Create, edit or delete system users",
+			descriptor: {
+				columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
+			}
+		},
+		form: {
+			title: "Edit user",
+			subtitle: "Manage user properties",
+			descriptor: {
+				id: "user",
+				submitText: "Save",
+				areas: [{
+					title: "General informations",
+					subtitle: "Insert all information about user",
+					fields: [{
+						property: "name",
+						control: _forms.Text,
+						label: "Name",
+						placeholder: "Name",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).trim();
+						},
+						validator: function validator(value) {
+							return (0, _validator.check)(value).notEmpty();
+						}
+					}, {
+						property: "mail",
+						control: _forms.Mail,
+						label: "Mail",
+						placeholder: "Mail",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).trim();
+						},
+						validator: function validator(value) {
+							return (0, _validator.check)(value).isEmail();
+						}
+					}, {
+						property: "active",
+						control: _forms.Check,
+						label: "Active",
+						placeholder: "Active",
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).toBoolean();
+						}
+					}, {
+						property: "roles",
+						control: _forms.LookupContainer,
+						entity: "role",
+						label: "Roles",
+						mode: "multiple",
+						selectionGrid: {
+							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+						},
+						popupGrid: {
+							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+						}
+					}, {
+						property: "group",
+						control: _forms.LookupContainer,
+						entity: "role",
+						label: "Group",
+						mode: "single",
+						formatter: function formatter(row) {
+							return row.role;
+						},
+						popupGrid: {
+							columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+						}
+					}, {
+						property: "parents",
+						control: _forms.LookupContainer,
+						entity: "user",
+						label: "Parents",
+						mode: "multiple",
+						selectionGrid: {
+							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
+						},
+						popupGrid: {
+							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }, { property: "mail", header: "Mail", cell: _grids.TextCell }]
+						}
+					}, {
+						property: "file",
+						control: _forms.File,
+						label: "File",
+						placeholder: "Select file",
+						accept: ".zip"
+					}, {
+						property: "image",
+						control: _forms.Image,
+						label: "Image"
+					}]
+				}]
+			}
+		}
+	},
 
-function isEnter(which) {
-    return which == 13;
-}
+	role: {
+		grid: {
+			title: "Roles list",
+			subtitle: "A role is an entity that gives to user authorization to do something",
+			descriptor: {
+				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
+			}
+		}
+	}
+};
+});
+define('utils/dataSource.js', function(module, exports) {
+"use strict";
 
-function isCancel(which) {
-    return which == 46 || which == 8;
-}
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.DataSource = undefined;
 
-function isEsc(which) {
-    return which == 27;
-}
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _events = require("../aj/events");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var DataSource = exports.DataSource = function (_Observable) {
+	_inherits(DataSource, _Observable);
+
+	function DataSource() {
+		_classCallCheck(this, DataSource);
+
+		var _this = _possibleConstructorReturn(this, (DataSource.__proto__ || Object.getPrototypeOf(DataSource)).call(this));
+
+		_this.data = null;
+		return _this;
+	}
+
+	_createClass(DataSource, [{
+		key: "notifyChanged",
+		value: function notifyChanged() {
+			this.invoke("change", this.data);
+		}
+	}]);
+
+	return DataSource;
+}(_events.Observable);
 });
 
 require('./aj').createRuntime();
