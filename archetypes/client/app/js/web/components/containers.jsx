@@ -5,7 +5,7 @@ import {LookupStore} from "../../stores"
 import {getLookupResult, freeLookupResult} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
-import {Control} from "./forms"
+import {Lookup, Control} from "./forms"
 
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {
@@ -22,7 +22,7 @@ export class EntitiesLookupContainer extends Control  {
         this.query.setPage(1)
         this.query.setRowsPerPage(20)
         this.__queryOnChange = () => {
-            getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+            getLookupResult({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
         }
 
         this.datasource = datasource.create()
@@ -32,12 +32,12 @@ export class EntitiesLookupContainer extends Control  {
 
     componentDidMount() {
         LookupStore.subscribe(this, state => {
-        	this.datasource.setData(discriminated(this.discriminator))
+        	this.datasource.setData(discriminated(state, this.discriminator).result)
         })
 
         this.query.on("change", this.__queryOnChange)
 
-        //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
+        //getLookupResult({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
     }
 
     componentWillUnmount() {
@@ -45,7 +45,7 @@ export class EntitiesLookupContainer extends Control  {
 
         this.query.off("change", this.__queryOnChange)
 
-        freeLookupResult({discriminator: this.discriminator, entity: this.props.field.entity})
+        freeLookupResult({discriminator: this.discriminator, entity: this.props.entity})
     }
 
     render() {

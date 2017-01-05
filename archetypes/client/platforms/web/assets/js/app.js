@@ -24531,6 +24531,88 @@ function discriminated(state, discriminator) {
     return state[discriminator] || {};
 }
 });
+define('utils/datasource.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.DataSource = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.fixed = fixed;
+exports.promised = promised;
+exports.create = create;
+
+var _events = require("../aj/events");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function normalizeData(data) {
+	var result = null;
+	if (data) {
+		if (_.isArray(data)) {
+			result = { rows: data, totalRows: data.length };
+		} else if (_.isObject(data)) {
+			result = data;
+		}
+	}
+	return result;
+}
+
+var DataSource = exports.DataSource = function (_Observable) {
+	_inherits(DataSource, _Observable);
+
+	function DataSource(initialData) {
+		_classCallCheck(this, DataSource);
+
+		var _this = _possibleConstructorReturn(this, (DataSource.__proto__ || Object.getPrototypeOf(DataSource)).call(this));
+
+		_this.data = normalizeData(initialData);
+		return _this;
+	}
+
+	_createClass(DataSource, [{
+		key: "notifyChanged",
+		value: function notifyChanged() {
+			this.invoke("change", this.data);
+		}
+	}, {
+		key: "setData",
+		value: function setData(data) {
+			this.data = normalizeData(data);
+			this.notifyChanged();
+		}
+	}]);
+
+	return DataSource;
+}(_events.Observable);
+
+function fixed(data) {
+	return new DataSource(data);
+}
+
+function promised(promise) {
+	var dataSource = new DataSource();
+
+	promise.then(function (data) {
+		dataSource.notifyChanged();
+	}).catch(function (r) {
+		logger.e(r);
+	});
+
+	return dataSource;
+}
+
+function create() {
+	return new DataSource();
+}
+});
 define('utils/lang.js', function(module, exports) {
 "use strict";
 
@@ -24838,6 +24920,100 @@ var FloatingButton = exports.FloatingButton = function (_React$Component4) {
 
     return FloatingButton;
 }(React.Component);
+});
+define('web/components/containers.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.EntitiesLookupContainer = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _datasource = require("../../utils/datasource");
+
+var datasource = _interopRequireWildcard(_datasource);
+
+var _stores = require("../../stores");
+
+var _actions = require("../../actions");
+
+var _ajex = require("../../../utils/ajex");
+
+var _query = require("../../api/query");
+
+var query = _interopRequireWildcard(_query);
+
+var _forms = require("./forms");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var LOOKUP_DISCRIMINATOR = 1;
+function nextLookupDiscriminator() {
+    return "lookup_" + LOOKUP_DISCRIMINATOR++;
+}
+
+var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control) {
+    _inherits(EntitiesLookupContainer, _Control);
+
+    function EntitiesLookupContainer(props) {
+        _classCallCheck(this, EntitiesLookupContainer);
+
+        var _this = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
+
+        _this.discriminator = nextLookupDiscriminator();
+
+        _this.query = query.create();
+        _this.query.setPage(1);
+        _this.query.setRowsPerPage(20);
+        _this.__queryOnChange = function () {
+            (0, _actions.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.entity, query: _this.query });
+        };
+
+        _this.datasource = datasource.create();
+
+        _this.state = { result: {} };
+        return _this;
+    }
+
+    _createClass(EntitiesLookupContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            _stores.LookupStore.subscribe(this, function (state) {
+                _this2.datasource.setData((0, _ajex.discriminated)(state, _this2.discriminator).result);
+            });
+
+            this.query.on("change", this.__queryOnChange);
+
+            //getLookupResult({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            _stores.LookupStore.unsubscribe(this);
+
+            this.query.off("change", this.__queryOnChange);
+
+            (0, _actions.freeLookupResult)({ discriminator: this.discriminator, entity: this.props.entity });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(_forms.Lookup, _.assign({}, this.props, { query: this.query, datasource: this.datasource }));
+        }
+    }]);
+
+    return EntitiesLookupContainer;
+}(_forms.Control);
 });
 define('web/components/forms.js', function(module, exports) {
 "use strict";
@@ -25573,19 +25749,18 @@ var Lookup = exports.Lookup = function (_Control6) {
 
         var _this17 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this17.state = {
-            data: { rows: [], totalRows: 0 }
-        };
-
-        _this17.query = null;
+        _this17.datasource = _this17.props.datasource || datasource.create();
+        _this17.query = _this17.props.query || query.create();
 
         _this17.__dataSourceOnChange = function (data) {
-            _this17.setState(_.assign(_this17.state, { data: data }));
+            logger.i("Datasource changed:", JSON.stringify(data));
+            _this17.forceUpdate();
         };
 
         _this17.__queryChange = function () {
-            var datasource = _this17.props.datasource;
-            datasource.load(_this17.query.keyword);
+            if (_.isFunction(_this17.props.loader)) {
+                _this17.props.loader(_this17.query, _this17.datasource);
+            }
         };
         return _this17;
     }
@@ -25593,14 +25768,7 @@ var Lookup = exports.Lookup = function (_Control6) {
     _createClass(Lookup, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var datasource = this.props.datasource;
-            if (_.isEmpty(datasource)) {
-                throw new Error("Please specify a data source for this lookup: " + this.props.field.property);
-            }
-
-            datasource.on("change", this.__dataSourceOnChange);
-
-            this.query = this.props.query || query.create();
+            this.datasource.on("change", this.__dataSourceOnChange);
             this.query.on("change", this.__queryChange);
 
             var me = ReactDOM.findDOMNode(this);
@@ -25617,15 +25785,15 @@ var Lookup = exports.Lookup = function (_Control6) {
             });
 
             $(me).find(".lookup-grid").modal({ show: false });
+
+            if (_.isFunction(this.props.loader)) {
+                this.props.loader(this.query, this.datasource);
+            }
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            var datasource = this.props.datasource;
-            if (!_.isEmpty(datasource)) {
-                datasource.off("change", this.__dataSourceOnChange);
-            }
-
+            this.datasource.off("change", this.__dataSourceOnChange);
             this.query.off("change", this.__queryChange);
         }
     }, {
@@ -25924,7 +26092,7 @@ var Lookup = exports.Lookup = function (_Control6) {
                                 React.createElement(_grids.Grid, {
                                     ref: "searchGrid",
                                     descriptor: this.props.popupGrid,
-                                    data: (0, _grids.resultToGridData)(this.props.result),
+                                    data: (0, _grids.resultToGridData)(this.datasource.data),
                                     query: this.props.query,
                                     showInCard: "false",
                                     quickSearchEnabled: "true",
@@ -28434,6 +28602,14 @@ var query = _interopRequireWildcard(_query);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+function permissionsLoader(query, datasource) {
+	SessionApi.loadAllPermissions(query.keyword).then(function (response) {
+		datasource.setData(response.value);
+	}).catch(function (e) {
+		return logger.e(e);
+	});
+}
+
 var entities = {
 	user: {
 		grid: {
@@ -28482,11 +28658,11 @@ var entities = {
 						}
 					}, {
 						property: "roles",
-						entity: "role",
 						label: "Roles",
-						control: _containers.LookupContainer,
+						control: _containers.EntitiesLookupContainer,
 						props: {
 							mode: "multiple",
+							entity: "role",
 							selectionGrid: {
 								columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
 							},
@@ -28529,19 +28705,13 @@ var entities = {
 					placeholder: "Select permissions for role",
 					control: _forms.Lookup,
 					props: {
-						datasource: datasource.loadable(function (ds, keyword) {
-							SessionApi.loadAllPermissions(keyword).then(function (response) {
-								ds.setData(response.value);
-							}).catch(function (e) {
-								return logger.e(e);
-							});
-						}),
+						loader: permissionsLoader,
 						mode: "multiple",
 						selectionGrid: {
-							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }]
+							columns: [{ property: "label", header: "Name", cell: _grids.TextCell }]
 						},
 						popupGrid: {
-							columns: [{ property: "name", header: "Name", cell: _grids.TextCell }]
+							columns: [{ property: "label", header: "Name", cell: _grids.TextCell }]
 						}
 					}
 
@@ -30327,216 +30497,6 @@ exports.addScreenChangeListener = function (listener) {
 exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
-});
-define('utils/datasource.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.LoaderDataSource = exports.DataSource = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-exports.fixed = fixed;
-exports.promised = promised;
-exports.loadable = loadable;
-exports.create = create;
-
-var _events = require("../aj/events");
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function normalizeData(data) {
-	var result = null;
-	if (data) {
-		if (_.isArray(initialData)) {
-			result = { rows: initialData, totalRows: initialData.length };
-		} else if (_.isObject(initialData)) {
-			result = initialData;
-		}
-	}
-	return result;
-}
-
-var DataSource = exports.DataSource = function (_Observable) {
-	_inherits(DataSource, _Observable);
-
-	function DataSource(initialData) {
-		_classCallCheck(this, DataSource);
-
-		var _this = _possibleConstructorReturn(this, (DataSource.__proto__ || Object.getPrototypeOf(DataSource)).call(this));
-
-		_this.data = normalizeData(initialData);
-		return _this;
-	}
-
-	_createClass(DataSource, [{
-		key: "notifyChanged",
-		value: function notifyChanged() {
-			this.invoke("change", this.data);
-		}
-	}, {
-		key: "setData",
-		value: function setData(data) {
-			this.data = normalizeData(data);
-			this.notifyChanged();
-		}
-	}, {
-		key: "load",
-		value: function load(keyword) {}
-	}]);
-
-	return DataSource;
-}(_events.Observable);
-
-var LoaderDataSource = exports.LoaderDataSource = function (_DataSource) {
-	_inherits(LoaderDataSource, _DataSource);
-
-	function LoaderDataSource(loader) {
-		_classCallCheck(this, LoaderDataSource);
-
-		var _this2 = _possibleConstructorReturn(this, (LoaderDataSource.__proto__ || Object.getPrototypeOf(LoaderDataSource)).call(this));
-
-		_this2.loader = loader;
-		return _this2;
-	}
-
-	_createClass(LoaderDataSource, [{
-		key: "load",
-		value: function load(keyword) {
-			if (_.isFunction(this.loader)) {
-				this.loader.bind(this, keyword);
-			}
-		}
-	}]);
-
-	return LoaderDataSource;
-}(DataSource);
-
-function fixed(data) {
-	return new DataSource(data);
-}
-
-function promised(promise) {
-	var dataSource = new DataSource();
-
-	promise.then(function (data) {
-		dataSource.notifyChanged();
-	}).catch(function (r) {
-		logger.e(r);
-	});
-
-	return dataSource;
-}
-
-function loadable(loader) {
-	var ds = new LoaderDataSource(loader);
-	ds.load(null);
-	return ds;
-}
-
-function create() {
-	return new DataSource();
-}
-});
-define('web/components/containers.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.EntitiesLookupContainer = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _datasource = require("../../utils/datasource");
-
-var datasource = _interopRequireWildcard(_datasource);
-
-var _stores = require("../../stores");
-
-var _actions = require("../../actions");
-
-var _ajex = require("../../../utils/ajex");
-
-var _query = require("../../api/query");
-
-var query = _interopRequireWildcard(_query);
-
-var _forms = require("./forms");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var LOOKUP_DISCRIMINATOR = 1;
-function nextLookupDiscriminator() {
-    return "lookup_" + LOOKUP_DISCRIMINATOR++;
-}
-
-var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control) {
-    _inherits(EntitiesLookupContainer, _Control);
-
-    function EntitiesLookupContainer(props) {
-        _classCallCheck(this, EntitiesLookupContainer);
-
-        var _this = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
-
-        _this.discriminator = nextLookupDiscriminator();
-
-        _this.query = query.create();
-        _this.query.setPage(1);
-        _this.query.setRowsPerPage(20);
-        _this.__queryOnChange = function () {
-            (0, _actions.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.field.entity, query: _this.query });
-        };
-
-        _this.datasource = datasource.create();
-
-        _this.state = { result: {} };
-        return _this;
-    }
-
-    _createClass(EntitiesLookupContainer, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            var _this2 = this;
-
-            _stores.LookupStore.subscribe(this, function (state) {
-                _this2.datasource.setData((0, _ajex.discriminated)(_this2.discriminator));
-            });
-
-            this.query.on("change", this.__queryOnChange);
-
-            //getLookupResult({discriminator: this.discriminator, entity: this.props.field.entity, query: this.query})
-        }
-    }, {
-        key: "componentWillUnmount",
-        value: function componentWillUnmount() {
-            _stores.LookupStore.unsubscribe(this);
-
-            this.query.off("change", this.__queryOnChange);
-
-            (0, _actions.freeLookupResult)({ discriminator: this.discriminator, entity: this.props.field.entity });
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            return React.createElement(Lookup, _.assign({}, this.props, { query: this.query, datasource: this.datasource }));
-        }
-    }]);
-
-    return EntitiesLookupContainer;
-}(_forms.Control);
 });
 
 require('./aj').createRuntime();

@@ -494,31 +494,23 @@ export class Lookup extends Control {
     constructor(props) {
         super(props)
 
-        this.state = {
-            data: {rows: [], totalRows: 0}
-        }
-
-        this.query = null
-
+        this.datasource = this.props.datasource || datasource.create()
+        this.query = this.props.query || query.create()
+        
         this.__dataSourceOnChange = (data) => {
-            this.setState(_.assign(this.state, {data}))
+            logger.i("Datasource changed:", JSON.stringify(data))
+            this.forceUpdate()
         }
 
         this.__queryChange = () => {
-            let datasource = this.props.datasource
-            datasource.load(this.query.keyword)
+            if (_.isFunction(this.props.loader)) {
+                this.props.loader(this.query, this.datasource)
+            }
         }
     }
 
-    componentDidMount() {
-        let datasource = this.props.datasource
-        if (_.isEmpty(datasource)) {
-            throw new Error("Please specify a data source for this lookup: " + this.props.field.property)
-        }
-        
-        datasource.on("change", this.__dataSourceOnChange)
-
-        this.query = this.props.query || query.create()
+    componentDidMount() {        
+        this.datasource.on("change", this.__dataSourceOnChange)
         this.query.on("change", this.__queryChange)
 
         let me = ReactDOM.findDOMNode(this)
@@ -540,14 +532,14 @@ export class Lookup extends Control {
             })
 
         $(me).find(".lookup-grid").modal({show: false})
+
+        if (_.isFunction(this.props.loader)) {
+            this.props.loader(this.query, this.datasource)
+        }
     }
 
     componentWillUnmount() {
-        let datasource = this.props.datasource
-        if (!_.isEmpty(datasource)) {
-            datasource.off("change", this.__dataSourceOnChange)
-        }
-
+        this.datasource.off("change", this.__dataSourceOnChange)
         this.query.off("change", this.__queryChange)
     }
 
@@ -791,7 +783,7 @@ export class Lookup extends Control {
                                 <Grid 
                                     ref="searchGrid" 
                                     descriptor={this.props.popupGrid}
-                                    data={resultToGridData(this.props.result)}
+                                    data={resultToGridData(this.datasource.data)}
                                     query={this.props.query}
                                     showInCard="false" 
                                     quickSearchEnabled="true"

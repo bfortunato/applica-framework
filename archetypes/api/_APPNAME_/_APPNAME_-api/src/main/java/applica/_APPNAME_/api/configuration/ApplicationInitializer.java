@@ -8,6 +8,8 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.utils.NullableDateConverter;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.licensing.LicenseManager;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.Permissions;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +44,7 @@ public class ApplicationInitializer {
         LicenseManager.instance().mustBeValid();
 
         initializeMongoEmbedded();
+        initializePermissions();
 
         NullableDateConverter dateConverter = new NullableDateConverter();
         dateConverter.setPatterns(new String[] { "dd/MM/yyyy HH:mm", "MM/dd/yyyy HH:mm", "yyyy-MM-dd HH:mm", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "HH:mm" });
@@ -54,6 +57,16 @@ public class ApplicationInitializer {
         } catch (Exception e) {}
 
         logger.info("Applica Framework app started");
+    }
+
+    private void initializePermissions() {
+        Permissions.instance().registerStatic("user:create");
+        Permissions.instance().registerStatic("user:edit");
+        Permissions.instance().registerStatic("user:delete");
+
+        Permissions.instance().registerStatic("role:create");
+        Permissions.instance().registerStatic("role:edit");
+        Permissions.instance().registerStatic("role:delete");
     }
 
     private void createMockUsers() {

@@ -5,10 +5,10 @@ import {Observable} from "../aj/events"
 function normalizeData(data) {
 	let result = null
 	if (data) {
-		if (_.isArray(initialData)) {
-			result = {rows: initialData, totalRows: initialData.length}
-		} else if (_.isObject(initialData)) {
-			result = initialData
+		if (_.isArray(data)) {
+			result = {rows: data, totalRows: data.length}
+		} else if (_.isObject(data)) {
+			result = data
 		}
 	}
 	return result
@@ -31,26 +31,6 @@ export class DataSource extends Observable {
 		this.notifyChanged()
 	}
 
-	load(keyword) {
-
-	}
-
-}
-
-export class LoaderDataSource extends DataSource {
-	
-	constructor(loader) {
-		super()
-
-		this.loader = loader
-	}
-
-	load(keyword) {
-		if (_.isFunction(this.loader)) {
-			this.loader.bind(this, keyword)
-		}
-	}
-
 }
 
 export function fixed(data) {
@@ -67,12 +47,6 @@ export function promised(promise) {
 		.catch(r => { logger.e(r) })
 
 	return dataSource
-}
-
-export function loadable(loader) {
-	let ds = new LoaderDataSource(loader)
-	ds.load(null)
-	return ds
 }
 
 export function create() {

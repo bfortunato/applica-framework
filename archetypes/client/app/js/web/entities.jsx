@@ -3,13 +3,20 @@
 import {Grid, TextCell, CheckCell, resultToGridData} from "./components/grids"
 import {check, sanitize} from "../libs/validator"
 import {Text, Mail, Check, Select, Image, Lookup, File, Control} from "./components/forms"
-import {LookupContainer} from "./components/containers"
+import {EntitiesLookupContainer} from "./components/containers"
 import * as datasource from "../utils/datasource"
 import * as SessionApi from "../api/session"
 import * as responses from "../api/responses"
 import {use} from "../utils/lang"
 import * as query from "../api/query"
 
+function permissionsLoader(query, datasource) {
+	SessionApi.loadAllPermissions(query.keyword)
+		.then(response => {
+			datasource.setData(response.value)
+		})
+		.catch(e => logger.e(e))
+}
 
 const entities = {
 	user: {
@@ -58,11 +65,11 @@ const entities = {
 	                        },
 	                        {
 	                            property: "roles",
-	                            entity: "role",
 	                            label: "Roles",
-	                            control: LookupContainer,
+	                            control: EntitiesLookupContainer,
 	                            props: {
 	                            	mode: "multiple",
+	                            	entity: "role",
 		                            selectionGrid: {
 		                                columns: [
 		                                    {property: "role", header: "Name", cell: TextCell}
@@ -112,22 +119,16 @@ const entities = {
                     	placeholder: "Select permissions for role",
                     	control: Lookup,
                     	props: {
-                    		datasource: datasource.loadable((ds, keyword) => {
-                    			SessionApi.loadAllPermissions(keyword)
-                    				.then(response => {
-                    					ds.setData(response.value)
-                    				})
-                    				.catch(e => logger.e(e))
-                    		}),
+                    		loader: permissionsLoader,
 	                    	mode: "multiple",
 	                        selectionGrid: {
 	                            columns: [
-	                                {property: "name", header: "Name", cell: TextCell}
+	                                {property: "label", header: "Name", cell: TextCell}
 	                            ]
 	                        },
 	                        popupGrid: {
 	                            columns: [
-	                                {property: "name", header: "Name", cell: TextCell}
+	                                {property: "label", header: "Name", cell: TextCell}
 	                            ]
 	                        }
                     	}
