@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setupMenu = exports.SETUP_MENU = exports.freeLookupResult = exports.FREE_LOOKUP_RESULT = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -39,6 +39,10 @@ var GridsApi = _interopRequireWildcard(_grids);
 var _entities = require("./api/entities");
 
 var EntitiesApi = _interopRequireWildcard(_entities);
+
+var _values = require("./api/values");
+
+var ValuesApi = _interopRequireWildcard(_values);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -313,7 +317,7 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, fun
     });
 
     EntitiesApi.get(data.entity, data.id).then(function (response) {
-        getEntity.complete({ result: response.value, discriminator: data.discriminator });
+        getEntity.complete({ data: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
@@ -358,10 +362,37 @@ var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET
     });
 });
 
-var FREE_LOOKUP_RESULT = exports.FREE_LOOKUP_RESULT = "FREE_LOOKUP_RESULT";
-var freeLookupResult = exports.freeLookupResult = aj.createAction(FREE_LOOKUP_RESULT, function (data) {
+var GET_LOOKUP_VALUES = exports.GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES";
+var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(GET_LOOKUP_VALUES, function (data) {
+    if (_.isEmpty(data.collection)) {
+        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
     aj.dispatch({
-        type: FREE_LOOKUP_RESULT,
+        type: GET_LOOKUP_VALUES,
+        discriminator: data.discriminator
+    });
+
+    logger.i(JSON.stringify(data));
+
+    ValuesApi.load(data.collection, data.keyword).then(function (response) {
+        getLookupValues.complete({ values: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getLookupValues.fail({ discriminator: data.discriminator });
+    });
+});
+
+var FREE_LOOKUP = exports.FREE_LOOKUP = "FREE_LOOKUP";
+var freeLookup = exports.freeLookup = aj.createAction(FREE_LOOKUP, function (data) {
+    aj.dispatch({
+        type: FREE_LOOKUP,
         discriminator: data.discriminator
     });
 });
@@ -1888,11 +1919,12 @@ var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
+var _lang = require("../utils/lang");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
-    logger.i("quering with ", JSON.stringify(query.cleaned));
     return utils.get(url, { queryJson: JSON.stringify(query.cleaned()) });
 }
 
@@ -1912,7 +1944,7 @@ function delete_(entity, ids) {
 
 function save(entity, data) {
     var url = config.get("entities.url") + "/" + entity;
-    return utils.post(url, data);
+    return utils.postJson(url, data);
 }
 
 function get(entity, id) {
@@ -2274,7 +2306,6 @@ exports.destroy = destroy;
 exports.getLoggedUser = getLoggedUser;
 exports.isLoggedIn = isLoggedIn;
 exports.getSessionToken = getSessionToken;
-exports.loadAllPermissions = loadAllPermissions;
 
 var _underscore = require("../libs/underscore");
 
@@ -2425,11 +2456,6 @@ function isLoggedIn() {
 function getSessionToken() {
     return _sessionToken;
 }
-
-function loadAllPermissions() {
-    var url = config.get("values.permissions.url");
-    return (0, _utils.get)(url);
-}
 });
 define('api/utils.js', function(module, exports) {
 "use strict";
@@ -2438,6 +2464,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.post = post;
+exports.postJson = postJson;
 exports.get = get;
 exports.delete_ = delete_;
 
@@ -2453,7 +2480,34 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function post(url, data) {
     return new Promise(function (resolve, reject) {
-        http.post(url, data).then(function (json) {
+        var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+        http.post(url, data, headers).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response.responseCode);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function postJson(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return new Promise(function (resolve, reject) {
+        var json = typeof data == "string" ? data : JSON.stringify(data);
+        headers = _.assign(headers, { "Content-Type": "application/json" });
+        http.post(url, json, headers).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2473,8 +2527,10 @@ function post(url, data) {
 }
 
 function get(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     return new Promise(function (resolve, reject) {
-        http.get(url, data).then(function (json) {
+        http.get(url, data, headers).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2493,9 +2549,9 @@ function get(url, data) {
     });
 }
 
-function delete_(url, data) {
+function delete_(url, data, headers) {
     return new Promise(function (resolve, reject) {
-        http.delete(url, data).then(function (json) {
+        http.delete(url, data, headers).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2512,6 +2568,39 @@ function delete_(url, data) {
             reject(responses.ERROR);
         });
     });
+}
+});
+define('api/values.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.load = load;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _utils = require("./utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var aj = require("../aj");
+var http = require("../aj/http");
+
+var preferences = require("../framework/preferences");
+var config = require("../framework/config");
+function load(collection, keyword) {
+    var url = config.get("values." + collection + ".url");
+    if (!_.isEmpty(keyword)) {
+        url += "?keyword=" + keyword;
+    }
+    return (0, _utils.get)(url);
 }
 });
 define('config.js', function(module, exports) {
@@ -24379,6 +24468,12 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
         case (0, _ajex.failed)(actions.DELETE_ENTITIES):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
 
+        case (0, _ajex.completed)(actions.GET_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: action.data });
+
+        case (0, _ajex.failed)(actions.GET_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, data: null });
+
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator);
 
@@ -24395,7 +24490,16 @@ var LookupStore = exports.LookupStore = aj.createStore(LOOKUP, function () {
         case (0, _ajex.completed)(actions.GET_LOOKUP_RESULT):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: false, result: action.result });
 
-        case actions.FREE_LOOKUP_RESULT:
+        case (0, _ajex.failed)(actions.GET_LOOKUP_RESULT):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
+
+        case (0, _ajex.completed)(actions.GET_LOOKUP_VALUES):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, values: action.values });
+
+        case (0, _ajex.failed)(actions.GET_LOOKUP_VALUES):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, values: null });
+
+        case actions.FREE_LOOKUP:
             return _.omit(state, action.discriminator);
 
     }
@@ -24627,6 +24731,7 @@ exports.optional = optional;
 exports.parseBoolean = parseBoolean;
 exports.walk = walk;
 exports.use = use;
+exports.flatten = flatten;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -24743,6 +24848,40 @@ var ObjectUser = function () {
 
 function use(o) {
     return new ObjectUser(o);
+}
+
+/**
+ * Make a flatten object from plain object
+ */
+
+function flatten(target) {
+    if (!_.isObject(target)) {
+        return {};
+    }
+
+    var delimiter = ".";
+    var output = {};
+
+    function step(obj, prev, currentKey) {
+        var keys = _.keys(obj);
+        _.each(keys, function (k) {
+            var newKey = prev ? currentKey + delimiter + k : k;
+            if (_.isArray(obj)) {
+                newKey = currentKey + "[" + k + "]";
+            }
+
+            var value = obj[k];
+            if (_.isObject(value)) {
+                step(value, obj, newKey);
+            } else {
+                output[newKey] = value;
+            }
+        });
+    }
+
+    step(target, null, "");
+
+    return output;
 }
 });
 define('web/components/common.js', function(module, exports) {
@@ -24927,7 +25066,7 @@ define('web/components/containers.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.EntitiesLookupContainer = undefined;
+exports.ValuesLookupContainer = exports.EntitiesLookupContainer = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -24968,7 +25107,10 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
 
         var _this = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
 
-        _this.discriminator = nextLookupDiscriminator();
+        _this.discriminator = props.id;
+        if (_.isEmpty(_this.discriminator)) {
+            throw new Error("Please specify an id of this lookup");
+        }
 
         _this.query = query.create();
         _this.query.setPage(1);
@@ -24993,8 +25135,6 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
             });
 
             this.query.on("change", this.__queryOnChange);
-
-            //getLookupResult({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
         }
     }, {
         key: "componentWillUnmount",
@@ -25003,7 +25143,7 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
 
             this.query.off("change", this.__queryOnChange);
 
-            (0, _actions.freeLookupResult)({ discriminator: this.discriminator, entity: this.props.entity });
+            (0, _actions.freeLookup)({ discriminator: this.discriminator });
         }
     }, {
         key: "render",
@@ -25013,6 +25153,65 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
     }]);
 
     return EntitiesLookupContainer;
+}(_forms.Control);
+
+var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2) {
+    _inherits(ValuesLookupContainer, _Control2);
+
+    function ValuesLookupContainer(props) {
+        _classCallCheck(this, ValuesLookupContainer);
+
+        var _this3 = _possibleConstructorReturn(this, (ValuesLookupContainer.__proto__ || Object.getPrototypeOf(ValuesLookupContainer)).call(this, props));
+
+        _this3.discriminator = props.id;
+        if (_.isEmpty(_this3.discriminator)) {
+            throw new Error("Please specify an id for lookup");
+        }
+
+        if (_.isEmpty(_this3.props.collection)) {
+            throw new Error("Please specify a collection for lookup");
+        }
+
+        _this3.__queryOnChange = function () {
+            console.log(_this3.query);
+            (0, _actions.getLookupValues)({ discriminator: _this3.discriminator, collection: _this3.props.collection, keyword: _this3.query.keyword });
+        };
+
+        _this3.query = query.create();
+        _this3.datasource = datasource.create();
+
+        _this3.state = { values: {} };
+        return _this3;
+    }
+
+    _createClass(ValuesLookupContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this4 = this;
+
+            _stores.LookupStore.subscribe(this, function (state) {
+                _this4.datasource.setData((0, _ajex.discriminated)(state, _this4.discriminator).values);
+            });
+
+            this.query.on("change", this.__queryOnChange);
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            _stores.LookupStore.unsubscribe(this);
+
+            this.query.off("change", this.__queryOnChange);
+
+            (0, _actions.freeLookup)({ discriminator: this.discriminator });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(_forms.Lookup, _.assign({}, this.props, { query: this.query, datasource: this.datasource }));
+        }
+    }]);
+
+    return ValuesLookupContainer;
 }(_forms.Control);
 });
 define('web/components/forms.js', function(module, exports) {
@@ -25427,8 +25626,15 @@ var Form = exports.Form = function (_React$Component4) {
 
     _createClass(Form, [{
         key: "submit",
-        value: function submit(e) {
-            e.preventDefault();
+        value: function submit() {
+            this.onSubmit();
+        }
+    }, {
+        key: "onSubmit",
+        value: function onSubmit(e) {
+            if (e) {
+                e.preventDefault();
+            }
 
             try {
                 this.model.validate();
@@ -25441,6 +25647,13 @@ var Form = exports.Form = function (_React$Component4) {
                 } else {
                     throw e;
                 }
+            }
+        }
+    }, {
+        key: "onCancel",
+        value: function onCancel(e) {
+            if (_.isFunction(this.props.onCancel)) {
+                this.props.onCancel();
             }
         }
     }, {
@@ -25470,7 +25683,7 @@ var Form = exports.Form = function (_React$Component4) {
                 { className: "form" },
                 React.createElement(
                     "form",
-                    { className: "form-horizontal", role: "form", onSubmit: this.submit.bind(this) },
+                    { action: "javascript:;", className: "form-horizontal", role: "form", onSubmit: this.onSubmit.bind(this) },
                     areas,
                     (tabs.length > 0 || fields.length > 0) && React.createElement(
                         _common.Card,
@@ -25487,7 +25700,7 @@ var Form = exports.Form = function (_React$Component4) {
                             { className: "text-right col-sm-12" },
                             React.createElement(
                                 "button",
-                                { type: "submit", className: "btn btn-default waves-effect m-r-10" },
+                                { type: "button", className: "btn btn-default waves-effect m-r-10", onClick: this.onCancel.bind(this) },
                                 React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
                                 " ",
                                 descriptor.cancelText || _strings2.default.cancel
@@ -25999,7 +26212,7 @@ var Lookup = exports.Lookup = function (_Control6) {
             var mode = this.checkedMode();
             var model = this.props.model;
             var field = this.props.field;
-            var rows = model.get(field.property);
+            var rows = model.get(field.property) || [];
             var selectionGrid = mode == "multiple" ? _.assign({}, this.props.selectionGrid, { columns: _.union(this.props.selectionGrid.columns, [{
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
@@ -26378,7 +26591,7 @@ function eachChildren(root, action) {
 
 function resultToGridData(result) {
     if (!result || !result.rows) {
-        return null;
+        return { rows: [], totalRows: 0 };
     }
     var index = 0;
     return {
@@ -27492,7 +27705,7 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
         key: "onChange",
         value: function onChange(e) {
             var keyword = e.target.value;
-            if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
+            if (!_.isEmpty(this.props.query)) {
                 this.props.query.setKeyword(keyword);
             }
         }
@@ -27621,7 +27834,7 @@ var Grid = exports.Grid = function (_React$Component16) {
         key: "onRowDoubleClick",
         value: function onRowDoubleClick(row) {
             if (_.isFunction(this.props.onRowDoubleClick)) {
-                this.props.onRowDoubleClick(row);
+                this.props.onRowDoubleClick(row.data);
             }
         }
     }, {
@@ -28602,14 +28815,6 @@ var query = _interopRequireWildcard(_query);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function permissionsLoader(query, datasource) {
-	SessionApi.loadAllPermissions(query.keyword).then(function (response) {
-		datasource.setData(response.value);
-	}).catch(function (e) {
-		return logger.e(e);
-	});
-}
-
 var entities = {
 	user: {
 		grid: {
@@ -28661,6 +28866,7 @@ var entities = {
 						label: "Roles",
 						control: _containers.EntitiesLookupContainer,
 						props: {
+							id: "user_roles",
 							mode: "multiple",
 							entity: "role",
 							selectionGrid: {
@@ -28703,9 +28909,10 @@ var entities = {
 					property: "permissions",
 					label: "Permissions",
 					placeholder: "Select permissions for role",
-					control: _forms.Lookup,
+					control: _containers.ValuesLookupContainer,
 					props: {
-						loader: permissionsLoader,
+						id: "role_permissions",
+						collection: "permissions",
 						mode: "multiple",
 						selectionGrid: {
 							columns: [{ property: "label", header: "Name", cell: _grids.TextCell }]
@@ -28786,11 +28993,14 @@ function ifAdmin(fn) {
 plugins.register();
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity/", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { entity: params.entity }));
+ui.addRoute("/admin/entities/:entity", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntitiesGrid, { key: params.entity, entity: params.entity }));
 });
-ui.addRoute("/admin/entities/:entity/edit", function (params) {
-    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { entity: params.entity }));
+ui.addRoute("/admin/entities/:entity/:entityId", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { key: params.entity, entity: params.entity, entityId: params.entityId }));
+});
+ui.addRoute("/admin/entities/:entity/new", function (params) {
+    return ifAdmin(ui.changeScreen, React.createElement(_admin.EntityForm, { key: params.entity, entity: params.entity }));
 });
 
 /* Account routes */
@@ -28989,6 +29199,10 @@ var _entities = require("../../entities");
 
 var _entities2 = _interopRequireDefault(_entities);
 
+var _ui = require("../../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -29007,9 +29221,13 @@ var EntitiesGrid = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (EntitiesGrid.__proto__ || Object.getPrototypeOf(EntitiesGrid)).call(this, props));
 
+        if (_.isEmpty(props.entity)) {
+            throw new Error("Please specify entity for form");
+        }
+
         var _query = query.create();
         _query.page = 1;
-        _query.rowsPerPage = 5;
+        _query.rowsPerPage = 50;
 
         _this.state = { grid: null, result: null, query: _query };
 
@@ -29060,6 +29278,13 @@ var EntitiesGrid = function (_Screen) {
             }
         }
     }, {
+        key: "onGridRowDoubleClick",
+        value: function onGridRowDoubleClick(row) {
+            console.log(row);
+
+            ui.navigate("/admin/entities/" + this.props.entity + "/" + row.id);
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this3 = this;
@@ -29097,14 +29322,20 @@ var EntitiesGrid = function (_Screen) {
             }];
 
             var descriptor = grid.descriptor;
-            var data = resultToGridData(this.state.result);
-            var rows = data.rows;
+            var data = (0, _grids.resultToGridData)(this.state.result);
 
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: grid.title, subtitle: grid.subtitle, actions: actions }),
-                React.createElement(_grids.Grid, { ref: "grid", descriptor: descriptor, data: { rows: rows, totalRows: 100 }, query: this.state.query, onKeyDown: this.onGridKeyDown.bind(this) }),
+                React.createElement(_grids.Grid, {
+                    ref: "grid",
+                    descriptor: descriptor,
+                    data: data,
+                    query: this.state.query,
+                    onKeyDown: this.onGridKeyDown.bind(this),
+                    onRowDoubleClick: this.onGridRowDoubleClick.bind(this)
+                }),
                 React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
@@ -29144,6 +29375,12 @@ var _entities = require("../../entities");
 
 var _entities2 = _interopRequireDefault(_entities);
 
+var _ui = require("../../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -29151,16 +29388,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function isCancel(which) {
-    return which == 46 || which == 8;
-}
-
-function isEsc(which) {
-    return which == 27;
-}
-
-var discriminator = 1;
 
 var EntityForm = function (_Screen) {
     _inherits(EntityForm, _Screen);
@@ -29170,14 +29397,22 @@ var EntityForm = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (EntityForm.__proto__ || Object.getPrototypeOf(EntityForm)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.EntitiesStore, { data: { name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: [] } });
+        if (_.isEmpty(props.entity)) {
+            throw new Error("Please specify entity for form");
+        }
+
+        _this.discriminator = "entity_form_" + props.entity;
+
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, _stores.EntitiesStore, { data: null });
         return _this;
     }
 
     _createClass(EntityForm, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            this.discriminator = discriminator++;
+            if (!_.isEmpty(this.props.entityId)) {
+                (0, _actions.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
+            }
         }
     }, {
         key: "componentWillUnmount",
@@ -29187,11 +29422,23 @@ var EntityForm = function (_Screen) {
     }, {
         key: "onSubmit",
         value: function onSubmit(data) {
-            (0, _actions.saveEntity)({ entity: this.props.entity, data: data });
+            (0, _actions.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data });
+        }
+    }, {
+        key: "onCancel",
+        value: function onCancel() {
+            this.goBack();
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            ui.navigate("/admin/entities/" + this.props.entity);
         }
     }, {
         key: "render",
         value: function render() {
+            var _this2 = this;
+
             var form = _entities2.default[this.props.entity].form;
 
             var actions = [{
@@ -29199,14 +29446,14 @@ var EntityForm = function (_Screen) {
                 icon: "zmdi zmdi-arrow-left",
                 tooltip: _strings2.default.refresh,
                 action: function action() {
-                    swal("Ciao");
+                    _this2.goBack();
                 }
             }, {
                 type: "button",
                 icon: "zmdi zmdi-save",
                 tooltip: _strings2.default.create,
                 action: function action() {
-                    swal("Ciao");
+                    _this2.refs.form.submit();
                 }
             }];
 
@@ -29216,7 +29463,13 @@ var EntityForm = function (_Screen) {
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: form.title, subtitle: form.subtitle, actions: actions }),
-                React.createElement(_forms.Form, { ref: "form", descriptor: descriptor, data: this.state.data, onSubmit: this.onSubmit.bind(this) })
+                React.createElement(_forms.Form, {
+                    ref: "form",
+                    descriptor: descriptor,
+                    data: this.state.data,
+                    onSubmit: this.onSubmit.bind(this),
+                    onCancel: this.onCancel.bind(this)
+                })
             );
         }
     }]);

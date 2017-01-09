@@ -3,7 +3,7 @@ package applica.framework.library.tests;
 import applica.framework.RepositoriesFactory;
 import applica.framework.library.tests.data.MockRepositoriesFactory;
 import applica.framework.widgets.mapping.MappingException;
-import applica.framework.widgets.mapping.SimplePropertyMapper;
+import applica.framework.widgets.mapping.DefaultPropertyMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ public class PropertyMapperTester {
     public void testMapping() {
         RepositoriesFactory repositoriesFactory = new MockRepositoriesFactory();
 
-        SimplePropertyMapper propertyMapper = new SimplePropertyMapper();
+        DefaultPropertyMapper propertyMapper = new DefaultPropertyMapper();
         propertyMapper.setRepositoriesFactory(repositoriesFactory);
 
         Game game = new Game();

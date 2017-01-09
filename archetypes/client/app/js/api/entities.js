@@ -3,10 +3,10 @@
 import * as config from "../framework/config"
 import * as utils from "./utils"
 import * as _ from "../libs/underscore"
+import {flatten} from "../utils/lang"
 
 export function load(entity, query) {
     let url = config.get("entities.url") + "/" + entity
-    logger.i("quering with ", JSON.stringify(query.cleaned))
     return utils.get(url, {queryJson: JSON.stringify(query.cleaned())})
 }
 
@@ -26,7 +26,7 @@ export function delete_(entity, ids) {
 
 export function save(entity, data) {
     let url = config.get("entities.url") + "/" + entity
-    return utils.post(url, data)
+    return utils.postJson(url, data)
 }
 
 export function get(entity, id) {

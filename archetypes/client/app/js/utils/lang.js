@@ -5,7 +5,7 @@
  * @returns {void|XML|string|*}
  */
 export function format(fmt, ...values) {
-    var args = values;
+    let args = values;
     return fmt.replace(/{(\d+)}/g, function(match, number) {
         return typeof args[number] != 'undefined'
             ? args[number]
@@ -89,4 +89,38 @@ class ObjectUser {
  */
 export function use(o) {
     return new ObjectUser(o)
+}
+
+/**
+ * Make a flatten object from plain object
+ */
+
+ export function flatten(target) {
+    if (!_.isObject(target)) {
+        return {}
+    }
+
+    const delimiter = "."
+    let output = {}
+
+    function step(obj, prev, currentKey) {
+        let keys = _.keys(obj)
+        _.each(keys, k => {
+            let newKey = prev ? currentKey + delimiter + k : k
+            if (_.isArray(obj)) {
+                newKey = currentKey + "[" + k + "]"
+            }
+
+            let value = obj[k]
+            if (_.isObject(value)) {
+                step(value, obj, newKey)
+            } else {
+                output[newKey] = value
+            }
+        })
+    }
+    
+    step(target, null, "")
+
+    return output 
 }

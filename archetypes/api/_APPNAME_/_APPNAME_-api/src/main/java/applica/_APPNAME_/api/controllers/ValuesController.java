@@ -6,6 +6,7 @@ import applica.framework.Query;
 import applica.framework.library.SimpleItem;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.security.authorization.Permissions;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Applica (www.applica.guru)
@@ -41,6 +43,9 @@ public class ValuesController {
     public ValueResponse permissions(String keyword) {
         return new ValueResponse(
             SimpleItem.createList(Permissions.instance().allPermissions(), (p) -> (String) p, (p) -> (String) p)
+                .stream()
+                .filter(l -> StringUtils.isEmpty(keyword) || (l.getLabel() != null && l.getLabel().toLowerCase().contains(keyword)))
+                .collect(Collectors.toList())
         );
     }
 

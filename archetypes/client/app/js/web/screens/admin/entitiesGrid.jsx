@@ -6,19 +6,24 @@ import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
-import {Grid} from "../../components/grids"
+import {Grid, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 import {isCancel} from "../../utils/keyboard"
 import entities from "../../entities"
+import * as ui from "../../utils/ui"
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
         super(props)
 
+        if (_.isEmpty(props.entity)) {
+            throw new Error("Please specify entity for form")
+        }
+
         let _query = query.create()
         _query.page = 1
-        _query.rowsPerPage = 5
+        _query.rowsPerPage = 50
 
         this.state = {grid: null, result: null, query: _query}
 
@@ -62,6 +67,12 @@ export default class EntitiesGrid extends Screen {
         }
     }
 
+    onGridRowDoubleClick(row) {
+        console.log(row)
+
+        ui.navigate(`/admin/entities/${this.props.entity}/${row.id}`)
+    }
+
     render() {
         let grid = entities[this.props.entity].grid
 
@@ -95,12 +106,18 @@ export default class EntitiesGrid extends Screen {
 
         let descriptor = grid.descriptor
         let data = resultToGridData(this.state.result)
-        let rows = data.rows
 
         return (
             <Layout>
                 <HeaderBlock title={grid.title} subtitle={grid.subtitle} actions={actions}/>
-                <Grid ref="grid" descriptor={descriptor} data={{rows: rows, totalRows: 100}} query={this.state.query} onKeyDown={this.onGridKeyDown.bind(this)} />
+                <Grid 
+                    ref="grid" 
+                    descriptor={descriptor} 
+                    data={data} 
+                    query={this.state.query} 
+                    onKeyDown={this.onGridKeyDown.bind(this)} 
+                    onRowDoubleClick={this.onGridRowDoubleClick.bind(this)}
+                />
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
             </Layout>
         )

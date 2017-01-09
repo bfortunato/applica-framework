@@ -1,10 +1,8 @@
 package applica.framework.widgets.factory;
 
-import applica.framework.DefaultRepository;
 import applica.framework.Entity;
-import applica.framework.widgets.forms.processors.DefaultFormProcessor;
+import applica.framework.widgets.processors.DefaultFormProcessor;
 import applica.framework.widgets.processors.FormProcessor;
-import applica.framework.widgets.processors.SimpleFormProcessor;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

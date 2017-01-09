@@ -33,7 +33,7 @@ public class DefaultEntityMapper implements EntityMapper {
 
                 PropertyMapper propertyMapper = getCustomMapper(name, entityType);
                 if (propertyMapper == null) {
-                    propertyMapper = new SimplePropertyMapper();
+                    propertyMapper = new DefaultPropertyMapper();
                 }
 
                 propertyMapper.toFormValue(name, values, entity);
@@ -62,7 +62,7 @@ public class DefaultEntityMapper implements EntityMapper {
 
             PropertyMapper mapper = getCustomMapper(name, entityType);
             if (mapper == null) {
-                mapper = new SimplePropertyMapper();
+                mapper = new DefaultPropertyMapper();
             }
 
             mapper.toEntityProperty(name, entity, requestValues);

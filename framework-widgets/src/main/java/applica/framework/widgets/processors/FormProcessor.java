@@ -2,30 +2,29 @@ package applica.framework.widgets.processors;
 
 import applica.framework.Entity;
 import applica.framework.ValidationResult;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.Map;
 
 /**
- * Represents the base interface for form data to entity data conversions
+ * A processor is a object that process form data and do all extra operation to return a "ready to save" entity
  */
 public interface FormProcessor {
     /**
-     * Convert request values in entity
-     * @param type
-     * @param requestValues
-     * @param validationResult
-     * @return
+     * Process entity form data to get a complete entity to save
+     * @param data The form given data
+     * @return Processed entity
      * @throws FormProcessException
      */
-    Entity toEntity(Class<? extends Entity> type, Map<String, String[]> requestValues, ValidationResult validationResult) throws FormProcessException;
+    Entity process(ObjectNode data) throws FormProcessException;
 
     /**
-     * Convert entity in a map of values that can be used in rendering system
+     * Back operation, to give a serialized entity to give to form (js side)
      * @param entity
      * @return
      * @throws FormProcessException
      */
-    Map<String, Object> toMap(Entity entity) throws FormProcessException;
+    ObjectNode deprocess(Entity entity) throws FormProcessException;
 
     /**
      * Returns the type of entity that will be created in the processing phase. This is also used to select the correct processor for entity in FormProcessorFactory

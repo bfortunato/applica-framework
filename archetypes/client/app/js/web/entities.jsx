@@ -3,20 +3,13 @@
 import {Grid, TextCell, CheckCell, resultToGridData} from "./components/grids"
 import {check, sanitize} from "../libs/validator"
 import {Text, Mail, Check, Select, Image, Lookup, File, Control} from "./components/forms"
-import {EntitiesLookupContainer} from "./components/containers"
+import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers"
 import * as datasource from "../utils/datasource"
 import * as SessionApi from "../api/session"
 import * as responses from "../api/responses"
 import {use} from "../utils/lang"
 import * as query from "../api/query"
 
-function permissionsLoader(query, datasource) {
-	SessionApi.loadAllPermissions(query.keyword)
-		.then(response => {
-			datasource.setData(response.value)
-		})
-		.catch(e => logger.e(e))
-}
 
 const entities = {
 	user: {
@@ -68,6 +61,7 @@ const entities = {
 	                            label: "Roles",
 	                            control: EntitiesLookupContainer,
 	                            props: {
+	                            	id: "user_roles",
 	                            	mode: "multiple",
 	                            	entity: "role",
 		                            selectionGrid: {
@@ -117,9 +111,10 @@ const entities = {
                     	property: "permissions",
                     	label: "Permissions",
                     	placeholder: "Select permissions for role",
-                    	control: Lookup,
+                    	control: ValuesLookupContainer,
                     	props: {
-                    		loader: permissionsLoader,
+                    		id: "role_permissions",
+                    		collection: "permissions",
 	                    	mode: "multiple",
 	                        selectionGrid: {
 	                            columns: [

@@ -8,6 +8,7 @@ import { format } from "./utils/lang"
 import strings from "./strings"
 import * as GridsApi from "./api/grids"
 import * as EntitiesApi from "./api/entities"
+import * as ValuesApi from "./api/values"
 
 export const LOGIN = "LOGIN";
 export const login = createAsyncAction(LOGIN, data => {
@@ -300,7 +301,7 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
 
     EntitiesApi.get(data.entity, data.id)
         .then(response => {
-            getEntity.complete({result: response.value, discriminator: data.discriminator})
+            getEntity.complete({data: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
             alert(strings.ooops, responses.msg(e), "error")
@@ -349,10 +350,39 @@ export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
         })
 })
 
-export const FREE_LOOKUP_RESULT = "FREE_LOOKUP_RESULT"
-export const freeLookupResult = aj.createAction(FREE_LOOKUP_RESULT, data => {
+export const GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES"
+export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
+    if (_.isEmpty(data.collection)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
     aj.dispatch({
-        type: FREE_LOOKUP_RESULT,
+        type: GET_LOOKUP_VALUES,
+        discriminator: data.discriminator
+    })
+
+    logger.i(JSON.stringify(data))
+
+    ValuesApi.load(data.collection, data.keyword)
+        .then(response => {
+            getLookupValues.complete({values: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getLookupValues.fail({discriminator: data.discriminator})
+        })
+})
+
+export const FREE_LOOKUP = "FREE_LOOKUP"
+export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
+    aj.dispatch({
+        type: FREE_LOOKUP,
         discriminator: data.discriminator
     })
 })
@@ -368,3 +398,4 @@ export const setupMenu = aj.createAction(SETUP_MENU, data => {
         menu: data.menu
     })
 })
+
