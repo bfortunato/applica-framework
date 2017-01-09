@@ -416,6 +416,11 @@
                 url: url,
                 method: method,
                 data: data,
+                beforeSend: request => {
+                    if (_.isObject(headers)) {
+                        _.keys(headers).forEach(k => request.setRequestHeader(k, headers[k]))
+                    }
+                },
                 dataType: "text",
                 accept: accept == null ? undefined : accept,
                 contentType: contentType == null ? undefined : contentType,

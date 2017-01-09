@@ -101,6 +101,12 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
         case failed(actions.DELETE_ENTITIES):
             return discriminate(state, action.discriminator, { error: true, result: null })
 
+        case completed(actions.GET_ENTITY):
+            return discriminate(state, action.discriminator, { error: false, data: action.data})
+
+        case failed(actions.GET_ENTITY): 
+            return discriminate(state, action.discriminator, { error: true, data: null})
+
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator)
 
@@ -115,7 +121,16 @@ export const LookupStore = aj.createStore(LOOKUP, (state = {}, action) => {
         case completed(actions.GET_LOOKUP_RESULT):
             return discriminate(state, action.discriminator, { error: false, result: action.result })
 
-        case actions.FREE_LOOKUP_RESULT:
+        case failed(actions.GET_LOOKUP_RESULT):
+            return discriminate(state, action.discriminator, { error: true, result: null })
+
+        case completed(actions.GET_LOOKUP_VALUES):
+            return discriminate(state, action.discriminator, { error: false, values: action.values })
+
+        case failed(actions.GET_LOOKUP_VALUES):
+            return discriminate(state, action.discriminator, { error: true, values: null })
+
+        case actions.FREE_LOOKUP:
             return _.omit(state, action.discriminator)
 
     }

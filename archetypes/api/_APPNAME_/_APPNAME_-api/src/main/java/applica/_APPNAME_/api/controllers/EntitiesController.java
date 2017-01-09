@@ -10,15 +10,16 @@ import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.operations.DeleteOperation;
 import applica.framework.widgets.operations.SaveOperation;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.AutoPopulatingList;
+import org.springframework.validation.DataBinder;
+import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by bimbobruno on 06/12/2016.
@@ -55,7 +56,7 @@ public class EntitiesController {
         }
     }
 
-    @PostMapping("")
+    @DeleteMapping("")
     //@PreAuthorize("hasPermission('administrator')")
     public Response deleteEntities(@PathVariable("entity") String entity, String entityIds) {
         try {
@@ -74,28 +75,9 @@ public class EntitiesController {
         }
     }
 
-    @DeleteMapping("")
-    //@PreAuthorize("hasPermission('administrator')")
-    public Response saveEntity(@PathVariable("entity") String entity, HttpServletRequest request) {
-        try {
-            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
-            if (definition.isPresent()) {
-                SaveOperation saveOperation = saveOperationBuilder.build(definition.get().getType());
-                saveOperation.save(request.getParameterMap());
-
-                return new Response(Response.OK);
-            } else {
-                return new Response(ResponseCode.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Response(Response.ERROR);
-        }
-    }
-
     @GetMapping("/{id}")
     //@PreAuthorize("hasPermission('administrator')")
-    public Response saveEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id) {
+    public Response getEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
@@ -106,6 +88,25 @@ public class EntitiesController {
                 } else {
                     return new Response(ResponseCode.NOT_FOUND);
                 }
+            } else {
+                return new Response(ResponseCode.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+    @PostMapping("")
+    //@PreAuthorize("hasPermission('administrator')")
+    public Response saveEntity(@PathVariable("entity") String entity, @RequestBody ObjectNode data) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            if (definition.isPresent()) {
+                SaveOperation saveOperation = saveOperationBuilder.build(definition.get().getType());
+                saveOperation.save(data);
+
+                return new Response(Response.OK);
             } else {
                 return new Response(ResponseCode.NOT_FOUND);
             }

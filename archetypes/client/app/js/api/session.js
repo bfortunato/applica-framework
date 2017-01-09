@@ -149,8 +149,4 @@ export function getSessionToken() {
     return _sessionToken
 }
 
-export function loadAllPermissions() {
-    let url = config.get("values.permissions.url")
-    return get(url)
-}
 

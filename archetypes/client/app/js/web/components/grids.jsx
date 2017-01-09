@@ -23,7 +23,7 @@ function eachChildren(root, action) {
 
 export function resultToGridData(result) {
     if (!result || !result.rows) {
-        return null
+        return {rows: [], totalRows: 0}
     }
     let index = 0
     return {
@@ -742,7 +742,7 @@ export class NoCard extends React.Component {
 export class QuickSearch extends React.Component {
     onChange(e) {
         let keyword = e.target.value
-        if (!_.isEmpty(keyword) && !_.isEmpty(this.props.query)) {
+        if (!_.isEmpty(this.props.query)) {
             this.props.query.setKeyword(keyword)
         }
     }
@@ -852,7 +852,7 @@ export class Grid extends React.Component {
 
     onRowDoubleClick(row) {
         if (_.isFunction(this.props.onRowDoubleClick)) {
-            this.props.onRowDoubleClick(row)
+            this.props.onRowDoubleClick(row.data)
         }
     }
 

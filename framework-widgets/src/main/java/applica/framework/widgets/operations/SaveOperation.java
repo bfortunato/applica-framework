@@ -3,16 +3,16 @@ package applica.framework.widgets.operations;
 import applica.framework.Entity;
 import applica.framework.Repository;
 import applica.framework.ValidationException;
-import applica.framework.ValidationResult;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.widgets.processors.FormProcessException;
 import applica.framework.widgets.processors.FormProcessor;
-
-import java.util.Map;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.validator.Validator;
 
 public class SaveOperation {
     private Repository repository;
     private FormProcessor formProcessor;
+    private Validator validator;
     private Class<? extends Entity> entityType;
 
     public Repository getRepository() {
@@ -31,6 +31,14 @@ public class SaveOperation {
         this.formProcessor = formProcessor;
     }
 
+    public Validator getValidator() {
+        return validator;
+    }
+
+    public void setValidator(Validator validator) {
+        this.validator = validator;
+    }
+
     public Class<? extends Entity> getEntityType() {
         return entityType;
     }
@@ -39,20 +47,12 @@ public class SaveOperation {
         this.entityType = type;
     }
 
-    public void save(Map<String, String[]> requestValues) throws FormProcessException, ValidationException {
+    public void save(ObjectNode data) throws FormProcessException, ValidationException {
         if (formProcessor == null) throw new ProgramException("Processor is null");
         if (entityType == null) throw new ProgramException("Entity entityType is null");
         if (repository == null) throw new ProgramException("Missing repository");
 
-        ValidationResult validationResult = new ValidationResult();
-
-        Entity entity = formProcessor.toEntity(entityType, requestValues, validationResult);
-        if (!validationResult.isValid())
-            throw new ValidationException(validationResult);
-
-        if (entity == null) {
-            throw new FormProcessException();
-        }
+        Entity entity = formProcessor.process(data);
 
         repository.save(entity);
     }

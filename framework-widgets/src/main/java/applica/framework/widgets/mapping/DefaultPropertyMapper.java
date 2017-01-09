@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SimplePropertyMapper implements PropertyMapper {
+public class DefaultPropertyMapper implements PropertyMapper {
 
     private RepositoriesFactory repositoriesFactory;
 
@@ -110,7 +110,8 @@ public class SimplePropertyMapper implements PropertyMapper {
         }
 
         if (requestValues.containsKey(name)) {
-            String[] requestValueArray = requestValues.get(name);
+            //String[] requestValueArray = requestValues.get(name);
+            String[] requestValueArray = new String[0];
             Object finalValue = null;
 
             if (isRelation(field)) {

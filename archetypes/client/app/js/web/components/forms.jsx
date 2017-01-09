@@ -294,8 +294,14 @@ export class Form extends React.Component {
         this.model = new Model()
     }
 
-    submit(e) {
-        e.preventDefault()
+    submit() {
+        this.onSubmit()
+    }
+
+    onSubmit(e) {
+        if (e) {
+            e.preventDefault()
+        }
 
         try {
             this.model.validate()
@@ -308,6 +314,12 @@ export class Form extends React.Component {
             } else {
                 throw e
             }
+        }
+    }
+
+    onCancel(e) {
+        if (_.isFunction(this.props.onCancel)) {
+            this.props.onCancel()
         }
     }
 
@@ -328,7 +340,7 @@ export class Form extends React.Component {
 
         return (
             <div className="form">
-                <form className="form-horizontal" role="form" onSubmit={this.submit.bind(this)}>
+                <form action="javascript:;" className="form-horizontal" role="form" onSubmit={this.onSubmit.bind(this)}>
                     {areas}
                     {(tabs.length > 0 || fields.length > 0) &&
                         <Card padding="true">
@@ -340,7 +352,7 @@ export class Form extends React.Component {
 
                     <div className="form-group">
                         <div className="text-right col-sm-12">
-                            <button type="submit" className="btn btn-default waves-effect m-r-10"><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || strings.cancel}</button>
+                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || strings.cancel}</button>
                             <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || strings.submit}</button>
                         </div>
                     </div>
@@ -727,7 +739,7 @@ export class Lookup extends Control {
         let mode = this.checkedMode()
         let model = this.props.model
         let field = this.props.field
-        let rows = model.get(field.property)
+        let rows = model.get(field.property) || []
         let selectionGrid = mode == "multiple" ? _.assign({}, this.props.selectionGrid, {columns: _.union(this.props.selectionGrid.columns, [{
             cell: ActionsCell,
             tdClassName: "grid-actions",

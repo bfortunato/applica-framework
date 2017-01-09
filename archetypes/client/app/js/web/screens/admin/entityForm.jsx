@@ -3,31 +3,30 @@
 import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
-import {connect} from "../../utils/aj"
+import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Form} from "../../components/forms"
-import {saveEntity, freeEntities} from "../../../actions"
+import {getEntity, saveEntity, freeEntities} from "../../../actions"
 import entities from "../../entities"
-
-function isCancel(which) {
-    return which == 46 || which == 8
-}
-
-function isEsc(which) {
-    return which == 27
-}
-
-let discriminator = 1
+import * as ui from "../../utils/ui"
 
 export default class EntityForm extends Screen {
     constructor(props) {
         super(props)
 
-        connect(this, EntitiesStore, {data: {name: "Bruno", mail: "bimbobruno@gmail.com", active: true, roles: []}})
+        if (_.isEmpty(props.entity)) {
+            throw new Error("Please specify entity for form")
+        }
+
+        this.discriminator = "entity_form_" + props.entity
+
+        connectDiscriminated(this.discriminator, this, EntitiesStore, {data: null})
     }
 
     componentDidMount() {
-        this.discriminator = discriminator++
+        if (!_.isEmpty(this.props.entityId)) {
+            getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
+        }
     }
 
     componentWillUnmount() {
@@ -35,7 +34,15 @@ export default class EntityForm extends Screen {
     }
 
     onSubmit(data) {
-        saveEntity({entity: this.props.entity, data: data})
+        saveEntity({discriminator: this.discriminator, entity: this.props.entity, data: data})
+    }
+
+    onCancel() {
+        this.goBack()
+    }
+
+    goBack() {
+        ui.navigate("/admin/entities/" + this.props.entity)
     }
 
     render() {
@@ -46,13 +53,13 @@ export default class EntityForm extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
                 tooltip: strings.refresh,
-                action: () => { swal("Ciao") }
+                action: () => { this.goBack() }
             },
             {
                 type: "button",
                 icon: "zmdi zmdi-save",
                 tooltip: strings.create,
-                action: () => { swal("Ciao") }
+                action: () => { this.refs.form.submit() }
             }
 
         ]
@@ -62,7 +69,13 @@ export default class EntityForm extends Screen {
         return (
             <Layout>
                 <HeaderBlock title={form.title} subtitle={form.subtitle} actions={actions}/>
-                <Form ref="form" descriptor={descriptor} data={this.state.data} onSubmit={this.onSubmit.bind(this)} />
+                <Form 
+                    ref="form"
+                    descriptor={descriptor} 
+                    data={this.state.data} 
+                    onSubmit={this.onSubmit.bind(this)} 
+                    onCancel={this.onCancel.bind(this)}
+                    />
             </Layout>
         )
     }
