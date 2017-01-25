@@ -74,7 +74,7 @@ export default class EntityForm extends Screen {
         return (
             <Layout>
                 <HeaderBlock title={form.title} subtitle={form.subtitle} actions={actions}/>
-                <Form 
+                <Form
                     ref="form"
                     descriptor={descriptor} 
                     data={this.state.data} 

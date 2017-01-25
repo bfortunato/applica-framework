@@ -1195,13 +1195,13 @@ if (platform.test) {
                     logger.i("Executing plugin ", plugin + "." + fn);
 
                     return new Promise(function (resolve, reject) {
-                        try {
-                            _this4.socket.emit("exec", plugin, fn, data, function (result) {
+                        _this4.socket.emit("exec", plugin, fn, data, function (error, result) {
+                            if (!error) {
                                 resolve(result);
-                            });
-                        } catch (e) {
-                            reject(e);
-                        }
+                            } else {
+                                reject(result);
+                            }
+                        });
                     });
                 }
             }, {
@@ -1334,14 +1334,12 @@ if (platform.test) {
                     logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                     return new Promise(function (resolve, reject) {
-                        async(function () {
-                            try {
-                                __trigger(store, state);
-                                resolve();
-                            } catch (e) {
-                                reject(e);
-                            }
-                        });
+                        try {
+                            __trigger(store, state);
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
                     });
                 })
             }, {
@@ -1354,13 +1352,11 @@ if (platform.test) {
                     logger.i("Executing plugin", plugin + "." + fn);
 
                     return new Promise(function (resolve, reject) {
-                        async(function () {
-                            try {
-                                var result = __exec(plugin, fn, data);
-                                logger.i("Plugin called with res:", result);
-                                resolve(result);
-                            } catch (e) {
-                                reject(e);
+                        __exec(plugin, fn, data, function (error, value) {
+                            if (error) {
+                                reject(value);
+                            } else {
+                                resolve(value);
                             }
                         });
                     });
