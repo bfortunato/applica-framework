@@ -723,10 +723,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var EventEmitter = exports.EventEmitter = {};
 
 EventEmitter.addListener = function (obj, evt, handler) {
-    var listeners = obj.__events_listeners;
+    var listeners = obj.$$events_listeners;
     if (!listeners) {
         listeners = {};
-        obj.__events_listeners = listeners;
+        obj.$$events_listeners = listeners;
     }
 
     if (!listeners[evt]) {
@@ -743,8 +743,8 @@ EventEmitter.addListeners = function (obj, listeners) {
 };
 
 EventEmitter.removeListener = function (obj, evt, listener) {
-    if (obj.__events_listeners && obj.__events_listeners[evt]) {
-        obj.__events_listeners[evt] = obj.__events_listeners[evt].filter(function (l) {
+    if (obj.$$events_listeners && obj.$$events_listeners[evt]) {
+        obj.$$events_listeners[evt] = obj.$$events_listeners[evt].filter(function (l) {
             return l != listener;
         });
     }
@@ -763,32 +763,32 @@ EventEmitter.off = function (obj, evt, handler) {
 };
 
 EventEmitter.live = function (obj, evt) {
-    if (!obj.__events_offs) obj.__events_offs = {};
+    if (!obj.$$events_offs) obj.$$events_offs = {};
     if (evt) {
-        obj.__events_offs[evt] = false;
+        obj.$$events_offs[evt] = false;
     } else {
-        obj.__events_off = false;
+        obj.$$events_off = false;
     }
 };
 
 EventEmitter.die = function (obj, evt) {
-    if (!obj.__events_offs) obj.__events_offs = {};
+    if (!obj.$$events_offs) obj.$$events_offs = {};
     if (evt) {
-        obj.__events_offs[evt] = true;
+        obj.$$events_offs[evt] = true;
     } else {
-        obj.__events_off = true;
+        obj.$$events_off = true;
     }
 };
 
 EventEmitter.invoke = function (obj, evt) {
-    if (!obj.__events_offs) obj.__events_offs = {};
-    if (obj.__events_off) return;
-    if (obj.__events_offs[evt]) return;
+    if (!obj.$$events_offs) obj.$$events_offs = {};
+    if (obj.$$events_off) return;
+    if (obj.$$events_offs[evt]) return;
 
-    var listeners = obj.__events_listeners;
+    var listeners = obj.$$events_listeners;
     if (!listeners) {
         listeners = {};
-        obj.__events_listeners = listeners;
+        obj.$$events_listeners = listeners;
     }
 
     var handlers = listeners[evt];
@@ -819,7 +819,7 @@ var Observable = exports.Observable = function () {
     }, {
         key: "invoke",
         value: function invoke(evt) {
-            EventEmitter.invoke(this, evt, Array.prototype.slice.call(arguments, 1));
+            EventEmitter.invoke.apply(null, [this, evt].concat(Array.prototype.slice.call(arguments, 1)));
         }
     }]);
 
@@ -841,7 +841,7 @@ function buildQueryString(obj) {
     var first = true;
     for (var k in obj) {
         var sep = first ? "" : "&";
-        q += sep + k + "=" + obj[k];
+        q += sep + k + "=" + encodeURIComponent(obj[k]);
         first = false;
     }
 
@@ -1053,29 +1053,100 @@ var AJRuntime = function () {
     return AJRuntime;
 }();
 
-if (platform.engine == "node") {
+if (platform.test) {
+    (function () {
+        var vm = require("vm");
+        var fs = require("fs");
+        var buffers = {};
+        var bufferId = 0;
+
+        var AJTestRuntime = function (_AJRuntime) {
+            _inherits(AJTestRuntime, _AJRuntime);
+
+            function AJTestRuntime() {
+                _classCallCheck(this, AJTestRuntime);
+
+                var _this = _possibleConstructorReturn(this, (AJTestRuntime.__proto__ || Object.getPrototypeOf(AJTestRuntime)).call(this));
+
+                _this.semaphores = [];
+
+                logger.i("New test runtime created");
+                return _this;
+            }
+
+            _createClass(AJTestRuntime, [{
+                key: "init",
+                value: function init(options) {}
+            }, {
+                key: "exec",
+                value: function exec(plugin, fn, data) {
+                    logger.i("Executing plugin ", plugin + "." + fn);
+
+                    return new Promise(function (resolve, reject) {
+                        resolve({});
+                    });
+                }
+            }, {
+                key: "__trigger",
+                value: function __trigger(store, state) {
+                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                }
+            }, {
+                key: "createBuffer",
+                value: function createBuffer(data) {
+                    return new Promise(function (resolve, reject) {
+                        var id = ++bufferId;
+                        buffers[id] = data;
+                        resolve(id);
+                    });
+                }
+            }, {
+                key: "readBuffer",
+                value: function readBuffer(id) {
+                    return new Promise(function (resolve, reject) {
+                        resolve(buffers[id]);
+                    });
+                }
+            }, {
+                key: "destroyBuffer",
+                value: function destroyBuffer(id) {
+                    return new Promise(function (resolve, reject) {
+                        delete buffers[id];
+                        resolve();
+                    });
+                }
+            }]);
+
+            return AJTestRuntime;
+        }(AJRuntime);
+
+        AJRuntime.create = function () {
+            return new AJTestRuntime();
+        };
+    })();
+} else if (platform.engine == "node") {
     (function () {
         var vm = require("vm");
         var fs = require("fs");
 
-        var AJWebSocketServerRuntime = function (_AJRuntime) {
-            _inherits(AJWebSocketServerRuntime, _AJRuntime);
+        var AJWebSocketServerRuntime = function (_AJRuntime2) {
+            _inherits(AJWebSocketServerRuntime, _AJRuntime2);
 
             function AJWebSocketServerRuntime() {
                 _classCallCheck(this, AJWebSocketServerRuntime);
 
-                var _this = _possibleConstructorReturn(this, (AJWebSocketServerRuntime.__proto__ || Object.getPrototypeOf(AJWebSocketServerRuntime)).call(this));
+                var _this2 = _possibleConstructorReturn(this, (AJWebSocketServerRuntime.__proto__ || Object.getPrototypeOf(AJWebSocketServerRuntime)).call(this));
 
-                _this.semaphores = [];
+                _this2.semaphores = [];
 
                 logger.i("New websocket server runtime created");
-                return _this;
+                return _this2;
             }
 
             _createClass(AJWebSocketServerRuntime, [{
                 key: "init",
                 value: function init(options) {
-                    var _this2 = this;
+                    var _this3 = this;
 
                     this.socket = options.socket;
                     if (!this.socket) {
@@ -1100,7 +1171,7 @@ if (platform.engine == "node") {
 
                     this.socket.on("freeSemaphore", function (id, data) {
                         try {
-                            _this2.freeSemaphore(id, data);
+                            _this3.freeSemaphore(id, data);
                         } catch (e) {
                             if (e && e.stack) {
                                 logger.i(e.stack);
@@ -1119,13 +1190,13 @@ if (platform.engine == "node") {
             }, {
                 key: "exec",
                 value: function exec(plugin, fn, data) {
-                    var _this3 = this;
+                    var _this4 = this;
 
                     logger.i("Executing plugin ", plugin + "." + fn);
 
                     return new Promise(function (resolve, reject) {
                         try {
-                            _this3.socket.emit("exec", plugin, fn, data, function (result) {
+                            _this4.socket.emit("exec", plugin, fn, data, function (result) {
                                 resolve(result);
                             });
                         } catch (e) {
@@ -1136,12 +1207,12 @@ if (platform.engine == "node") {
             }, {
                 key: "__trigger",
                 value: function __trigger(store, state) {
-                    var _this4 = this;
+                    var _this5 = this;
 
                     logger.i("Triggering", store, "with state", JSON.stringify(state));
 
                     return new Promise(function (resolve, reject) {
-                        _this4.socket.emit("trigger", store, state, function () {
+                        _this5.socket.emit("trigger", store, state, function () {
                             resolve();
                         });
                     });
@@ -1170,10 +1241,10 @@ if (platform.engine == "node") {
             }, {
                 key: "createBuffer",
                 value: function createBuffer(data) {
-                    var _this5 = this;
+                    var _this6 = this;
 
                     return new Promise(function (resolve, reject) {
-                        _this5.socket.emit("createBuffer", data, function (error, id) {
+                        _this6.socket.emit("createBuffer", data, function (error, id) {
                             if (!error) {
                                 resolve(id);
                             } else {
@@ -1185,10 +1256,10 @@ if (platform.engine == "node") {
             }, {
                 key: "readBuffer",
                 value: function readBuffer(id) {
-                    var _this6 = this;
+                    var _this7 = this;
 
                     return new Promise(function (resolve, reject) {
-                        _this6.socket.emit("readBuffer", id, function (error, data) {
+                        _this7.socket.emit("readBuffer", id, function (error, data) {
                             if (!error) {
                                 resolve(data);
                             } else {
@@ -1200,10 +1271,10 @@ if (platform.engine == "node") {
             }, {
                 key: "destroyBuffer",
                 value: function destroyBuffer(id) {
-                    var _this7 = this;
+                    var _this8 = this;
 
                     return new Promise(function (resolve, reject) {
-                        _this7.socket.emit("readBuffer", id, function (error) {
+                        _this8.socket.emit("readBuffer", id, function (error) {
                             if (!error) {
                                 resolve();
                             } else {
@@ -1223,16 +1294,16 @@ if (platform.engine == "node") {
     })();
 } else {
     (function () {
-        var AJNativeServerRuntime = function (_AJRuntime2) {
-            _inherits(AJNativeServerRuntime, _AJRuntime2);
+        var AJNativeServerRuntime = function (_AJRuntime3) {
+            _inherits(AJNativeServerRuntime, _AJRuntime3);
 
             function AJNativeServerRuntime() {
                 _classCallCheck(this, AJNativeServerRuntime);
 
-                var _this8 = _possibleConstructorReturn(this, (AJNativeServerRuntime.__proto__ || Object.getPrototypeOf(AJNativeServerRuntime)).call(this));
+                var _this9 = _possibleConstructorReturn(this, (AJNativeServerRuntime.__proto__ || Object.getPrototypeOf(AJNativeServerRuntime)).call(this));
 
                 logger.i("New native server runtime created");
-                return _this8;
+                return _this9;
             }
 
             _createClass(AJNativeServerRuntime, [{
@@ -1287,7 +1358,6 @@ if (platform.engine == "node") {
                             try {
                                 var result = __exec(plugin, fn, data);
                                 logger.i("Plugin called with res:", result);
-
                                 resolve(result);
                             } catch (e) {
                                 reject(e);
@@ -1351,12 +1421,12 @@ var Store = function (_Observable) {
     function Store(type, reducer) {
         _classCallCheck(this, Store);
 
-        var _this9 = _possibleConstructorReturn(this, (Store.__proto__ || Object.getPrototypeOf(Store)).call(this));
+        var _this10 = _possibleConstructorReturn(this, (Store.__proto__ || Object.getPrototypeOf(Store)).call(this));
 
-        _this9.type = type;
-        _this9.reducer = reducer;
-        _this9.subscriptions = [];
-        return _this9;
+        _this10.type = type;
+        _this10.reducer = reducer;
+        _this10.subscriptions = [];
+        return _this10;
     }
 
     _createClass(Store, [{
@@ -1420,11 +1490,11 @@ var Semaphore = function () {
     _createClass(Semaphore, [{
         key: "runAction",
         value: function runAction(action) {
-            var _this10 = this;
+            var _this11 = this;
 
             async(function () {
                 action();
-                _this10.free();
+                _this11.free();
             });
         }
     }, {
@@ -1505,7 +1575,7 @@ function dispatch(action) {
 }
 
 function _run(action, data) {
-    logger.i("Running action", action);
+    logger.i("Running action", action, "with data", JSON.stringify(data));
 
     if (_.has(__actions, action)) {
         __actions[action](data);
@@ -2614,6 +2684,7 @@ module.exports = {
     "account.register.url": serviceBase + "account/register",
     "account.recover.url": serviceBase + "account/recover",
     "account.reset.url": serviceBase + "account/reset",
+    "account.confirm.url": serviceBase + "account/confirm",
     "grids.url": serviceBase + "grids",
     "entities.url": serviceBase + "entities",
     "values.permissions.url": serviceBase + "values/permissions"
@@ -19640,7 +19711,7 @@ Promise = undefined;
       , TO_STRING   = 'toString'
       , $toString   = /./[TO_STRING];
 
-  var define = function(fn){
+  var polyfill_define = function(fn){
     _dereq_(87)(RegExp.prototype, TO_STRING, fn, true);
   };
 
@@ -23185,7 +23256,7 @@ define('libs/underscore.js', function(module, exports) {
             return new Date().getTime();
         };
 
-    // List of HTML EntitiesApi for escaping.
+    // List of HTML entities for escaping.
     var escapeMap = {
         '&': '&amp;',
         '<': '&lt;',
@@ -25360,12 +25431,7 @@ var Model = exports.Model = function (_Observable) {
         key: "set",
         value: function set(property, value) {
             var field = this.findField(property);
-            if (field != null) {
-                var _v = _.isFunction(field.sanitizer) ? field.sanitizer(value) : value;
-                this.data[property] = _v;
-            } else {
-                this.data[property] = v;
-            }
+            this.data[property] = value;
         }
     }, {
         key: "get",
@@ -25397,9 +25463,29 @@ var Model = exports.Model = function (_Observable) {
             }
         }
     }, {
+        key: "sanitized",
+        value: function sanitized() {
+            var _this2 = this;
+
+            var sanitized = {};
+
+            _.each(_.keys(this.data), function (property) {
+                var value = _this2.data[property];
+                var field = _this2.findField(property);
+                if (field) {
+                    if (_.isFunction(field.sanitizer)) {
+                        value = field.sanitizer(value);
+                    }
+                }
+                sanitized[property] = value;
+            });
+
+            return sanitized;
+        }
+    }, {
         key: "validate",
         value: function validate() {
-            var _this2 = this;
+            var _this3 = this;
 
             this.validationResult = {};
             if (!_.isEmpty(this.descriptor.areas)) {
@@ -25408,14 +25494,14 @@ var Model = exports.Model = function (_Observable) {
                         a.tabs.forEach(function (t) {
                             if (!_.isEmpty(t.fields)) {
                                 t.fields.forEach(function (f) {
-                                    _this2.validateField(_this2.validationResult, f);
+                                    _this3.validateField(_this3.validationResult, f);
                                 });
                             }
                         });
                     }
                     if (!_.isEmpty(a.fields)) {
                         a.fields.forEach(function (f) {
-                            _this2.validateField(_this2.validationResult, f);
+                            _this3.validateField(_this3.validationResult, f);
                         });
                     }
                 });
@@ -25425,7 +25511,7 @@ var Model = exports.Model = function (_Observable) {
                 this.descriptor.tabs.forEach(function (t) {
                     if (!_.isEmpty(t.fields)) {
                         t.fields.forEach(function (f) {
-                            _this2.validateField(_this2.validationResult, f);
+                            _this3.validateField(_this3.validationResult, f);
                         });
                     }
                 });
@@ -25433,7 +25519,7 @@ var Model = exports.Model = function (_Observable) {
 
             if (!_.isEmpty(this.descriptor.fields)) {
                 this.descriptor.fields.forEach(function (f) {
-                    _this2.validateField(_this2.validationResult, f);
+                    _this3.validateField(_this3.validationResult, f);
                 });
             }
 
@@ -25486,12 +25572,12 @@ var Area = exports.Area = function (_React$Component2) {
     _createClass(Area, [{
         key: "render",
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             var area = this.props.area;
             var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model });
             var fields = !_.isEmpty(area.fields) && area.fields.map(function (f) {
-                return React.createElement(Field, { key: f.property, model: _this5.props.model, field: f });
+                return React.createElement(Field, { key: f.property, model: _this6.props.model, field: f });
             });
 
             return React.createElement(
@@ -25518,20 +25604,20 @@ var Tabs = exports.Tabs = function (_React$Component3) {
     _createClass(Tabs, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this7 = this;
+            var _this8 = this;
 
             var me = ReactDOM.findDOMNode(this);
             logger.i(me);
             $(me).find(".tab-button").click(function (e) {
                 logger.i("ciao");
                 e.preventDefault();
-                $(_this7).tab("show");
+                $(_this8).tab("show");
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this8 = this;
+            var _this9 = this;
 
             var first = true;
             var tabs = this.props.tabs;
@@ -25551,7 +25637,7 @@ var Tabs = exports.Tabs = function (_React$Component3) {
             first = true;
             var panes = tabs.map(function (c) {
                 var fields = _.isEmpty(c.fields) && c.fields.map(function (f) {
-                    return React.createElement(Field, { key: f.property, model: _this8.props.model, field: f });
+                    return React.createElement(Field, { key: f.property, model: _this9.props.model, field: f });
                 });
                 var el = React.createElement(
                     "div",
@@ -25618,10 +25704,10 @@ var Form = exports.Form = function (_React$Component4) {
     function Form(props) {
         _classCallCheck(this, Form);
 
-        var _this9 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
 
-        _this9.model = new Model();
-        return _this9;
+        _this10.model = new Model();
+        return _this10;
     }
 
     _createClass(Form, [{
@@ -25639,7 +25725,7 @@ var Form = exports.Form = function (_React$Component4) {
             try {
                 this.model.validate();
                 if (_.isFunction(this.props.onSubmit)) {
-                    this.props.onSubmit(this.model.data);
+                    this.props.onSubmit(this.model.sanitized());
                 }
             } catch (e) {
                 if (e === VALIDATION_ERROR) {
@@ -25960,22 +26046,22 @@ var Lookup = exports.Lookup = function (_Control6) {
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        var _this17 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this17.datasource = _this17.props.datasource || datasource.create();
-        _this17.query = _this17.props.query || query.create();
+        _this18.datasource = _this18.props.datasource || datasource.create();
+        _this18.query = _this18.props.query || query.create();
 
-        _this17.__dataSourceOnChange = function (data) {
+        _this18.__dataSourceOnChange = function (data) {
             logger.i("Datasource changed:", JSON.stringify(data));
-            _this17.forceUpdate();
+            _this18.forceUpdate();
         };
 
-        _this17.__queryChange = function () {
-            if (_.isFunction(_this17.props.loader)) {
-                _this17.props.loader(_this17.query, _this17.datasource);
+        _this18.__queryChange = function () {
+            if (_.isFunction(_this18.props.loader)) {
+                _this18.props.loader(_this18.query, _this18.datasource);
             }
         };
-        return _this17;
+        return _this18;
     }
 
     _createClass(Lookup, [{
@@ -26207,7 +26293,7 @@ var Lookup = exports.Lookup = function (_Control6) {
     }, {
         key: "render",
         value: function render() {
-            var _this18 = this;
+            var _this19 = this;
 
             var mode = this.checkedMode();
             var model = this.props.model;
@@ -26217,7 +26303,7 @@ var Lookup = exports.Lookup = function (_Control6) {
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this18.removeRow(row);
+                            return _this19.removeRow(row);
                         } }]
                 }]) }) : null;
             var addClassName = void 0;
@@ -26346,23 +26432,23 @@ var File = exports.File = function (_Control7) {
     function File(props) {
         _classCallCheck(this, File);
 
-        var _this19 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
 
-        _this19.state = { filename: null };
-        return _this19;
+        _this20.state = { filename: null };
+        return _this20;
     }
 
     _createClass(File, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this20 = this;
+            var _this21 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this20.setState({ filename: file.name });
+                _this21.setState({ filename: file.name });
             });
         }
     }, {
@@ -26457,14 +26543,14 @@ var Image = exports.Image = function (_Control8) {
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this22 = this;
+            var _this23 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this22.forceUpdate();
+                _this23.forceUpdate();
             });
         }
     }, {
@@ -28910,6 +28996,10 @@ var entities = {
 					label: "Permissions",
 					placeholder: "Select permissions for role",
 					control: _containers.ValuesLookupContainer,
+					//sanitizer: value => _.map(value, v => v.value),
+					validator: function validator(value) {
+						return (0, _validator.check)(value).notEmpty();
+					},
 					props: {
 						id: "role_permissions",
 						collection: "permissions",
@@ -29422,7 +29512,11 @@ var EntityForm = function (_Screen) {
     }, {
         key: "onSubmit",
         value: function onSubmit(data) {
-            (0, _actions.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data });
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(data);
+            } else {
+                (0, _actions.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data });
+            }
         }
     }, {
         key: "onCancel",
@@ -29497,32 +29591,35 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _stores = require("../../stores");
+
+var _layout = require("../components/layout");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _forms = require("../utils/forms");
+
+var forms = _interopRequireWildcard(_forms);
+
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
+var _actions = require("../../actions");
+
 var _aj = require("../utils/aj");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var AccountStore = require("../../stores").account;
-
-var _require = require("../components/layout"),
-    FullScreenLayout = _require.FullScreenLayout,
-    Screen = _require.Screen;
-
-var ui = require("../utils/ui");
-var forms = require("../utils/forms");
-
-var _require2 = require("../../actions"),
-    setActivationCode = _require2.setActivationCode,
-    confirmAccount = _require2.confirmAccount;
 
 var Recover = function (_Screen) {
     _inherits(Recover, _Screen);
@@ -29532,7 +29629,7 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, AccountStore, { activationCode: "" });
+        (0, _aj.connect)(_this, _stores.AccountStore, { activationCode: "" });
         return _this;
     }
 
@@ -29540,7 +29637,7 @@ var Recover = function (_Screen) {
         key: "confirm",
         value: function confirm() {
             var data = forms.serialize(this.refs.confirm_form);
-            confirmAccount(data);
+            (0, _actions.confirmAccount)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -29552,13 +29649,13 @@ var Recover = function (_Screen) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            setActivationCode({ activationCode: this.props.activationCode });
+            (0, _actions.setActivationCode)({ activationCode: this.props.activationCode });
         }
     }, {
         key: "render",
         value: function render() {
             return React.createElement(
-                FullScreenLayout,
+                _layout.FullScreenLayout,
                 null,
                 React.createElement(
                     "div",
@@ -29627,7 +29724,7 @@ var Recover = function (_Screen) {
     }]);
 
     return Recover;
-}(Screen);
+}(_layout.Screen);
 
 exports.default = Recover;
 });
@@ -30215,7 +30312,7 @@ var RegistrationOk = function (_Screen) {
                         ),
                         React.createElement(
                             "div",
-                            { className: "jumbotron" },
+                            { className: "jumbotron p-20" },
                             React.createElement(
                                 "h1",
                                 null,

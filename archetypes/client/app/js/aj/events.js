@@ -3,10 +3,10 @@
 export const EventEmitter = {}
 
 EventEmitter.addListener = function(obj, evt, handler) {
-    var listeners = obj.__events_listeners;
+    var listeners = obj.$$events_listeners;
     if(!listeners) {
         listeners = {};
-        obj.__events_listeners = listeners;
+        obj.$$events_listeners = listeners;
     }
 
     if(!listeners[evt]) {
@@ -23,8 +23,8 @@ EventEmitter.addListeners = function(obj, listeners) {
 };
 
 EventEmitter.removeListener = function(obj, evt, listener) {
-    if (obj.__events_listeners && obj.__events_listeners[evt]) {
-        obj.__events_listeners[evt] = obj.__events_listeners[evt].filter(l => l != listener);
+    if (obj.$$events_listeners && obj.$$events_listeners[evt]) {
+        obj.$$events_listeners[evt] = obj.$$events_listeners[evt].filter(l => l != listener);
     }
 };
 
@@ -41,32 +41,32 @@ EventEmitter.off = function(obj, evt, handler) {
 };
 
 EventEmitter.live = function(obj, evt) {
-    if(!obj.__events_offs) obj.__events_offs = {};
+    if(!obj.$$events_offs) obj.$$events_offs = {};
     if(evt) {
-        obj.__events_offs[evt] = false;
+        obj.$$events_offs[evt] = false;
     } else {
-        obj.__events_off = false;
+        obj.$$events_off = false;
     }
 };
 
 EventEmitter.die = function(obj, evt) {
-    if(!obj.__events_offs) obj.__events_offs = {};
+    if(!obj.$$events_offs) obj.$$events_offs = {};
     if(evt) {
-        obj.__events_offs[evt] = true;
+        obj.$$events_offs[evt] = true;
     } else {
-        obj.__events_off = true;
+        obj.$$events_off = true;
     }
 };
 
 EventEmitter.invoke = function(obj, evt) {
-    if(!obj.__events_offs) obj.__events_offs = {};
-    if(obj.__events_off) return;
-    if(obj.__events_offs[evt]) return;
+    if(!obj.$$events_offs) obj.$$events_offs = {};
+    if(obj.$$events_off) return;
+    if(obj.$$events_offs[evt]) return;
 
-    var listeners = obj.__events_listeners;
+    var listeners = obj.$$events_listeners;
     if(!listeners) {
         listeners = {};
-        obj.__events_listeners = listeners;
+        obj.$$events_listeners = listeners;
     }
 
     var handlers = listeners[evt];
@@ -89,7 +89,7 @@ export class Observable {
     }
 
     invoke(evt) {
-        EventEmitter.invoke(this, evt, Array.prototype.slice.call(arguments, 1));
+        EventEmitter.invoke.apply(null, [this, evt].concat(Array.prototype.slice.call(arguments, 1)));
     }
 }
 

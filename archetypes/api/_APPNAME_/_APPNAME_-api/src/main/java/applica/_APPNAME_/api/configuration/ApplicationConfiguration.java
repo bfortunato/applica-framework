@@ -13,11 +13,11 @@ import applica.framework.library.velocity.BaseVelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilderProvider;
 import applica.framework.widgets.builders.DeleteOperationBuilder;
+import applica.framework.widgets.builders.GetOperationBuilder;
 import applica.framework.widgets.builders.SaveOperationBuilder;
 import applica.framework.widgets.factory.DefaultFormProcessorFactory;
 import applica.framework.widgets.factory.FormProcessorFactory;
-import applica.framework.widgets.forms.processors.DefaultFormProcessor;
-import applica.framework.widgets.mapping.DefaultEntityMapper;
+import applica.framework.widgets.processors.DefaultFormProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -91,6 +91,11 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public DeleteOperationBuilder deleteOperationBuilder() {
         return new DeleteOperationBuilder();
+    }
+
+    @Bean
+    public GetOperationBuilder getOperationBuilder() {
+        return new GetOperationBuilder();
     }
 
     @Bean

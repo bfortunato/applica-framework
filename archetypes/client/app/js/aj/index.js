@@ -45,7 +45,67 @@ class AJRuntime {
     }
 }
 
-if (platform.engine == "node") {
+if (platform.test) {
+    (function() {
+        var vm = require("vm");
+        var fs = require("fs");
+        var buffers = {}
+        var bufferId = 0
+
+        class AJTestRuntime extends AJRuntime {
+            constructor() {
+                super();
+
+                this.semaphores = [];
+
+                logger.i("New test runtime created");
+            }
+
+            init(options) {
+                
+            }
+
+            exec(plugin, fn, data) {
+                logger.i("Executing plugin ", plugin + "." + fn);
+
+                return new Promise((resolve, reject) => {
+                    resolve({})
+                })
+            }
+
+            __trigger(store, state) {
+                logger.i("Triggering", store, "with state", JSON.stringify(state));
+            }
+
+            createBuffer(data) {
+                return new Promise((resolve, reject) => {
+                    let id = ++bufferId
+                    buffers[id] = data
+                    resolve(id)
+                })
+            };
+
+            readBuffer(id) {
+                return new Promise((resolve, reject) => {
+                    resolve(buffers[id])
+                })
+            };
+
+            destroyBuffer(id) {
+                return new Promise((resolve, reject) => {
+                    delete buffers[id]
+                    resolve()
+                })
+            };
+
+        }
+
+        AJRuntime.create = function() {
+            return new AJTestRuntime();
+        }
+    })();
+}
+else if (platform.engine == "node") {
     (function() {
         var vm = require("vm");
         var fs = require("fs");
@@ -229,7 +289,6 @@ if (platform.engine == "node") {
                         try {
                             var result = __exec(plugin, fn, data);
                             logger.i("Plugin called with res:", result);
-
                             resolve(result);
                         } catch (e) {
                             reject(e);
@@ -416,7 +475,7 @@ function dispatch(action) {
 }
 
 function run(action, data) {
-    logger.i("Running action", action);
+    logger.i("Running action", action, "with data", JSON.stringify(data));
 
     if (_.has(__actions, action)) {
         __actions[action](data);

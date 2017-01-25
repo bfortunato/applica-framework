@@ -102,12 +102,7 @@ export class Model extends Observable {
 
     set(property, value) {
         let field = this.findField(property)
-        if (field != null) {
-            let v = _.isFunction(field.sanitizer) ? field.sanitizer(value) : value
-            this.data[property] = v
-        } else {
-            this.data[property] = v
-        }
+        this.data[property] = value    
     }
 
     get(property) {
@@ -135,6 +130,23 @@ export class Model extends Observable {
                 message: e.message
             }
         }
+    }
+
+    sanitized() {
+        let sanitized = {}
+
+        _.each(_.keys(this.data), property => {
+            let value = this.data[property]
+            let field = this.findField(property)
+            if (field) {
+                if (_.isFunction(field.sanitizer)) {
+                    value = field.sanitizer(value)
+                }
+            }
+            sanitized[property] = value
+        })
+
+        return sanitized
     }
 
     validate() {
@@ -306,7 +318,7 @@ export class Form extends React.Component {
         try {
             this.model.validate()
             if (_.isFunction(this.props.onSubmit)) {
-                this.props.onSubmit(this.model.data)
+                this.props.onSubmit(this.model.sanitized())
             }
         } catch (e) {
             if (e === VALIDATION_ERROR) {

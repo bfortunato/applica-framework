@@ -1,7 +1,9 @@
 package applica._APPNAME_.api.controllers;
 
 import applica._APPNAME_.domain.data.RolesRepository;
+import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Role;
+import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
 import applica.framework.library.SimpleItem;
 import applica.framework.library.responses.ValueResponse;
@@ -47,6 +49,14 @@ public class ValuesController {
                 .filter(l -> StringUtils.isEmpty(keyword) || (l.getLabel() != null && l.getLabel().toLowerCase().contains(keyword)))
                 .collect(Collectors.toList())
         );
+    }
+
+    @Autowired
+    private UsersRepository usersRepository;
+
+    @RequestMapping("/users")
+    public List<User> users() {
+        return usersRepository.find(null).getRows();
     }
 
 }
