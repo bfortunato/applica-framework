@@ -13,6 +13,7 @@ import applica.framework.library.velocity.BaseVelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilderProvider;
 import applica.framework.widgets.builders.DeleteOperationBuilder;
+import applica.framework.widgets.builders.GetOperationBuilder;
 import applica.framework.widgets.builders.SaveOperationBuilder;
 import applica.framework.widgets.factory.DefaultFormProcessorFactory;
 import applica.framework.widgets.factory.FormProcessorFactory;
@@ -90,6 +91,11 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public DeleteOperationBuilder deleteOperationBuilder() {
         return new DeleteOperationBuilder();
+    }
+
+    @Bean
+    public GetOperationBuilder getOperationBuilder() {
+        return new GetOperationBuilder();
     }
 
     @Bean

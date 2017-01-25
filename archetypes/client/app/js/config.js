@@ -6,6 +6,7 @@ module.exports = {
     "account.register.url": `${serviceBase}account/register`,
     "account.recover.url": `${serviceBase}account/recover`,
     "account.reset.url": `${serviceBase}account/reset`,
+    "account.confirm.url": `${serviceBase}account/confirm`,
     "grids.url": `${serviceBase}grids`,
     "entities.url": `${serviceBase}entities`,
     "values.permissions.url": `${serviceBase}values/permissions`

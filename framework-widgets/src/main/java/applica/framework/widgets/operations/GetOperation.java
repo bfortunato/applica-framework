@@ -9,10 +9,9 @@ import applica.framework.widgets.processors.FormProcessor;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.validator.Validator;
 
-public class SaveOperation {
+public class GetOperation {
     private Repository repository;
     private FormProcessor formProcessor;
-    private Validator validator;
     private Class<? extends Entity> entityType;
 
     public Repository getRepository() {
@@ -31,14 +30,6 @@ public class SaveOperation {
         this.formProcessor = formProcessor;
     }
 
-    public Validator getValidator() {
-        return validator;
-    }
-
-    public void setValidator(Validator validator) {
-        this.validator = validator;
-    }
-
     public Class<? extends Entity> getEntityType() {
         return entityType;
     }
@@ -47,13 +38,17 @@ public class SaveOperation {
         this.entityType = type;
     }
 
-    public void save(ObjectNode data) throws FormProcessException, ValidationException {
+    public ObjectNode get(Object id) throws FormProcessException, ValidationException {
         if (formProcessor == null) throw new ProgramException("Processor is null");
         if (entityType == null) throw new ProgramException("Entity entityType is null");
         if (repository == null) throw new ProgramException("Missing repository");
 
-        Entity entity = formProcessor.process(data);
+        Entity entity = (Entity) repository.get(id).orElse(null);
+        ObjectNode node = null;
+        if (entity != null) {
+            node = formProcessor.deprocess(entity);
+        }
 
-        repository.save(entity);
+        return node;
     }
 }

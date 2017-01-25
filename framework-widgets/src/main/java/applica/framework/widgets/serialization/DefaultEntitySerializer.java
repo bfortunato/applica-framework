@@ -22,6 +22,15 @@ public class DefaultEntitySerializer implements EntitySerializer {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
             JsonNode node = mapper.valueToTree(entity);
             return (ObjectNode) node;
         } catch (Exception ex) {
@@ -34,6 +43,15 @@ public class DefaultEntitySerializer implements EntitySerializer {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
             Entity entity = mapper.treeToValue(node, getEntityType());
             return entity;
         } catch (Exception e) {

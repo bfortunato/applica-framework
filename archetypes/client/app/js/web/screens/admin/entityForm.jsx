@@ -34,7 +34,12 @@ export default class EntityForm extends Screen {
     }
 
     onSubmit(data) {
-        saveEntity({discriminator: this.discriminator, entity: this.props.entity, data: data})
+        if (_.isFunction(this.props.onSubmit)) {
+            this.props.onSubmit(data)
+        } else {
+            saveEntity({discriminator: this.discriminator, entity: this.props.entity, data: data})    
+        }
+        
     }
 
     onCancel() {

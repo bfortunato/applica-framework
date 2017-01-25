@@ -5,10 +5,12 @@ import applica.framework.*;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.widgets.builders.DeleteOperationBuilder;
+import applica.framework.widgets.builders.GetOperationBuilder;
 import applica.framework.widgets.builders.SaveOperationBuilder;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.operations.DeleteOperation;
+import applica.framework.widgets.operations.GetOperation;
 import applica.framework.widgets.operations.SaveOperation;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
@@ -37,6 +39,9 @@ public class EntitiesController {
     @Autowired
     private DeleteOperationBuilder deleteOperationBuilder;
 
+    @Autowired
+    private GetOperationBuilder getOperationBuilder;
+
     @GetMapping("")
     //@PreAuthorize("hasPermission('administrator')")
     public Response getEntities(@PathVariable("entity") String entity, String queryJson) {
@@ -58,9 +63,9 @@ public class EntitiesController {
 
     @DeleteMapping("")
     //@PreAuthorize("hasPermission('administrator')")
-    public Response deleteEntities(@PathVariable("entity") String entity, String entityIds) {
+    public Response deleteEntities(@PathVariable("entity") String entityName, String entityIds) {
         try {
-            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
                 DeleteOperation deleteOperation = deleteOperationBuilder.build(definition.get().getType());
                 deleteOperation.delete(Arrays.asList(entityIds.split(",")));
@@ -81,13 +86,10 @@ public class EntitiesController {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
-                Repository repository = repositoriesFactory.createForEntity(definition.get().getType());
-                Optional entity = repository.get(id);
-                if (entity.isPresent()) {
-                    return new ValueResponse(entity.get());
-                } else {
-                    return new Response(ResponseCode.NOT_FOUND);
-                }
+                GetOperation getOperation = getOperationBuilder.build(definition.get().getType());
+                ObjectNode node = getOperation.get(id);
+
+                return new ValueResponse(node);
             } else {
                 return new Response(ResponseCode.NOT_FOUND);
             }

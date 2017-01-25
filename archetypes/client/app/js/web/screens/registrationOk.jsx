@@ -25,7 +25,7 @@ export default class RegistrationOk extends Screen {
                     <div className="lc-block toggled" id="l-login">
                         <div className="text-center m-b-10"><img src="resources/images/logo.png" /></div>
 
-                        <div className="jumbotron">
+                        <div className="jumbotron p-20">
                             <h1>{strings.congratulations}!</h1>
                             <p>{this.state.message}</p>
                             <p><a className="btn btn-primary btn-lg waves-effect" href="javascript:;" onClick={this.goHome.bind(this)} role="button">{strings.continue}</a></p>

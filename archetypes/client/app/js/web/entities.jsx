@@ -104,14 +104,16 @@ const entities = {
                         control: Text,
                         label: "Role",
                         placeholder: "Name of role",
-                        sanitizer: (value) => sanitize(value).trim(),
-                        validator: (value) => check(value).notEmpty()
+                        sanitizer: value => sanitize(value).trim(),
+                        validator: value => check(value).notEmpty()
                     },
                     {
                     	property: "permissions",
                     	label: "Permissions",
                     	placeholder: "Select permissions for role",
                     	control: ValuesLookupContainer,
+                    	//sanitizer: value => _.map(value, v => v.value),
+                    	validator: value => check(value).notEmpty(),
                     	props: {
                     		id: "role_permissions",
                     		collection: "permissions",
