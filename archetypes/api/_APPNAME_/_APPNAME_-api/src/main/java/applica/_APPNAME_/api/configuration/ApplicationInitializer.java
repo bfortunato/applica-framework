@@ -50,12 +50,6 @@ public class ApplicationInitializer {
         dateConverter.setPatterns(new String[] { "dd/MM/yyyy HH:mm", "MM/dd/yyyy HH:mm", "yyyy-MM-dd HH:mm", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "HH:mm" });
         ConvertUtils.register(dateConverter, Date.class);
 
-        try {
-            if (true/*Boolean.parseBoolean(options.get("applica.framework.data.mongodb.default.embedded"))*/) {
-                createMockUsers();
-            }
-        } catch (Exception e) {}
-
         logger.info("Applica Framework app started");
     }
 
@@ -85,7 +79,6 @@ public class ApplicationInitializer {
 
     public void initializeMongoEmbedded() {
         List<String> dataSources = MongoHelper.getDataSources(options);
-        List<String> startedInstances = new ArrayList<>();
 
         for (String dataSource : dataSources) {
             Boolean embedded = Boolean.parseBoolean(options.get(String.format("applica.framework.data.mongodb.%s.embedded", dataSource)));

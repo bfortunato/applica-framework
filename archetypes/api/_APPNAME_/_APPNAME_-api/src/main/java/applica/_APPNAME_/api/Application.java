@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
+import org.springframework.boot.autoconfigure.velocity.VelocityAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -36,7 +37,8 @@ import javax.annotation.PostConstruct;
         EmbeddedMongoAutoConfiguration.class,
         ThymeleafAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
-        GroovyTemplateAutoConfiguration.class
+        GroovyTemplateAutoConfiguration.class,
+        VelocityAutoConfiguration.class
 })
 public class Application {
 

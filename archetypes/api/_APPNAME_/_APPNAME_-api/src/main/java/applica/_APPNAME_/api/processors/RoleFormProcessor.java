@@ -20,20 +20,19 @@ import java.util.ArrayList;
  */
 
 @Component
-public class RoleProcessor implements FormProcessor {
+public class RoleFormProcessor implements FormProcessor {
 
     @Override
     public Entity process(ObjectNode data) throws FormProcessException {
         try {
             EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
             Role role = ((Role) entitySerializer.deserialize(data));
-            ArrayNode array = (ArrayNode) data.get("permissions");
-            if (role.getPermissions() == null) {
-                role.setPermissions(new ArrayList<>());
-            }
+            ArrayNode array = (ArrayNode) data.get("_permissions");
+            ArrayList<String> permissions = new ArrayList<>();
             for (int i = 0; i < array.size(); i++) {
-                role.getPermissions().add(array.get(i).asText());
+                permissions.add(array.get(i).get("value").asText());
             }
+            role.setPermissions(permissions);
 
             return role;
         } catch (SerializationException e) {
@@ -47,7 +46,7 @@ public class RoleProcessor implements FormProcessor {
             EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
             Role role = ((Role) entity);
             ObjectNode node = entitySerializer.serialize(role);
-            ArrayNode permissions = node.putArray("permissions");
+            ArrayNode permissions = node.putArray("_permissions");
             for (String permission : role.getPermissions()) {
                 permissions.addPOJO(new SimpleItem(permission, permission));
             }

@@ -1,6 +1,7 @@
 package applica._APPNAME_.domain.model;
 
 import applica._APPNAME_.domain.model.base.UserBase;
+import applica.framework.widgets.entities.EntityId;
 import org.springframework.util.StringUtils;
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.util.StringUtils;
  * Date: 6/12/2016
  * Time: 17:08
  */
+@EntityId("user")
 public class User extends UserBase implements applica.framework.security.User {
 
     public String getInitials() {

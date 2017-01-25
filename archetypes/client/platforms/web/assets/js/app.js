@@ -28992,7 +28992,7 @@ var entities = {
 						return (0, _validator.check)(value).notEmpty();
 					}
 				}, {
-					property: "permissions",
+					property: "_permissions",
 					label: "Permissions",
 					placeholder: "Select permissions for role",
 					control: _containers.ValuesLookupContainer,

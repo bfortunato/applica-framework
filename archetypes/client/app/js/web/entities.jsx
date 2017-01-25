@@ -108,7 +108,7 @@ const entities = {
                         validator: value => check(value).notEmpty()
                     },
                     {
-                    	property: "permissions",
+                    	property: "_permissions",
                     	label: "Permissions",
                     	placeholder: "Select permissions for role",
                     	control: ValuesLookupContainer,

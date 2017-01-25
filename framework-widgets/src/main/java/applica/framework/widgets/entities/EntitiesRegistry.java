@@ -79,8 +79,6 @@ public class EntitiesRegistry {
             }
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-
         for (Class<?> type : types) {
             logger.info("Scanning type " + type.getName());
 
@@ -90,33 +88,13 @@ public class EntitiesRegistry {
 
             logger.info("Checking entity definition in path: " + resourcePath);
 
-            EntityDefinition definition = null;
+            EntityDefinition definition;
+            EntityId entityId = type.getAnnotation(EntityId.class);
+            if (entityId != null) {
+                String id = entityId.value();
+                definition = new EntityDefinition(id, (Class<? extends Entity>) type);
 
-            InputStream in = getClass().getResourceAsStream(resourcePath);
-            if (in != null) {
-                try {
-                    String json = IOUtils.toString(in);
-                    definition = mapper.readValue(json, EntityDefinition.class);
-                    definition.setType((Class<? extends Entity>) type);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    if (in != null) {
-                        IOUtils.closeQuietly(in);
-                    }
-                }
-            } else {
-                EntityId entityId = type.getAnnotation(EntityId.class);
-                if (entityId != null) {
-                    String id = entityId.value();
-                    definition = new EntityDefinition(id, (Class<? extends Entity>) type);
-                }
-            }
-
-            if (definition != null) {
-                //check definition id
-                EntityDefinition fDefinition = definition;
-                if (definitions.stream().anyMatch(d -> d.getId().equals(fDefinition.getId()))) {
+                if (definitions.stream().anyMatch(d -> d.getId().equals(id))) {
                     throw new RuntimeException(String.format("Entity with id %s already exists in file %s", definition.getId(), resourcePath));
                 }
 
