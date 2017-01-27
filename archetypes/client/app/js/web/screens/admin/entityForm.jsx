@@ -33,6 +33,13 @@ export default class EntityForm extends Screen {
         freeEntities(this.discriminator)
     }
 
+    componentWillUpdate(newProps, newState) {
+        if (newState.saved) {
+            ui.navigate(`/admin/entities/${this.props.entity}`)
+            return false
+        }
+    }
+
     onSubmit(data) {
         if (_.isFunction(this.props.onSubmit)) {
             this.props.onSubmit(data)

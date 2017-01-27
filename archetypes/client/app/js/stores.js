@@ -110,6 +110,15 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator)
 
+        case completed(actions.SAVE_ENTITY):
+            return discriminate(state, action.discriminator, { error: false, saved: true})
+
+        case failed(actions.SAVE_ENTITY):
+            return discriminate(state, action.discriminator, { error: true, saved: false})
+
+        case actions.SAVE_ENTITY:
+            return discriminate(state, action.discriminator, { error: false, saved: false})
+
     }
 
 })

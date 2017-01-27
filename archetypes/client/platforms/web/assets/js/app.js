@@ -221,14 +221,17 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: LOAD_ENTITIES,
         discriminator: data.discriminator
     });
 
     EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
+        (0, _plugins.hideLoader)();
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         loadEntities.fail({ discriminator: data.discriminator });
@@ -251,14 +254,17 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: DELETE_ENTITIES,
         discriminator: data.discriminator
     });
 
     EntitiesApi.delete_(data.entity, data.ids).then(function () {
+        (0, _plugins.hideLoader)();
         deleteEntities.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         deleteEntities.fail({ discriminator: data.discriminator });
@@ -281,14 +287,17 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: SAVE_ENTITY,
         discriminator: data.discriminator
     });
 
     EntitiesApi.save(data.entity, data.data).then(function () {
+        (0, _plugins.hideLoader)();
         saveEntity.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         saveEntity.fail({ discriminator: data.discriminator });
@@ -311,14 +320,17 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, fun
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: GET_ENTITY,
         discriminator: data.discriminator
     });
 
     EntitiesApi.get(data.entity, data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
         getEntity.complete({ data: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         getEntity.fail({ discriminator: data.discriminator });
@@ -24366,8 +24378,10 @@ var aj = _interopRequireWildcard(_aj);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+var loaderCounter = 0;
+
 function alert(title, message, type) {
-    return aj.exec("Alert", "alert", { title: title, message: message, type: type });
+    return aj.exec("Alert", "alert", { title: title, message: message, type: type }, function () {}).then(function () {}).catch(function () {});
 }
 
 function confirm() {
@@ -24380,7 +24394,7 @@ function confirm() {
             }
         };
 
-        aj.exec("Alert", "confirm", { callback: callback }).catch(function () {
+        aj.exec("Alert", "confirm", {}, callback).then(function () {}).catch(function () {
             return reject();
         });
     });
@@ -24389,15 +24403,23 @@ function confirm() {
 function showLoader() {
     var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
 
-    aj.exec("Loader", "show", { message: message });
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "show", { message: message }, function () {}).then(function () {}).catch(function () {});
+    }
+
+    loaderCounter++;
 }
 
 function hideLoader() {
-    aj.exec("Loader", "hide");
+    loaderCounter--;
+
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "hide", {}, function () {}).then(function () {}).catch(function () {});
+    }
 }
 
 function toast(message) {
-    aj.exec("Toast", "show", { message: message });
+    aj.exec("Toast", "show", { message: message }, function () {}).then(function () {}).catch(function () {});
 }
 });
 define('stores.js', function(module, exports) {
@@ -24543,6 +24565,15 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator);
+
+        case (0, _ajex.completed)(actions.SAVE_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: true });
+
+        case (0, _ajex.failed)(actions.SAVE_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, saved: false });
+
+        case actions.SAVE_ENTITY:
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: false });
 
     }
 });
@@ -29162,11 +29193,10 @@ define('web/pluginsimpl.js', function(module, exports) {
 "use strict";
 
 exports.Alert = {
-    alert: function alert(data) {
+    alert: function alert(data, callback) {
         var title = data.title,
             message = data.message,
-            type = data.type,
-            callback = data.callback;
+            type = data.type;
 
         var _callback = function _callback(v) {
             if (_.isFunction(callback)) {
@@ -29179,10 +29209,9 @@ exports.Alert = {
             return _callback(false);
         });
     },
-    confirm: function confirm(data) {
+    confirm: function confirm(data, callback) {
         var title = data.title,
-            message = data.message,
-            callback = data.callback;
+            message = data.message;
 
         var _callback = function _callback(v) {
             if (_.isFunction(callback)) {
@@ -29200,11 +29229,11 @@ exports.Alert = {
 var loaderCount = 0;
 
 exports.Loader = {
-    show: function show(data) {
+    show: function show(data, callback) {
         loaderCount++;
         $(".global-loader").find(".message").text(data.message).end().fadeIn(250);
     },
-    hide: function hide() {
+    hide: function hide(data, callback) {
         loaderCount--;
         if (loaderCount <= 0) {
             $(".global-loader").fadeOut(250);
@@ -29214,7 +29243,7 @@ exports.Loader = {
 };
 
 exports.Toast = {
-    show: function show(data) {
+    show: function show(data, callback) {
         $.growl({
             message: data.message,
             url: ''
@@ -29366,8 +29395,6 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "onGridRowDoubleClick",
         value: function onGridRowDoubleClick(row) {
-            console.log(row);
-
             ui.navigate("/admin/entities/" + this.props.entity + "/" + row.id);
         }
     }, {
@@ -29504,6 +29531,14 @@ var EntityForm = function (_Screen) {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
             (0, _actions.freeEntities)(this.discriminator);
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(newProps, newState) {
+            if (newState.saved) {
+                ui.navigate("/admin/entities/" + this.props.entity);
+                return false;
+            }
         }
     }, {
         key: "onSubmit",

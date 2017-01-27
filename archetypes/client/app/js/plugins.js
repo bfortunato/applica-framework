@@ -2,8 +2,10 @@
 
 import * as aj from "../aj"
 
+let loaderCounter = 0
+
 export function alert(title, message, type) {
-    return aj.exec("Alert", "alert", {title, message, type})
+    return aj.exec("Alert", "alert", {title, message, type}, function() {}).then(() => {}).catch(() => {})
 }
 
 export function confirm() {
@@ -16,18 +18,27 @@ export function confirm() {
             }
         }
 
-        aj.exec("Alert", "confirm", {callback}).catch(() => reject())
+        aj.exec("Alert", "confirm", {}, callback).then(() => {}).catch(() => reject())
     })
 }
 
 export function showLoader(message = "") {
-    aj.exec("Loader", "show", {message})
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "show", {message}, function() {}).then(() => {}).catch(() => {})
+    }
+
+    loaderCounter++;
 }
 
 export function hideLoader() {
-    aj.exec("Loader", "hide")
+    loaderCounter--
+
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "hide", {}, function () {}).then(() => {}).catch(() => {})
+    }
+
 }
 
 export function toast(message) {
-    aj.exec("Toast", "show", {message})
+    aj.exec("Toast", "show", {message}, function() {}).then(() => {}).catch(() => {})
 }

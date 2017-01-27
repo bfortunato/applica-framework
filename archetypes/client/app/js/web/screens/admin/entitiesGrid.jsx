@@ -68,8 +68,6 @@ export default class EntitiesGrid extends Screen {
     }
 
     onGridRowDoubleClick(row) {
-        console.log(row)
-
         ui.navigate(`/admin/entities/${this.props.entity}/${row.id}`)
     }
 
