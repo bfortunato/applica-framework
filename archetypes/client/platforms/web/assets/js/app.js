@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -286,12 +286,27 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
         discriminator: data.discriminator
     });
 
+    (0, _plugins.showLoader)();
     EntitiesApi.save(data.entity, data.data).then(function () {
+        (0, _plugins.hideLoader)();
         saveEntity.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         saveEntity.fail({ discriminator: data.discriminator });
+    });
+});
+
+var NEW_ENTITY = exports.NEW_ENTITY = "NEW_ENTITY";
+var newEntity = exports.newEntity = aj.createAction(NEW_ENTITY, function (data) {
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: NEW_ENTITY,
+        discriminator: data.discriminator
     });
 });
 
@@ -316,9 +331,12 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, fun
         discriminator: data.discriminator
     });
 
+    (0, _plugins.showLoader)();
     EntitiesApi.get(data.entity, data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
         getEntity.complete({ data: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         getEntity.fail({ discriminator: data.discriminator });
@@ -24535,6 +24553,12 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
         case (0, _ajex.failed)(actions.DELETE_ENTITIES):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
 
+        case actions.NEW_ENTITY:
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: null, saved: false });
+
+        case actions.GET_ENTITY:
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: null, saved: false });
+
         case (0, _ajex.completed)(actions.GET_ENTITY):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: action.data });
 
@@ -24543,6 +24567,15 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator);
+
+        case actions.SAVE_ENTITY:
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: false });
+
+        case (0, _ajex.completed)(actions.SAVE_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: true });
+
+        case (0, _ajex.failed)(actions.SAVE_ENTITY):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, saved: false });
 
     }
 });
@@ -24635,7 +24668,7 @@ exports.default = {
     create: "Create",
     refresh: "Refresh",
     confirm: "Confirm",
-    entityDeleteConfirm: "Are you sure to delete {0} EntitiesApi?",
+    entityDeleteConfirm: "Are you sure to delete {0} entities?",
     submit: "Submit",
     cancel: "Cancel",
     add: "Add",
@@ -24645,10 +24678,23 @@ exports.default = {
     users: "Users",
     roles: "Roles",
     setup: "Setup",
-    categories: "Categorie",
+    categories: "Categories",
     nElementsSelected: "{0} elements selected",
     oneElementSelected: "1 element selected",
-    nothingSelected: "Nothing selected"
+    nothingSelected: "Nothing selected",
+    usersList: "Users list",
+    usersListDescription: "Create, edit or delete system users",
+    mail: "Email",
+    active: "Active",
+    editUser: "Edit user",
+    editUserDescription: "Use this form to edit user informations",
+    generalInformations: "General informations",
+    rolesList: "Roles list",
+    rolesListDescription: "A role is an entity that gives to user authorization to do something",
+    nameOfRole: "Name of role",
+    role: "Role",
+    permissions: "Permissions",
+    selectPermissions: "Select permissions for role"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -28877,47 +28923,33 @@ var _forms = require("./components/forms");
 
 var _containers = require("./components/containers");
 
-var _datasource = require("../utils/datasource");
+var _strings = require("../strings");
 
-var datasource = _interopRequireWildcard(_datasource);
+var _strings2 = _interopRequireDefault(_strings);
 
-var _session = require("../api/session");
-
-var SessionApi = _interopRequireWildcard(_session);
-
-var _responses = require("../api/responses");
-
-var responses = _interopRequireWildcard(_responses);
-
-var _lang = require("../utils/lang");
-
-var _query = require("../api/query");
-
-var query = _interopRequireWildcard(_query);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var entities = {
 	user: {
 		grid: {
-			title: "Users list",
-			subtitle: "Create, edit or delete system users",
+			title: _strings2.default.usersList,
+			subtitle: _strings2.default.usersListDescription,
 			descriptor: {
-				columns: [{ property: "name", header: "Name", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: "Mail", cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: "Active", cell: _grids.CheckCell, sortable: true, searchable: true }]
+				columns: [{ property: "name", header: _strings2.default.name, cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: _strings2.default.mail, cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: _strings2.default.active, cell: _grids.CheckCell, sortable: true, searchable: true }]
 			}
 		},
 		form: {
-			title: "Edit user",
-			subtitle: "Manage user properties",
+			title: _strings2.default.editUser,
+			subtitle: _strings2.default.editUserDescription,
 			descriptor: {
 				areas: [{
-					title: "General informations",
-					subtitle: "Insert all information about user",
+					title: _strings2.default.generalInformations,
+					subtitle: null,
 					fields: [{
 						property: "name",
 						control: _forms.Text,
-						label: "Name",
-						placeholder: "Name",
+						label: _strings2.default.name,
+						placeholder: _strings2.default.name,
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).trim();
 						},
@@ -28927,8 +28959,8 @@ var entities = {
 					}, {
 						property: "mail",
 						control: _forms.Mail,
-						label: "Mail",
-						placeholder: "Mail",
+						label: _strings2.default.mail,
+						placeholder: _strings2.default.mailAddress,
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).trim();
 						},
@@ -28938,24 +28970,27 @@ var entities = {
 					}, {
 						property: "active",
 						control: _forms.Check,
-						label: "Active",
-						placeholder: "Active",
+						label: _strings2.default.active,
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).toBoolean();
 						}
 					}, {
+						property: "_image",
+						control: _forms.Image,
+						label: _strings2.default.image
+					}, {
 						property: "roles",
-						label: "Roles",
+						label: _strings2.default.roles,
 						control: _containers.EntitiesLookupContainer,
 						props: {
 							id: "user_roles",
 							mode: "multiple",
 							entity: "role",
 							selectionGrid: {
-								columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+								columns: [{ property: "role", header: _strings2.default.name, cell: _grids.TextCell }]
 							},
 							popupGrid: {
-								columns: [{ property: "role", header: "Name", cell: _grids.TextCell }]
+								columns: [{ property: "role", header: _strings2.default.name, cell: _grids.TextCell }]
 							}
 						}
 					}]
@@ -28966,8 +29001,8 @@ var entities = {
 
 	role: {
 		grid: {
-			title: "Roles list",
-			subtitle: "A role is an entity that gives to user authorization to do something",
+			title: _strings2.default.rolesList,
+			subtitle: _strings2.default.rolesListDescription,
 			descriptor: {
 				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
 			}
@@ -28979,8 +29014,8 @@ var entities = {
 				fields: [{
 					property: "role",
 					control: _forms.Text,
-					label: "Role",
-					placeholder: "Name of role",
+					label: _strings2.default.role,
+					placeholder: _strings2.default.nameOfRole,
 					sanitizer: function sanitizer(value) {
 						return (0, _validator.sanitize)(value).trim();
 					},
@@ -28989,8 +29024,8 @@ var entities = {
 					}
 				}, {
 					property: "_permissions",
-					label: "Permissions",
-					placeholder: "Select permissions for role",
+					label: _strings2.default.permissions,
+					placeholder: _strings2.default.selectPermissions,
 					control: _containers.ValuesLookupContainer,
 					//sanitizer: value => _.map(value, v => v.value),
 					validator: function validator(value) {
@@ -29001,10 +29036,10 @@ var entities = {
 						collection: "permissions",
 						mode: "multiple",
 						selectionGrid: {
-							columns: [{ property: "label", header: "Name", cell: _grids.TextCell }]
+							columns: [{ property: "label", header: _strings2.default.name, cell: _grids.TextCell }]
 						},
 						popupGrid: {
-							columns: [{ property: "label", header: "Name", cell: _grids.TextCell }]
+							columns: [{ property: "label", header: _strings2.default.name, cell: _grids.TextCell }]
 						}
 					}
 
@@ -29339,7 +29374,9 @@ var EntitiesGrid = function (_Screen) {
         }
     }, {
         key: "createEntity",
-        value: function createEntity() {}
+        value: function createEntity() {
+            ui.navigate("/admin/entities/" + this.props.entity + "/create");
+        }
     }, {
         key: "deleteEntities",
         value: function deleteEntities() {
@@ -29366,8 +29403,6 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "onGridRowDoubleClick",
         value: function onGridRowDoubleClick(row) {
-            console.log(row);
-
             ui.navigate("/admin/entities/" + this.props.entity + "/" + row.id);
         }
     }, {
@@ -29389,7 +29424,7 @@ var EntitiesGrid = function (_Screen) {
                 icon: "zmdi zmdi-plus",
                 tooltip: _strings2.default.create,
                 action: function action() {
-                    swal("Ciao");
+                    _this3.createEntity();
                 }
             }, {
                 type: "button",
@@ -29496,8 +29531,10 @@ var EntityForm = function (_Screen) {
     _createClass(EntityForm, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            if (!_.isEmpty(this.props.entityId)) {
+            if (!_.isEmpty(this.props.entityId) && this.props.entityId != "create") {
                 (0, _actions.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
+            } else {
+                (0, _actions.newEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
             }
         }
     }, {
@@ -29523,6 +29560,14 @@ var EntityForm = function (_Screen) {
         key: "goBack",
         value: function goBack() {
             ui.navigate("/admin/entities/" + this.props.entity);
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(props, state) {
+            if (state.saved) {
+                this.goBack();
+                return false;
+            }
         }
     }, {
         key: "render",

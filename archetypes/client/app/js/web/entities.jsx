@@ -1,64 +1,64 @@
 "use strict"
 
-import {Grid, TextCell, CheckCell, resultToGridData} from "./components/grids"
+import {TextCell, CheckCell} from "./components/grids"
 import {check, sanitize} from "../libs/validator"
-import {Text, Mail, Check, Select, Image, Lookup, File, Control} from "./components/forms"
+import {Text, Mail, Check, Image} from "./components/forms"
 import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers"
-import * as datasource from "../utils/datasource"
-import * as SessionApi from "../api/session"
-import * as responses from "../api/responses"
-import {use} from "../utils/lang"
-import * as query from "../api/query"
+import strings from "../strings"
 
 
 const entities = {
 	user: {
 		grid: {
-			title: "Users list",
-			subtitle: "Create, edit or delete system users",
+			title: strings.usersList,
+			subtitle: strings.usersListDescription,
 			descriptor: {
 	            columns: [
-	                {property: "name", header: "Name", cell: TextCell, sortable: true, searchable: true},
-	                {property: "mail", header: "Mail", cell: TextCell, sortable: true, searchable: true},
-	                {property: "active", header: "Active", cell: CheckCell, sortable: true, searchable: true}
+	                {property: "name", header: strings.name, cell: TextCell, sortable: true, searchable: true},
+	                {property: "mail", header: strings.mail, cell: TextCell, sortable: true, searchable: true},
+	                {property: "active", header: strings.active, cell: CheckCell, sortable: true, searchable: true}
 	            ]
 	        }
 		},
 		form: {
-			title: "Edit user",
-			subtitle: "Manage user properties",
+			title: strings.editUser,
+			subtitle: strings.editUserDescription,
 			descriptor: {
 	            areas: [
 	                {
-	                    title: "General informations",
-	                    subtitle: "Insert all information about user",
+	                    title: strings.generalInformations,
+	                    subtitle: null,
 	                    fields: [
 	                        {
 	                            property: "name",
 	                            control: Text,
-	                            label: "Name",
-	                            placeholder: "Name",
+	                            label: strings.name,
+	                            placeholder: strings.name,
 	                            sanitizer: (value) => sanitize(value).trim(),
 	                            validator: (value) => check(value).notEmpty()
 	                        },
 	                        {
 	                            property: "mail",
 	                            control: Mail,
-	                            label: "Mail",
-	                            placeholder: "Mail",
+	                            label: strings.mail,
+	                            placeholder: strings.mailAddress,
 	                            sanitizer: (value) => sanitize(value).trim(),
 	                            validator: (value) => check(value).isEmail()
 	                        },
 	                        {
 	                            property: "active",
 	                            control: Check,
-	                            label: "Active",
-	                            placeholder: "Active",
+	                            label: strings.active,
 	                            sanitizer: (value) => sanitize(value).toBoolean()
 	                        },
+							{
+								property: "_image",
+								control: Image,
+								label: strings.image
+							},
 	                        {
 	                            property: "roles",
-	                            label: "Roles",
+	                            label: strings.roles,
 	                            control: EntitiesLookupContainer,
 	                            props: {
 	                            	id: "user_roles",
@@ -66,12 +66,12 @@ const entities = {
 	                            	entity: "role",
 		                            selectionGrid: {
 		                                columns: [
-		                                    {property: "role", header: "Name", cell: TextCell}
+		                                    {property: "role", header: strings.name, cell: TextCell}
 		                                ]
 		                            },
 		                            popupGrid: {
 		                                columns: [
-		                                    {property: "role", header: "Name", cell: TextCell}
+		                                    {property: "role", header: strings.name, cell: TextCell}
 		                                ]
 		                            }
 	                            }	                            
@@ -86,8 +86,8 @@ const entities = {
 
 	role: {
 		grid: {
-			title: "Roles list",
-			subtitle: "A role is an entity that gives to user authorization to do something",
+			title: strings.rolesList,
+			subtitle: strings.rolesListDescription,
 			descriptor: {
 				columns: [
 	                {property: "role", header: "Role", cell: TextCell, sortable: true, searchable: true}
@@ -102,15 +102,15 @@ const entities = {
 					{
                         property: "role",
                         control: Text,
-                        label: "Role",
-                        placeholder: "Name of role",
+                        label: strings.role,
+                        placeholder: strings.nameOfRole,
                         sanitizer: value => sanitize(value).trim(),
                         validator: value => check(value).notEmpty()
                     },
                     {
                     	property: "_permissions",
-                    	label: "Permissions",
-                    	placeholder: "Select permissions for role",
+                    	label: strings.permissions,
+                    	placeholder: strings.selectPermissions,
                     	control: ValuesLookupContainer,
                     	//sanitizer: value => _.map(value, v => v.value),
                     	validator: value => check(value).notEmpty(),
@@ -120,12 +120,12 @@ const entities = {
 	                    	mode: "multiple",
 	                        selectionGrid: {
 	                            columns: [
-	                                {property: "label", header: "Name", cell: TextCell}
+	                                {property: "label", header: strings.name, cell: TextCell}
 	                            ]
 	                        },
 	                        popupGrid: {
 	                            columns: [
-	                                {property: "label", header: "Name", cell: TextCell}
+	                                {property: "label", header: strings.name, cell: TextCell}
 	                            ]
 	                        }
                     	}

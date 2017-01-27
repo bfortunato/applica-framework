@@ -6,7 +6,7 @@ import strings from "../../../strings"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton} from "../../components/common"
 import {Form} from "../../components/forms"
-import {getEntity, saveEntity, freeEntities} from "../../../actions"
+import {newEntity, getEntity, saveEntity, freeEntities} from "../../../actions"
 import entities from "../../entities"
 import * as ui from "../../utils/ui"
 
@@ -24,8 +24,10 @@ export default class EntityForm extends Screen {
     }
 
     componentDidMount() {
-        if (!_.isEmpty(this.props.entityId)) {
+        if (!_.isEmpty(this.props.entityId) && this.props.entityId != "create") {
             getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
+        } else {
+            newEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
         }
     }
 
@@ -48,6 +50,13 @@ export default class EntityForm extends Screen {
 
     goBack() {
         ui.navigate("/admin/entities/" + this.props.entity)
+    }
+
+    componentWillUpdate(props, state) {
+        if (state.saved) {
+            this.goBack()
+            return false
+        }
     }
 
     render() {

@@ -90,25 +90,40 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
 
     switch (action.type) {
         case completed(actions.LOAD_ENTITIES):
-            return discriminate(state, action.discriminator, { error: false, result: action.result })
+            return discriminate(state, action.discriminator, {error: false, result: action.result})
 
         case failed(actions.LOAD_ENTITIES):
-            return discriminate(state, action.discriminator, { error: true, result: null })
+            return discriminate(state, action.discriminator, {error: true, result: null})
 
         case completed(actions.DELETE_ENTITIES):
-            return discriminate(state, action.discriminator, { error: false, result: action.result })
+            return discriminate(state, action.discriminator, {error: false, result: action.result})
 
         case failed(actions.DELETE_ENTITIES):
-            return discriminate(state, action.discriminator, { error: true, result: null })
+            return discriminate(state, action.discriminator, {error: true, result: null})
+
+        case actions.NEW_ENTITY:
+            return discriminate(state, action.discriminator, {error: false, data: null, saved: false})
+
+        case actions.GET_ENTITY:
+            return discriminate(state, action.discriminator, {error: false, data: null, saved: false})
 
         case completed(actions.GET_ENTITY):
-            return discriminate(state, action.discriminator, { error: false, data: action.data})
+            return discriminate(state, action.discriminator, {error: false, data: action.data})
 
         case failed(actions.GET_ENTITY): 
-            return discriminate(state, action.discriminator, { error: true, data: null})
+            return discriminate(state, action.discriminator, {error: true, data: null})
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator)
+
+        case actions.SAVE_ENTITY:
+            return discriminate(state, action.discriminator, {error: false, saved: false})
+
+        case completed(actions.SAVE_ENTITY):
+            return discriminate(state, action.discriminator, {error: false, saved: true})
+
+        case failed(actions.SAVE_ENTITY):
+            return discriminate(state, action.discriminator, {error: true, saved: false})
 
     }
 

@@ -267,16 +267,31 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         discriminator: data.discriminator
     })
 
+    showLoader()
     EntitiesApi.save(data.entity, data.data)
         .then(() => {
+            hideLoader()
             saveEntity.complete({discriminator: data.discriminator})
         })
         .catch(e => {
+            hideLoader()
             alert(strings.ooops, responses.msg(e), "error")
 
             saveEntity.fail({discriminator: data.discriminator})
         })
 });
+
+export const NEW_ENTITY = "NEW_ENTITY"
+export const newEntity = aj.createAction(NEW_ENTITY, data => {
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: NEW_ENTITY,
+        discriminator: data.discriminator
+    })
+})
 
 export const GET_ENTITY = "GET_ENTITY"
 export const getEntity = createAsyncAction(GET_ENTITY, data => {
@@ -299,11 +314,14 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
         discriminator: data.discriminator
     })
 
+    showLoader()
     EntitiesApi.get(data.entity, data.id)
         .then(response => {
+            hideLoader()
             getEntity.complete({data: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
+            hideLoader()
             alert(strings.ooops, responses.msg(e), "error")
 
             getEntity.fail({discriminator: data.discriminator})

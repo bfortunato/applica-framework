@@ -45,7 +45,7 @@ export default class EntitiesGrid extends Screen {
     }
 
     createEntity() {
-
+        ui.navigate(`/admin/entities/${this.props.entity}/create`)
     }
 
     deleteEntities() {
@@ -68,8 +68,6 @@ export default class EntitiesGrid extends Screen {
     }
 
     onGridRowDoubleClick(row) {
-        console.log(row)
-
         ui.navigate(`/admin/entities/${this.props.entity}/${row.id}`)
     }
 
@@ -87,7 +85,7 @@ export default class EntitiesGrid extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-plus",
                 tooltip: strings.create,
-                action: () => { swal("Ciao") }
+                action: () => { this.createEntity() }
             },
             {
                 type: "button",
