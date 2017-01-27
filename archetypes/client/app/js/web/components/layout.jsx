@@ -6,6 +6,7 @@ import * as ui from "../utils/ui"
 import {PageLoader, GlobalLoader} from "./loader"
 import {connect} from "../utils/aj"
 import {optional, parseBoolean} from "../../utils/lang"
+import {setActiveMenuItem} from "../../actions"
 
 function showPageLoader() {
     $(".page-loader").show()

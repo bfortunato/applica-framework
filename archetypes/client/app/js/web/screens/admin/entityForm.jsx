@@ -35,13 +35,6 @@ export default class EntityForm extends Screen {
         freeEntities(this.discriminator)
     }
 
-    componentWillUpdate(newProps, newState) {
-        if (newState.saved) {
-            ui.navigate(`/admin/entities/${this.props.entity}`)
-            return false
-        }
-    }
-
     onSubmit(data) {
         if (_.isFunction(this.props.onSubmit)) {
             this.props.onSubmit(data)
@@ -73,13 +66,13 @@ export default class EntityForm extends Screen {
             {
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
-                tooltip: strings.refresh,
+                tooltip: strings.back,
                 action: () => { this.goBack() }
             },
             {
                 type: "button",
                 icon: "zmdi zmdi-save",
-                tooltip: strings.create,
+                tooltip: strings.save,
                 action: () => { this.refs.form.submit() }
             }
 

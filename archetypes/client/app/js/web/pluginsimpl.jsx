@@ -19,13 +19,13 @@ let loaderCount = 0;
 exports.Loader = {
     show(data, callback) {
         loaderCount++
-        $(".global-loader").find(".message").text(data.message).end().fadeIn(250)
+        $(".global-loader").find(".message").text(data.message).end().show()
     },
 
     hide(data, callback) {
         loaderCount--
         if (loaderCount <= 0) {
-            $(".global-loader").fadeOut(250)
+            $(".global-loader").hide()
             loaderCount = 0
         }
     }

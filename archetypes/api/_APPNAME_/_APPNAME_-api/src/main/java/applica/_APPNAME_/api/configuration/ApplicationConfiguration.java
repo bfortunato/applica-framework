@@ -3,6 +3,8 @@ package applica._APPNAME_.api.configuration;
 import applica.framework.ApplicationContextProvider;
 import applica.framework.DefaultRepositoriesFactory;
 import applica.framework.RepositoriesFactory;
+import applica.framework.fileserver.FileServer;
+import applica.framework.fileserver.SimpleFileServer;
 import applica.framework.fileserver.servlets.FilesServlet;
 import applica.framework.fileserver.servlets.ImagesServlet;
 import applica.framework.library.cache.Cache;
@@ -61,18 +63,6 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
         return new DefaultRepositoriesFactory();
     }
 
-    /* File Server servlets */
-
-    @Bean
-    public ServletRegistrationBean filesServletRegistration() {
-        return new ServletRegistrationBean(new FilesServlet(), "/files/**");
-    }
-
-    @Bean
-    public ServletRegistrationBean imagesServletRegistration() {
-        return new ServletRegistrationBean(new ImagesServlet(), "/images/**");
-    }
-
     @Bean
     public VelocityBuilder velocityBuilder() {
         return new BaseVelocityBuilder();
@@ -107,6 +97,27 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     @Scope("prototype")
     public DefaultFormProcessor defaultFormProcessor() {
         return new DefaultFormProcessor();
+    }
+
+    /* Fileserver */
+
+    @Bean
+    public FileServer fileServer() {
+        return new SimpleFileServer();
+    }
+
+    @Bean
+    public ServletRegistrationBean imagesServlet() {
+        ServletRegistrationBean bean = new ServletRegistrationBean(new ImagesServlet(), "/images/*");
+        bean.setLoadOnStartup(1);
+        return bean;
+    }
+
+    @Bean
+    public ServletRegistrationBean filesServlet() {
+        ServletRegistrationBean bean = new ServletRegistrationBean(new FilesServlet(), "/files/*");
+        bean.setLoadOnStartup(1);
+        return bean;
     }
 
     /* cors configuration */

@@ -1,8 +1,12 @@
 package applica.framework.fileserver.servlets;
 
+import applica.framework.ApplicationContextProvider;
 import applica.framework.fileserver.*;
+import applica.framework.library.options.OptionsManager;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -24,8 +28,25 @@ public class ImagesServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        String basePath = config.getInitParameter("basePath");
-        String maxSize = config.getInitParameter("maxSize");
+        ApplicationContext context = ApplicationContextProvider.provide();
+        String basePath = null;
+        String maxSize = null;
+
+        if (context != null) {
+            OptionsManager options = context.getBean(OptionsManager.class);
+            basePath = options.get("applica.framework.fileserver.basePath");
+            maxSize = options.get("applica.framework.fileserver.images.maxSize");
+        }
+
+        if (StringUtils.isEmpty(basePath)) {
+            basePath = config.getInitParameter("basePath");
+            maxSize = config.getInitParameter("maxSize");
+        }
+
+        if (StringUtils.isEmpty(basePath)) {
+            throw new RuntimeException("Could not determine fileserver base");
+        }
+
         imagesService = new ImagesService(basePath, maxSize);
     }
 
@@ -43,6 +64,7 @@ public class ImagesServlet extends HttpServlet {
                 String fileName = FilenameUtils.getName(path);
                 String extension = FilenameUtils.getExtension(fileName);
                 response.setContentType(MimeUtils.getMimeType(extension));
+                response.setContentLength(inputStream.available());
                 response.setHeader("Content-disposition", String.format("filename=%s", fileName));
                 response.setStatus(200);
                 IOUtils.copy(inputStream, response.getOutputStream());
@@ -51,6 +73,7 @@ public class ImagesServlet extends HttpServlet {
             if(inputStream != null) {
                 IOUtils.closeQuietly(inputStream);
             }
+            response.getOutputStream().flush();
         }
     }
 

@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -221,14 +221,17 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: LOAD_ENTITIES,
         discriminator: data.discriminator
     });
 
     EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
+        (0, _plugins.hideLoader)();
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         loadEntities.fail({ discriminator: data.discriminator });
@@ -251,14 +254,17 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: DELETE_ENTITIES,
         discriminator: data.discriminator
     });
 
     EntitiesApi.delete_(data.entity, data.ids).then(function () {
+        (0, _plugins.hideLoader)();
         deleteEntities.complete({ discriminator: data.discriminator });
     }).catch(function (e) {
+        (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
         deleteEntities.fail({ discriminator: data.discriminator });
@@ -281,12 +287,12 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: SAVE_ENTITY,
         discriminator: data.discriminator
     });
 
-    (0, _plugins.showLoader)();
     EntitiesApi.save(data.entity, data.data).then(function () {
         (0, _plugins.hideLoader)();
         saveEntity.complete({ discriminator: data.discriminator });
@@ -326,12 +332,12 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, fun
         throw new Error("Discriminator is required");
     }
 
+    (0, _plugins.showLoader)();
     aj.dispatch({
         type: GET_ENTITY,
         discriminator: data.discriminator
     });
 
-    (0, _plugins.showLoader)();
     EntitiesApi.get(data.entity, data.id).then(function (response) {
         (0, _plugins.hideLoader)();
         getEntity.complete({ data: response.value, discriminator: data.discriminator });
@@ -424,6 +430,14 @@ var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) 
     aj.dispatch({
         type: SETUP_MENU,
         menu: data.menu
+    });
+});
+
+var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
+var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
+    aj.dispatch({
+        type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
     });
 });
 });
@@ -24384,8 +24398,10 @@ var aj = _interopRequireWildcard(_aj);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+var loaderCounter = 0;
+
 function alert(title, message, type) {
-    return aj.exec("Alert", "alert", { title: title, message: message, type: type });
+    return aj.exec("Alert", "alert", { title: title, message: message, type: type }, function () {}).then(function () {}).catch(function () {});
 }
 
 function confirm() {
@@ -24398,7 +24414,7 @@ function confirm() {
             }
         };
 
-        aj.exec("Alert", "confirm", { callback: callback }).catch(function () {
+        aj.exec("Alert", "confirm", {}, callback).then(function () {}).catch(function () {
             return reject();
         });
     });
@@ -24407,15 +24423,23 @@ function confirm() {
 function showLoader() {
     var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
 
-    aj.exec("Loader", "show", { message: message });
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "show", { message: message }, function () {}).then(function () {}).catch(function () {});
+    }
+
+    loaderCounter++;
 }
 
 function hideLoader() {
-    aj.exec("Loader", "hide");
+    loaderCounter--;
+
+    if (loaderCounter <= 0) {
+        aj.exec("Loader", "hide", {}, function () {}).then(function () {}).catch(function () {});
+    }
 }
 
 function toast(message) {
-    aj.exec("Toast", "show", { message: message });
+    aj.exec("Toast", "show", { message: message }, function () {}).then(function () {}).catch(function () {});
 }
 });
 define('stores.js', function(module, exports) {
@@ -24617,7 +24641,7 @@ var MenuStore = exports.MenuStore = aj.createStore(MENU, function () {
 
         case actions.SET_ACTIVE_MENU_ITEM:
             return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
-                    i.active = i == action.item;
+                    console.log(i);console.log(action.item), console.log(action.item == i);i.active = i == action.item;
                 }) });
 
     }
@@ -24694,7 +24718,10 @@ exports.default = {
     nameOfRole: "Name of role",
     role: "Role",
     permissions: "Permissions",
-    selectPermissions: "Select permissions for role"
+    selectPermissions: "Select permissions for role",
+    back: "Back",
+    save: "Save",
+    image: "Image"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -28408,7 +28435,7 @@ var MenuLevel = function (_React$Component3) {
     _createClass(MenuLevel, [{
         key: "activate",
         value: function activate(item) {
-            setActiveMenuItem({ item: item });
+            (0, _actions.setActiveMenuItem)({ item: item });
         }
     }, {
         key: "render",
@@ -29197,11 +29224,10 @@ define('web/pluginsimpl.js', function(module, exports) {
 "use strict";
 
 exports.Alert = {
-    alert: function alert(data) {
+    alert: function alert(data, callback) {
         var title = data.title,
             message = data.message,
-            type = data.type,
-            callback = data.callback;
+            type = data.type;
 
         var _callback = function _callback(v) {
             if (_.isFunction(callback)) {
@@ -29214,10 +29240,9 @@ exports.Alert = {
             return _callback(false);
         });
     },
-    confirm: function confirm(data) {
+    confirm: function confirm(data, callback) {
         var title = data.title,
-            message = data.message,
-            callback = data.callback;
+            message = data.message;
 
         var _callback = function _callback(v) {
             if (_.isFunction(callback)) {
@@ -29235,21 +29260,21 @@ exports.Alert = {
 var loaderCount = 0;
 
 exports.Loader = {
-    show: function show(data) {
+    show: function show(data, callback) {
         loaderCount++;
-        $(".global-loader").find(".message").text(data.message).end().fadeIn(250);
+        $(".global-loader").find(".message").text(data.message).end().show();
     },
-    hide: function hide() {
+    hide: function hide(data, callback) {
         loaderCount--;
         if (loaderCount <= 0) {
-            $(".global-loader").fadeOut(250);
+            $(".global-loader").hide();
             loaderCount = 0;
         }
     }
 };
 
 exports.Toast = {
-    show: function show(data) {
+    show: function show(data, callback) {
         $.growl({
             message: data.message,
             url: ''
@@ -29579,14 +29604,14 @@ var EntityForm = function (_Screen) {
             var actions = [{
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
-                tooltip: _strings2.default.refresh,
+                tooltip: _strings2.default.back,
                 action: function action() {
                     _this2.goBack();
                 }
             }, {
                 type: "button",
                 icon: "zmdi zmdi-save",
-                tooltip: _strings2.default.create,
+                tooltip: _strings2.default.save,
                 action: function action() {
                     _this2.refs.form.submit();
                 }

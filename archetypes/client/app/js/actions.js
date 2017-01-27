@@ -274,7 +274,6 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         discriminator: data.discriminator
     })
 
-    showLoader()
     EntitiesApi.save(data.entity, data.data)
         .then(() => {
             hideLoader()
@@ -322,7 +321,6 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
         discriminator: data.discriminator
     })
 
-    showLoader()
     EntitiesApi.get(data.entity, data.id)
         .then(response => {
             hideLoader()
@@ -425,3 +423,10 @@ export const setupMenu = aj.createAction(SETUP_MENU, data => {
     })
 })
 
+export const SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
+export const setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, data => {
+    aj.dispatch({
+        type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
+    })
+})

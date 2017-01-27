@@ -1,11 +1,15 @@
 package applica.framework.fileserver.servlets;
 
+import applica.framework.ApplicationContextProvider;
 import applica.framework.fileserver.FilesService;
 import applica.framework.fileserver.InputStreamResolver;
 import applica.framework.fileserver.MimeUtils;
 import applica.framework.fileserver.PathResolver;
+import applica.framework.library.options.OptionsManager;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -27,7 +31,22 @@ public class FilesServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-        String basePath = config.getInitParameter("basePath");
+        ApplicationContext context = ApplicationContextProvider.provide();
+        String basePath = null;
+
+        if (context != null) {
+            OptionsManager options = context.getBean(OptionsManager.class);
+            basePath = options.get("applica.framework.fileserver.basePath");
+        }
+
+        if (StringUtils.isEmpty(basePath)) {
+            basePath = config.getInitParameter("basePath");
+        }
+
+        if (StringUtils.isEmpty(basePath)) {
+            throw new RuntimeException("Could not determine fileserver base");
+        }
+
         filesService = new FilesService(basePath);
     }
 

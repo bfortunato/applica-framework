@@ -63,5 +63,8 @@ export default {
     nameOfRole: "Name of role",
     role: "Role",
     permissions: "Permissions",
-    selectPermissions: "Select permissions for role"
+    selectPermissions: "Select permissions for role",
+    back: "Back",
+    save: "Save",
+    image: "Image"
 }

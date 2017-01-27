@@ -27,3 +27,7 @@
 - **Form processors** 
     Form Processors can be mapped to entities using getEntityType property, otherwhise is DefaultFormProcessor.
     Map request values changed to ObjectNode (json)
+    
+- **Fileserver**
+    Fileserver base path can be configured via options.properties
+    SimpleFileServer update to avoid deprecated methods

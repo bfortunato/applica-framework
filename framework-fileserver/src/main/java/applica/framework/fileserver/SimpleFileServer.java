@@ -1,21 +1,31 @@
 package applica.framework.fileserver;
 
 import applica.framework.library.options.OptionsManager;
+import org.apache.commons.fileupload.util.Closeable;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -57,18 +67,25 @@ public class SimpleFileServer implements FileServer {
     }
 
     private void saveToServer(InputStream fileStream, String filename, String fullPath) throws IOException {
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
         HttpPost method = new HttpPost(fullPath);
-        MultipartEntity entityRequest = new MultipartEntity();
-        InputStreamBody streamBody = new InputStreamBody(fileStream, "");
-        entityRequest.addPart("file", streamBody);
-        method.setEntity(entityRequest);
+        HttpEntity entity = MultipartEntityBuilder.create()
+                .addPart("file", new InputStreamBody(fileStream, ""))
+                .build();
 
-        HttpResponse response = null;
+        method.setEntity(entity);
+
+        CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(method);
+            response = client.execute(method);
         } catch (IOException e) {
             throw new IOException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+
+            client.close();
         }
         int code = response.getStatusLine().getStatusCode();
 
@@ -76,7 +93,7 @@ public class SimpleFileServer implements FileServer {
 
         throwExceptionByCode(code);
 
-        httpClient.getConnectionManager().shutdown();
+        client.close();
     }
 
     @Override
@@ -84,14 +101,23 @@ public class SimpleFileServer implements FileServer {
         Assert.hasLength(path, "Please provide a valid path");
         NormalizedUrl normalizedUrl = normalizeUrl(path);
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
         HttpGet method = new HttpGet(baseUrl.concat(normalizedUrl.url));
-        HttpResponse response = null;
+        CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(method);
-            return response.getEntity().getContent();
+            response = client.execute(method);
+            InputStream inputStream = response.getEntity().getContent();
+            byte[] buffer = new byte[inputStream.available()];
+            IOUtils.readFully(inputStream, buffer);
+            return new ByteArrayInputStream(buffer);
         } catch (IOException e) {
             throw new IOException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+
+            client.close();
         }
     }
 
@@ -100,18 +126,27 @@ public class SimpleFileServer implements FileServer {
         Assert.hasLength(path, "Please provide a valid path");
         NormalizedUrl normalizedUrl = normalizeUrl(path);
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
         String fullUrlWithParams = baseUrl.concat(normalizedUrl.url);
         if (StringUtils.hasLength(size)) {
             fullUrlWithParams = fullUrlWithParams.concat("?size=").concat(size);
         }
         HttpGet method = new HttpGet(fullUrlWithParams);
-        HttpResponse response = null;
+        CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(method);
-            return response.getEntity().getContent();
+            response = client.execute(method);
+            InputStream inputStream = response.getEntity().getContent();
+            byte[] buffer = new byte[inputStream.available()];
+            IOUtils.readFully(inputStream, buffer);
+            return new ByteArrayInputStream(buffer);
         } catch (IOException e) {
             throw new IOException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+
+            client.close();
         }
     }
 
@@ -120,20 +155,24 @@ public class SimpleFileServer implements FileServer {
         Assert.hasLength(path, "Please provide a valid path");
         NormalizedUrl normalizedUrl = normalizeUrl(path);
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CloseableHttpClient client = HttpClients.createDefault();
         HttpDelete method = new HttpDelete(baseUrl.concat(normalizedUrl.url));
-        HttpResponse response = null;
+        CloseableHttpResponse response = null;
         try {
-            response = httpClient.execute(method);
+            response = client.execute(method);
         } catch (IOException e) {
             throw new IOException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
 
         int code = response.getStatusLine().getStatusCode();
 
         throwExceptionByCode(code);
 
-        httpClient.getConnectionManager().shutdown();
+        client.close();
     }
 
     @Override
