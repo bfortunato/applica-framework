@@ -18,10 +18,9 @@ exports.Alert = {
             return _callback(false);
         });
     },
-    confirm: function confirm(data) {
+    confirm: function confirm(data, callback) {
         var title = data.title,
-            message = data.message,
-            callback = data.callback;
+            message = data.message
 
         var _callback = function _callback(v) {
             if (_.isFunction(callback)) {
@@ -37,16 +36,16 @@ exports.Alert = {
 };
 
 exports.Loader = {
-    show: function show(data) {
+    show: function show(data, callback) {
         $(".global-loader").find(".message").text(data.message).end().fadeIn(250);
     },
-    hide: function hide() {
+    hide: function hide(data, callback) {
         $(".global-loader").fadeOut(250);
     }
 };
 
 exports.Toast = {
-    show: function show(data) {
+    show: function show(data, callback) {
         $.growl({
             message: data.message,
             url: ''

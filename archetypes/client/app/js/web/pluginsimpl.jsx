@@ -1,14 +1,14 @@
 "use strict";
 
 exports.Alert = {
-    alert(data) {
-        let {title, message, type, callback} = data;
+    alert(data, callback) {
+        let {title, message, type} = data;
         let _callback = (v) => { if (_.isFunction(callback)) {  callback(v) } }
         swal({title, text: message, type}).then(() => _callback(true)).catch(() => _callback(false))
     },
 
-    confirm(data) {
-        let {title, message, callback} = data;
+    confirm(data, callback) {
+        let {title, message} = data;
         let _callback = (v) => { if (_.isFunction(callback)) {  callback(v) } }
         swal({title, text: message, showCancelButton: true}).then(() => _callback(true)).catch(() => _callback(false))
     }
@@ -17,12 +17,12 @@ exports.Alert = {
 let loaderCount = 0;
 
 exports.Loader = {
-    show(data) {
+    show(data, callback) {
         loaderCount++
         $(".global-loader").find(".message").text(data.message).end().fadeIn(250)
     },
 
-    hide() {
+    hide(data, callback) {
         loaderCount--
         if (loaderCount <= 0) {
             $(".global-loader").fadeOut(250)
@@ -32,7 +32,7 @@ exports.Loader = {
 }
 
 exports.Toast = {
-    show(data) {
+    show(data, callback) {
         $.growl({
             message: data.message,
             url: ''
