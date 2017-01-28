@@ -149,7 +149,6 @@ export const LookupStore = aj.createStore(LOOKUP, (state = {}, action) => {
             return _.omit(state, action.discriminator)
 
     }
-
 })
 
 export const MENU = "MENU"
@@ -160,8 +159,14 @@ export const MenuStore = aj.createStore(MENU, (state = {}, action) => {
             return _.assign(state, {menu: action.menu})
 
         case actions.SET_ACTIVE_MENU_ITEM:
-            return _.assign(state, {menu: walk(state.menu, "children", i => { console.log(i); console.log(action.item), console.log(action.item == i); i.active = (i == action.item)})})
+            return _.assign(state, {menu: walk(state.menu, "children", i => { i.active = (i == action.item)})})
 
+        case actions.EXPAND_MENU_ITEM:
+            return _.assign(state, {menu: walk(state.menu, "children", i => {
+                if (i == action.item) {
+                    i.expanded = !(action.item.expanded || false)
+                }
+            })})
     }
 
 })

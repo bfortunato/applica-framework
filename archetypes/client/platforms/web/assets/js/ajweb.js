@@ -415,11 +415,15 @@
             $.ajax({
                 url: url,
                 method: method,
-                beforeSend: request => {
+                    beforeSend: request => {
                     if (_.isObject(headers)) {
-                        _.keys(headers).forEach(k => request.setRequestHeader(k, headers[k]))
+                        _.keys(headers).forEach(k => {
+                            logger.i("Adding header:", k + "=" + headers[k])
+                            request.setRequestHeader(k, headers[k])
+                        })
                     }
                 },
+                headers: headers,
                 data: data,
                 dataType: "text",
                 accept: accept == null ? undefined : accept,

@@ -6,7 +6,7 @@ import * as ui from "../utils/ui"
 import {PageLoader, GlobalLoader} from "./loader"
 import {connect} from "../utils/aj"
 import {optional, parseBoolean} from "../../utils/lang"
-import {setActiveMenuItem} from "../../actions"
+import {setActiveMenuItem, expandMenuItem} from "../../actions"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -117,8 +117,25 @@ class ProfileBox extends React.Component {
 }
 
 class MenuLevel extends React.Component {
-    activate(item) {
-        setActiveMenuItem({item})
+    onSelect(item) {
+        if (item.href) {
+            location.href = item.href
+        }
+
+        if (_.isFunction(this.props.onSelect)) {
+            this.props.onSelect(item)
+        }
+
+        let hasChildren = !_.isEmpty(item.children)
+        if (hasChildren) {
+            this.onExpand(item)
+        }
+    }
+
+    onExpand(item) {
+        if (_.isFunction(this.props.onExpand)) {
+            this.props.onExpand(item)
+        }
     }
 
     render() {
@@ -131,22 +148,29 @@ class MenuLevel extends React.Component {
             if (i.active) { className += "active" }
             let hasChildren = !_.isEmpty(i.children)
             if (hasChildren) { className += " sub-menu" }
+            if (i.expanded) { className += " toggled" }
 
             return (
                 <li key={key++} className={className}>
-                    <a href={i.href || "javascript:;"} onClick={this.activate.bind(this, i)} data-ma-action={hasChildren ? "submenu-toggle" : undefined} >
+                    <a href="javascript:;" onClick={this.onSelect.bind(this, i)} data-ma-action={hasChildren ? "submenu-toggle" : undefined} >
                         <i className={i.icon}></i> {i.text}
                     </a>
 
                     {hasChildren &&
-                        <MenuLevel menu={i.children} />
+                        <MenuLevel parent={i} menu={i.children} onExpand={this.onExpand.bind(this, i)} onSelect={this.onSelect.bind(this)} />
                     }
                 </li>
             )
         })
 
+        let expanded = !isMainMenu && this.props.parent.expanded === true
+        let style = {}
+        if (expanded) {
+            style.display = "block"
+        }
+
         return (
-            <ul className={isMainMenu ? "main-menu" : undefined}>
+            <ul className={isMainMenu ? "main-menu" : undefined} style={style}>
                 {items}
             </ul>
         )
@@ -154,11 +178,24 @@ class MenuLevel extends React.Component {
 }
 
 class MainMenu extends React.Component {
+    onExpand(item) {
+        if (_.isFunction(this.props.onExpand)) {
+            this.props.onExpand(item)
+        }
+    }
+
+    onSelect(item) {
+        if (_.isFunction(this.props.onSelect)) {
+            this.props.onSelect(item)
+        }
+    }
+
+
     render() {
         let menu = this.props.menu
 
         return (
-            <MenuLevel menu={menu} isMainMenu="true"/>
+            <MenuLevel menu={menu} isMainMenu="true" onExpand={this.onExpand.bind(this)} onSelect={this.onSelect.bind(this)}/>
         )
     }
 }
@@ -179,10 +216,20 @@ class MainMenuContainer extends React.Component {
         super(props)
 
         connect(this, MenuStore, {menu: []})
+
+        logger.i("Menu created")
+    }
+
+    onSelect(item) {
+        setActiveMenuItem({item})
+    }
+
+    onExpand(item) {
+        expandMenuItem({item})
     }
 
     render() {
-        return <MainMenu menu={this.state.menu} />
+        return <MainMenu menu={this.state.menu} onExpand={this.onExpand.bind(this)} onSelect={this.onSelect.bind(this)} />
     }
 }
 
@@ -247,9 +294,9 @@ class ScreenContainer extends React.Component {
 
     componentDidMount() {
         ui.addScreenChangeListener(screen => {
-            showPageLoader()
+            //showPageLoader()
             this.setState(_.assign(this.state, {currentScreen: screen}))
-            hidePageLoader()
+            //hidePageLoader()
         })
     }
 

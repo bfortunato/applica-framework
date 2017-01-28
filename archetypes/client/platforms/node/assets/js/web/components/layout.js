@@ -592,9 +592,9 @@ var ScreenContainer = function (_React$Component7) {
             var _this9 = this;
 
             ui.addScreenChangeListener(function (screen) {
-                showPageLoader();
+                //showPageLoader();
                 _this9.setState(_.assign(_this9.state, { currentScreen: screen }));
-                hidePageLoader();
+                //hidePageLoader();
             });
         }
     }, {

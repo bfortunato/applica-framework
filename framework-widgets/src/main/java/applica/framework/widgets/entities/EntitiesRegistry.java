@@ -80,14 +80,6 @@ public class EntitiesRegistry {
         }
 
         for (Class<?> type : types) {
-            logger.info("Scanning type " + type.getName());
-
-            String name = type.getName();
-            String path = name.replace(".", "/").concat(".json");
-            String resourcePath = "/entities/".concat(path);
-
-            logger.info("Checking entity definition in path: " + resourcePath);
-
             EntityDefinition definition;
             EntityId entityId = type.getAnnotation(EntityId.class);
             if (entityId != null) {
@@ -95,7 +87,7 @@ public class EntitiesRegistry {
                 definition = new EntityDefinition(id, (Class<? extends Entity>) type);
 
                 if (definitions.stream().anyMatch(d -> d.getId().equals(id))) {
-                    throw new RuntimeException(String.format("Entity with id %s already exists in file %s", definition.getId(), resourcePath));
+                    throw new RuntimeException(String.format("Entity with id %s already exists", definition.getId()));
                 }
 
                 definitions.add(definition);

@@ -56,9 +56,9 @@ export default class EntitiesGrid extends Screen {
 
         swal({ title: strings.confirm, text: format(strings.entityDeleteConfirm, selection.length), showCancelButton: true })
             .then(() => {
-                deleteEntities({entity: this.props.entity, ids: selection.map(s => s.id)})
+                deleteEntities({discriminator: this.discriminator, entity: this.props.entity, ids: selection.map(s => s.id)})
             })
-            .catch(() => {})
+            .catch((e) => {logger.i(e)})
     }
 
     onGridKeyDown(e) {

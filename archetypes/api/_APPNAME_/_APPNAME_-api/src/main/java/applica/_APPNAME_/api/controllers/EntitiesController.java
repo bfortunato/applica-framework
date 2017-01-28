@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.AutoPopulatingList;
 import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
@@ -43,7 +44,6 @@ public class EntitiesController {
     private GetOperationBuilder getOperationBuilder;
 
     @GetMapping("")
-    //@PreAuthorize("hasPermission('administrator')")
     public Response getEntities(@PathVariable("entity") String entity, String queryJson) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
@@ -61,14 +61,31 @@ public class EntitiesController {
         }
     }
 
-    @DeleteMapping("")
-    //@PreAuthorize("hasPermission('administrator')")
-    public Response deleteEntities(@PathVariable("entity") String entityName, String entityIds) {
+    @DeleteMapping("/{id}")
+    public Response deleteEntities(@PathVariable("entity") String entityName, String id) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
                 DeleteOperation deleteOperation = deleteOperationBuilder.build(definition.get().getType());
-                deleteOperation.delete(Arrays.asList(entityIds.split(",")));
+                deleteOperation.delete(Arrays.asList(id));
+
+                return new Response(Response.OK);
+            } else {
+                return new Response(ResponseCode.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+    @PostMapping("/delete")
+    public Response deleteEntitiesMultiple(@PathVariable("entity") String entityName, String ids) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
+            if (definition.isPresent()) {
+                DeleteOperation deleteOperation = deleteOperationBuilder.build(definition.get().getType());
+                deleteOperation.delete(Arrays.asList(ids.split(",")));
 
                 return new Response(Response.OK);
             } else {
@@ -81,7 +98,6 @@ public class EntitiesController {
     }
 
     @GetMapping("/{id}")
-    //@PreAuthorize("hasPermission('administrator')")
     public Response getEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
@@ -100,7 +116,6 @@ public class EntitiesController {
     }
 
     @PostMapping("")
-    //@PreAuthorize("hasPermission('administrator')")
     public Response saveEntity(@PathVariable("entity") String entity, @RequestBody ObjectNode data) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);

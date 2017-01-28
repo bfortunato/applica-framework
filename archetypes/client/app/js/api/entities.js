@@ -20,8 +20,8 @@ export function delete_(entity, ids) {
         data.push(`${ids[i]}`)
     }
 
-    let url = config.get("entities.url") + "/" + entity
-    return utils.delete_(url, {entityIds: data.join()})
+    let url = config.get("entities.url") + "/" + entity + "/delete"
+    return utils.post(url, {ids: data.join()})
 }
 
 export function save(entity, data) {

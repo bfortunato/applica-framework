@@ -54,15 +54,15 @@ export function walk(tree, property = "children", action) {
         _.each(tree, i => {
             action(i)
 
-            if (!_.isArray(i[property])) {
-                _.each(i[property], t => walk(t))
+            if (_.isArray(i[property])) {
+                _.each(i[property], t => walk(t, property, action))
             }
         })
     } else {
         action(tree)
 
-        if (!_.isArray(tree[property])) {
-            _.each(tree[property], t => walk(t))
+        if (_.isArray(tree[property])) {
+            _.each(tree[property], t => walk(t, property, action))
         }
     }
 

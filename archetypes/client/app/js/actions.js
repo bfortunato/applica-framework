@@ -187,6 +187,8 @@ export const getGrid = createAsyncAction(GET_GRID, data => {
 
 /** Entities **/
 
+let queries = {}
+
 export const LOAD_ENTITIES = "LOAD_ENTITIES"
 export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
@@ -204,7 +206,10 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         discriminator: data.discriminator
     })
 
-    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null)
+    let query = !_.isEmpty(data.query) ? data.query : null
+    queries[data.entity] = query
+
+    EntitiesApi.load(data.entity, query)
         .then(response => {
             hideLoader()
             loadEntities.complete({result: response.value, discriminator: data.discriminator})
@@ -243,6 +248,10 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
         .then(() => {
             hideLoader()
             deleteEntities.complete({discriminator: data.discriminator})
+
+            if (_.has(queries, data.entity)) {
+                loadEntities({discriminator: data.discriminator, entity: data.entity, query: queries[data.entity]})
+            }
         })
         .catch(e => {
             hideLoader()
@@ -427,6 +436,14 @@ export const SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
 export const setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, data => {
     aj.dispatch({
         type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
+    })
+})
+
+export const EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM"
+export const expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, data => {
+    aj.dispatch({
+        type: EXPAND_MENU_ITEM,
         item: data.item
     })
 })

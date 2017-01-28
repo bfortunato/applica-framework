@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -210,6 +210,8 @@ var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function 
 
 /** Entities **/
 
+var queries = {};
+
 var LOAD_ENTITIES = exports.LOAD_ENTITIES = "LOAD_ENTITIES";
 var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTITIES, function (data) {
     if (_.isEmpty(data.entity)) {
@@ -227,7 +229,10 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         discriminator: data.discriminator
     });
 
-    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
+    var query = !_.isEmpty(data.query) ? data.query : null;
+    queries[data.entity] = query;
+
+    EntitiesApi.load(data.entity, query).then(function (response) {
         (0, _plugins.hideLoader)();
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
@@ -263,6 +268,10 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
     EntitiesApi.delete_(data.entity, data.ids).then(function () {
         (0, _plugins.hideLoader)();
         deleteEntities.complete({ discriminator: data.discriminator });
+
+        if (_.has(queries, data.entity)) {
+            loadEntities({ discriminator: data.discriminator, entity: data.entity, query: queries[data.entity] });
+        }
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -437,6 +446,14 @@ var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
 var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
     aj.dispatch({
         type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
+    });
+});
+
+var EXPAND_MENU_ITEM = exports.EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM";
+var expandMenuItem = exports.expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, function (data) {
+    aj.dispatch({
+        type: EXPAND_MENU_ITEM,
         item: data.item
     });
 });
@@ -2036,8 +2053,8 @@ function delete_(entity, ids) {
         data.push("" + ids[i]);
     }
 
-    var url = config.get("entities.url") + "/" + entity;
-    return utils.delete_(url, { entityIds: data.join() });
+    var url = config.get("entities.url") + "/" + entity + "/delete";
+    return utils.post(url, { ids: data.join() });
 }
 
 function save(entity, data) {
@@ -2405,6 +2422,18 @@ exports.getLoggedUser = getLoggedUser;
 exports.isLoggedIn = isLoggedIn;
 exports.getSessionToken = getSessionToken;
 
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _preferences = require("../framework/preferences");
+
+var preferences = _interopRequireWildcard(_preferences);
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
 var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
@@ -2413,16 +2442,7 @@ var _responses = require("./responses");
 
 var responses = _interopRequireWildcard(_responses);
 
-var _utils = require("./utils");
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var aj = require("../aj");
-var http = require("../aj/http");
-
-var preferences = require("../framework/preferences");
-var config = require("../framework/config");
-
 
 var _loggedUser = void 0;
 var _sessionToken = void 0;
@@ -2480,6 +2500,7 @@ function start(mail, password) {
             preferences.set("session.password", password);
 
             _sessionToken = response.token;
+            console.log(_sessionToken);
             _loggedUser = response.user;
 
             return preferences.save();
@@ -2574,13 +2595,27 @@ var _responses = require("./responses");
 
 var responses = _interopRequireWildcard(_responses);
 
+var _session = require("./session");
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function post(url, data) {
-    return new Promise(function (resolve, reject) {
-        var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+function addToken(headers) {
+    if (!_.isEmpty((0, _session.getSessionToken)())) {
+        return _.assign(headers || {}, { "x-auth-token": (0, _session.getSessionToken)() });
+    } else {
+        return headers;
+    }
+}
 
-        http.post(url, data, headers).then(function (json) {
+function post(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return new Promise(function (resolve, reject) {
+        http.post(url, data, addToken(headers)).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2605,7 +2640,7 @@ function postJson(url, data) {
     return new Promise(function (resolve, reject) {
         var json = typeof data == "string" ? data : JSON.stringify(data);
         headers = _.assign(headers, { "Content-Type": "application/json" });
-        http.post(url, json, headers).then(function (json) {
+        http.post(url, json, addToken(headers)).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2628,7 +2663,7 @@ function get(url, data) {
     var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     return new Promise(function (resolve, reject) {
-        http.get(url, data, headers).then(function (json) {
+        http.get(url, data, addToken(headers)).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2649,7 +2684,7 @@ function get(url, data) {
 
 function delete_(url, data, headers) {
     return new Promise(function (resolve, reject) {
-        http.delete(url, data, headers).then(function (json) {
+        http.delete(url, data, addToken(headers)).then(function (json) {
             if (_.isEmpty(json)) {
                 reject(responses.ERROR);
             } else {
@@ -2715,6 +2750,7 @@ module.exports = {
     "account.confirm.url": serviceBase + "account/confirm",
     "grids.url": serviceBase + "grids",
     "entities.url": serviceBase + "entities",
+    "entities.delete.url": serviceBase + "entities/delete",
     "values.permissions.url": serviceBase + "values/permissions"
 };
 });
@@ -24641,9 +24677,15 @@ var MenuStore = exports.MenuStore = aj.createStore(MENU, function () {
 
         case actions.SET_ACTIVE_MENU_ITEM:
             return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
-                    console.log(i);console.log(action.item), console.log(action.item == i);i.active = i == action.item;
+                    i.active = i == action.item;
                 }) });
 
+        case actions.EXPAND_MENU_ITEM:
+            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
+                    if (i == action.item) {
+                        i.expanded = !(action.item.expanded || false);
+                    }
+                }) });
     }
 });
 });
@@ -24939,18 +24981,18 @@ function walk(tree) {
         _.each(tree, function (i) {
             action(i);
 
-            if (!_.isArray(i[property])) {
+            if (_.isArray(i[property])) {
                 _.each(i[property], function (t) {
-                    return walk(t);
+                    return walk(t, property, action);
                 });
             }
         });
     } else {
         action(tree);
 
-        if (!_.isArray(tree[property])) {
+        if (_.isArray(tree[property])) {
             _.each(tree[property], function (t) {
-                return walk(t);
+                return walk(t, property, action);
             });
         }
     }
@@ -28433,9 +28475,27 @@ var MenuLevel = function (_React$Component3) {
     }
 
     _createClass(MenuLevel, [{
-        key: "activate",
-        value: function activate(item) {
-            (0, _actions.setActiveMenuItem)({ item: item });
+        key: "onSelect",
+        value: function onSelect(item) {
+            if (item.href) {
+                location.href = item.href;
+            }
+
+            if (_.isFunction(this.props.onSelect)) {
+                this.props.onSelect(item);
+            }
+
+            var hasChildren = !_.isEmpty(item.children);
+            if (hasChildren) {
+                this.onExpand(item);
+            }
+        }
+    }, {
+        key: "onExpand",
+        value: function onExpand(item) {
+            if (_.isFunction(this.props.onExpand)) {
+                this.props.onExpand(item);
+            }
         }
     }, {
         key: "render",
@@ -28455,24 +28515,33 @@ var MenuLevel = function (_React$Component3) {
                 if (hasChildren) {
                     className += " sub-menu";
                 }
+                if (i.expanded) {
+                    className += " toggled";
+                }
 
                 return React.createElement(
                     "li",
                     { key: key++, className: className },
                     React.createElement(
                         "a",
-                        { href: i.href || "javascript:;", onClick: _this5.activate.bind(_this5, i), "data-ma-action": hasChildren ? "submenu-toggle" : undefined },
+                        { href: "javascript:;", onClick: _this5.onSelect.bind(_this5, i), "data-ma-action": hasChildren ? "submenu-toggle" : undefined },
                         React.createElement("i", { className: i.icon }),
                         " ",
                         i.text
                     ),
-                    hasChildren && React.createElement(MenuLevel, { menu: i.children })
+                    hasChildren && React.createElement(MenuLevel, { parent: i, menu: i.children, onExpand: _this5.onExpand.bind(_this5, i), onSelect: _this5.onSelect.bind(_this5) })
                 );
             });
 
+            var expanded = !isMainMenu && this.props.parent.expanded === true;
+            var style = {};
+            if (expanded) {
+                style.display = "block";
+            }
+
             return React.createElement(
                 "ul",
-                { className: isMainMenu ? "main-menu" : undefined },
+                { className: isMainMenu ? "main-menu" : undefined, style: style },
                 items
             );
         }
@@ -28491,11 +28560,25 @@ var MainMenu = function (_React$Component4) {
     }
 
     _createClass(MainMenu, [{
+        key: "onExpand",
+        value: function onExpand(item) {
+            if (_.isFunction(this.props.onExpand)) {
+                this.props.onExpand(item);
+            }
+        }
+    }, {
+        key: "onSelect",
+        value: function onSelect(item) {
+            if (_.isFunction(this.props.onSelect)) {
+                this.props.onSelect(item);
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var menu = this.props.menu;
 
-            return React.createElement(MenuLevel, { menu: menu, isMainMenu: "true" });
+            return React.createElement(MenuLevel, { menu: menu, isMainMenu: "true", onExpand: this.onExpand.bind(this), onSelect: this.onSelect.bind(this) });
         }
     }]);
 
@@ -28535,13 +28618,25 @@ var MainMenuContainer = function (_React$Component6) {
         var _this8 = _possibleConstructorReturn(this, (MainMenuContainer.__proto__ || Object.getPrototypeOf(MainMenuContainer)).call(this, props));
 
         (0, _aj.connect)(_this8, _stores.MenuStore, { menu: [] });
+
+        logger.i("Menu created");
         return _this8;
     }
 
     _createClass(MainMenuContainer, [{
+        key: "onSelect",
+        value: function onSelect(item) {
+            (0, _actions.setActiveMenuItem)({ item: item });
+        }
+    }, {
+        key: "onExpand",
+        value: function onExpand(item) {
+            (0, _actions.expandMenuItem)({ item: item });
+        }
+    }, {
         key: "render",
         value: function render() {
-            return React.createElement(MainMenu, { menu: this.state.menu });
+            return React.createElement(MainMenu, { menu: this.state.menu, onExpand: this.onExpand.bind(this), onSelect: this.onSelect.bind(this) });
         }
     }]);
 
@@ -28701,9 +28796,9 @@ var ScreenContainer = function (_React$Component10) {
             var _this13 = this;
 
             ui.addScreenChangeListener(function (screen) {
-                showPageLoader();
+                //showPageLoader()
                 _this13.setState(_.assign(_this13.state, { currentScreen: screen }));
-                hidePageLoader();
+                //hidePageLoader()
             });
         }
     }, {
@@ -28800,7 +28895,7 @@ var PageLoader = function (_React$Component) {
         value: function render() {
             return React.createElement(
                 "div",
-                { className: "page-loader", style: { display: "block" } },
+                { className: "page-loader", style: { display: "none" } },
                 React.createElement(
                     "div",
                     { className: "preloader" },
@@ -29413,10 +29508,12 @@ var EntitiesGrid = function (_Screen) {
             }
 
             swal({ title: _strings2.default.confirm, text: (0, _lang.format)(_strings2.default.entityDeleteConfirm, selection.length), showCancelButton: true }).then(function () {
-                (0, _actions.deleteEntities)({ entity: _this2.props.entity, ids: selection.map(function (s) {
+                (0, _actions.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.props.entity, ids: selection.map(function (s) {
                         return s.id;
                     }) });
-            }).catch(function () {});
+            }).catch(function (e) {
+                logger.i(e);
+            });
         }
     }, {
         key: "onGridKeyDown",

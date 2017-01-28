@@ -5,11 +5,14 @@ import applica.framework.security.UserDetailsRepository;
 import applica.framework.security.UserService;
 import applica.framework.security.authorization.AuthorizationService;
 import applica.framework.security.authorization.BaseAuthorizationService;
+import applica.framework.security.token.TokenAuthenticationFilter;
+import applica.framework.security.token.TokenAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -22,7 +25,9 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -32,7 +37,6 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity
-@Order(2)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -45,21 +49,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void init(WebSecurity web) throws Exception {
-        web
-                .ignoring()
-                .antMatchers(
-                        "/**",
-                        "/public/**",
-                        "/static/**",
-                        "/auth/**",
-                        "/account/register",
-                        "/account/recover",
-                        "/account/confirm",
-                        "/grids/**",
-                        "/forms/**",
-                        "/entities/**"
-                )
-        ;
+        super.init(web);
     }
 
     @Bean
@@ -76,20 +66,39 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    public AuthenticationProvider tokenAuthenticationProvider() {
+        return new TokenAuthenticationProvider();
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(List<AuthenticationProvider> authenticationProviders) {
         ProviderManager manager = new ProviderManager(authenticationProviders);
         return manager;
     }
 
+    @Bean
+    public TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
+        TokenAuthenticationFilter filter = new TokenAuthenticationFilter();
+        return filter;
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(tokenAuthenticationProvider());
+        auth.authenticationProvider(daoAuthenticationProvider());
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-
         http
+                .csrf().disable()
                 .authorizeRequests()
-                    .antMatchers("/api").authenticated()
-                    .and()
-                    .antMatcher("/**").anonymous()
+                    .antMatchers("/auth/**").permitAll()
+                    .antMatchers("/account/**").permitAll()
+                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .antMatchers("/**").authenticated()
+                .and()
+                .addFilterBefore(tokenAuthenticationFilter(), BasicAuthenticationFilter.class)
         ;
 
     }

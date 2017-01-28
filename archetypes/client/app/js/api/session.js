@@ -1,13 +1,10 @@
 "use strict"
 
-const aj = require("../aj")
-const http = require("../aj/http")
-
-const preferences = require("../framework/preferences")
-const config = require("../framework/config")
+import * as http from "../aj/http"
+import * as preferences from "../framework/preferences"
+import * as config from "../framework/config"
 import * as _ from "../libs/underscore"
 import * as responses from "./responses"
-import {get} from "./utils"
 
 let _loggedUser
 let _sessionToken
@@ -67,6 +64,7 @@ export function start(mail, password) {
                 preferences.set("session.password", password)
 
                 _sessionToken = response.token
+                console.log(_sessionToken)
                 _loggedUser = response.user
 
                 return preferences.save()

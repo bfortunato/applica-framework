@@ -9,5 +9,6 @@ module.exports = {
     "account.confirm.url": `${serviceBase}account/confirm`,
     "grids.url": `${serviceBase}grids`,
     "entities.url": `${serviceBase}entities`,
+    "entities.delete.url": `${serviceBase}entities/delete`,
     "values.permissions.url": `${serviceBase}values/permissions`
 }

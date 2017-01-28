@@ -45,7 +45,6 @@ public class AuthController extends LocalizedController {
     }
 
     @GetMapping("/freshToken")
-    @PreAuthorize("isAuthenticated()")
     public Response freshToken(HttpServletRequest request) {
         try {
             String currentToken = request.getHeader("TOKEN");
