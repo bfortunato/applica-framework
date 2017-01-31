@@ -1,4 +1,4 @@
-package applica._APPNAME_.api.utils;
+package applica.framework.library.base64;
 
 /**
  * Created by bimbobruno on 27/01/2017.

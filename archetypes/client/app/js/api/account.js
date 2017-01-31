@@ -14,3 +14,11 @@ export function recover(mail) {
 export function confirm(activationCode) {
     return post(config.get("account.confirm.url"), {activationCode})
 }
+
+export function getCoverImage(userId) {
+    return get(`${config.get("account.url")}/${userId}/cover`)
+}
+
+export function getProfileImage(userId) {
+    return get(`${config.get("account.url")}/${userId}/profile/image`)
+}

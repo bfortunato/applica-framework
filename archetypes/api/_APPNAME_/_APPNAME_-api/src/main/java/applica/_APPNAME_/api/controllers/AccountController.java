@@ -1,16 +1,16 @@
 package applica._APPNAME_.api.controllers;
 
-import applica._APPNAME_.services.exceptions.MailNotFoundException;
-import applica._APPNAME_.services.exceptions.PasswordNotValidException;
+import applica._APPNAME_.api.responses.ResponseCode;
+import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
-import applica._APPNAME_.services.exceptions.MailAlreadyExistsException;
-import applica._APPNAME_.services.exceptions.MailNotValidException;
 import applica.framework.ValidationException;
+import applica.framework.library.base64.URLData;
 import applica.framework.library.responses.Response;
+import applica.framework.library.responses.ValueResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 import static applica.framework.library.responses.Response.ERROR;
 import static applica.framework.library.responses.Response.OK;
@@ -29,7 +29,7 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    @PostMapping("/register")
     public Response register(String name, String mail, String password) {
         try {
             accountService.register(name, mail, password);
@@ -48,7 +48,7 @@ public class AccountController {
         }
     }
 
-    @RequestMapping(value = "/confirm", method = RequestMethod.POST)
+    @PostMapping("/confirm")
     public Response confirm(String activationCode) {
         try {
             accountService.confirm(activationCode);
@@ -61,7 +61,7 @@ public class AccountController {
         }
     }
 
-    @RequestMapping(value = "/recover", method = RequestMethod.POST)
+    @PostMapping("/recover")
     public Response recover(String mail) {
         try {
             accountService.recover(mail);
@@ -74,4 +74,29 @@ public class AccountController {
         }
     }
 
+    @GetMapping("/{userId}/cover")
+    public Response cover(@PathVariable String userId) {
+        try {
+            URLData coverImage = accountService.getCoverImage(userId, "268x129");
+            return new ValueResponse(coverImage.write());
+        } catch (UserNotFoundException e) {
+            return new Response(ResponseCode.ERROR_USER_NOT_FOUND);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+    @GetMapping("/{userId}/profile/image")
+    public Response image(@PathVariable String userId) {
+        try {
+            URLData profileImage = accountService.getProfileImage(userId, "47x47");
+            return new ValueResponse(profileImage.write());
+        } catch (UserNotFoundException e) {
+            return new Response(ResponseCode.ERROR_USER_NOT_FOUND);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
 }

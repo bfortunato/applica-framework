@@ -1,24 +1,18 @@
 package applica.framework.fileserver;
 
 import applica.framework.library.options.OptionsManager;
-import org.apache.commons.fileupload.util.Closeable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -107,8 +101,7 @@ public class SimpleFileServer implements FileServer {
         try {
             response = client.execute(method);
             InputStream inputStream = response.getEntity().getContent();
-            byte[] buffer = new byte[inputStream.available()];
-            IOUtils.readFully(inputStream, buffer);
+            byte[] buffer = IOUtils.toByteArray(inputStream);
             return new ByteArrayInputStream(buffer);
         } catch (IOException e) {
             throw new IOException(e);
@@ -136,8 +129,7 @@ public class SimpleFileServer implements FileServer {
         try {
             response = client.execute(method);
             InputStream inputStream = response.getEntity().getContent();
-            byte[] buffer = new byte[inputStream.available()];
-            IOUtils.readFully(inputStream, buffer);
+            byte[] buffer = IOUtils.toByteArray(inputStream);
             return new ByteArrayInputStream(buffer);
         } catch (IOException e) {
             throw new IOException(e);

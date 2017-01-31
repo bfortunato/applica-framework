@@ -1,9 +1,9 @@
 package applica._APPNAME_.api.processors;
 
-import applica._APPNAME_.api.utils.URLData;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.Entity;
 import applica.framework.fileserver.FileServer;
+import applica.framework.library.base64.URLData;
 import applica.framework.widgets.processors.FormProcessException;
 import applica.framework.widgets.processors.FormProcessor;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -52,6 +52,24 @@ public class UserFormProcessor implements FormProcessor {
                 user.setImage(null);
             }
 
+            String coverData = null;
+            if (!data.get("_cover").isNull()) {
+                coverData = data.get("_cover").asText();
+            }
+
+            if (StringUtils.isNotEmpty(coverData)) {
+                URLData urlData = URLData.parse(coverData);
+
+                String coverPath = fileServer.saveImage("images/covers/", urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+                user.setCoverImage(coverPath);
+            } else {
+                if (user.getCoverImage() != null) {
+                    fileServer.deleteFile(user.getCoverImage());
+                }
+
+                user.setCoverImage(null);
+            }
+
             return user;
         } catch (Exception e) {
             throw new FormProcessException(e);
@@ -69,6 +87,12 @@ public class UserFormProcessor implements FormProcessor {
                 InputStream in = fileServer.getImage(user.getImage(), "250x*");
                 URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getImage())), in);
                 node.put("_image", urlData.write());
+            }
+
+            if (StringUtils.isNotEmpty(user.getCoverImage())) {
+                InputStream in = fileServer.getImage(user.getCoverImage(), "250x*");
+                URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getCoverImage())), in);
+                node.put("_cover", urlData.write());
             }
 
             return node;

@@ -1,9 +1,8 @@
-package applica._APPNAME_.api.utils;
+package applica.framework.library.base64;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.helper.StringUtil;
 import org.springframework.util.MimeType;
 
 import java.io.IOException;
@@ -18,8 +17,7 @@ public class URLData {
         this.mimeType = MimeType.valueOf(mimeType);
 
         try {
-            byte[] bytes = new byte[in.available()];
-            IOUtils.readFully(in, bytes);
+            byte[] bytes = IOUtils.toByteArray(in);
             IOUtils.closeQuietly(in);
             this.bytes = bytes;
         } catch (IOException e) {

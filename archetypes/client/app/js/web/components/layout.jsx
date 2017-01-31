@@ -1,6 +1,6 @@
 "use strict"
 
-import {SessionStore, MenuStore} from "../../stores"
+import {SessionStore, MenuStore, UIStore} from "../../stores"
 import {logout} from "../../actions"
 import * as ui from "../utils/ui"
 import {PageLoader, GlobalLoader} from "./loader"
@@ -74,7 +74,9 @@ class ProfileBox extends React.Component {
     constructor(props) {
         super(props)
 
-        connect(this, SessionStore)
+        connect(this, [SessionStore, UIStore])
+
+        this.state = {}
     }
 
     logout() {
@@ -86,8 +88,17 @@ class ProfileBox extends React.Component {
         return (
             <div className="s-profile">
                 <a href="" data-ma-action="profile-menu-toggle">
+                    {this.state.cover &&
+                        <img src={this.state.cover} className="cover" alt="" />
+                    }
+
+
                     <div className="sp-pic">
-                        <img src="theme/img/demo/profile-pics/1.jpg" alt="" />
+                        {this.state.profileImage ?
+                            <img src={this.state.profileImage} alt="" />
+                            :
+                            <img src="theme/img/demo/profile-pics/1.jpg" alt="" />
+                        }
                     </div>
 
                     <div className="sp-info">

@@ -63,6 +63,7 @@ public class FilesServlet extends HttpServlet {
             } else {
                 String fileName = FilenameUtils.getName(path);
                 String extension = FilenameUtils.getExtension(fileName);
+                response.setContentLength(inputStream.available());
                 response.setContentType(MimeUtils.getMimeType(extension));
                 response.setHeader("Content-disposition", String.format("inline;filename=%s", fileName));
                 response.setStatus(200);

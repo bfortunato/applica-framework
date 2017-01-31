@@ -9,10 +9,13 @@ import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
 import applica.framework.ValidationException;
+import applica.framework.fileserver.FileServer;
+import applica.framework.library.base64.URLData;
 import applica.framework.library.mail.MailUtils;
 import applica.framework.library.mail.TemplatedMail;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.security.PasswordUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
@@ -40,6 +45,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private OptionsManager options;
+
+    @Autowired
+    private FileServer fileServer;
 
     @Override
     public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException {
@@ -121,6 +129,28 @@ public class AccountServiceImpl implements AccountService {
         templatedMail.put("mail", mail);
 
         sendTemplatedMail(templatedMail);
+    }
+
+    @Override
+    public URLData getCoverImage(Object userId, String size) throws UserNotFoundException, IOException {
+        User user = usersRepository.get(userId).orElseThrow(UserNotFoundException::new);
+        if (StringUtils.isNoneEmpty(user.getCoverImage())) {
+            InputStream in = fileServer.getImage(user.getCoverImage(), size);
+            return new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getImage())), in);
+        }
+
+        return null;
+    }
+
+    @Override
+    public URLData getProfileImage(Object userId, String size) throws UserNotFoundException, IOException {
+        User user = usersRepository.get(userId).orElseThrow(UserNotFoundException::new);
+        if (StringUtils.isNoneEmpty(user.getImage())) {
+            InputStream in = fileServer.getImage(user.getImage(), size);
+            return new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getImage())), in);
+        }
+
+        return null;
     }
 
     @Override

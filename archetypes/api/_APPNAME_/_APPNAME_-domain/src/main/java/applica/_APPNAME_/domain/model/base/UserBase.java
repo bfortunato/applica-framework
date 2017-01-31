@@ -20,6 +20,7 @@ public class UserBase extends AEntity {
     private Date registrationDate;
     private String activationCode;
     private String image;
+    private String coverImage;
     private Date lastLogin;
     @ManyToMany private List<Role> roles;
 
@@ -93,5 +94,13 @@ public class UserBase extends AEntity {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 }

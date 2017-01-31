@@ -73,7 +73,6 @@ public class ImagesServlet extends HttpServlet {
             if(inputStream != null) {
                 IOUtils.closeQuietly(inputStream);
             }
-            response.getOutputStream().flush();
         }
     }
 

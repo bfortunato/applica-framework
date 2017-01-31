@@ -2,6 +2,9 @@ package applica._APPNAME_.services;
 
 import applica._APPNAME_.services.exceptions.*;
 import applica.framework.ValidationException;
+import applica.framework.library.base64.URLData;
+
+import java.io.IOException;
 
 /**
  * Created by bimbobruno on 15/11/2016.
@@ -33,4 +36,18 @@ public interface AccountService {
      * @param mail
      */
     void recover(String mail) throws MailNotFoundException;
+
+    /**
+     * Gets user cover image (the background image in top left of web application)
+     * @param userId
+     * @return
+     */
+    URLData getCoverImage(Object userId, String size) throws UserNotFoundException, IOException;
+
+    /**
+     * Gets user profile image (the user image in top left of web application)
+     * @param userId
+     * @return
+     */
+    URLData getProfileImage(Object userId, String size) throws UserNotFoundException, IOException;
 }

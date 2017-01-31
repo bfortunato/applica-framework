@@ -956,7 +956,7 @@ export class Image extends Control {
                             <div className="actions">
                                 <a href="javascript:;" onClick={this.delete.bind(this)} className="delete-button"><i className="zmdi zmdi-close"></i></a>
                             </div>
-                            <img src={imageData} className="img-thumbnail img-responsive animated fadeIn" />
+                            <img src={imageData} className="img-thumbnail img-responsive animated fadeIn" style={imgStyle} />
                         </div>
                     :
                         <img src="resources/images/noimage.png" className="img-thumbnail img-responsive" />

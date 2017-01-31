@@ -4,7 +4,7 @@ define('actions.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.getUserProfileImage = exports.GET_USER_PROFILE_IMAGE = exports.getUserCoverImage = exports.GET_USER_COVER_IMAGE = exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
 var _aj = require("./aj");
 
@@ -14,11 +14,11 @@ var _ajex = require("./utils/ajex");
 
 var _session = require("./api/session");
 
-var session = _interopRequireWildcard(_session);
+var SessionApi = _interopRequireWildcard(_session);
 
 var _account = require("./api/account");
 
-var account = _interopRequireWildcard(_account);
+var AccountApi = _interopRequireWildcard(_account);
 
 var _responses = require("./api/responses");
 
@@ -60,11 +60,14 @@ var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) 
     });
 
     (0, _plugins.showLoader)();
-    session.start(data.mail, data.password).then(function (user) {
+    SessionApi.start(data.mail, data.password).then(function (user) {
         (0, _plugins.hideLoader)();
         (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
         login.complete({ user: user });
+
+        getUserProfileImage();
+        getUserCoverImage();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, _strings2.default.badLogin, "error");
@@ -79,11 +82,13 @@ var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_
         type: RESUME_SESSION
     });
 
-    session.resume().then(function (user) {
+    SessionApi.resume().then(function (user) {
         (0, _plugins.hideLoader)();
         (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
 
         resumeSession.complete({ user: user });
+        getUserProfileImage();
+        getUserCoverImage();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
 
@@ -93,7 +98,7 @@ var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_
 
 var LOGOUT = exports.LOGOUT = "LOGOUT";
 var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
-    session.destroy().then(function () {
+    SessionApi.destroy().then(function () {
         aj.dispatch({
             type: LOGOUT
         });
@@ -112,7 +117,7 @@ var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, functio
     });
 
     (0, _plugins.showLoader)(_strings2.default.registering);
-    account.register(data.name, data.mail, data.password).then(function () {
+    AccountApi.register(data.name, data.mail, data.password).then(function () {
         (0, _plugins.hideLoader)();
 
         var message = (0, _lang.format)(_strings2.default.welcomeMessage, data.name, data.mail);
@@ -137,7 +142,7 @@ var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(RECOV
     });
 
     (0, _plugins.showLoader)();
-    account.recover(data.mail).then(function () {
+    AccountApi.recover(data.mail).then(function () {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.congratulations, (0, _lang.format)(_strings2.default.accountRecovered, data.mail));
 
@@ -170,7 +175,7 @@ var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFI
     });
 
     (0, _plugins.showLoader)();
-    account.confirm(data.activationCode).then(function () {
+    AccountApi.confirm(data.activationCode).then(function () {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.congratulations, _strings2.default.accountConfirmed);
 
@@ -304,7 +309,16 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
 
     EntitiesApi.save(data.entity, data.data).then(function () {
         (0, _plugins.hideLoader)();
+        (0, _plugins.toast)(_strings2.default.saveComplete);
+
         saveEntity.complete({ discriminator: data.discriminator });
+
+        if (data.entity == "user") {
+            if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
+                getUserProfileImage();
+                getUserCoverImage();
+            }
+        }
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
@@ -455,6 +469,50 @@ var expandMenuItem = exports.expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, 
     aj.dispatch({
         type: EXPAND_MENU_ITEM,
         item: data.item
+    });
+});
+
+/**
+ UI Actions
+ */
+
+var GET_USER_COVER_IMAGE = exports.GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE";
+var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)(GET_USER_COVER_IMAGE, function (data) {
+    var user = SessionApi.getLoggedUser();
+    if (user == null) {
+        return;
+    }
+
+    aj.dispatch({
+        type: GET_USER_COVER_IMAGE
+    });
+
+    AccountApi.getCoverImage(user.id).then(function (data) {
+        getUserCoverImage.complete({ data: data.value });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getUserCoverImage.fail({ e: e });
+    });
+});
+
+var GET_USER_PROFILE_IMAGE = exports.GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE";
+var getUserProfileImage = exports.getUserProfileImage = (0, _ajex.createAsyncAction)(GET_USER_PROFILE_IMAGE, function (data) {
+    var user = SessionApi.getLoggedUser();
+    if (user == null) {
+        return;
+    }
+
+    aj.dispatch({
+        type: GET_USER_PROFILE_IMAGE
+    });
+
+    AccountApi.getProfileImage(user.id).then(function (data) {
+        getUserProfileImage.complete({ data: data.value });
+    }).catch(function (e) {
+        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+
+        getUserProfileImage.fail({ e: e });
     });
 });
 });
@@ -1990,6 +2048,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.register = register;
 exports.recover = recover;
 exports.confirm = confirm;
+exports.getCoverImage = getCoverImage;
+exports.getProfileImage = getProfileImage;
 
 var _config = require("../framework/config");
 
@@ -2009,6 +2069,14 @@ function recover(mail) {
 
 function confirm(activationCode) {
     return (0, _utils.post)(config.get("account.confirm.url"), { activationCode: activationCode });
+}
+
+function getCoverImage(userId) {
+    return (0, _utils.get)(config.get("account.url") + "/" + userId + "/cover");
+}
+
+function getProfileImage(userId) {
+    return (0, _utils.get)(config.get("account.url") + "/" + userId + "/profile/image");
 }
 });
 define('api/entities.js', function(module, exports) {
@@ -2744,6 +2812,7 @@ var serviceBase = "http://localhost:8080/";
 module.exports = {
     "service.url": "" + serviceBase,
     "login.url": serviceBase + "auth/login",
+    "account.url": serviceBase + "account",
     "account.register.url": serviceBase + "account/register",
     "account.recover.url": serviceBase + "account/recover",
     "account.reset.url": serviceBase + "account/reset",
@@ -24484,7 +24553,7 @@ define('stores.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.MenuStore = exports.MENU = exports.LookupStore = exports.LOOKUP = exports.EntitiesStore = exports.ENTITIES = exports.GridsStore = exports.GRIDS = exports.AccountStore = exports.ACCOUNT = exports.SessionStore = exports.SESSION = undefined;
+exports.MenuStore = exports.MENU = exports.LookupStore = exports.LOOKUP = exports.EntitiesStore = exports.ENTITIES = exports.GridsStore = exports.GRIDS = exports.AccountStore = exports.ACCOUNT = exports.SessionStore = exports.SESSION = exports.UIStore = exports.UI = undefined;
 
 var _aj = require("./aj");
 
@@ -24509,6 +24578,33 @@ var _lang = require("./utils/lang");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var UI = exports.UI = "UI";
+var UIStore = exports.UIStore = aj.createStore(UI, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.GET_USER_COVER_IMAGE:
+            return _.assign(state, { error: false });
+
+        case (0, _ajex.completed)(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, { error: false, cover: action.data });
+
+        case (0, _ajex.failed)(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, { error: true });
+
+        case actions.GET_USER_PROFILE_IMAGE:
+            return _.assign(state, { error: false });
+
+        case (0, _ajex.completed)(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, { error: false, profileImage: action.data });
+
+        case (0, _ajex.failed)(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, { error: true });
+    }
+});
 
 var SESSION = exports.SESSION = "SESSION";
 var SessionStore = exports.SessionStore = aj.createStore(SESSION, function () {
@@ -24763,7 +24859,9 @@ exports.default = {
     selectPermissions: "Select permissions for role",
     back: "Back",
     save: "Save",
-    image: "Image"
+    image: "Image",
+    cover: "Cover",
+    saveComplete: "Save complete"
 };
 });
 define('utils/ajex.js', function(module, exports) {
@@ -26722,7 +26820,7 @@ var Image = exports.Image = function (_Control8) {
                                 React.createElement("i", { className: "zmdi zmdi-close" })
                             )
                         ),
-                        React.createElement("img", { src: imageData, className: "img-thumbnail img-responsive animated fadeIn" })
+                        React.createElement("img", { src: imageData, className: "img-thumbnail img-responsive animated fadeIn", style: imgStyle })
                     ) : React.createElement("img", { src: "resources/images/noimage.png", className: "img-thumbnail img-responsive" })
                 ),
                 React.createElement("input", { type: "file", accept: accept, onChange: this.onFileSelected.bind(this) })
@@ -28379,7 +28477,9 @@ var ProfileBox = function (_React$Component2) {
 
         var _this2 = _possibleConstructorReturn(this, (ProfileBox.__proto__ || Object.getPrototypeOf(ProfileBox)).call(this, props));
 
-        (0, _aj.connect)(_this2, _stores.SessionStore);
+        (0, _aj.connect)(_this2, [_stores.SessionStore, _stores.UIStore]);
+
+        _this2.state = {};
         return _this2;
     }
 
@@ -28400,10 +28500,11 @@ var ProfileBox = function (_React$Component2) {
                 React.createElement(
                     "a",
                     { href: "", "data-ma-action": "profile-menu-toggle" },
+                    this.state.cover && React.createElement("img", { src: this.state.cover, className: "cover", alt: "" }),
                     React.createElement(
                         "div",
                         { className: "sp-pic" },
-                        React.createElement("img", { src: "theme/img/demo/profile-pics/1.jpg", alt: "" })
+                        this.state.profileImage ? React.createElement("img", { src: this.state.profileImage, alt: "" }) : React.createElement("img", { src: "theme/img/demo/profile-pics/1.jpg", alt: "" })
                     ),
                     React.createElement(
                         "div",
@@ -29100,6 +29201,10 @@ var entities = {
 						property: "_image",
 						control: _forms.Image,
 						label: _strings2.default.image
+					}, {
+						property: "_cover",
+						control: _forms.Image,
+						label: _strings2.default.cover
 					}, {
 						property: "roles",
 						label: _strings2.default.roles,

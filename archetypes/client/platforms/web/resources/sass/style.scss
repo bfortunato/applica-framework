@@ -444,3 +444,22 @@ tr.collapsible {
 }
 
 
+/*-------------------------
+    profile-box
+--------------------------*/
+
+.s-profile {
+  position: relative;
+
+  .cover {
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 129px;
+    position: absolute;
+  }
+
+  .sp-pic {
+    position: relative;
+  }
+}

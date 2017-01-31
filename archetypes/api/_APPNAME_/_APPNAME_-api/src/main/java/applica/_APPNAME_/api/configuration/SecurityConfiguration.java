@@ -95,10 +95,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers("/auth/**").permitAll()
                     .antMatchers("/account/**").permitAll()
+                    .antMatchers("/images/**").permitAll()
+                    .antMatchers("/files/**").permitAll()
                     .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("/**").authenticated()
                 .and()
-                .addFilterBefore(tokenAuthenticationFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(tokenAuthenticationFilter(), BasicAuthenticationFilter.class)
         ;
 
     }

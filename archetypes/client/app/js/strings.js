@@ -66,5 +66,7 @@ export default {
     selectPermissions: "Select permissions for role",
     back: "Back",
     save: "Save",
-    image: "Image"
+    image: "Image",
+    cover: "Cover",
+    saveComplete: "Save complete"
 }

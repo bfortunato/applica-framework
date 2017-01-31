@@ -1,7 +1,7 @@
 import * as aj from "./aj"
 import { createAsyncAction, completed, failed } from "./utils/ajex"
-import * as session from "./api/session"
-import * as account from "./api/account"
+import * as SessionApi from "./api/session"
+import * as AccountApi from "./api/account"
 import * as responses from "./api/responses"
 import { alert, confirm, showLoader, hideLoader, toast } from "./plugins"
 import { format } from "./utils/lang"
@@ -22,12 +22,15 @@ export const login = createAsyncAction(LOGIN, data => {
     })
 
     showLoader()
-    session.start(data.mail, data.password)
+    SessionApi.start(data.mail, data.password)
         .then(user => {
             hideLoader()
             toast(strings.welcome + " " + user.name);
 
             login.complete({user})
+
+            getUserProfileImage()
+            getUserCoverImage()
         })
         .catch(e => {
             hideLoader()
@@ -43,12 +46,14 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
         type: RESUME_SESSION
     })
 
-    session.resume()
+    SessionApi.resume()
         .then(user => {
             hideLoader()
             toast(strings.welcome + " " + user.name);
 
             resumeSession.complete({user})
+            getUserProfileImage()
+            getUserCoverImage()
         })
         .catch(e => {
             hideLoader()
@@ -59,7 +64,7 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
 
 export const LOGOUT = "LOGOUT";
 export const logout = aj.createAction(LOGOUT, data => {
-    session.destroy()
+    SessionApi.destroy()
         .then(() => {
             aj.dispatch({
                 type: LOGOUT
@@ -79,7 +84,7 @@ export const register = createAsyncAction(REGISTER, data => {
     })
 
     showLoader(strings.registering)
-    account.register(data.name, data.mail, data.password)
+    AccountApi.register(data.name, data.mail, data.password)
         .then(() => {
             hideLoader()
 
@@ -106,7 +111,7 @@ export const recoverAccount = createAsyncAction(RECOVER_ACCOUNT, data => {
     })
 
     showLoader()
-    account.recover(data.mail)
+    AccountApi.recover(data.mail)
         .then(() => {
             hideLoader()
             alert(strings.congratulations, format(strings.accountRecovered, data.mail))
@@ -141,7 +146,7 @@ export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
     })
 
     showLoader()
-    account.confirm(data.activationCode)
+    AccountApi.confirm(data.activationCode)
         .then(() => {
             hideLoader()
             alert(strings.congratulations, strings.accountConfirmed)
@@ -286,7 +291,16 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
     EntitiesApi.save(data.entity, data.data)
         .then(() => {
             hideLoader()
+            toast(strings.saveComplete)
+
             saveEntity.complete({discriminator: data.discriminator})
+
+            if (data.entity == "user") {
+                if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
+                    getUserProfileImage()
+                    getUserCoverImage()
+                }
+            }
         })
         .catch(e => {
             hideLoader()
@@ -446,4 +460,54 @@ export const expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, data => {
         type: EXPAND_MENU_ITEM,
         item: data.item
     })
+})
+
+
+/**
+ UI Actions
+ */
+
+export const GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE"
+export const getUserCoverImage = createAsyncAction(GET_USER_COVER_IMAGE, data => {
+    let user = SessionApi.getLoggedUser()
+    if (user == null) {
+        return
+    }
+
+    aj.dispatch({
+        type: GET_USER_COVER_IMAGE
+    })
+
+    AccountApi.getCoverImage(user.id)
+        .then(data => {
+            getUserCoverImage.complete({data: data.value})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getUserCoverImage.fail({e})
+        })
+
+})
+
+export const GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE"
+export const getUserProfileImage = createAsyncAction(GET_USER_PROFILE_IMAGE, data => {
+    let user = SessionApi.getLoggedUser()
+    if (user == null) {
+        return
+    }
+
+    aj.dispatch({
+        type: GET_USER_PROFILE_IMAGE
+    })
+
+    AccountApi.getProfileImage(user.id)
+        .then(data => {
+            getUserProfileImage.complete({data: data.value})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getUserProfileImage.fail({e})
+        })
 })

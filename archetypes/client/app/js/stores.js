@@ -6,6 +6,34 @@ import strings from "./strings"
 import {discriminate} from "./utils/ajex"
 import {walk} from "./utils/lang"
 
+
+export const UI = "UI";
+export const UIStore = aj.createStore(UI, (state = {}, action) => {
+
+    switch (action.type) {
+        case actions.GET_USER_COVER_IMAGE:
+            return _.assign(state, {error: false});
+
+        case completed(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, {error: false, cover: action.data});
+
+        case failed(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, {error: true});
+
+        case actions.GET_USER_PROFILE_IMAGE:
+            return _.assign(state, {error: false});
+
+        case completed(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, {error: false, profileImage: action.data});
+
+        case failed(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, {error: true});
+    }
+
+});
+
+
+
 export const SESSION = "SESSION";
 export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
 

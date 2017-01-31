@@ -56,6 +56,11 @@ const entities = {
 								control: Image,
 								label: strings.image
 							},
+							{
+								property: "_cover",
+								control: Image,
+								label: strings.cover
+							},
 	                        {
 	                            property: "roles",
 	                            label: strings.roles,
