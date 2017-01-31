@@ -11,19 +11,13 @@ import {resumeSession, setupMenu} from "../actions"
 import {EntitiesGrid, EntityForm} from "./screens/admin"
 import menu from "./menu"
 
-function ifAdmin(fn, ...params) {
-    if (true) {
-        fn.apply(this, params)
-    }
-}
-
 /* Register plugins */
 plugins.register()
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity", params => ifAdmin(ui.changeScreen, <EntitiesGrid key={params.entity} entity={params.entity} />))
-ui.addRoute("/admin/entities/:entity/:entityId", params => ifAdmin(ui.changeScreen, <EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} />))
-ui.addRoute("/admin/entities/:entity/new", params => ifAdmin(ui.changeScreen, <EntityForm key={params.entity} entity={params.entity} />))
+ui.addRoute("/admin/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
+ui.addRoute("/admin/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} />))
+ui.addRoute("/admin/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} />))
 
 
 /* Account routes */
