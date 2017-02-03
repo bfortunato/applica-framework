@@ -4,6 +4,7 @@ import applica._APPNAME_.api.responses.ResponseCode;
 import applica.framework.*;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
+import applica.framework.library.utils.ObjectUtils;
 import applica.framework.widgets.builders.DeleteOperationBuilder;
 import applica.framework.widgets.builders.GetOperationBuilder;
 import applica.framework.widgets.builders.SaveOperationBuilder;
@@ -19,6 +20,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.AutoPopulatingList;
 import org.springframework.validation.DataBinder;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,12 +46,12 @@ public class EntitiesController {
     private GetOperationBuilder getOperationBuilder;
 
     @GetMapping("")
-    public Response getEntities(@PathVariable("entity") String entity, String queryJson) {
+    public Response getEntities(@PathVariable("entity") String entity, HttpServletRequest request) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
             if (definition.isPresent()) {
                 Repository repository = repositoriesFactory.createForEntity(definition.get().getType());
-                Query query = Query.fromJSON(queryJson);
+                Query query = ObjectUtils.bind(new Query(), new ServletRequestParameterPropertyValues(request));
                 Result result = repository.find(query);
 
                 return new ValueResponse(result);

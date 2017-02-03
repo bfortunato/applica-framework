@@ -4,16 +4,29 @@ import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class TypeUtils {
+
+    private static final Class<?>[] PRIMITIVE_TYPES = new Class<?>[] {
+            String.class,
+            Integer.class,
+            Float.class,
+            Double.class,
+            Boolean.class,
+            Byte.class,
+            Short.class,
+            Long.class,
+            Date.class
+    };
+
     public static boolean isEntity(Class<?> type) {
         return implementsInterface(type, Entity.class, true);
     }
@@ -226,6 +239,22 @@ public class TypeUtils {
         } else {
             return doGetNestedFieldType(TypeUtils.getField(type, paths[index]).getType(), name, index + 1, paths);
         }
+    }
+
+    public static boolean isArray(Object value) {
+        return value != null && value.getClass().isArray();
+    }
+
+    public static boolean isMap(Object value) {
+        return value != null && value instanceof Map;
+    }
+
+    public static boolean isList(Object value) {
+        return value != null && value instanceof List;
+    }
+
+    public static boolean isPrimitive(Object value) {
+        return value != null && (value.getClass().isPrimitive() || Arrays.asList(PRIMITIVE_TYPES).contains(value.getClass()));
     }
 }
 

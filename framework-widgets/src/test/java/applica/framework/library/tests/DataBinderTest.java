@@ -1,11 +1,15 @@
 package applica.framework.library.tests;
 
+import applica.framework.library.utils.ObjectUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.PropertyValue;
+import org.springframework.beans.PropertyValues;
 import org.springframework.web.bind.WebDataBinder;
+
+import java.util.Map;
 
 /**
  * Created by bimbobruno on 03/02/2017.
@@ -22,15 +26,17 @@ public class DataBinderTest {
         values.add("players[1].name", "massimo");
         values.add("players[2].name", "nicola");
 
-        Game game = new Game();
-        WebDataBinder dataBinder = new WebDataBinder(game);
-        dataBinder.bind(values);
-
+        Game game = ObjectUtils.bind(new Game(), values);
 
         Assert.assertEquals(3, game.getPlayers().size());
 
-        ObjectMapper mapper = new ObjectMapper();
-        System.out.println(mapper.writeValueAsString(game));
+        PropertyValues flatten = ObjectUtils.flatten(game);
+
+        for (PropertyValue p : flatten.getPropertyValues()) {
+            System.out.println(p.toString() + " = " + p.getValue());
+        }
+
+        Assert.assertEquals(6, flatten.getPropertyValues().length);
     }
 
 }
