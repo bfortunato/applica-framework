@@ -1,11 +1,11 @@
 package applica.framework.widgets.operations;
 
-import applica.framework.Entity;
+import applica.framework.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public interface GetOperation {
+public interface FindOperation {
 
-    ObjectNode get(Object id) throws OperationException;
+    ObjectNode find(Query query) throws OperationException;
     Class<? extends Entity> getEntityType();
 
 }

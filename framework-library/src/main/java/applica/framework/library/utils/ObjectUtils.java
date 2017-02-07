@@ -31,35 +31,35 @@ public class ObjectUtils {
     }
 
     private static void flattenChild(String parentPath, MutablePropertyValues target, Object source) {
-                if (source != null) {
-                    if (TypeUtils.isList(source) || TypeUtils.isArray(source)) {
-                        List iterable;
-                        if (TypeUtils.isArray(source)) {
-                            iterable = Arrays.asList(source);
-                        } else {
-                            iterable = (List) source;
-                        }
+        if (source != null) {
+            if (TypeUtils.isList(source) || TypeUtils.isArray(source)) {
+                List iterable;
+                if (TypeUtils.isArray(source)) {
+                    iterable = Arrays.asList(source);
+                } else {
+                    iterable = (List) source;
+                }
 
-                        int index = 0;
-                        for (Object i : iterable) {
-                            String itemPath = String.format("%s[%d]", parentPath, index++);
-                            flattenChild(itemPath, target, i);
-                        }
-                    } else if (TypeUtils.isPrimitive(source)) {
-                        target.add(parentPath, source);
-                    } else {
-                        List<Field> fields = TypeUtils.getAllFields(source.getClass());
+                int index = 0;
+                for (Object i : iterable) {
+                    String itemPath = String.format("%s[%d]", parentPath, index++);
+                    flattenChild(itemPath, target, i);
+                }
+            } else if (TypeUtils.isPrimitive(source)) {
+                target.add(parentPath, source);
+            } else {
+                List<Field> fields = TypeUtils.getAllFields(source.getClass());
 
-                        for (Field field : fields) {
-                            try {
-                                String path = String.format("%s%s%s", parentPath, StringUtils.isEmpty(parentPath) ? "" : ".", field.getName());
-                                Object fieldValue = PropertyUtils.getProperty(source, field.getName());
-                                flattenChild(path, target, fieldValue);
-                            } catch (Exception e) {
-                                //System.out.println(e.getMessage());
-                            }
+                for (Field field : fields) {
+                    try {
+                        String path = String.format("%s%s%s", parentPath, StringUtils.isEmpty(parentPath) ? "" : ".", field.getName());
+                        Object fieldValue = PropertyUtils.getProperty(source, field.getName());
+                        flattenChild(path, target, fieldValue);
+                    } catch (Exception e) {
+                        //System.out.println(e.getMessage());
                     }
                 }
+            }
 
 
         }

@@ -1,35 +1,42 @@
-package applica._APPNAME_.api.processors;
+package applica._APPNAME_.api.operations;
 
-import applica._APPNAME_.domain.model.User;
+import applica.commodo.domain.data.UsersRepository;
+import applica.commodo.domain.model.User;
 import applica.framework.Entity;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
-import applica.framework.widgets.processors.FormProcessException;
-import applica.framework.widgets.processors.FormProcessor;
+import applica.framework.widgets.operations.OperationException;
+import applica.framework.widgets.operations.SaveOperation;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
+import com.sun.tools.internal.ws.processor.ProcessorException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 /**
  * Created by bimbobruno on 24/01/2017.
  */
 
 @Component
-public class UserFormProcessor implements FormProcessor {
+public class UserSaveOperation implements SaveOperation{
 
     @Autowired
     private FileServer fileServer;
 
+    @Autowired
+    private UsersRepository usersRepository;
+
     @Override
-    public Entity process(ObjectNode data) throws FormProcessException {
+    public Class<? extends Entity> getEntityType() {
+        return User.class;
+    }
+
+    @Override
+    public void save(ObjectNode data) throws OperationException {
         try {
             EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
             User user = ((User) entitySerializer.deserialize(data));
@@ -70,39 +77,9 @@ public class UserFormProcessor implements FormProcessor {
                 user.setCoverImage(null);
             }
 
-            return user;
+            usersRepository.save(user);
         } catch (Exception e) {
-            throw new FormProcessException(e);
+            throw new ProcessorException(e);
         }
-    }
-
-    @Override
-    public ObjectNode deprocess(Entity entity) throws FormProcessException {
-        try {
-            EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
-            User user = ((User) entity);
-            ObjectNode node = entitySerializer.serialize(user);
-
-            if (StringUtils.isNotEmpty(user.getImage())) {
-                InputStream in = fileServer.getImage(user.getImage(), "250x*");
-                URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getImage())), in);
-                node.put("_image", urlData.write());
-            }
-
-            if (StringUtils.isNotEmpty(user.getCoverImage())) {
-                InputStream in = fileServer.getImage(user.getCoverImage(), "250x*");
-                URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getCoverImage())), in);
-                node.put("_cover", urlData.write());
-            }
-
-            return node;
-        } catch (Exception e) {
-            throw new FormProcessException(e);
-        }
-    }
-
-    @Override
-    public Class<? extends Entity> getEntityType() {
-        return User.class;
     }
 }
