@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public interface ResultSerializer {
 
-    ObjectNode serialize(Result<Entity> result) throws SerializationException;
+    ObjectNode serialize(Result<? extends Entity> result) throws SerializationException;
     Class<? extends Entity> getEntityType();
 
 }

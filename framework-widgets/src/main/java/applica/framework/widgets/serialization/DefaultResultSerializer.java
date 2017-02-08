@@ -20,7 +20,7 @@ public class DefaultResultSerializer implements ResultSerializer {
     }
 
     @Override
-    public ObjectNode serialize(Result<Entity> result) throws SerializationException {
+    public ObjectNode serialize(Result<? extends Entity> result) throws SerializationException {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
@@ -44,6 +44,8 @@ public class DefaultResultSerializer implements ResultSerializer {
                 JsonNode node = serializeEntity(mapper, entity);
                 arrayNode.add(node);
             }
+
+            objectNode.put("rows", arrayNode);
 
             return objectNode;
         } catch (Exception ex) {
