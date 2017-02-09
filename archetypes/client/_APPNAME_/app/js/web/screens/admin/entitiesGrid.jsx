@@ -17,7 +17,7 @@ export default class EntitiesGrid extends Screen {
     constructor(props) {
         super(props)
 
-        if (_.isEmpty(props.entity)) {
+        if (_.isEmpty(this.getEntity())) {
             throw new Error("Please specify entity for form")
         }
 
@@ -31,21 +31,29 @@ export default class EntitiesGrid extends Screen {
             this.onQueryChanged()
         })
 
-        this.discriminator = "entity_grid_" + this.props.entity
+        this.discriminator = "entity_grid_" + this.getEntity()
 
         connectDiscriminated(this.discriminator, this, [EntitiesStore])
     }
 
+    getEntity() {
+        return this.props.entity
+    }
+
     componentDidMount() {
-        loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query})
+        loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query})
     }
 
     onQueryChanged() {
-        loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query})
+        loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query})
+    }
+
+    editEntity(data) {
+        ui.navigate(`/entities/${this.getEntity()}/${data.id}`)
     }
 
     createEntity() {
-        ui.navigate(`/admin/entities/${this.props.entity}/create`)
+        ui.navigate(`/entities/${this.getEntity()}/create`)
     }
 
     deleteEntities() {
@@ -56,7 +64,7 @@ export default class EntitiesGrid extends Screen {
 
         swal({ title: strings.confirm, text: format(strings.entityDeleteConfirm, selection.length), showCancelButton: true })
             .then(() => {
-                deleteEntities({discriminator: this.discriminator, entity: this.props.entity, ids: selection.map(s => s.id)})
+                deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
             })
             .catch((e) => {logger.i(e)})
     }
@@ -68,32 +76,44 @@ export default class EntitiesGrid extends Screen {
     }
 
     onGridRowDoubleClick(row) {
-        ui.navigate(`/admin/entities/${this.props.entity}/${row.id}`)
+        this.editEntity(row)
     }
 
-    render() {
-        let grid = entities[this.props.entity].grid
+    getTitle() {
+        let grid = entities[this.getEntity()].grid
+        return grid.title
+    }
 
+    getSubtitle() {
+        let grid = entities[this.getEntity()].grid
+        return grid.subtitle
+    }
+
+    getActions() {
         let actions = [
             {
+                id: "refresh",
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: strings.refresh,
-                action: () => { loadEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.state.query}) }
+                action: () => { loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query}) }
             },
             {
+                id: "create",
                 type: "button",
                 icon: "zmdi zmdi-plus",
                 tooltip: strings.create,
                 action: () => { this.createEntity() }
             },
             {
+                id: "delete",
                 type: "button",
                 icon: "zmdi zmdi-delete",
                 tooltip: strings.delete,
                 action: () => { this.deleteEntities() }
             },
             {
+                id: "selectAll",
                 type: "button",
                 icon: "zmdi zmdi-select-all",
                 tooltip: strings.selectAll,
@@ -102,21 +122,48 @@ export default class EntitiesGrid extends Screen {
 
         ]
 
-        let descriptor = grid.descriptor
-        let data = resultToGridData(this.state.result)
+        return actions;
+    }
+
+    getDescriptor() {
+        let grid = entities[this.getEntity()].grid
+        return grid.descriptor
+    }
+
+    getData() {
+        return resultToGridData(this.state.result)
+    }
+
+    isQuickSearchEnabled() {
+        return false
+    }
+
+    isCreationEnabled() {
+        return true
+    }
+
+    render() {
+        let title = this.getTitle()
+        let subtitle = this.getSubtitle()
+        let actions = this.getActions()
+        let descriptor = this.getDescriptor()
+        let data = this.getData()
 
         return (
             <Layout>
-                <HeaderBlock title={grid.title} subtitle={grid.subtitle} actions={actions}/>
-                <Grid 
-                    ref="grid" 
-                    descriptor={descriptor} 
-                    data={data} 
-                    query={this.state.query} 
-                    onKeyDown={this.onGridKeyDown.bind(this)} 
+                <HeaderBlock title={title} subtitle={subtitle} actions={actions}/>
+                <Grid
+                    ref="grid"
+                    descriptor={descriptor}
+                    data={data}
+                    query={this.state.query}
+                    onKeyDown={this.onGridKeyDown.bind(this)}
                     onRowDoubleClick={this.onGridRowDoubleClick.bind(this)}
+                    quickSearchEnabled={this.isQuickSearchEnabled()}
                 />
+                {this.isCreationEnabled() &&
                 <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
+                }
             </Layout>
         )
     }

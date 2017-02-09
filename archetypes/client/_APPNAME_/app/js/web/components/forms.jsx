@@ -1,9 +1,9 @@
 "use strict"
 
 import strings from "../../strings"
-import {Card} from "./common"
-import {format, optional} from "../../utils/lang"
-import {Observable} from "../../aj/events"
+import {Card, Actions} from "./common"
+import {format, optional} from "../../../utils/lang"
+import {Observable} from "../../../aj/events"
 import {Grid, ActionsCell, resultToGridData} from "./grids"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
@@ -102,14 +102,14 @@ export class Model extends Observable {
 
     set(property, value) {
         let field = this.findField(property)
-        this.data[property] = value    
+        this.data[property] = value
     }
 
     get(property) {
         if (_.has(this.data, property)) {
             return this.data[property]
         } else {
-            return ""
+            return null
         }
     }
 
@@ -218,14 +218,37 @@ export class Area extends React.Component {
     }
 }
 
+export class AreaNoCard extends React.Component {
+    render() {
+        let area = this.props.area
+        let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
+        let fields = !_.isEmpty(area.fields) && area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+        let actionKey = 1
+
+        return (
+            <div className="area-no-card">
+                <div className="area-no-card-header">
+                    {area.title &&
+                    <h2>{area.title} {area.subtitle && <small>{area.subtitle}</small>}</h2>
+                    }
+
+                    <Actions actions={area.actions} />
+                </div>
+                <div className="area-no-card-body">
+                    {tabs}
+                    {fields}
+                </div>
+            </div>
+        )
+    }
+}
+
 
 export class Tabs extends React.Component {
 
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
-        logger.i(me)
         $(me).find(".tab-button").click((e) => {
-            logger.i("ciao")
             e.preventDefault()
             $(this).tab("show")
         })
@@ -346,7 +369,7 @@ export class Form extends React.Component {
 
         generateKeys(descriptor)
 
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => <Area key={a.key} model={model} area={a} />)
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a}))
         let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} />
         let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => <Field key={f.property} model={model} field={f} />)
 
@@ -355,11 +378,11 @@ export class Form extends React.Component {
                 <form action="javascript:;" className="form-horizontal" role="form" onSubmit={this.onSubmit.bind(this)}>
                     {areas}
                     {(tabs.length > 0 || fields.length > 0) &&
-                        <Card padding="true">
-                            {tabs}
-                            {fields}
-                            <div className="clearfix"></div>
-                        </Card>
+                    <Card padding="true">
+                        {tabs}
+                        {fields}
+                        <div className="clearfix"></div>
+                    </Card>
                     }
 
                     <div className="form-group">
@@ -377,7 +400,7 @@ export class Form extends React.Component {
 
 
 /************************
-    Controls and Fields
+ Controls and Fields
  ************************/
 
 export class Field extends React.Component {
@@ -426,7 +449,14 @@ export class Text extends Control {
 
         return (
             <div className="fg-line">
-                <input type="text" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <input
+                    type="text"
+                    className="form-control input-sm"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder}
+                    value={optional(this.props.model.get(field.property))}
+                    onChange={this.onValueChange.bind(this)} />
             </div>
         )
     }
@@ -438,7 +468,14 @@ export class Mail extends Control {
 
         return (
             <div className="fg-line">
-                <input type="email" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <input
+                    type="email"
+                    className="form-control input-sm"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder}
+                    value={this.props.model.get(field.property)}
+                    onChange={this.onValueChange.bind(this)} />
             </div>
         )
     }
@@ -482,7 +519,7 @@ export class Select extends Control {
 
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
-        
+
         $(me).find(".select2-search__field")
             .focus(() => {
                 $(me).find(".fg-line").addClass("fg-toggled")
@@ -520,7 +557,7 @@ export class Lookup extends Control {
 
         this.datasource = this.props.datasource || datasource.create()
         this.query = this.props.query || query.create()
-        
+
         this.__dataSourceOnChange = (data) => {
             logger.i("Datasource changed:", JSON.stringify(data))
             this.forceUpdate()
@@ -533,7 +570,7 @@ export class Lookup extends Control {
         }
     }
 
-    componentDidMount() {        
+    componentDidMount() {
         this.datasource.on("change", this.__dataSourceOnChange)
         this.query.on("change", this.__queryChange)
 
@@ -779,20 +816,20 @@ export class Lookup extends Control {
                     </div>
 
                     {mode == "multiple" &&
-                        <Grid
-                            ref="selectionGrid"
-                            descriptor={selectionGrid}
-                            data={resultToGridData({rows: rows, totalRows: rows.length})}
-                            showInCard="false"
-                            quickSearchEnabled="false"
-                            headerVisible="false"
-                            footerVisible="false"
-                            summaryVisible="false"
-                            noResultsVisible="false"
-                            paginationEnabled="false"
-                            tableClassName="table table-condensed table-hover"
-                            onKeyDown={this.onGridKeyDown.bind(this)}
-                        />
+                    <Grid
+                        ref="selectionGrid"
+                        descriptor={selectionGrid}
+                        data={resultToGridData({rows: rows, totalRows: rows.length})}
+                        showInCard="false"
+                        quickSearchEnabled="false"
+                        headerVisible="false"
+                        footerVisible="false"
+                        summaryVisible="false"
+                        noResultsVisible="false"
+                        paginationEnabled="false"
+                        tableClassName="table table-condensed table-hover"
+                        onKeyDown={this.onGridKeyDown.bind(this)}
+                    />
                     }
                 </div>
 
@@ -804,12 +841,12 @@ export class Lookup extends Control {
                                 <h4 className="modal-title" id="myModalLabel">Select roles</h4>
                             </div>
                             <div className="modal-body">
-                                <Grid 
-                                    ref="searchGrid" 
+                                <Grid
+                                    ref="searchGrid"
                                     descriptor={this.props.popupGrid}
                                     data={resultToGridData(this.datasource.data)}
                                     query={this.props.query}
-                                    showInCard="false" 
+                                    showInCard="false"
                                     quickSearchEnabled="true"
                                     footerVisible="false"
                                     summaryVisible="false"
@@ -881,7 +918,7 @@ export class File extends Control {
                             </div>
                             <span className="placeholder">{field.placeholder}</span>
                         </div>
-                    : 
+                        :
                         <div>
                             <div className="actions pull-right">
                                 <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
@@ -958,7 +995,7 @@ export class Image extends Control {
                             </div>
                             <img src={imageData} className="img-thumbnail img-responsive animated fadeIn" style={imgStyle} />
                         </div>
-                    :
+                        :
                         <img src="resources/images/noimage.png" className="img-thumbnail img-responsive" />
                     }
                 </div>
