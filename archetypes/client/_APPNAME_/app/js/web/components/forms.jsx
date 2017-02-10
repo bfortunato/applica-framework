@@ -210,9 +210,10 @@ export class Area extends React.Component {
         let fields = !_.isEmpty(area.fields) && area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
 
         return (
-            <Card padding="true" title={area.title} subtitle={area.subtitle}>
+            <Card padding="true" title={area.title} subtitle={area.subtitle} actions={area.actions}>
                 {tabs}
-                {fields}
+                <div className="row">{fields}</div>
+                <div className="clearfix"></div>
             </Card>
         )
     }
@@ -236,7 +237,7 @@ export class AreaNoCard extends React.Component {
                 </div>
                 <div className="area-no-card-body">
                     {tabs}
-                    {fields}
+                    <div className="row">{fields}</div>
                 </div>
             </div>
         )
@@ -269,7 +270,7 @@ export class Tabs extends React.Component {
             let fields = _.isEmpty(c.fields) && c.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
             let el = (
                 <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
-                    {fields}
+                    <div className="row">{fields}</div>
                     <div className="clearfix"></div>
                 </div>
             )
@@ -337,6 +338,8 @@ export class Form extends React.Component {
         if (e) {
             e.preventDefault()
         }
+
+        console.log(this.model.data)
 
         try {
             this.model.validate()
@@ -406,7 +409,7 @@ export class Form extends React.Component {
 export class Field extends React.Component {
     render() {
         let model = this.props.model
-        let className = "form-group " + (this.props.field.size ? this.props.field.size : "")
+        let className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12")
         let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.props))
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
         let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
@@ -455,7 +458,28 @@ export class Text extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property))}
+                    value={optional(this.props.model.get(field.property), "")}
+                    onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class ReadOnlyText extends Control {
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="fg-line">
+                <input
+                    disabled="disabled"
+                    readOnly="readOnly"
+                    type="text"
+                    className="form-control input-sm"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder}
+                    value={optional(this.props.model.get(field.property), "")}
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
@@ -474,7 +498,7 @@ export class Mail extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={this.props.model.get(field.property)}
+                    value={optional(this.props.model.get(field.property), "")}
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
@@ -495,7 +519,15 @@ export class Check extends Control {
 
         return (
             <div className="toggle-switch" data-ts-color="blue">
-                <input type="checkbox" hidden="hidden" name={field.property} id={field.property} data-property={field.property} checked={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <input
+                    type="checkbox"
+                    hidden="hidden"
+                    name={field.property}
+                    id={field.property}
+                    data-property={field.property}
+                    checked={optional(this.props.model.get(field.property), false)}
+                    onChange={this.onValueChange.bind(this)} />
+
                 <label htmlFor={field.property} className="ts-helper"></label>
                 <label htmlFor={field.property} className="ts-label">{field.placeholder}</label>
             </div>
@@ -509,7 +541,14 @@ export class Number extends Control {
 
         return (
             <div className="fg-line">
-                <input type="number" className="form-control input-sm" id={field.property} data-property={field.property} placeholder={field.placeholder} value={this.props.model.get(field.property)} onChange={this.onValueChange.bind(this)} />
+                <input
+                    type="number"
+                    className="form-control input-sm"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder}
+                    value={optional(this.props.model.get(field.property))}
+                    onChange={this.onValueChange.bind(this)} />
             </div>
         )
     }0
@@ -517,35 +556,46 @@ export class Number extends Control {
 
 export class Select extends Control {
 
-    componentDidMount() {
-        let me = ReactDOM.findDOMNode(this)
+    constructor(props) {
+        super(props)
 
-        $(me).find(".select2-search__field")
-            .focus(() => {
-                $(me).find(".fg-line").addClass("fg-toggled")
-            })
-            .blur(() => {
-                $(me).find(".fg-line").removeClass("fg-toggled")
-            })
+        this.__dataSourceOnChange = (data) => {
+            this.forceUpdate()
+        }
+    }
+
+    componentDidMount() {
+        if (!_.isEmpty(this.props.datasource)) {
+            this.props.datasource.on("change", this.__dataSourceOnChange)
+        }
+
+        let me = ReactDOM.findDOMNode(this)
+        $(me).selectpicker({
+            liveSearch: optional(this.props.searchEnabled, false)
+        })
+    }
+
+    componentWillUnmount() {
+        if (!_.isEmpty(this.props.datasource)) {
+            this.props.datasource.off("change", this.__dataSourceOnChange)
+        }
     }
 
     render() {
         let field = this.props.field
+        let datasource = this.props.datasource
+        let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>)
 
         return (
-            <div className="fg-line">
-                <div className="select">
-                    <select
-                        id={field.property}
-                        className="form-control"
-                        data-property={field.property}
-                        placeholder={field.placeholder}
-                        value={this.props.model.get(field.property) || []}
-                        onChange={this.onValueChange.bind(this)}
-                        multiple={this.props.multiple}
-                    />
-                </div>
-            </div>
+            <select
+                id={field.property}
+                className="form-control"
+                data-property={field.property}
+                onChange={this.onValueChange.bind(this)}
+                title={field.placeholder}
+                multiple={optional(this.props.multiple, false)}>
+                {options}
+            </select>
         )
     }
 }
@@ -559,7 +609,6 @@ export class Lookup extends Control {
         this.query = this.props.query || query.create()
 
         this.__dataSourceOnChange = (data) => {
-            logger.i("Datasource changed:", JSON.stringify(data))
             this.forceUpdate()
         }
 
@@ -977,10 +1026,10 @@ export class Image extends Control {
 
         let imgStyle = {}
         if (field.imageWidth) {
-            imgStyle.width = field.imageWidth
+            imgStyle.width = this.props.width
         }
         if (field.imageHeight) {
-            imgStyle.height = field.imageHeight
+            imgStyle.height = this.props.height
         }
 
         let imageData = model.get(field.property)

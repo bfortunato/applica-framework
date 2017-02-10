@@ -15,11 +15,11 @@ function normalizeData(data) {
 }
 
 export class DataSource extends Observable {
-	
+
 	constructor(initialData) {
 		super()
 
-		this.data = normalizeData(initialData)		
+		this.data = normalizeData(initialData)
 	}
 
 	notifyChanged() {
@@ -37,12 +37,12 @@ export function fixed(data) {
 	return new DataSource(data)
 }
 
-export function promised(promise) {
+export function promised(promiseFn) {
 	let dataSource = new DataSource()
 
-	promise
+	new Promise(promiseFn)
 		.then(data => {
-			dataSource.notifyChanged()
+			dataSource.setData(data)
 		})
 		.catch(r => { logger.e(r) })
 
