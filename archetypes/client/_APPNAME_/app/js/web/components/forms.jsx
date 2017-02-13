@@ -101,8 +101,9 @@ export class Model extends Observable {
     }
 
     set(property, value) {
-        let field = this.findField(property)
         this.data[property] = value
+
+        this.invoke("property:change", property, value)
     }
 
     get(property) {
@@ -339,8 +340,6 @@ export class Form extends React.Component {
             e.preventDefault()
         }
 
-        console.log(this.model.data)
-
         try {
             this.model.validate()
             if (_.isFunction(this.props.onSubmit)) {
@@ -551,8 +550,9 @@ export class Number extends Control {
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
-    }0
+    }
 }
+
 
 export class Select extends Control {
 
@@ -575,16 +575,29 @@ export class Select extends Control {
         })
     }
 
+    componentWillUpdate() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).selectpicker("refresh")
+    }
+
     componentWillUnmount() {
         if (!_.isEmpty(this.props.datasource)) {
             this.props.datasource.off("change", this.__dataSourceOnChange)
         }
     }
 
+    isSelected(test) {
+        if (this.props.multiple) {
+            return _.contains(this.props.value || [], test)
+        } else {
+            return this.props.value == test
+        }
+    }
+
     render() {
         let field = this.props.field
         let datasource = this.props.datasource
-        let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value} selected={o.selected}>{o.label}</option>)
+        let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)
 
         return (
             <select
@@ -593,6 +606,7 @@ export class Select extends Control {
                 data-property={field.property}
                 onChange={this.onValueChange.bind(this)}
                 title={field.placeholder}
+                value={this.props.value}
                 multiple={optional(this.props.multiple, false)}>
                 {options}
             </select>

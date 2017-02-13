@@ -198,3 +198,24 @@ export const MenuStore = aj.createStore(MENU, (state = {}, action) => {
     }
 
 })
+
+
+export const SELECT = "SELECT"
+export const SelectStore = aj.createStore(SELECT, (state = {}, action) => {
+
+    switch (action.type) {
+
+        case actions.GET_SELECT_VALUES:
+            return discriminate(state, action.discriminator, { error: false, loading: true })
+
+        case completed(actions.GET_SELECT_VALUES):
+            return discriminate(state, action.discriminator, { error: false, loading: false, values: action.values })
+
+        case failed(actions.GET_SELECT_VALUES):
+            return discriminate(state, action.discriminator, { error: true, loading: false, values: null })
+
+        case actions.FREE_SELECT:
+            return _.omit(state, action.discriminator)
+
+    }
+})

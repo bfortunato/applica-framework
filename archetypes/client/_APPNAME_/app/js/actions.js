@@ -435,6 +435,47 @@ export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
 })
 
 /**
+ * SELECT ACTIONS
+ */
+
+export const GET_SELECT_VALUES = "GET_SELECT_VALUES"
+export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
+    if (_.isEmpty(data.collection)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: GET_SELECT_VALUES,
+        discriminator: data.discriminator
+    })
+
+    logger.i(JSON.stringify(data))
+
+    ValuesApi.load(data.collection, data.keyword)
+        .then(response => {
+            getSelectValues.complete({values: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getSelectValues.fail({discriminator: data.discriminator})
+        })
+})
+
+export const FREE_SELECT = "FREE_SELECT"
+export const freeSelect = aj.createAction(FREE_SELECT, data => {
+    aj.dispatch({
+        type: FREE_SELECT,
+        discriminator: data.discriminator
+    })
+})
+
+/**
  * MENU ACTIONS
  */
 
