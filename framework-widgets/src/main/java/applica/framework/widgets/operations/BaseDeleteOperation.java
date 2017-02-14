@@ -22,7 +22,7 @@ public class BaseDeleteOperation implements DeleteOperation {
 
     @Override
     public void delete(String id) {
-        if (entityType == null) throw new ProgramException("Entity entityType is null");
+        if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         if (repository == null) {
             init();

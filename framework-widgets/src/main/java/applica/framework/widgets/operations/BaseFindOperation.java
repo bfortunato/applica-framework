@@ -30,7 +30,7 @@ public class BaseFindOperation implements FindOperation {
 
     @Override
     public ObjectNode find(Query query) throws OperationException {
-        if (entityType == null) throw new ProgramException("Entity entityType is null");
+        if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         if (repository == null) {
             init();

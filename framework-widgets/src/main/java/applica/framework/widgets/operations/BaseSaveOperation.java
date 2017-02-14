@@ -4,16 +4,22 @@ import applica.framework.Entity;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
 import applica.framework.library.utils.ProgramException;
+import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Objects;
+
 public class BaseSaveOperation implements SaveOperation {
 
     @Autowired
     private RepositoriesFactory repositoriesFactory;
+
+    @Autowired(required = false)
+    private EntityMapper entityMapper;
 
     private Repository repository;
     private Class<? extends Entity> entityType;
@@ -33,7 +39,7 @@ public class BaseSaveOperation implements SaveOperation {
 
     @Override
     public void save(ObjectNode data) throws OperationException {
-        if (entityType == null) throw new ProgramException("Entity entityType is null");
+        if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         if (repository == null) {
             init();
@@ -45,10 +51,22 @@ public class BaseSaveOperation implements SaveOperation {
         try {
             Entity entity = serializer.deserialize(data);
 
+            finishEntity(data, entity);
+
             repository.save(entity);
 
         } catch (SerializationException e) {
             throw new OperationException(e);
         }
+    }
+
+    protected void finishEntity(ObjectNode node, Entity entity) {
+
+    }
+
+    protected EntityMapper map() {
+        Objects.requireNonNull(entityMapper, "EntityMapper is null. Did you add a bean in application context configuration?");
+
+        return entityMapper;
     }
 }

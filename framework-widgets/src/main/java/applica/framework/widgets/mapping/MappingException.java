@@ -1,29 +1,26 @@
 package applica.framework.widgets.mapping;
 
+/**
+ * Created by bimbobruno on 14/02/2017.
+ */
 public class MappingException extends Exception {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -1001507478844465855L;
-
-    private String property;
-
-
     public MappingException() {
-        super();
     }
 
-    public MappingException(String property, Throwable cause) {
-        super(String.format("Error mapping property %s", property), cause);
-        this.property = property;
+    public MappingException(String message) {
+        super(message);
     }
 
-    public String getProperty() {
-        return property;
+    public MappingException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public void setProperty(String property) {
-        this.property = property;
+    public MappingException(Throwable cause) {
+        super(cause);
+    }
+
+    public MappingException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
