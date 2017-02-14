@@ -575,8 +575,11 @@ export class Select extends Control {
         })
     }
 
-    componentWillUpdate() {
+    componentDidUpdate() {
+        let model = this.props.model
+        let field = this.props.field
         let me = ReactDOM.findDOMNode(this)
+
         $(me).selectpicker("refresh")
     }
 
@@ -586,15 +589,8 @@ export class Select extends Control {
         }
     }
 
-    isSelected(test) {
-        if (this.props.multiple) {
-            return _.contains(this.props.value || [], test)
-        } else {
-            return this.props.value == test
-        }
-    }
-
     render() {
+        let model = this.props.model
         let field = this.props.field
         let datasource = this.props.datasource
         let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)
@@ -606,8 +602,11 @@ export class Select extends Control {
                 data-property={field.property}
                 onChange={this.onValueChange.bind(this)}
                 title={field.placeholder}
-                value={this.props.value}
+                value={optional(model.get(field.property), "")}
                 multiple={optional(this.props.multiple, false)}>
+                {this.props.allowNull &&
+                <option value="" style={{color: "#999999"}}>{optional(this.props.nullText, "(none)")}</option>
+                }
                 {options}
             </select>
         )
