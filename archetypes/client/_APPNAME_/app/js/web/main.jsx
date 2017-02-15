@@ -9,7 +9,7 @@ import * as ui from "./utils/ui"
 import * as plugins from "./pluginsimpl"
 import {resumeSession, setupMenu} from "../actions"
 import {SessionStore} from "../stores"
-import {EntitiesGrid, EntityForm} from "./screens/admin"
+import {EntitiesGrid, EntityForm} from "./screens/entities"
 import menu from "./menu"
 
 /* Register plugins */

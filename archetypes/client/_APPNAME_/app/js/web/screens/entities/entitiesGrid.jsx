@@ -5,13 +5,14 @@ import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connectDiscriminated} from "../../utils/aj"
-import {HeaderBlock, FloatingButton} from "../../components/common"
+import {HeaderBlock, FloatingButton, ActionsMatcher} from "../../components/common"
 import {Grid, resultToGridData} from "../../components/grids"
 import * as query from "../../../api/query"
 import {format} from "../../../utils/lang"
 import {isCancel} from "../../utils/keyboard"
 import entities from "../../entities"
 import * as ui from "../../utils/ui"
+import {optional} from "../../../utils/lang"
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
@@ -49,14 +50,40 @@ export default class EntitiesGrid extends Screen {
     }
 
     editEntity(data) {
-        ui.navigate(`/entities/${this.getEntity()}/${data.id}`)
+        if (!this.canEdit()) {
+            return
+        }
+
+        ui.navigate(this.getEditUrl(data))
     }
 
     createEntity() {
-        ui.navigate(`/entities/${this.getEntity()}/create`)
+        if (!this.canCreate()) {
+            return
+        }
+
+        ui.navigate(this.getCreateUrl())
+    }
+
+    getCreateUrl() {
+        let grid = entities[this.getEntity()].grid
+        return optional(grid.createUrl, `/entities/${this.getEntity()}/create`)
+    }
+
+    getEditUrl(data) {
+        let grid = entities[this.getEntity()].grid
+        if (!_.isEmpty(grid.editUrl)) {
+            return format(grid.editUrl, data.id)
+        } else {
+            return `/entities/${this.getEntity()}/${data.id}`
+        }
     }
 
     deleteEntities() {
+        if (!this.canDelete()) {
+            return
+        }
+
         let selection = this.refs.grid.getSelection()
         if (_.isEmpty(selection)) {
             return
@@ -81,7 +108,7 @@ export default class EntitiesGrid extends Screen {
 
     getTitle() {
         let grid = entities[this.getEntity()].grid
-        return grid.title
+        return optional(grid.title, "List")
     }
 
     getSubtitle() {
@@ -90,7 +117,7 @@ export default class EntitiesGrid extends Screen {
     }
 
     getActions() {
-        let actions = [
+        let defaultActions = [
             {
                 id: "refresh",
                 type: "button",
@@ -122,7 +149,9 @@ export default class EntitiesGrid extends Screen {
 
         ]
 
-        return actions;
+        let grid = entities[this.getEntity()].grid
+        let matcher = new ActionsMatcher(defaultActions)
+        return matcher.match(grid.actions)
     }
 
     getDescriptor() {
@@ -135,11 +164,23 @@ export default class EntitiesGrid extends Screen {
     }
 
     isQuickSearchEnabled() {
-        return false
+        let grid = entities[this.getEntity()].grid
+        return optional(grid.quickSearchEnabled, false)
     }
 
-    isCreationEnabled() {
-        return true
+    canEdit() {
+        let grid = entities[this.getEntity()].grid
+        return optional(grid.canEdit, true)
+    }
+
+    canCreate() {
+        let grid = entities[this.getEntity()].grid
+        return optional(grid.canCreate, true)
+    }
+
+    canDelete() {
+        let grid = entities[this.getEntity()].grid
+        return optional(grid.canDelete, true)
     }
 
     render() {
@@ -152,18 +193,18 @@ export default class EntitiesGrid extends Screen {
         return (
             <Layout>
                 <HeaderBlock title={title} subtitle={subtitle} actions={actions}/>
-                <Grid
-                    ref="grid"
-                    descriptor={descriptor}
-                    data={data}
-                    query={this.state.query}
-                    onKeyDown={this.onGridKeyDown.bind(this)}
+                <Grid 
+                    ref="grid" 
+                    descriptor={descriptor} 
+                    data={data} 
+                    query={this.state.query} 
+                    onKeyDown={this.onGridKeyDown.bind(this)} 
                     onRowDoubleClick={this.onGridRowDoubleClick.bind(this)}
                     quickSearchEnabled={this.isQuickSearchEnabled()}
                 />
-                {this.isCreationEnabled() &&
-                <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
-                }
+                {this.canEdit() &&
+                    <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
+                }                
             </Layout>
         )
     }

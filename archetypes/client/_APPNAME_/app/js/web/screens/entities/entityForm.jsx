@@ -4,11 +4,12 @@ import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import strings from "../../../strings"
 import {connectDiscriminated} from "../../utils/aj"
-import {HeaderBlock, FloatingButton} from "../../components/common"
+import {HeaderBlock, ActionsMatcher} from "../../components/common"
 import {Form} from "../../components/forms"
 import {newEntity, getEntity, saveEntity, freeEntities} from "../../../actions"
 import entities from "../../entities"
 import * as ui from "../../utils/ui"
+import {optional} from "../../../utils/lang";
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -49,7 +50,7 @@ export default class EntityForm extends Screen {
     }
 
     goBack() {
-        ui.navigate("/admin/entities/" + this.props.entity)
+        ui.navigate(this.getGridUrl())
     }
 
     componentWillUpdate(props, state) {
@@ -59,10 +60,17 @@ export default class EntityForm extends Screen {
         }
     }
 
-    render() {
-        let form = entities[this.props.entity].form
+    getEntity() {
+        return this.props.entity
+    }
 
-        let actions = [
+    getGridUrl() {
+        let form = entities[this.getEntity()].form
+        return optional(form.gridUrl, "/entities/" + this.getEntity())
+    }
+
+    getActions() {
+        let defaultActions = [
             {
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
@@ -78,11 +86,35 @@ export default class EntityForm extends Screen {
 
         ]
 
-        let descriptor = form.descriptor
+        let form = entities[this.getEntity()].form
+        let matcher = new ActionsMatcher(defaultActions)
+        return matcher.match(form.actions)
+    }
+
+    getTitle() {
+        let form = entities[this.getEntity()].form
+        return optional(form.title, "Edit")
+    }
+
+    getSubtitle() {
+        let form = entities[this.getEntity()].form
+        return form.subtitle
+    }
+
+    getDescriptor() {
+        let form = entities[this.getEntity()].form
+        return form.descriptor
+    }
+
+    render() {
+        let title = this.getTitle()
+        let subtitle = this.getSubtitle()
+        let actions = this.getActions()
+        let descriptor = this.getDescriptor()
 
         return (
             <Layout>
-                <HeaderBlock title={form.title} subtitle={form.subtitle} actions={actions}/>
+                <HeaderBlock title={title} subtitle={subtitle} actions={actions}/>
                 <Form
                     ref="form"
                     descriptor={descriptor} 
