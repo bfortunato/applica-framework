@@ -154,8 +154,10 @@ public class MongoMapper {
 						Field field = TypeUtils.getField(type, key);
 						if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
 							field.setAccessible(true);
-							
-							if (TypeUtils.isEntity(field.getType())) {
+
+							if (key.endsWith("Id") && field.getType().equals(Object.class)) {
+								field.set(destination, source.get(field.getName()));
+							} else if (TypeUtils.isEntity(field.getType())) {
                                 if (field.getAnnotation(ManyToOne.class) != null) {
                                     Entity value = null;
                                     String sourceId = (String) source.get(field.getName());

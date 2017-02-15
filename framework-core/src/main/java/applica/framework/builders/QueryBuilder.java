@@ -145,6 +145,11 @@ public class QueryBuilder extends Query {
         return this;
     }
 
+    public QueryBuilder keyword(String keyword) {
+        setKeyword(keyword);
+        return this;
+    }
+
     public Query get() {
         return this;
     }
