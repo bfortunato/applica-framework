@@ -44,6 +44,12 @@
         </dependency>
 
         <dependency>
+            <groupId>applica.framework</groupId>
+            <artifactId>framework-fileserver</artifactId>
+            <version>${applica.framework.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
