@@ -26,7 +26,7 @@ public class KeywordQueryBuilder {
         for (Field field : TypeUtils.getAllFields(type)) {
             Keyword keyword = field.getAnnotation(Keyword.class);
             if (keyword != null) {
-                keywordProperties.add(keyword.value());
+                keywordProperties.add(field.getName());
             }
         }
 
