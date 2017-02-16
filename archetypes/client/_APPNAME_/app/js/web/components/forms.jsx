@@ -197,18 +197,23 @@ export class Model extends Observable {
 export class Label extends React.Component {
     render() {
         let field = this.props.field
+        let className = optional(this.props.className, "")
 
         return (
-            !_.isEmpty(field.label) && <label style={{width: "100%"}} htmlFor={field.property} className="control-label">{field.label}</label>
+            !_.isEmpty(field.label) && <label style={{width: "100%"}} htmlFor={field.property} className={className}>{field.label}</label>
         )
     }
 }
 
 export class Area extends React.Component {
     render() {
+        let descriptor = this.props.descriptor
         let area = this.props.area
-        let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = !_.isEmpty(area.fields) && area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+        let inline = optional(descriptor.inline, false)
+        inline = optional(area.inline, inline)
+        let defaultFieldCass = inline ? InlineField : Field
+        let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} descriptor={descriptor} />
+        let fields = !_.isEmpty(area.fields) && area.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
 
         return (
             <Card padding="true" title={area.title} subtitle={area.subtitle} actions={area.actions}>
@@ -224,7 +229,7 @@ export class AreaNoCard extends React.Component {
     render() {
         let area = this.props.area
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = !_.isEmpty(area.fields) && area.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+        let fields = !_.isEmpty(area.fields) && area.fields.map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f}))
         let actionKey = 1
 
         return (
@@ -257,6 +262,7 @@ export class Tabs extends React.Component {
     }
 
     render() {
+        let descriptor = this.props.descriptor
         let first = true
         let tabs = this.props.tabs
         let nav = tabs.map(n => {
@@ -268,7 +274,10 @@ export class Tabs extends React.Component {
         })
         first = true
         let panes = tabs.map(c => {
-            let fields = _.isEmpty(c.fields) && c.fields.map(f => <Field key={f.property} model={this.props.model} field={f} />)
+            let inline = optional(descriptor.inline, false)
+            inline = optional(c.inline, inline)
+            let defaultFieldClass = inline ? InlineField : Field
+            let fields = _.isEmpty(c.fields) && c.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f}))
             let el = (
                 <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
                     <div className="row">{fields}</div>
@@ -371,13 +380,16 @@ export class Form extends React.Component {
 
         generateKeys(descriptor)
 
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} />
-        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => <Field key={f.property} model={model} field={f} />)
+        let inline = optional(descriptor.inline, false)
+        let defaultFieldCass = inline ? InlineField : Field
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
+        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
+        let className = inline ? "form-horizontal" : ""
 
         return (
             <div className="form">
-                <form action="javascript:;" className="form-horizontal" role="form" onSubmit={this.onSubmit.bind(this)}>
+                <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
                     {areas}
                     {(tabs.length > 0 || fields.length > 0) &&
                     <Card padding="true">
@@ -411,16 +423,40 @@ export class Field extends React.Component {
         let className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12")
         let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.props))
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
+        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
+        if (!validationResult.valid) {
+            className += " has-error"
+        }
+        return (
+
+            <div className={className}>
+                {hasLabel &&
+                <Label field={this.props.field}/>
+                }
+                {control}
+            </div>
+        )
+    }
+}
+
+export class InlineField extends React.Component {
+    render() {
+        let model = this.props.model
+        let className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12")
+        let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.props))
+        let hasLabel = this.props.field.label != undefined && this.props.field.label != null
+        let inline = optional(this.props.inline, false)
         let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
         let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
         if (!validationResult.valid) {
             className += " has-error"
         }
         return (
+
             <div className={className}>
                 {hasLabel &&
                 <div className="col-sm-2">
-                    <Label field={this.props.field}/>
+                    <Label field={this.props.field} className="control-label"/>
                 </div>
                 }
                 <div className={controlSize}>
@@ -430,6 +466,7 @@ export class Field extends React.Component {
         )
     }
 }
+
 
 export class Control extends React.Component {
     constructor(props) {
