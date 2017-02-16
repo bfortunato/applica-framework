@@ -2,9 +2,6 @@ package applica.framework.widgets.entities;
 
 import applica.framework.Entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by bimbobruno on 06/12/2016.
  */
@@ -12,7 +9,7 @@ public class EntityDefinition {
 
     private String id;
     private Class<? extends Entity> type;
-    private List<Property> properties = new ArrayList<>();
+    private String keywordProperty;
 
     public EntityDefinition() {
     }
@@ -38,11 +35,11 @@ public class EntityDefinition {
         this.type = type;
     }
 
-    public List<Property> getProperties() {
-        return properties;
+    public String getKeywordProperty() {
+        return keywordProperty;
     }
 
-    public void setProperties(List<Property> properties) {
-        this.properties = properties;
+    public void setKeywordProperty(String keywordProperty) {
+        this.keywordProperty = keywordProperty;
     }
 }

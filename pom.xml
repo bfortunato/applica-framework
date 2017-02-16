@@ -29,6 +29,7 @@
         <module>framework-resources</module>
         <module>framework-security</module>
         <module>framework-fileserver</module>
+        <module>framework-data</module>
         <module>framework-data-mongodb</module>
         <module>framework-data-hibernate</module>
         <module>framework-data-security</module>

@@ -1,7 +1,7 @@
 package applica._APPNAME_.api.operations;
 
-import applica.commodo.domain.data.UsersRepository;
-import applica.commodo.domain.model.User;
+import applica._APPNAME_.domain.data.UsersRepository;
+import applica._APPNAME_.domain.model.User;
 import applica.framework.Entity;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
@@ -10,7 +10,6 @@ import applica.framework.widgets.operations.SaveOperation;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.tools.internal.ws.processor.ProcessorException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -79,7 +78,7 @@ public class UserSaveOperation implements SaveOperation{
 
             usersRepository.save(user);
         } catch (Exception e) {
-            throw new ProcessorException(e);
+            throw new OperationException(e);
         }
     }
 }

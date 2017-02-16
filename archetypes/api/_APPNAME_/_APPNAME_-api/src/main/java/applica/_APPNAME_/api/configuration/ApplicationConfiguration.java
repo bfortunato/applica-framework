@@ -14,12 +14,13 @@ import applica.framework.library.options.PropertiesOptionManager;
 import applica.framework.library.velocity.BaseVelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilderProvider;
-import applica.framework.widgets.builders.DeleteOperationBuilder;
-import applica.framework.widgets.builders.GetOperationBuilder;
-import applica.framework.widgets.builders.SaveOperationBuilder;
-import applica.framework.widgets.factory.DefaultFormProcessorFactory;
-import applica.framework.widgets.factory.FormProcessorFactory;
-import applica.framework.widgets.processors.DefaultFormProcessor;
+import applica.framework.widgets.factory.DefaultOperationsFactory;
+import applica.framework.widgets.factory.OperationsFactory;
+import applica.framework.widgets.mapping.EntityMapper;
+import applica.framework.widgets.operations.DefaultDeleteOperation;
+import applica.framework.widgets.operations.DefaultFindOperation;
+import applica.framework.widgets.operations.DefaultGetOperation;
+import applica.framework.widgets.operations.DefaultSaveOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -74,29 +75,37 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public SaveOperationBuilder saveOperationBuilder() {
-        return new SaveOperationBuilder();
+    public OperationsFactory operationsFactory() {
+        return new DefaultOperationsFactory();
     }
 
     @Bean
-    public DeleteOperationBuilder deleteOperationBuilder() {
-        return new DeleteOperationBuilder();
-    }
-
-    @Bean
-    public GetOperationBuilder getOperationBuilder() {
-        return new GetOperationBuilder();
-    }
-
-    @Bean
-    public FormProcessorFactory formProcessorFactory() {
-        return new DefaultFormProcessorFactory();
+    public EntityMapper entityMapper() {
+        return new EntityMapper();
     }
 
     @Bean
     @Scope("prototype")
-    public DefaultFormProcessor defaultFormProcessor() {
-        return new DefaultFormProcessor();
+    public DefaultDeleteOperation defaultDeleteOperation() {
+        return new DefaultDeleteOperation();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public DefaultSaveOperation defaultSaveOperation() {
+        return new DefaultSaveOperation();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public DefaultGetOperation defaultGetOperation() {
+        return new DefaultGetOperation();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public DefaultFindOperation defaultFindOperation() {
+        return new DefaultFindOperation();
     }
 
     /* Fileserver */

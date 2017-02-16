@@ -1,6 +1,7 @@
 package applica.framework.data.mongodb;
 
 import applica.framework.*;
+import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -188,6 +189,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
     @Override
     public Query keywordQuery(Query query) {
+        new KeywordQueryBuilder(getEntityType()).build(query);
+
         return query;
     }
 }

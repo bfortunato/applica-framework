@@ -1,6 +1,7 @@
 package applica.framework.data.hibernate;
 
 import applica.framework.*;
+import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +11,6 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 import javax.annotation.PreDestroy;
 import java.lang.reflect.Field;
@@ -436,6 +436,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
 
     @Override
     public Query keywordQuery(Query query) {
+        new KeywordQueryBuilder(getEntityType()).build(query);
         return query;
     }
 }

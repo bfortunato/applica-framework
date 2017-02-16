@@ -1,7 +1,7 @@
 package applica._APPNAME_.api.operations;
 
-import applica.commodo.domain.data.RolesRepository;
-import applica.commodo.domain.model.Role;
+import applica._APPNAME_.domain.data.RolesRepository;
+import applica._APPNAME_.domain.model.Role;
 import applica.framework.Entity;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.operations.SaveOperation;

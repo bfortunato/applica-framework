@@ -10,7 +10,6 @@ import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.tools.internal.ws.processor.ProcessorException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,7 @@ public class UserGetOperation implements GetOperation {
 
             return node;
         } catch (Exception e) {
-            throw new ProcessorException(e);
+            throw new OperationException(e);
         }
     }
 

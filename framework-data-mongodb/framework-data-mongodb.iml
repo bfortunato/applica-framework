@@ -53,6 +53,7 @@
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.5" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.5.2" level="project" />
+    <orderEntry type="module" module-name="framework-data" />
     <orderEntry type="library" name="Maven: org.mongodb:mongo-java-driver:3.2.2" level="project" />
     <orderEntry type="library" name="Maven: de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.28" level="project" />
     <orderEntry type="library" name="Maven: de.flapdoodle.embed:de.flapdoodle.embed.process:1.25" level="project" />
