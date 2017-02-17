@@ -1074,11 +1074,17 @@ export class Image extends Control {
         let field = this.props.field
         let accept = field.accept || ".jpg,.png,.jpeg,.gif,.bmp"
 
-        let imgStyle = {}
-        if (field.imageWidth) {
+        let imgStyle = {
+            "backgroundRepeat": "no-repeat",
+            "backgroundSize": "contain",
+            "backgroundPosition": "center",
+            "height": "150px",
+            "backgroundColor": "#F2F2F2"
+        }
+        if (this.props.width) {
             imgStyle.width = this.props.width
         }
-        if (field.imageHeight) {
+        if (this.props.height) {
             imgStyle.height = this.props.height
         }
 
@@ -1092,10 +1098,10 @@ export class Image extends Control {
                             <div className="actions">
                                 <a href="javascript:;" onClick={this.delete.bind(this)} className="delete-button"><i className="zmdi zmdi-close"></i></a>
                             </div>
-                            <img src={imageData} className="img-thumbnail img-responsive animated fadeIn" style={imgStyle} />
+                            <div className="input-image" style={_.assign(imgStyle, {"backgroundImage": `url("${imageData}")`})}></div>
                         </div>
                         :
-                        <img src="resources/images/noimage.png" className="img-thumbnail img-responsive" />
+                        <div className="input-image" style={_.assign(imgStyle, {"backgroundImage": `url("resources/images/noimage.png")`})}></div>
                     }
                 </div>
                 <input type="file" accept={accept} onChange={this.onFileSelected.bind(this)} />
