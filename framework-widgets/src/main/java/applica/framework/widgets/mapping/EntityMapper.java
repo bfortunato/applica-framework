@@ -109,7 +109,7 @@ public class EntityMapper {
         Objects.requireNonNull(node, "Cannot convert entity to image: node is null");
 
         String imageData = null;
-        if (!node.get(PREFIX + property).isNull()) {
+        if (node.get(PREFIX + property) != null && !node.get(PREFIX + property).isNull()) {
             imageData = node.get(PREFIX + property).asText();
         }
 
