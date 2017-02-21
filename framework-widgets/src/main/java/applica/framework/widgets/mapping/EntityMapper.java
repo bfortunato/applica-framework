@@ -68,7 +68,7 @@ public class EntityMapper {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        if (id != null) {
+        if (id == null) {
             destination.set(destinationProperty, NullNode.getInstance());
         } else {
             Entity relatedEntity = Repo.of(relatedType).get(id).orElse(null);
