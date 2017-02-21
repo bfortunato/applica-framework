@@ -4,6 +4,10 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
+import applica.framework.widgets.serialization.DefaultEntitySerializer;
+import applica.framework.widgets.serialization.EntitySerializer;
+import applica.framework.widgets.serialization.SerializationException;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -25,8 +29,6 @@ public class EntityMapper {
     @Autowired(required = false)
     private FileServer fileServer;
 
-    public static final String PREFIX = "_";
-
     @FunctionalInterface
     public interface Setter<T extends Entity> {
         void set(T value);
@@ -37,52 +39,79 @@ public class EntityMapper {
         T get();
     }
 
-    public void idToEntity(ObjectNode node, Entity entity, Class<? extends Entity> relatedType, String property){
-        Objects.requireNonNull(entity, "Cannot convert id to entity: entity is null");
-        Objects.requireNonNull(node, "Cannot convert id to entity: node is null");
+    public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+        Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
+        Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
 
-        String id = node.get(PREFIX + property).asText();
+        String id = source.get(sourceProperty).asText();
         if (!StringUtils.isEmpty(id)) {
             Optional<? extends Entity> relatedEntity = Repo.of(relatedType).get(id);
             if (!relatedEntity.isPresent()) {
-                throw new RuntimeException(String.format("%s: %s", property, id));
+                throw new RuntimeException(String.format("%s: %s", sourceProperty, id));
             }
 
             try {
-                PropertyUtils.setProperty(entity, property, relatedEntity.get());
+                PropertyUtils.setProperty(destination, destinationProperty, relatedEntity.get());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public void entityToId(Entity entity, ObjectNode node, String property) {
-        Objects.requireNonNull(entity, "Cannot convert entity to id: entity is null");
-        Objects.requireNonNull(node, "Cannot convert entity to id: node is null");
+    public void idToEntity(Entity source, ObjectNode destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+        Objects.requireNonNull(source, "Cannot convert id to entity: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert id to entity: node is null");
+
+        Object id;
+        try {
+            id = PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (id != null) {
+            destination.set(destinationProperty, NullNode.getInstance());
+        } else {
+            Entity relatedEntity = Repo.of(relatedType).get(id).orElse(null);
+            if (relatedEntity == null) {
+                destination.set(destinationProperty, NullNode.getInstance());
+            } else {
+                EntitySerializer serializer = new DefaultEntitySerializer(relatedType);
+                try {
+                    destination.set(destinationProperty, serializer.serialize(relatedEntity));
+                } catch (SerializationException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void entityToId(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
 
         Entity relatedEntity = null;
         try {
-            relatedEntity = (Entity) PropertyUtils.getProperty(entity, property);
+            relatedEntity = (Entity) PropertyUtils.getProperty(source, sourceProperty);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         if (relatedEntity == null) {
-            node.put(PREFIX + property, "");
+            destination.put(destinationProperty, "");
         } else {
             String id = relatedEntity.getId() != null ? relatedEntity.getId().toString() : null;
-            node.put(PREFIX + property, id);
+            destination.put(destinationProperty, id);
         }
 
     }
 
-    public void imageToDataUrl(Entity entity, ObjectNode node, String property, String size) {
+    public void imageToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, String size) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
-        Objects.requireNonNull(entity, "Cannot convert entity to image: entity is null");
-        Objects.requireNonNull(node, "Cannot convert entity to image: node is null");
+        Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
 
         String imageUrl = null;
         try {
-            imageUrl = (String) PropertyUtils.getProperty(entity, property);
+            imageUrl = (String) PropertyUtils.getProperty(source, sourceProperty);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -96,39 +125,39 @@ public class EntityMapper {
             }
             if (in != null) {
                 URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(imageUrl)), in);
-                node.put(PREFIX + property, urlData.write());
+                destination.put(destinationProperty, urlData.write());
             } else {
-                node.put(PREFIX + property, "");
+                destination.put(destinationProperty, "");
             }
         }
     }
 
-    public void dataUrlToImage(ObjectNode node, Entity entity, String property, String path) {
+    public void dataUrlToImage(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
-        Objects.requireNonNull(entity, "Cannot convert entity to image: entity is null");
-        Objects.requireNonNull(node, "Cannot convert entity to image: node is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
 
         String imageData = null;
-        if (!node.get(PREFIX + property).isNull()) {
-            imageData = node.get(PREFIX + property).asText();
+        if (!source.get(sourceProperty).isNull()) {
+            imageData = source.get(sourceProperty).asText();
         }
 
         if (StringUtils.isNotEmpty(imageData)) {
             try {
                 URLData urlData = URLData.parse(imageData);
                 String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
-                PropertyUtils.setProperty(entity, property, imagePath);
+                PropertyUtils.setProperty(destination, destinationProperty, imagePath);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         } else {
             try {
-                String actualImage = (String) PropertyUtils.getProperty(entity, property);
+                String actualImage = (String) PropertyUtils.getProperty(destination, destinationProperty);
                 if (actualImage != null) {
                     fileServer.deleteFile(actualImage);
                 }
 
-                PropertyUtils.setProperty(entity, property, null);
+                PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

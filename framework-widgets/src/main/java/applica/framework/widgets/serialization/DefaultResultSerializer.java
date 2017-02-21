@@ -2,6 +2,7 @@ package applica.framework.widgets.serialization;
 
 import applica.framework.Entity;
 import applica.framework.Result;
+import applica.framework.widgets.operations.ResultSerializerListener;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,9 +14,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class DefaultResultSerializer implements ResultSerializer {
 
+    private final ResultSerializerListener listener;
     private Class<? extends Entity> entityType;
 
-    public DefaultResultSerializer(Class<? extends Entity> entityType) {
+    public DefaultResultSerializer(Class<? extends Entity> entityType, ResultSerializerListener listener) {
+        this.listener = listener;
         this.entityType = entityType;
     }
 
@@ -53,8 +56,13 @@ public class DefaultResultSerializer implements ResultSerializer {
         }
     }
 
-    private JsonNode serializeEntity(ObjectMapper mapper, Entity entity) {
+    protected JsonNode serializeEntity(ObjectMapper mapper, Entity entity) {
         JsonNode node = mapper.valueToTree(entity);
+
+        if (listener != null) {
+            listener.onSerializeEntity((ObjectNode) node, entity);
+        }
+
         return node;
     }
 

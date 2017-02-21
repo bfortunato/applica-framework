@@ -2,16 +2,22 @@ package applica.framework.widgets.operations;
 
 import applica.framework.*;
 import applica.framework.library.utils.ProgramException;
+import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultResultSerializer;
 import applica.framework.widgets.serialization.ResultSerializer;
 import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class BaseFindOperation implements FindOperation {
+import java.util.Objects;
+
+public class BaseFindOperation implements FindOperation, ResultSerializerListener {
 
     @Autowired
     private RepositoriesFactory repositoriesFactory;
+
+    @Autowired(required = false)
+    private EntityMapper entityMapper;
 
     private Repository repository;
     private Class<? extends Entity> entityType;
@@ -46,11 +52,22 @@ public class BaseFindOperation implements FindOperation {
     }
 
     protected ObjectNode serialize(Result<? extends Entity> result) throws OperationException {
-        ResultSerializer serializer = new DefaultResultSerializer(getEntityType());
+        ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
         try {
             return serializer.serialize(result);
         } catch (SerializationException e) {
             throw new OperationException(e);
         }
+    }
+
+    @Override
+    public void onSerializeEntity(ObjectNode node, Entity entity) {
+
+    }
+
+    protected EntityMapper map() {
+        Objects.requireNonNull(entityMapper, "EntityMapper is null. Did you add a bean in application context configuration?");
+
+        return entityMapper;
     }
 }
