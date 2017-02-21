@@ -55,9 +55,14 @@ public class BaseSaveOperation implements SaveOperation {
 
             repository.save(entity);
 
+            afterSave(data, entity);
         } catch (SerializationException e) {
             throw new OperationException(e);
         }
+    }
+
+    protected void afterSave(ObjectNode node, Entity entity) {
+
     }
 
     protected void finishEntity(ObjectNode node, Entity entity) {
