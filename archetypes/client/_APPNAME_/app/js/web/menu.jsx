@@ -8,12 +8,12 @@ export default [
             {
                 icon: "zmdi zmdi-accounts-alt",
                 text: strings.users,
-                href: "/#/admin/entities/user?grid=users"
+                href: "/#/entities/user?grid=users"
             },
             {
                 icon: "zmdi zmdi-key",
                 text: strings.roles,
-                href: "/#/admin/entities/role?grid=roles"
+                href: "/#/entities/role?grid=roles"
             }
         ]
     },
@@ -24,7 +24,7 @@ export default [
             {
                 icon: "zmdi zmdi-labels",
                 text: strings.categories,
-                href: "/#/admin/entities/category?grid=categories"
+                href: "/#/entities/category?grid=categories"
             }
         ]
     }

@@ -95,7 +95,7 @@ export function use(o) {
  * Make a flatten object from plain object
  */
 
- export function flatten(target) {
+export function flatten(target) {
     if (!_.isObject(target)) {
         return {}
     }
@@ -121,8 +121,8 @@ export function use(o) {
             }
         })
     }
-    
+
     step(target, null, "")
 
-    return output 
+    return output
 }

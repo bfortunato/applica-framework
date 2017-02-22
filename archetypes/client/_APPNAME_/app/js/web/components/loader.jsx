@@ -1,5 +1,9 @@
 "use strict"
 
+export function hidePageLoader() {
+    $(".page-loader").fadeOut(500)
+}
+
 class PageLoader extends React.Component {
 
     componentDidUpdate() {
@@ -12,7 +16,7 @@ class PageLoader extends React.Component {
 
     render() {
         return (
-            <div className="page-loader" style={{display: "none"}}>
+            <div className="page-loader" style={{display: "block"}}>
                 <div className="preloader">
                     <svg className="pl-circular" viewBox="25 25 50 50">
                         <circle className="plc-path" cx="50" cy="50" r="20" />

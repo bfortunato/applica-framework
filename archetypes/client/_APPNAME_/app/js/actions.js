@@ -1,14 +1,16 @@
-import * as aj from "./aj"
-import { createAsyncAction, completed, failed } from "./utils/ajex"
-import * as SessionApi from "./api/session"
-import * as AccountApi from "./api/account"
-import * as responses from "./api/responses"
-import { alert, confirm, showLoader, hideLoader, toast } from "./plugins"
-import { format } from "./utils/lang"
-import strings from "./strings"
-import * as GridsApi from "./api/grids"
-import * as EntitiesApi from "./api/entities"
-import * as ValuesApi from "./api/values"
+"use strict"
+
+import * as aj from "../aj"
+import { createAsyncAction, completed, failed } from "../utils/ajex"
+import * as SessionApi from "../api/session"
+import * as AccountApi from "../api/account"
+import * as responses from "../api/responses"
+import { alert, confirm, showLoader, hideLoader, toast } from "../plugins"
+import { format } from "../utils/lang"
+import strings from "../strings"
+import * as GridsApi from "../api/grids"
+import * as EntitiesApi from "../api/entities"
+import * as ValuesApi from "../api/values"
 
 export const LOGIN = "LOGIN";
 export const login = createAsyncAction(LOGIN, data => {
@@ -293,7 +295,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
             hideLoader()
             toast(strings.saveComplete)
 
-            saveEntity.complete({discriminator: data.discriminator})
+            saveEntity.complete({discriminator: data.discriminator, data: data.data})
 
             if (data.entity == "user") {
                 if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
@@ -306,7 +308,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
             hideLoader()
             alert(strings.ooops, responses.msg(e), "error")
 
-            saveEntity.fail({discriminator: data.discriminator})
+            saveEntity.fail({discriminator: data.discriminator, data: data.data})
         })
 });
 
@@ -413,8 +415,6 @@ export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
         discriminator: data.discriminator
     })
 
-    logger.i(JSON.stringify(data))
-
     ValuesApi.load(data.collection, data.keyword)
         .then(response => {
             getLookupValues.complete({values: response.value, discriminator: data.discriminator})
@@ -434,9 +434,37 @@ export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
     })
 })
 
+
 /**
  * SELECT ACTIONS
  */
+
+export const GET_SELECT_ENTITIES = "GET_SELECT_ENTITIES"
+export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => {
+    if (_.isEmpty(data.entity)) {
+        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        return
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required")
+    }
+
+    aj.dispatch({
+        type: GET_SELECT_ENTITIES,
+        discriminator: data.discriminator
+    })
+
+    ValuesApi.loadEntities(data.entity, data.keyword)
+        .then(response => {
+            getSelectEntities.complete({entities: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            alert(strings.ooops, responses.msg(e), "error")
+
+            getSelectEntities.fail({discriminator: data.discriminator})
+        })
+})
 
 export const GET_SELECT_VALUES = "GET_SELECT_VALUES"
 export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
@@ -453,8 +481,6 @@ export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
         type: GET_SELECT_VALUES,
         discriminator: data.discriminator
     })
-
-    logger.i(JSON.stringify(data))
 
     ValuesApi.load(data.collection, data.keyword)
         .then(response => {
@@ -474,6 +500,7 @@ export const freeSelect = aj.createAction(FREE_SELECT, data => {
         discriminator: data.discriminator
     })
 })
+
 
 /**
  * MENU ACTIONS

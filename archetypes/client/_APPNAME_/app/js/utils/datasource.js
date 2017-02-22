@@ -15,11 +15,11 @@ function normalizeData(data) {
 }
 
 export class DataSource extends Observable {
-
+	
 	constructor(initialData) {
 		super()
 
-		this.data = normalizeData(initialData)
+		this.data = normalizeData(initialData)		
 	}
 
 	notifyChanged() {

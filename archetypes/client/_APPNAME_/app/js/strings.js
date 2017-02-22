@@ -43,7 +43,7 @@ export default {
     add: "Add",
     pleaseSpecifyData: "Please specify data",
     ok: "OK",
-    security: "Securiry",
+    security: "Security",
     users: "Users",
     roles: "Roles",
     setup: "Setup",

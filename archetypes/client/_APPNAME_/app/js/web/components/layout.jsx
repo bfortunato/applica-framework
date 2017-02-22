@@ -30,7 +30,7 @@ class Header extends React.Component {
                     </li>
 
                     <li className="hi-logo hidden-xs">
-                        <a href="index.html">_APPNAME_</a>
+                        <a href="index.html">commodo</a>
                     </li>
 
                     <li className="pull-right">

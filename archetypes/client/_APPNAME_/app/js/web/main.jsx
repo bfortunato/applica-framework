@@ -11,14 +11,15 @@ import {resumeSession, setupMenu} from "../actions"
 import {SessionStore} from "../stores"
 import {EntitiesGrid, EntityForm} from "./screens/entities"
 import menu from "./menu"
+import {hidePageLoader} from "./components/loader"
 
 /* Register plugins */
 plugins.register()
 
 /* Admin routes */
-ui.addRoute("/admin/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
-ui.addRoute("/admin/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} />))
-ui.addRoute("/admin/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} />))
+ui.addRoute("/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
+ui.addRoute("/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} />))
+ui.addRoute("/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} />))
 
 
 /* Account routes */
@@ -43,6 +44,7 @@ SessionStore.subscribe(owner, state => {
     if (state.resumeComplete) {
         SessionStore.unsubscribe(owner)
         ui.startNavigation()
+        hidePageLoader()
     }
 })
 

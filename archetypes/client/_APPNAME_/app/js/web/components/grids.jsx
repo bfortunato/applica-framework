@@ -412,7 +412,7 @@ export class Row extends React.Component {
         let firstElement = true
         let key = 1
         let cells = this.props.descriptor.columns.map(c => {
-            let cell = createCell(c, this.props.row, firstElement, onExpand)
+            let cell = createCell(c, this.props.row, firstElement, onExpand, c.props)
             firstElement = false
             return <td key={key++} className={c.tdClassName}><div className="grid-cell-container">{cell}</div></td>
         })
@@ -538,6 +538,8 @@ export class TextCell extends Cell {
         } else {
             icon += " zmdi-minus"
         }
+        
+        let formatter = _.isFunction(this.props.formatter) ? this.props.formatter : v => v
 
         let caret = !_.isEmpty(this.props.row.children) && this.props.firstElement ?
             <a style={{marginLeft: marginLeft, marginRight: 20}} href="javascript:;" className="expand-button" onClick={this.toggleExpand.bind(this)} onMouseDown={(e) => e.stopPropagation()}>
@@ -550,7 +552,7 @@ export class TextCell extends Cell {
         }
 
         return (
-            <div>{caret}<span style={style}>{this.props.value}</span></div>
+            <div>{caret}<span style={style}>{formatter(this.props.value)}</span></div>
         )
     }
 }
@@ -755,7 +757,7 @@ export class QuickSearch extends React.Component {
 
     render() {
         return (
-            <div className="quick-search pull-right">
+            <div className="quick-search pull-right m-r-10">
                 <i className="zmdi zmdi-search pull-right" />
                 <div className="quick-search-input-container">
                     <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} />
@@ -1024,10 +1026,10 @@ export class Grid extends React.Component {
 
 
 
-export function createCell(column, row, firstElement, onExpand) {
+export function createCell(column, row, firstElement, onExpand, props = {}) {
     let key = column.property + "" + row.index
     let value = row.data[column.property]
 
-    return React.createElement(column.cell, {key, column, property: column.property, row, value, firstElement, onExpand})
+    return React.createElement(column.cell, _.assign({key, column, property: column.property, row, value, firstElement, onExpand}, props))
     
 }

@@ -2,13 +2,7 @@
 
 import * as datasource from "../../utils/datasource"
 import {LookupStore, SelectStore} from "../../stores"
-import {
-    getLookupResult,
-    getLookupValues,
-    freeLookup,
-    getSelectValues,
-    freeSelect
-} from "../../actions"
+import {getLookupResult, getLookupValues, freeLookup, getSelectValues, freeSelect, getSelectEntities} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 import {Lookup, Select, Control} from "./forms"
@@ -41,14 +35,14 @@ export class EntitiesLookupContainer extends Control  {
 
     componentDidMount() {
         LookupStore.subscribe(this, state => {
-            this.datasource.setData(discriminated(state, this.discriminator).result)
+        	this.datasource.setData(discriminated(state, this.discriminator).result)
         })
 
         this.query.on("change", this.__queryOnChange)
     }
 
     componentWillUnmount() {
-        LookupStore.unsubscribe(this)
+    	LookupStore.unsubscribe(this)
 
         this.query.off("change", this.__queryOnChange)
 
@@ -74,6 +68,7 @@ export class ValuesLookupContainer extends Control  {
         }
 
         this.__queryOnChange = () => {
+            console.log(this.query)
             getLookupValues({discriminator: this.discriminator, collection: this.props.collection, keyword: this.query.keyword})
         }
 
@@ -105,7 +100,7 @@ export class ValuesLookupContainer extends Control  {
 }
 
 
-export class SelectContainer extends Control {
+export class ValuesSelectContainer extends Control {
 
     constructor(props) {
         super(props)
@@ -129,6 +124,39 @@ export class SelectContainer extends Control {
         })
 
         getSelectValues({discriminator: this.discriminator, collection: this.props.collection})
+    }
+
+    componentWillUnmount() {
+        SelectStore.unsubscribe(this)
+
+        freeSelect({discriminator: this.discriminator})
+    }
+
+    render() {
+        return React.createElement(Select, _.assign({}, this.props, {datasource: this.datasource}))
+    }
+
+}
+
+export class EntitiesSelectContainer extends Control {
+
+    constructor(props) {
+        super(props)
+
+        if (_.isEmpty(this.props.entity)) {
+            throw new Error("Please specify an entity for select")
+        }
+
+        this.discriminator = `entity_select_${this.props.entity}`
+        this.datasource = datasource.create()
+    }
+
+    componentDidMount() {
+        SelectStore.subscribe(this,  state => {
+            this.datasource.setData(discriminated(state, this.discriminator).values)
+        })
+
+        getSelectEntities({discriminator: this.discriminator, entity: this.props.entity})
     }
 
     componentWillUnmount() {

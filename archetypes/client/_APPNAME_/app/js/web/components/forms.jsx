@@ -9,6 +9,7 @@ import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
+import {parseBoolean} from "../../utils/lang"
 
 const VALIDATION_ERROR = {}
 
@@ -384,7 +385,7 @@ export class Form extends React.Component {
         let defaultFieldCass = inline ? InlineField : Field
         let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
         let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
-        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
+        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
         let className = inline ? "form-horizontal" : ""
 
         return (
@@ -399,7 +400,7 @@ export class Form extends React.Component {
                     </Card>
                     }
 
-                    <div className="form-group">
+                    <div className="row">
                         <div className="text-right col-sm-12">
                             <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || strings.cancel}</button>
                             <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || strings.submit}</button>
@@ -501,6 +502,27 @@ export class Text extends Control {
     }
 }
 
+export class TextArea extends Control {
+    render() {
+        let field = this.props.field
+        let style = {
+            height: optional(this.props.height, "150px")
+        }
+        return (
+            <div className="fg-line">
+                <textarea
+                    style={style}
+                    className="form-control"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder}
+                    value={optional(this.props.model.get(field.property), "")}
+                    onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
 export class ReadOnlyText extends Control {
     render() {
         let field = this.props.field
@@ -541,7 +563,37 @@ export class Mail extends Control {
     }
 }
 
-export class Check extends Control {
+export class YesNo extends Control {
+    onValueChange(e) {
+        let value = parseBoolean(e.target.value)
+        let model = this.props.model
+        let field = this.props.field
+        model.set(field.property, value)
+        this.forceUpdate()
+    }
+
+    render() {
+        let field = this.props.field
+        let yesText = optional(this.props.yesText, "Yes")
+        let noText = optional(this.props.noText, "No")
+
+        return (
+            <div className="yesno">
+                <label className="radio radio-inline m-r-5">
+                    <input type="radio" name={field.property} value="true" checked={optional(this.props.model.get(field.property), false)} onChange={this.onValueChange.bind(this)} />
+                    <i className="input-helper">{yesText}</i>
+                </label>
+                <label className="radio radio-inline m-r-5">
+                    <input type="radio" name={field.property} value="false" checked={!(optional(this.props.model.get(field.property), false))} onChange={this.onValueChange.bind(this)} />
+                    <i className="input-helper">{noText}</i>
+                </label>
+            </div>
+        )
+    }
+}
+
+
+export class Switch extends Control {
     onValueChange(e) {
         let value = e.target.checked
         let model = this.props.model

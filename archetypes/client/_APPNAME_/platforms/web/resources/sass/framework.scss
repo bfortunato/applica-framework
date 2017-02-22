@@ -79,7 +79,7 @@ html.ismobile .global-loader {
 }
 
 .hover:hover {
-  background-color: $hover-color;
+  background-color: $hover-color !important;
 }
 
 .animated-fast {
@@ -413,7 +413,7 @@ tr.collapsible {
 
   .input-image-container {
     position: relative;
-    display: inline-block;
+    display: block;
 
     .actions {
       position: absolute;

@@ -133,7 +133,7 @@ else if (platform.engine == "node") {
 
                             ack();
                         } catch (e) {
-                            if (e && e.stack) { logger.i(e.stack); }
+                            if (e && e.stack) { logger.e(e.stack); }
                             logger.e(e);
                         }
                     });
@@ -143,13 +143,13 @@ else if (platform.engine == "node") {
                     try {
                         this.freeSemaphore(id, data);
                     } catch(e) {
-                        if (e && e.stack) { logger.i(e.stack); }
+                        if (e && e.stack) { logger.e(e.stack); }
                         logger.e(e);
                     }
                 });
 
                 this.socket.on("error", (e) => {
-                    if (e && e.stack) { logger.i(e.stack); }
+                    if (e && e.stack) { logger.e(e.stack); }
                     logger.e(e);
                 });
             }
@@ -464,7 +464,7 @@ function dispatch(action) {
         try {
             store.dispatch(action);
         } catch (e) {
-            if (e && e.stack) { logger.i(e.stack); }
+            if (e && e.stack) { logger.e(e.stack); }
             logger.e(e);
         }
     });

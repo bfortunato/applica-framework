@@ -2,7 +2,7 @@
 
 import {TextCell, CheckCell} from "./components/grids"
 import {check, sanitize} from "../libs/validator"
-import {Text, Mail, Check, Image} from "./components/forms"
+import {Text, Mail, YesNo, Image} from "./components/forms"
 import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers"
 import strings from "../strings"
 
@@ -47,7 +47,7 @@ const entities = {
 	                        },
 	                        {
 	                            property: "active",
-	                            control: Check,
+	                            control: YesNo,
 	                            label: strings.active,
 	                            sanitizer: (value) => sanitize(value).toBoolean()
 	                        },
