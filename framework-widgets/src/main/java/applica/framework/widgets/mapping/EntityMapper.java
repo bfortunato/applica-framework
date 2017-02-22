@@ -139,7 +139,7 @@ public class EntityMapper {
 
         String imageData = null;
 
-        if (!source.get(sourceProperty).isNull()) {
+        if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
             imageData = source.get(sourceProperty).asText();
         }
 
