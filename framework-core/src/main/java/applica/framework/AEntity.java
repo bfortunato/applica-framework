@@ -1,5 +1,7 @@
 package applica.framework;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Created by bimbobruno on 17/09/15.
  */
@@ -26,14 +28,17 @@ public class AEntity implements Entity {
         this.id = checkedId(id);
     }
 
+    @JsonIgnore
     public String getSid() {
         return SEntity.checkedId(id);
     }
 
+    @JsonIgnore
     public long getLid() {
         return LEntity.checkedId(id);
     }
 
+    @JsonIgnore
     public int getIid() {
         return IEntity.checkedId(id);
     }
