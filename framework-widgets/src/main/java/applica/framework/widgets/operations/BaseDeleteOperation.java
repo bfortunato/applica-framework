@@ -21,7 +21,7 @@ public class BaseDeleteOperation implements DeleteOperation {
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(String id) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         if (repository == null) {
@@ -30,12 +30,15 @@ public class BaseDeleteOperation implements DeleteOperation {
 
         if (repository == null) throw new ProgramException("Missing repository");
 
-
-        repository.delete(id);
+        try {
+            repository.delete(id);
+        } catch (Exception e) {
+            throw new OperationException(e);
+        }
     }
 
     @Override
-    public void delete(List<String> ids) {
+    public void delete(List<String> ids) throws OperationException {
         if (entityType == null) throw new ProgramException("Entity entityType is null");
 
         if (repository == null) {
@@ -44,9 +47,12 @@ public class BaseDeleteOperation implements DeleteOperation {
 
         if (repository == null) throw new ProgramException("Missing repository");
 
-
         for (String id : ids) {
-            repository.delete(id);
+            try {
+                repository.delete(id);
+            } catch (Exception e) {
+                throw new OperationException(e);
+            }
         }
     }
 
