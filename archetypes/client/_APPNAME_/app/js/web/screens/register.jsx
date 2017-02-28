@@ -1,7 +1,7 @@
 "use strict";
 
 import {AccountStore} from "../../stores"
-import strings from "../../strings"
+import M from "../../strings"
 import {connect} from "../utils/aj"
 import {FullScreenLayout, Screen} from "../components/layout"
 import * as ui from "../utils/ui"
@@ -35,21 +35,21 @@ export default class Register extends Screen {
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-account"></i></span>
                                 <div className="fg-line">
-                                    <input type="text" name="name" className="form-control" placeholder={strings.name} />
+                                    <input type="text" name="name" className="form-control" placeholder={M("name")} />
                                 </div>
                             </div>
 
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                 <div className="fg-line">
-                                    <input type="email" name="mail" className="form-control" placeholder={strings.mailAddress} />
+                                    <input type="email" name="mail" className="form-control" placeholder={M("mailAddress")} />
                                 </div>
                             </div>
 
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-male"></i></span>
                                 <div className="fg-line">
-                                    <input type="password" name="password" className="form-control" placeholder={strings.password} />
+                                    <input type="password" name="password" className="form-control" placeholder={M("password")} />
                                 </div>
                             </div>
 
@@ -57,8 +57,8 @@ export default class Register extends Screen {
                         </form>
 
                         <div className="lcb-navigation">
-                            <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>{strings.signIn}</span></a>
-                            <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>{strings.forgotPassword}</span></a>
+                            <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>{M("signIn")}</span></a>
+                            <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>{M("forgotPassword")}</span></a>
                         </div>
                     </div>
                 </div>

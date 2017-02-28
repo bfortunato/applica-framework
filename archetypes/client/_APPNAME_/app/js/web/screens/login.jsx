@@ -3,7 +3,7 @@
 import { FullScreenLayout, Screen } from "../components/layout"
 import { login } from "../../actions"
 import * as forms from "../utils/forms"
-import strings from "../../strings"
+import M from "../../strings"
 
 export default class Login extends Screen {
 
@@ -23,14 +23,14 @@ export default class Login extends Screen {
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                 <div className="fg-line">
-                                    <input type="email" name="mail" className="form-control" placeholder={strings.mailAddress} />
+                                    <input type="email" name="mail" className="form-control" placeholder={M("mailAddress")} />
                                 </div>
                             </div>
 
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-male"></i></span>
                                 <div className="fg-line">
-                                    <input type="password" name="password" className="form-control" placeholder={strings.password} />
+                                    <input type="password" name="password" className="form-control" placeholder={M("password")} />
                                 </div>
                             </div>
 
@@ -46,8 +46,8 @@ export default class Login extends Screen {
                         </form>
 
                         <div className="lcb-navigation">
-                            <a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>{strings.register}</span></a>
-                            <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>{strings.forgotPassword}</span></a>
+                            <a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>{M("register")}</span></a>
+                            <a href="#recover" data-ma-block="#l-forget-password"><i>?</i> <span>{M("forgotPassword")}</span></a>
                         </div>
                     </div>
                 </div>

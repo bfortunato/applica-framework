@@ -12,6 +12,6 @@ public interface Constraint<T extends Entity> {
 
     Class<T> getType();
     String getProperty();
-    void check(T entity);
+    void check(T entity) throws ConstraintException;
 
 }

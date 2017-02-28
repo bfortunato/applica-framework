@@ -7,7 +7,7 @@ import * as AccountApi from "../api/account"
 import * as responses from "../api/responses"
 import { alert, confirm, showLoader, hideLoader, toast } from "../plugins"
 import { format } from "../utils/lang"
-import strings from "../strings"
+import M from "../strings"
 import * as GridsApi from "../api/grids"
 import * as EntitiesApi from "../api/entities"
 import * as ValuesApi from "../api/values"
@@ -15,7 +15,7 @@ import * as ValuesApi from "../api/values"
 export const LOGIN = "LOGIN";
 export const login = createAsyncAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(strings.problemOccoured, strings.mailAndPasswordRequired, "warning")
+        alert(M("problemOccoured"), M("mailAndPasswordRequired"), "warning")
         return;
     }
 
@@ -27,7 +27,7 @@ export const login = createAsyncAction(LOGIN, data => {
     SessionApi.start(data.mail, data.password)
         .then(user => {
             hideLoader()
-            toast(strings.welcome + " " + user.name);
+            toast(M("welcome") + " " + user.name);
 
             login.complete({user})
 
@@ -36,7 +36,7 @@ export const login = createAsyncAction(LOGIN, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, strings.badLogin, "error")
+            alert(M("ooops"), M("badLogin"), "error")
 
             login.fail()
         })
@@ -51,7 +51,7 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
     SessionApi.resume()
         .then(user => {
             hideLoader()
-            toast(strings.welcome + " " + user.name);
+            toast(M("welcome") + " " + user.name);
 
             resumeSession.complete({user})
             getUserProfileImage()
@@ -77,7 +77,7 @@ export const logout = aj.createAction(LOGOUT, data => {
 export const REGISTER = "REGISTER";
 export const register = createAsyncAction(REGISTER, data => {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(strings.problemOccoured, strings.nameMailAndPasswordRequired, "warning")
+        alert(M("problemOccoured"), M("nameMailAndPasswordRequired"), "warning")
         return;
     }
 
@@ -85,17 +85,17 @@ export const register = createAsyncAction(REGISTER, data => {
         type: REGISTER
     })
 
-    showLoader(strings.registering)
+    showLoader(M("registering"))
     AccountApi.register(data.name, data.mail, data.password)
         .then(() => {
             hideLoader()
 
-            let message = format(strings.welcomeMessage, data.name, data.mail)
+            let message = format(M("welcomeMessage"), data.name, data.mail)
             register.complete({name: data.name, mail: data.mail, message})
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             register.fail()
         })
@@ -104,7 +104,7 @@ export const register = createAsyncAction(REGISTER, data => {
 export const RECOVER_ACCOUNT = "RECOVER_ACCOUNT"
 export const recoverAccount = createAsyncAction(RECOVER_ACCOUNT, data => {
     if (_.isEmpty(data.mail)) {
-        alert(strings.problemOccoured, strings.mailRequired, "warning")
+        alert(M("problemOccoured"), M("mailRequired"), "warning")
         return;
     }
 
@@ -116,13 +116,13 @@ export const recoverAccount = createAsyncAction(RECOVER_ACCOUNT, data => {
     AccountApi.recover(data.mail)
         .then(() => {
             hideLoader()
-            alert(strings.congratulations, format(strings.accountRecovered, data.mail))
+            alert(M("congratulations"), format(M("accountRecovered"), data.mail))
 
             recoverAccount.complete()
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             recoverAccount.fail()
         })
@@ -139,7 +139,7 @@ export const setActivationCode = aj.createAction(SET_ACTIVATION_CODE, data => {
 export const CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT"
 export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
     if (_.isEmpty(data.activationCode)) {
-        alert(strings.problemOccoured, strings.activationCodeRequired, "warning")
+        alert(M("problemOccoured"), M("activationCodeRequired"), "warning")
         return;
     }
 
@@ -151,13 +151,13 @@ export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
     AccountApi.confirm(data.activationCode)
         .then(() => {
             hideLoader()
-            alert(strings.congratulations, strings.accountConfirmed)
+            alert(M("congratulations"), M("accountConfirmed"))
 
             confirmAccount.complete()
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             confirmAccount.fail()
         })
@@ -168,7 +168,7 @@ export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
 export const GET_GRID = "GET_GRID"
 export const getGrid = createAsyncAction(GET_GRID, data => {
     if (_.isEmpty(data.id)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyId)
+        alert(M("problemOccoured"), M("pleaseSpecifyId"))
         return
     }
 
@@ -185,7 +185,7 @@ export const getGrid = createAsyncAction(GET_GRID, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getGrid.fail()
         })
@@ -199,7 +199,7 @@ let queries = {}
 export const LOAD_ENTITIES = "LOAD_ENTITIES"
 export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
@@ -223,7 +223,7 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             loadEntities.fail({discriminator: data.discriminator})
         })
@@ -232,12 +232,12 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
 export const DELETE_ENTITIES = "DELETE_ENTITIES"
 export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
     if (_.isEmpty(data.ids)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyId)
+        alert(M("problemOccoured"), M("pleaseSpecifyId"))
         return
     }
 
@@ -262,7 +262,7 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             deleteEntities.fail({discriminator: data.discriminator})
         })
@@ -271,12 +271,12 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
 export const SAVE_ENTITY = "SAVE_ENTITY"
 export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
     if (_.isEmpty(data.data)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyData)
+        alert(M("problemOccoured"), M("pleaseSpecifyData"))
         return
     }
 
@@ -293,7 +293,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
     EntitiesApi.save(data.entity, data.data)
         .then(() => {
             hideLoader()
-            toast(strings.saveComplete)
+            toast(M("saveComplete"))
 
             saveEntity.complete({discriminator: data.discriminator, data: data.data})
 
@@ -306,7 +306,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             saveEntity.fail({discriminator: data.discriminator, data: data.data})
         })
@@ -327,12 +327,12 @@ export const newEntity = aj.createAction(NEW_ENTITY, data => {
 export const GET_ENTITY = "GET_ENTITY"
 export const getEntity = createAsyncAction(GET_ENTITY, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
     if (_.isEmpty(data.id)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyId)
+        alert(M("problemOccoured"), M("pleaseSpecifyId"))
         return
     }
 
@@ -353,7 +353,7 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
         })
         .catch(e => {
             hideLoader()
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getEntity.fail({discriminator: data.discriminator})
         })
@@ -375,7 +375,7 @@ export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
 export const GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT"
 export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
@@ -393,7 +393,7 @@ export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
             getLookupResult.complete({result: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getLookupResult.fail({discriminator: data.discriminator})
         })
@@ -402,7 +402,7 @@ export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
 export const GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES"
 export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
     if (_.isEmpty(data.collection)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
@@ -420,7 +420,7 @@ export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
             getLookupValues.complete({values: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getLookupValues.fail({discriminator: data.discriminator})
         })
@@ -442,7 +442,7 @@ export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
 export const GET_SELECT_ENTITIES = "GET_SELECT_ENTITIES"
 export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
@@ -460,7 +460,7 @@ export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => 
             getSelectEntities.complete({entities: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getSelectEntities.fail({discriminator: data.discriminator})
         })
@@ -469,7 +469,7 @@ export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => 
 export const GET_SELECT_VALUES = "GET_SELECT_VALUES"
 export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
     if (_.isEmpty(data.collection)) {
-        alert(strings.problemOccoured, strings.pleaseSpecifyEntity)
+        alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
         return
     }
 
@@ -487,7 +487,7 @@ export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
             getSelectValues.complete({values: response.value, discriminator: data.discriminator})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
+            alert(M("ooops"), responses.msg(e), "error")
 
             getSelectValues.fail({discriminator: data.discriminator})
         })
@@ -551,8 +551,6 @@ export const getUserCoverImage = createAsyncAction(GET_USER_COVER_IMAGE, data =>
             getUserCoverImage.complete({data: data.value})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
-
             getUserCoverImage.fail({e})
         })
 
@@ -574,8 +572,6 @@ export const getUserProfileImage = createAsyncAction(GET_USER_PROFILE_IMAGE, dat
             getUserProfileImage.complete({data: data.value})
         })
         .catch(e => {
-            alert(strings.ooops, responses.msg(e), "error")
-
             getUserProfileImage.fail({e})
         })
 })

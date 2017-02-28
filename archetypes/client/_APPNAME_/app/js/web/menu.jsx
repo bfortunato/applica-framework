@@ -1,29 +1,29 @@
-import strings from "../strings"
+import M from "../strings"
 
 export default [
     {
         icon: "zmdi zmdi-shield-security",
-        text: strings.security,
+        text: M("security"),
         children: [
             {
                 icon: "zmdi zmdi-accounts-alt",
-                text: strings.users,
+                text: M("users"),
                 href: "/#/entities/user?grid=users"
             },
             {
                 icon: "zmdi zmdi-key",
-                text: strings.roles,
+                text: M("roles"),
                 href: "/#/entities/role?grid=roles"
             }
         ]
     },
     {
         icon: "zmdi zmdi-wrench",
-        text: strings.setup,
+        text: M("setup"),
         children: [
             {
                 icon: "zmdi zmdi-labels",
-                text: strings.categories,
+                text: M("categories"),
                 href: "/#/entities/category?grid=categories"
             }
         ]

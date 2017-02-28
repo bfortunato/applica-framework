@@ -1,20 +1,27 @@
 package applica._APPNAME_.api;
 
+import applica._APPNAME_.api.configuration.ApplicationConfiguration;
 import applica._APPNAME_.api.configuration.ApplicationInitializer;
+import applica._APPNAME_.api.configuration.MongoConfiguration;
+import applica._APPNAME_.api.configuration.SecurityConfiguration;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.autoconfigure.velocity.VelocityAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.*;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.annotation.PostConstruct;
@@ -31,14 +38,19 @@ import javax.annotation.PostConstruct;
 @ComponentScan("applica._APPNAME_.data.hibernate")
 @ComponentScan("applica._APPNAME_.services")
 @ComponentScan("applica._APPNAME_.api")
-@EnableAutoConfiguration(exclude={
-        DataSourceAutoConfiguration.class,
-        MongoAutoConfiguration.class,
-        EmbeddedMongoAutoConfiguration.class,
-        ThymeleafAutoConfiguration.class,
-        FreeMarkerAutoConfiguration.class,
-        GroovyTemplateAutoConfiguration.class,
-        VelocityAutoConfiguration.class
+@Import({
+        DispatcherServletAutoConfiguration.class,
+        EmbeddedServletContainerAutoConfiguration.class,
+        ErrorMvcAutoConfiguration.class,
+        HttpEncodingAutoConfiguration.class,
+        HttpMessageConvertersAutoConfiguration.class,
+        JacksonAutoConfiguration.class,
+        ServerPropertiesAutoConfiguration.class,
+        PropertyPlaceholderAutoConfiguration.class,
+        WebMvcAutoConfiguration.class,
+        ApplicationConfiguration.class,
+        MongoConfiguration.class,
+        SecurityConfiguration.class
 })
 public class Application {
 

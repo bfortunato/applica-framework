@@ -78,7 +78,11 @@ public class AccountController {
     public Response cover(@PathVariable String userId) {
         try {
             URLData coverImage = accountService.getCoverImage(userId, "268x129");
-            return new ValueResponse(coverImage.write());
+            if (coverImage != null) {
+                return new ValueResponse(coverImage.write());
+            } else {
+                return new Response(NOT_FOUND);
+            }
         } catch (UserNotFoundException e) {
             return new Response(ResponseCode.ERROR_USER_NOT_FOUND);
         } catch (IOException e) {
@@ -91,7 +95,11 @@ public class AccountController {
     public Response image(@PathVariable String userId) {
         try {
             URLData profileImage = accountService.getProfileImage(userId, "47x47");
-            return new ValueResponse(profileImage.write());
+            if (profileImage != null) {
+                return new ValueResponse(profileImage.write());
+            } else {
+                return new Response(NOT_FOUND);
+            }
         } catch (UserNotFoundException e) {
             return new Response(ResponseCode.ERROR_USER_NOT_FOUND);
         } catch (IOException e) {

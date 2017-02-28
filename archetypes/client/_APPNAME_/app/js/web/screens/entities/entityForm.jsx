@@ -2,7 +2,7 @@
 
 import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
-import strings from "../../../strings"
+import M from "../../../strings"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, ActionsMatcher} from "../../components/common"
 import {Form} from "../../components/forms"
@@ -74,13 +74,13 @@ export default class EntityForm extends Screen {
             {
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
-                tooltip: strings.back,
+                tooltip: M("back"),
                 action: () => { this.goBack() }
             },
             {
                 type: "button",
                 icon: "zmdi zmdi-save",
-                tooltip: strings.save,
+                tooltip: M("save"),
                 action: () => { this.refs.form.submit() }
             }
 

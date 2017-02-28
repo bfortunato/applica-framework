@@ -2,7 +2,7 @@ import * as aj from "./aj"
 import { createAsyncAction, completed, failed } from "./utils/ajex"
 import * as actions from "./actions"
 import * as _ from "./libs/underscore"
-import strings from "./strings"
+import M from "./strings"
 import {discriminate} from "./utils/ajex"
 import {walk} from "./utils/lang"
 

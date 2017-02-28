@@ -1,7 +1,7 @@
 "use strict"
 
 import * as query from "../../api/query"
-import strings from "../../strings"
+import M from "../../strings"
 import {Card, HeaderBlock} from "./common"
 import {format, optional, parseBoolean} from "../../utils/lang"
 import {Observable} from "../../aj/events"
@@ -216,13 +216,13 @@ export class SearchDialog extends React.Component {
                         </div>
                         <div className="modal-body">
                             <form action="javascript:;" onSubmit={this.filter.bind(this)}>
-                                <p className="c-black f-500 m-b-20 m-t-20">{strings.typeValueToSearch}</p>
+                                <p className="c-black f-500 m-b-20 m-t-20">{M("typeValueToSearch")}</p>
                                 <div className="form-group">
                                     <div className="fg-line">
-                                        <input type="text" className="form-control" placeholder={strings.value} onChange={this.onChangeValue.bind(this)} value={this.state.value} />
+                                        <input type="text" className="form-control" placeholder={M("value")} onChange={this.onChangeValue.bind(this)} value={this.state.value} />
                                     </div>
                                 </div>
-                                <p className="c-black f-500 m-b-20 m-t-20">{strings.selectFilterType}</p>
+                                <p className="c-black f-500 m-b-20 m-t-20">{M("selectFilterType")}</p>
                                 <div className="form-group">
                                     <div className="fg-line">
                                         <select className="form-control" value={this.state.type} onChange={this.onTypeChange.bind(this)}>
@@ -236,8 +236,8 @@ export class SearchDialog extends React.Component {
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-link waves-effect" onClick={this.filter.bind(this)}>{strings.search}</button>
-                            <button type="button" className="btn btn-link waves-effect" data-dismiss="modal">{strings.close}</button>
+                            <button type="button" className="btn btn-link waves-effect" onClick={this.filter.bind(this)}>{M("search")}</button>
+                            <button type="button" className="btn btn-link waves-effect" data-dismiss="modal">{M("close")}</button>
                         </div>
                     </div>
                 </div>
@@ -728,7 +728,7 @@ export class ResultSummary extends React.Component {
         }
 
         return (
-            <p className="result-summary">{format(strings.pagination, start, stop, totalRows)}</p>
+            <p className="result-summary">{format(M("pagination"), start, stop, totalRows)}</p>
         )
     }
 }
@@ -969,7 +969,7 @@ export class Grid extends React.Component {
         let showFilters = myQuery.filters.length > 0
         let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
         let hasPagination = this.getTotalPages() > 1
-        let noResultsText = optional(this.props.noResultsText, strings.noResults)
+        let noResultsText = optional(this.props.noResultsText, M("noResults"))
         let Container = optional(parseBoolean(this.props.showInCard), true) ? Card : NoCard
 
         return (

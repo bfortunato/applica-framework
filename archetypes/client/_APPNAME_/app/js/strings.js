@@ -1,4 +1,7 @@
-export default {
+let language = "en"
+
+let strings = {}
+strings["en"] = {
     registering: "Registering...",
     ooops: "Ooops...",
     badLogin: "Cannot login! Please check your email address or password!",
@@ -69,4 +72,17 @@ export default {
     image: "Image",
     cover: "Cover",
     saveComplete: "Save complete"
+}
+
+export function setLanguage(language_) {
+    language = language_
+}
+
+export default function M(key) {
+    if (strings[language] && strings[language][key]) {
+        return strings[language][key]
+    } else {
+        logger.w("String not found for language " + language + ":", key)
+        return key
+    }
 }

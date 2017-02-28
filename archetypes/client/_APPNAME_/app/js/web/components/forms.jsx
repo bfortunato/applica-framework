@@ -1,6 +1,6 @@
 "use strict"
 
-import strings from "../../strings"
+import M from "../../strings"
 import {Card, Actions} from "./common"
 import {format, optional} from "../../../utils/lang"
 import {Observable} from "../../../aj/events"
@@ -402,8 +402,8 @@ export class Form extends React.Component {
 
                     <div className="row">
                         <div className="text-right col-sm-12">
-                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || strings.cancel}</button>
-                            <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || strings.submit}</button>
+                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("cancel")}</button>
+                            <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || M("submit")}</button>
                         </div>
                     </div>
                     <div className="clearfix"></div>
@@ -897,7 +897,7 @@ export class Lookup extends Control {
 
         if (mode == "multiple") {
             let rows = model.get(field.property)
-            return rows.length == 1 ? strings.oneElementSelected : format(strings.nElementsSelected, rows.length)
+            return rows.length == 1 ? M("oneElementSelected") : format(M("nElementsSelected"), rows.length)
         } else if (mode == "single") {
             let row = model.get(field.property)
             if (row == null) {
@@ -931,7 +931,7 @@ export class Lookup extends Control {
         if (field.placeholder) {
             return field.placeholder
         } else {
-            return strings.nothingSelected
+            return M("nothingSelected")
         }
     }
 
@@ -959,8 +959,8 @@ export class Lookup extends Control {
                 <div className="lookup">
                     <div className="lookup-header" onClick={this.showEntities.bind(this)}>
                         <div className="actions pull-right">
-                            <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
-                            <a href="javascript:;" title={strings.add} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
+                            <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
+                            <a href="javascript:;" title={M("add")} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
                         </div>
                         <span className="lookup-current-value">{this.getHeaderText()}</span>
                         <div className="clearfix"></div>
@@ -1007,8 +1007,8 @@ export class Lookup extends Control {
                                 />
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-link" onClick={this.select.bind(this)}>{strings.ok}</button>
-                                <button type="button" className="btn btn-link" data-dismiss="modal">{strings.cancel}</button>
+                                <button type="button" className="btn btn-link" onClick={this.select.bind(this)}>{M("ok")}</button>
+                                <button type="button" className="btn btn-link" data-dismiss="modal">{M("cancel")}</button>
                             </div>
                         </div>
                     </div>
@@ -1065,14 +1065,14 @@ export class File extends Control {
                     {!hasValue ?
                         <div>
                             <div className="actions pull-right">
-                                <a href="javascript:;" title={strings.search} onClick={this.search.bind(this)} className="m-r-0"><i className="zmdi zmdi-search" /></a>
+                                <a href="javascript:;" title={M("search")} onClick={this.search.bind(this)} className="m-r-0"><i className="zmdi zmdi-search" /></a>
                             </div>
                             <span className="placeholder">{field.placeholder}</span>
                         </div>
                         :
                         <div>
                             <div className="actions pull-right">
-                                <a href="javascript:;" title={strings.remove} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
+                                <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
                             </div>
                             <span className="input-file-name"><span className="zmdi zmdi-file"></span> {this.state.filename}</span>
                         </div>

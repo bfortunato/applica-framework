@@ -2,7 +2,7 @@
 
 import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
-import strings from "../../../strings"
+import M from "../../../strings"
 import {loadEntities, deleteEntities} from "../../../actions"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton, ActionsMatcher} from "../../components/common"
@@ -89,7 +89,7 @@ export default class EntitiesGrid extends Screen {
             return
         }
 
-        swal({ title: strings.confirm, text: format(strings.entityDeleteConfirm, selection.length), showCancelButton: true })
+        swal({ title: M("confirm"), text: format(M("entityDeleteConfirm"), selection.length), showCancelButton: true })
             .then(() => {
                 deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
             })
@@ -122,28 +122,28 @@ export default class EntitiesGrid extends Screen {
                 id: "refresh",
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
-                tooltip: strings.refresh,
+                tooltip: M("refresh"),
                 action: () => { loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query}) }
             },
             {
                 id: "create",
                 type: "button",
                 icon: "zmdi zmdi-plus",
-                tooltip: strings.create,
+                tooltip: M("create"),
                 action: () => { this.createEntity() }
             },
             {
                 id: "delete",
                 type: "button",
                 icon: "zmdi zmdi-delete",
-                tooltip: strings.delete,
+                tooltip: M("delete"),
                 action: () => { this.deleteEntities() }
             },
             {
                 id: "selectAll",
                 type: "button",
                 icon: "zmdi zmdi-select-all",
-                tooltip: strings.selectAll,
+                tooltip: M("selectAll"),
                 action: () => { this.refs.grid.toggleSelectAll() }
             }
 

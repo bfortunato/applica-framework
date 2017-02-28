@@ -60,7 +60,7 @@ public abstract class UniqueConstraint<T extends Entity> implements Constraint<T
                     }
 
                     if(value.equals(checkValue)) {
-                        throw new ConstraintException(String.format("%s.%s is not unique", getType().getName(), getProperty()));
+                        throw new ConstraintException(ConstraintException.Type.UNIQUE, getType(), getProperty());
                     }
                 }
             }

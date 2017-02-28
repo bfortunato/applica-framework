@@ -77,32 +77,19 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                                 List<? extends Entity> list = (List) foreignValue;
                                 for (Entity el : list) {
                                     if (id.equals(el.getId())) {
-                                        throw new ConstraintException(
-                                                String.format("ForeignKey check failure: %s [%s] was found in %s.%s",
-                                                        getPrimaryType().getName(),
-                                                        el.getId(),
-                                                        getForeignType().getName(),
-                                                        getForeignProperty()
-                                                )
-                                        );
+                                        throw new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty());
                                     }
                                 }
                             } else if (String.class.equals(listGenericType) ||
                                     Integer.class.equals(listGenericType) ||
                                     Long.class.equals(listGenericType) ||
-                                    Key.class.equals(listGenericType)) {
+                                    Key.class.equals(listGenericType) ||
+                                    Object.class.equals(listGenericType)) {
                                 List<?> list = (List) foreignValue;
                                 for (Object possibleId : list) {
                                     Object foreignId = Key.class.equals(foreignValueField.getType()) ? ((Key) possibleId).getValue() : possibleId;
                                     if (id.equals(foreignId)) {
-                                        throw new ConstraintException(
-                                                String.format("ForeignKey check failure: %s [%s] was found in %s.%s",
-                                                        getPrimaryType().getName(),
-                                                        id,
-                                                        getForeignType().getName(),
-                                                        getForeignProperty()
-                                                )
-                                        );
+                                        throw new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty());
                                     }
                                 }
                             }
@@ -110,31 +97,18 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                             Entity value = ((Entity) foreignValue);
                             if (value != null) {
                                 if (id.equals(value.getId())) {
-                                    throw new ConstraintException(
-                                            String.format("ForeignKey check failure: %s [%s] was found in %s.%s",
-                                                    getPrimaryType().getName(),
-                                                    id,
-                                                    getForeignType().getName(),
-                                                    getForeignProperty()
-                                            )
-                                    );
+                                    throw new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty());
                                 }
                             }
 
                         } else if (String.class.equals(foreignValueField.getType()) ||
                                 Integer.class.equals(foreignValueField.getType()) ||
                                 Long.class.equals(foreignValueField.getType()) ||
-                                Key.class.equals(foreignValueField.getType())) {
+                                Key.class.equals(foreignValueField.getType()) ||
+                                Object.class.equals(foreignValueField.getType()))  {
                             Object foreignId = Key.class.equals(foreignValueField.getType()) ? ((Key) foreignValue).getValue() : foreignValue;
                             if (id.equals(foreignId)) {
-                                throw new ConstraintException(
-                                        String.format("ForeignKey check failure: %s [%s] was found in %s.%s",
-                                                getPrimaryType().getName(),
-                                                id,
-                                                getForeignType().getName(),
-                                                getForeignProperty()
-                                        )
-                                );
+                                throw new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty());
                             }
                         }
                     }
@@ -172,14 +146,7 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
                         List<? extends Entity> list = (List) foreignValue;
                         for (Entity el : list) {
-                            repository.get(el.getId()).orElseThrow(() -> new ConstraintException(
-                                    String.format("ForeignKey check failure: %s.%s [%s] was found in %s",
-                                            getForeignType().getName(),
-                                            getForeignProperty(),
-                                            el.getId(),
-                                            getPrimaryType().getName()
-                                    )
-                            ));
+                            repository.get(el.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                         }
                     } else if (String.class.equals(listGenericType) ||
                             Integer.class.equals(listGenericType) ||
@@ -189,28 +156,14 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         List<?> list = (List) foreignValue;
                         for (Object possibleId : list) {
                             Object id = Key.class.equals(listGenericType) ? ((Key) possibleId).getValue() : possibleId;
-                            repository.get(id).orElseThrow(() -> new ConstraintException(
-                                    String.format("ForeignKey check failure: %s.%s [%s] was found in %s",
-                                            getForeignType().getName(),
-                                            getForeignProperty(),
-                                            id,
-                                            getPrimaryType().getName()
-                                    )
-                            ));
+                            repository.get(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                         }
                     }
                 } else if (getPrimaryType().equals(foreignValueField.getType())) {
                     Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
                     Entity value = ((Entity) foreignValue);
                     if (value != null) {
-                        repository.get(value.getId()).orElseThrow(() -> new ConstraintException(
-                                String.format("ForeignKey check failure: %s.%s [%s] was not found in %s",
-                                        getForeignType().getName(),
-                                        getForeignProperty(),
-                                        value.getId(),
-                                        getPrimaryType().getName()
-                                )
-                        ));
+                        repository.get(value.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                     }
                 } else if (String.class.equals(foreignValueField.getType()) ||
                         Integer.class.equals(foreignValueField.getType()) ||
@@ -218,14 +171,7 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         Key.class.equals(foreignValueField.getType())) {
                     Object id = Key.class.equals(foreignValueField.getType()) ? ((Key) foreignValue).getValue() : foreignValue;
                     Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
-                    repository.get(id).orElseThrow(() -> new ConstraintException(
-                            String.format("ForeignKey check failure: %s.%s [%s] was found in %s",
-                                    getForeignType().getName(),
-                                    getForeignProperty(),
-                                    id,
-                                    getPrimaryType().getName()
-                            )
-                    ));
+                    repository.get(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                 }
             }
 

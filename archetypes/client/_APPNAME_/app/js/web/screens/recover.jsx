@@ -1,7 +1,7 @@
 "use strict";
 
 import {AccountStore} from "../../stores"
-import strings from "../../strings"
+import M from "../../strings"
 import {connect} from "../utils/aj"
 import {FullScreenLayout, Screen} from "../components/layout"
 import * as ui from "../utils/ui"
@@ -32,12 +32,12 @@ export default class Recover extends Screen {
                 <div className="login-content">
                     <div className="lc-block toggled" id="l-forget-password">
                         <form action="javascript:;" className="lcb-form" onSubmit={this.recover.bind(this)} ref="recover_form">
-                            <p className="text-left">{strings.accountRecoverText}</p>
+                            <p className="text-left">{M("accountRecoverText")}</p>
 
                             <div className="input-group m-b-20">
                                 <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
                                 <div className="fg-line">
-                                    <input type="email" name="mail" className="form-control" placeholder={strings.mailAddress} />
+                                    <input type="email" name="mail" className="form-control" placeholder={M("mailAddress")} />
                                 </div>
                             </div>
 
@@ -45,8 +45,8 @@ export default class Recover extends Screen {
                         </form>
 
                         <div className="lcb-navigation">
-                            <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>{strings.signIn}</span></a>
-                            <a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>{strings.register}</span></a>
+                            <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i> <span>{M("signIn")}</span></a>
+                            <a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i> <span>{M("register")}</span></a>
                         </div>
                     </div>
                 </div>
