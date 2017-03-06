@@ -13,18 +13,10 @@ import java.util.Objects;
 
 public class BaseFindOperation implements FindOperation, ResultSerializerListener {
 
-    @Autowired
-    private RepositoriesFactory repositoriesFactory;
-
     @Autowired(required = false)
     private EntityMapper entityMapper;
 
-    private Repository repository;
     private Class<? extends Entity> entityType;
-
-    protected void init() {
-        repository = repositoriesFactory.createForEntity(getEntityType());
-    }
 
     public Class<? extends Entity> getEntityType() {
         return entityType;
@@ -38,17 +30,14 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public ObjectNode find(Query query) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
-        if (repository == null) {
-            init();
-        }
-
-        if (repository == null) throw new ProgramException("Missing repository");
-
-
-        Result<Entity> result = repository.find(query);
+        Result<Entity> result = fetch(query);
         ObjectNode node = serialize(result);
 
         return node;
+    }
+
+    private Result<Entity> fetch(Query query) {
+        return (Result<Entity>) Repo.of(getEntityType()).find(query);
     }
 
     protected ObjectNode serialize(Result<? extends Entity> result) throws OperationException {

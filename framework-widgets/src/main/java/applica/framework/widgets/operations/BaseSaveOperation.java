@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.Entity;
+import applica.framework.Repo;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
 import applica.framework.library.utils.ProgramException;
@@ -15,18 +16,10 @@ import java.util.Objects;
 
 public class BaseSaveOperation implements SaveOperation {
 
-    @Autowired
-    private RepositoriesFactory repositoriesFactory;
-
     @Autowired(required = false)
     private EntityMapper entityMapper;
 
-    private Repository repository;
     private Class<? extends Entity> entityType;
-
-    protected void init() {
-        repository = repositoriesFactory.createForEntity(getEntityType());
-    }
 
     @Override
     public Class<? extends Entity> getEntityType() {
@@ -41,24 +34,22 @@ public class BaseSaveOperation implements SaveOperation {
     public void save(ObjectNode data) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
-        if (repository == null) {
-            init();
-        }
-
-        if (repository == null) throw new ProgramException("Missing repository");
-
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
             Entity entity = serializer.deserialize(data);
 
             finishEntity(data, entity);
 
-            repository.save(entity);
+            persist(entity);
 
             afterSave(data, entity);
         } catch (SerializationException e) {
             throw new OperationException(e);
         }
+    }
+
+    private void persist(Entity entity) {
+        ((Repository) Repo.of(getEntityType())).save(entity);
     }
 
     protected void afterSave(ObjectNode node, Entity entity) {

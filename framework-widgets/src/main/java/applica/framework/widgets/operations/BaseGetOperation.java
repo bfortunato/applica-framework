@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.Entity;
+import applica.framework.Repo;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
 import applica.framework.library.utils.ProgramException;
@@ -15,30 +16,15 @@ import java.util.Objects;
 
 public class BaseGetOperation implements GetOperation {
 
-    @Autowired
-    private RepositoriesFactory repositoriesFactory;
-
     @Autowired(required = false)
     private EntityMapper entityMapper;
-
-    private Repository repository;
     private Class<? extends Entity> entityType;
-
-    protected void init() {
-        repository = repositoriesFactory.createForEntity(getEntityType());
-    }
 
     @Override
     public ObjectNode get(Object id) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
-        if (repository == null) {
-            init();
-        }
-
-        if (repository == null) throw new ProgramException("Missing repository");
-
-        Entity entity = (Entity) repository.get(id).orElse(null);
+        Entity entity = fetch(id);
         ObjectNode node = null;
         if (entity != null) {
             node = serialize(entity);
@@ -48,6 +34,11 @@ public class BaseGetOperation implements GetOperation {
 
         return node;
     }
+
+    private Entity fetch(Object id) {
+        return Repo.of(getEntityType()).get(id).orElse(null);
+    }
+
 
     protected void finishNode(Entity entity, ObjectNode node) {
 
