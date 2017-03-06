@@ -37,7 +37,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         }
     }
 
-    private void remove(Object id) {
+    protected void remove(Object id) {
         Repo.of(getEntityType()).delete(id);
     }
 

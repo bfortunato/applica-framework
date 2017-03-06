@@ -36,7 +36,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return node;
     }
 
-    private Result<Entity> fetch(Query query) {
+    protected Result<Entity> fetch(Query query) {
         return (Result<Entity>) Repo.of(getEntityType()).find(query);
     }
 

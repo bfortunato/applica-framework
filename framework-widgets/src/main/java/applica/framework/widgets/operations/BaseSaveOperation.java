@@ -48,7 +48,7 @@ public class BaseSaveOperation implements SaveOperation {
         }
     }
 
-    private void persist(Entity entity) {
+    protected void persist(Entity entity) {
         ((Repository) Repo.of(getEntityType())).save(entity);
     }
 

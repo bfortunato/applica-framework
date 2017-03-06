@@ -35,7 +35,7 @@ public class BaseGetOperation implements GetOperation {
         return node;
     }
 
-    private Entity fetch(Object id) {
+    protected Entity fetch(Object id) {
         return Repo.of(getEntityType()).get(id).orElse(null);
     }
 
