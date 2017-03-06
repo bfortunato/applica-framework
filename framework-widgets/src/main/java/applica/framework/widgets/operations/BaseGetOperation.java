@@ -4,6 +4,7 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -35,7 +36,7 @@ public class BaseGetOperation implements GetOperation {
         return node;
     }
 
-    protected Entity fetch(Object id) {
+    protected Entity fetch(Object id) throws OperationException {
         return Repo.of(getEntityType()).get(id).orElse(null);
     }
 
@@ -56,7 +57,7 @@ public class BaseGetOperation implements GetOperation {
             ObjectNode data = serializer.serialize(entity);
             return data;
         } catch (SerializationException e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }
 

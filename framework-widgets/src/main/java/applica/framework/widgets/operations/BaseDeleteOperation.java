@@ -4,6 +4,7 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,7 +21,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         try {
             remove(id);
         } catch (Exception e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR);
         }
     }
 
@@ -32,12 +33,12 @@ public class BaseDeleteOperation implements DeleteOperation {
             try {
                 remove(id);
             } catch (Exception e) {
-                throw new OperationException(e);
+                throw new OperationException(Response.ERROR);
             }
         }
     }
 
-    protected void remove(Object id) {
+    protected void remove(Object id) throws OperationException {
         Repo.of(getEntityType()).delete(id);
     }
 

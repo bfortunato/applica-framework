@@ -2,8 +2,8 @@ package applica.framework.widgets.operations;
 
 import applica.framework.Entity;
 import applica.framework.Repo;
-import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -44,11 +44,11 @@ public class BaseSaveOperation implements SaveOperation {
 
             afterSave(data, entity);
         } catch (SerializationException e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }
 
-    protected void persist(Entity entity) {
+    protected void persist(Entity entity) throws OperationException {
         ((Repository) Repo.of(getEntityType())).save(entity);
     }
 

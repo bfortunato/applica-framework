@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.*;
+import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultResultSerializer;
@@ -36,7 +37,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return node;
     }
 
-    protected Result<Entity> fetch(Query query) {
+    protected Result<Entity> fetch(Query query) throws OperationException {
         return (Result<Entity>) Repo.of(getEntityType()).find(query);
     }
 
@@ -45,7 +46,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         try {
             return serializer.serialize(result);
         } catch (SerializationException e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }
 
