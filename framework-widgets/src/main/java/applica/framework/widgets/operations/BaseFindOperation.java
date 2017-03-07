@@ -31,14 +31,14 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public ObjectNode find(Query query) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
-        Result<Entity> result = fetch(query);
+        Result<? extends Entity> result = fetch(query);
         ObjectNode node = serialize(result);
 
         return node;
     }
 
-    protected Result<Entity> fetch(Query query) throws OperationException {
-        return (Result<Entity>) Repo.of(getEntityType()).find(query);
+    protected Result<? extends Entity> fetch(Query query) throws OperationException {
+        return Repo.of(getEntityType()).find(query);
     }
 
     protected ObjectNode serialize(Result<? extends Entity> result) throws OperationException {
