@@ -49,6 +49,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void init(WebSecurity web) throws Exception {
+        web.ignoring()
+                .antMatchers("/auth/**")
+                .antMatchers("/account/**")
+                .antMatchers("/images/**")
+                .antMatchers("/files/**");
         super.init(web);
     }
 
@@ -93,10 +98,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                    .antMatchers("/auth/**").permitAll()
-                    .antMatchers("/account/**").permitAll()
-                    .antMatchers("/images/**").permitAll()
-                    .antMatchers("/files/**").permitAll()
                     .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("/**").authenticated()
                 .and()

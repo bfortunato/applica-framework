@@ -1,11 +1,11 @@
 package applica._APPNAME_.api.test;
 
 import applica._APPNAME_.api.Application;
-import applica._APPNAME_.api.responses.LoginResponse;
+import applica._APPNAME_.services.responses.LoginResponse;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.User;
-import applica._APPNAME_.api.responses.ResponseCode;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.exceptions.UserNotFoundException;
 import applica.framework.Query;

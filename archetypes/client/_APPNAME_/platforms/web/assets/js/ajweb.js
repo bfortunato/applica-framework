@@ -1,6 +1,16 @@
 "use strict";
 
+var DEBUG = true;
+
+var LOG_LEVEL_INFO = 3;
+var LOG_LEVEL_WARNING = 2;
+var LOG_LEVEL_ERROR = 1;
+var LOG_LEVEL_DISABLED = 0;
+
+var LOG_LEVEL = LOG_LEVEL_INFO;
+
 (function(global) {
+
     /**
      *
      *  Base64 encode / decode
@@ -298,7 +308,7 @@
 
             builders[module] = builder;
 
-            console.log("Module defined: " + module);
+            logger.i("Module defined: " + module);
         }
 
         function require(_path) {
@@ -319,7 +329,7 @@
             for (var i = 0; i < possibilities.length; i++) {
                 var possibility = possibilities[i];
                 if (_.has(cache, possibility)) {
-                    console.log("Loading cached module " + possibility);
+                    logger.i("Loading cached module " + possibility);
 
                     module = cache[possibility];
                     break;
@@ -333,7 +343,7 @@
                         module = {};
                         module.exports = {};
 
-                        console.log("Loading module " + possibility);
+                        logger.i("Loading module " + possibility);
 
                         currentRequireQueue.push(path.base(possibility));
                         builder(module, module.exports);
@@ -394,15 +404,21 @@
 
     global.logger = {
         i: function(msg) {
-            console.log("AJ: " + Array.prototype.join.call(arguments, " "));
+            if (LOG_LEVEL >= LOG_LEVEL_INFO) {
+                console.log("AJ: " + Array.prototype.join.call(arguments, " "));
+            }
         },
 
         e: function(msg) {
-            console.error("AJ: " + Array.prototype.join.call(arguments, " "));
+            if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
+                console.error("AJ: " + Array.prototype.join.call(arguments, " "));
+            }
         },
 
         w: function(msg) {
-            console.warn("AJ: " + Array.prototype.join.call(arguments, " "));
+            if (LOG_LEVEL >= LOG_LEVEL_WARNING) {
+                console.warn("AJ: " + Array.prototype.join.call(arguments, " "));
+            }
         }
     };
 
@@ -415,7 +431,7 @@
             $.ajax({
                 url: url,
                 method: method,
-                    beforeSend: request => {
+                beforeSend: request => {
                     if (_.isObject(headers)) {
                         _.keys(headers).forEach(k => {
                             logger.i("Adding header:", k + "=" + headers[k])

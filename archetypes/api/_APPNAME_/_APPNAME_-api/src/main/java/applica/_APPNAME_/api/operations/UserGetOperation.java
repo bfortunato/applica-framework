@@ -2,9 +2,12 @@ package applica._APPNAME_.api.operations;
 
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
+import applica.framework.library.responses.Response;
+import applica.framework.widgets.operations.BaseGetOperation;
 import applica.framework.widgets.operations.GetOperation;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -22,38 +25,12 @@ import java.io.InputStream;
  */
 
 @Component
-public class UserGetOperation implements GetOperation {
-
-    @Autowired
-    private FileServer fileServer;
-
-    @Autowired
-    private UsersRepository usersRepository;
+public class UserGetOperation extends BaseGetOperation {
 
     @Override
-    public ObjectNode get(Object id) throws OperationException {
-        try {
-            User user = usersRepository.get(id).orElseThrow(() -> new OperationException("User not found: " + id));
-
-            EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
-            ObjectNode node = entitySerializer.serialize(user);
-
-            if (StringUtils.isNotEmpty(user.getImage())) {
-                InputStream in = fileServer.getImage(user.getImage(), "250x*");
-                URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getImage())), in);
-                node.put("_image", urlData.write());
-            }
-
-            if (StringUtils.isNotEmpty(user.getCoverImage())) {
-                InputStream in = fileServer.getImage(user.getCoverImage(), "250x*");
-                URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(user.getCoverImage())), in);
-                node.put("_cover", urlData.write());
-            }
-
-            return node;
-        } catch (Exception e) {
-            throw new OperationException(e);
-        }
+    protected void finishNode(Entity entity, ObjectNode node) {
+        map().imageToDataUrl(entity, node, "image", "_image", "150x*");
+        map().imageToDataUrl(entity, node, "coverImage", "_cover", "150x*");
     }
 
     @Override

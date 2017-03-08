@@ -2,7 +2,14 @@
 
 import * as datasource from "../../utils/datasource"
 import {LookupStore, SelectStore} from "../../stores"
-import {getLookupResult, getLookupValues, freeLookup, getSelectValues, freeSelect, getSelectEntities} from "../../actions"
+import {
+    getLookupResult,
+    getLookupValues,
+    freeLookup,
+    getSelectValues,
+    freeSelect,
+    getSelectEntities
+} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 import {Lookup, Select, Control} from "./forms"

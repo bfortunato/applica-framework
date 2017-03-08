@@ -5,6 +5,10 @@ import * as utils from "./utils"
 import * as _ from "../libs/underscore"
 import {flatten} from "../utils/lang"
 
+export function find(entity, query) {
+    return load(entity, query)
+}
+
 export function load(entity, query) {
     let url = config.get("entities.url") + "/" + entity
     return utils.get(url, flatten(query.cleaned()))

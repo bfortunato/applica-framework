@@ -3,6 +3,7 @@ package applica._APPNAME_.api.operations;
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.model.Role;
 import applica.framework.Entity;
+import applica.framework.library.responses.Response;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.operations.SaveOperation;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -44,7 +45,7 @@ public class RoleSaveOperation implements SaveOperation {
 
             rolesRepository.save(role);
         } catch (SerializationException e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }
 }

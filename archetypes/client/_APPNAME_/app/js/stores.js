@@ -131,6 +131,7 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
 
         case actions.NEW_ENTITY:
             return discriminate(state, action.discriminator, {error: false, data: null, saved: false})
+            return discriminate(state, action.discriminator, {error: false, data: {}, saved: false})
 
         case actions.GET_ENTITY:
             return discriminate(state, action.discriminator, {error: false, data: null, saved: false})
@@ -138,7 +139,7 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
         case completed(actions.GET_ENTITY):
             return discriminate(state, action.discriminator, {error: false, data: action.data})
 
-        case failed(actions.GET_ENTITY): 
+        case failed(actions.GET_ENTITY):
             return discriminate(state, action.discriminator, {error: true, data: null})
 
         case actions.FREE_ENTITIES:
@@ -149,9 +150,11 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
 
         case completed(actions.SAVE_ENTITY):
             return discriminate(state, action.discriminator, {error: false, saved: true})
+            return discriminate(state, action.discriminator, {error: false, data: action.data, saved: true})
 
         case failed(actions.SAVE_ENTITY):
             return discriminate(state, action.discriminator, {error: true, saved: false})
+            return discriminate(state, action.discriminator, {error: true, data: action.data, saved: false})
 
     }
 
@@ -212,6 +215,15 @@ export const SelectStore = aj.createStore(SELECT, (state = {}, action) => {
             return discriminate(state, action.discriminator, { error: false, loading: false, values: action.values })
 
         case failed(actions.GET_SELECT_VALUES):
+            return discriminate(state, action.discriminator, { error: true, loading: false, values: null })
+
+        case actions.GET_SELECT_ENTITIES:
+            return discriminate(state, action.discriminator, { error: false, loading: true })
+
+        case completed(actions.GET_SELECT_ENTITIES):
+            return discriminate(state, action.discriminator, { error: false, loading: false, values: action.entities })
+
+        case failed(actions.GET_SELECT_ENTITIES):
             return discriminate(state, action.discriminator, { error: true, loading: false, values: null })
 
         case actions.FREE_SELECT:

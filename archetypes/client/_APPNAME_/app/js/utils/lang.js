@@ -1,3 +1,5 @@
+import * as _ from "../libs/underscore";
+
 /**
  * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")
  * @param fmt
@@ -125,4 +127,53 @@ export function flatten(target) {
     step(target, null, "")
 
     return output
+}
+
+/**
+ * Generates unique identifier
+ * @returns {string}
+ */
+export function uuid() {
+    var d = new Date().getTime();
+    if(window.performance && typeof window.performance.now === "function"){
+        d += performance.now(); //use high-precision timer if available
+    }
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+}
+
+/**
+ * Updates list element found with predicate and return an updated copy of the list
+ * @param list
+ * @param predicate
+ * @param updater
+ */
+export function updatedList(list, predicate, updater, addIfNotFound = false) {
+    if (_.isArray(list) && _.isFunction(predicate) && _.isFunction(updater)) {
+        let result = new Array(list.length)
+        let found = false
+        for (let i = 0; i < list.length; i++) {
+            let v = list[i]
+            if (predicate(v)) {
+                result[i] = _.assign(v, updater(v))
+                found = true
+            } else {
+                result[i] = v
+            }
+        }
+
+        if (addIfNotFound && !found) {
+            result.push(updater(null))
+        }
+
+        return result;
+    } else {
+        logger.w("Bad parameters in updater. Returning an empty list")
+        return []
+    }
+
 }

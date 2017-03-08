@@ -1,6 +1,6 @@
 package applica._APPNAME_.api.controllers;
 
-import applica._APPNAME_.api.responses.ResponseCode;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +28,7 @@ public class GridsController {
     public Response getGrid(@PathVariable String id) {
         Resource resource = context.getResource(String.format("classpath:/grids/%s.json", id));
         if (!resource.exists()) {
-            return new Response(ResponseCode.NOT_FOUND);
+            return new Response(ResponseCode.ERROR_NOT_FOUND);
         } else {
             try {
                 String content = IOUtils.toString(resource.getInputStream());

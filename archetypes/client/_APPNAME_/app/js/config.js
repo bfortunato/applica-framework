@@ -2,6 +2,7 @@ var serviceBase = "http://localhost:8080/";
 
 module.exports = {
     "service.url": `${serviceBase}`,
+    "fs.url": `${serviceBase}fs`,
     "login.url": `${serviceBase}auth/login`,
     "account.url": `${serviceBase}account`,
     "account.register.url": `${serviceBase}account/register`,
@@ -11,5 +12,6 @@ module.exports = {
     "grids.url": `${serviceBase}grids`,
     "entities.url": `${serviceBase}entities`,
     "entities.delete.url": `${serviceBase}entities/delete`,
-    "values.permissions.url": `${serviceBase}values/permissions`
+    "values.url": `${serviceBase}values`,
+    "values.entities.url": `${serviceBase}values/entities`,
 }

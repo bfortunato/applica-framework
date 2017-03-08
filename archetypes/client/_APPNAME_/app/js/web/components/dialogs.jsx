@@ -1,4 +1,4 @@
-import {optional} from "../../utils/lang";
+import {optional, parseBoolean} from "../../utils/lang"
 "use strict"
 
 export const DIALOG_RESULT_OK = 0
@@ -59,9 +59,12 @@ export class Dialog extends React.Component {
             padding: this.props.noPadding ? "0px" : undefined
         }
 
+        let modalDialogClassName = "modal-dialog"
+        modalDialogClassName += parseBoolean(this.props.large) ? " modal-lg" : ""
+
         return (
             <div className="modal fade" role="dialog" tabIndex="-1" style={style}>
-                <div className="modal-dialog">
+                <div className={modalDialogClassName}>
                     <div className="modal-content">
                         <div className="modal-header">
                             <h4 className="modal-title">{this.props.title}</h4>

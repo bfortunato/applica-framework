@@ -1,6 +1,6 @@
 package applica._APPNAME_.api.controllers;
 
-import applica._APPNAME_.api.responses.LoginResponse;
+import applica._APPNAME_.services.responses.LoginResponse;
 import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.exceptions.BadCredentialsException;
 import applica.framework.library.i18n.controllers.LocalizedController;
@@ -9,12 +9,11 @@ import applica.framework.security.Security;
 import applica.framework.security.token.TokenFormatException;
 import applica.framework.security.token.TokenGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static applica._APPNAME_.api.responses.ResponseCode.*;
+import static applica._APPNAME_.services.responses.ResponseCode.*;
 import static applica.framework.library.responses.Response.ERROR;
 
 /**

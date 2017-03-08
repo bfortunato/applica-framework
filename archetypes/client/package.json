@@ -1,0 +1,11 @@
+{
+  "name": "commodo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "untitled.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

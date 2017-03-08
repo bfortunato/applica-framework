@@ -202,7 +202,7 @@ export default class EntitiesGrid extends Screen {
                     onRowDoubleClick={this.onGridRowDoubleClick.bind(this)}
                     quickSearchEnabled={this.isQuickSearchEnabled()}
                 />
-                {this.canEdit() &&
+                {this.canCreate() &&
                     <FloatingButton icon="zmdi zmdi-plus" onClick={this.createEntity.bind(this)} />
                 }                
             </Layout>

@@ -1,23 +1,21 @@
 package applica._APPNAME_.api.controllers;
 
-import applica._APPNAME_.api.responses.ResponseCode;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Query;
+import applica.framework.data.mongodb.constraints.ConstraintException;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.library.utils.ObjectUtils;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.factory.OperationsFactory;
-import applica.framework.widgets.operations.DeleteOperation;
-import applica.framework.widgets.operations.FindOperation;
-import applica.framework.widgets.operations.GetOperation;
-import applica.framework.widgets.operations.SaveOperation;
+import applica.framework.widgets.operations.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -42,9 +40,13 @@ public class EntitiesController {
 
                 return new ValueResponse(result);
             } else {
-                return new Response(ResponseCode.NOT_FOUND);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
+        } catch (OperationException e) {
+            e.printStackTrace();
+            return new Response(e.getErrorCode());
         } catch (Exception e) {
+            e.printStackTrace();
             return new Response(Response.ERROR);
         }
     }
@@ -59,8 +61,14 @@ public class EntitiesController {
 
                 return new Response(Response.OK);
             } else {
-                return new Response(ResponseCode.NOT_FOUND);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
+        } catch (OperationException e) {
+            if (e.getCause() != null && e.getCause() instanceof ConstraintException) {
+                return new Response(ResponseCode.ERROR_CONSTRAINT_VIOLATION, ((ConstraintException) e.getCause()).getProperty());
+            }
+
+            return new Response(e.getErrorCode());
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);
@@ -77,15 +85,23 @@ public class EntitiesController {
 
                 return new Response(Response.OK);
             } else {
-                return new Response(ResponseCode.NOT_FOUND);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
+        } catch (OperationException e) {
+            e.printStackTrace();
+
+            if (e.getCause() != null && e.getCause() instanceof ConstraintException) {
+                return new Response(ResponseCode.ERROR_CONSTRAINT_VIOLATION, ((ConstraintException) e.getCause()).getProperty());
+            }
+
+            return new Response(e.getErrorCode());
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:.+}")
     public Response getEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id) {
         try {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
@@ -95,11 +111,11 @@ public class EntitiesController {
 
                 return new ValueResponse(node);
             } else {
-                return new Response(ResponseCode.NOT_FOUND);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
-        } catch (Exception e) {
+        } catch (OperationException e) {
             e.printStackTrace();
-            return new Response(Response.ERROR);
+            return new Response(e.getErrorCode());
         }
     }
 
@@ -113,8 +129,16 @@ public class EntitiesController {
 
                 return new Response(Response.OK);
             } else {
-                return new Response(ResponseCode.NOT_FOUND);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
+        } catch (OperationException e) {
+            e.printStackTrace();
+
+            if (e.getCause() != null && e.getCause() instanceof ConstraintException) {
+                return new Response(ResponseCode.ERROR_CONSTRAINT_VIOLATION, ((ConstraintException) e.getCause()).getProperty());
+            }
+
+            return new Response(e.getErrorCode());
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);

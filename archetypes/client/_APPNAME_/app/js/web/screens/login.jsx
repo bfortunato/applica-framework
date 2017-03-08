@@ -1,15 +1,31 @@
 "use strict"
 
-import { FullScreenLayout, Screen } from "../components/layout"
-import { login } from "../../actions"
+import {FullScreenLayout, Screen} from "../components/layout"
+import {login} from "../../actions"
 import * as forms from "../utils/forms"
 import M from "../../strings"
+import {SessionStore} from "../../stores"
+import {connect} from "../utils/aj"
 
 export default class Login extends Screen {
+
+    constructor(props) {
+        super(props)
+
+        connect(this, SessionStore)
+    }
 
     login() {
         let data = forms.serialize(this.refs.login_form)
         login(data)
+    }
+
+    componentDidUpdate() {
+        if (this.state.isLoggedIn) {
+            if (location.href.indexOf("login") != -1) {
+                location.href = "/#/"
+            }
+        }
     }
 
     render() {

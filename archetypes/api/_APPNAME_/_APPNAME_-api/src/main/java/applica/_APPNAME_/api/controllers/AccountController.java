@@ -1,6 +1,6 @@
 package applica._APPNAME_.api.controllers;
 
-import applica._APPNAME_.api.responses.ResponseCode;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
 import applica.framework.ValidationException;
@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import static applica.framework.library.responses.Response.ERROR;
 import static applica.framework.library.responses.Response.OK;
-import static applica._APPNAME_.api.responses.ResponseCode.*;
+import static applica._APPNAME_.services.responses.ResponseCode.*;
 
 /**
  * Applica (www.applicadoit.com)
@@ -81,7 +81,7 @@ public class AccountController {
             if (coverImage != null) {
                 return new ValueResponse(coverImage.write());
             } else {
-                return new Response(NOT_FOUND);
+                return new Response(ERROR_NOT_FOUND);
             }
         } catch (UserNotFoundException e) {
             return new Response(ResponseCode.ERROR_USER_NOT_FOUND);
@@ -98,7 +98,7 @@ public class AccountController {
             if (profileImage != null) {
                 return new ValueResponse(profileImage.write());
             } else {
-                return new Response(NOT_FOUND);
+                return new Response(ERROR_NOT_FOUND);
             }
         } catch (UserNotFoundException e) {
             return new Response(ResponseCode.ERROR_USER_NOT_FOUND);

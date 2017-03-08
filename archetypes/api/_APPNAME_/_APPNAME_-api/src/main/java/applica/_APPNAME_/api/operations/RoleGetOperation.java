@@ -2,8 +2,10 @@ package applica._APPNAME_.api.operations;
 
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.model.Role;
+import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
 import applica.framework.library.SimpleItem;
+import applica.framework.library.responses.Response;
 import applica.framework.widgets.operations.GetOperation;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -27,7 +29,7 @@ public class RoleGetOperation implements GetOperation {
     @Override
     public ObjectNode get(Object id) throws OperationException {
         try {
-            Role role = rolesRepository.get(id).orElseThrow(() -> new OperationException("Role not found: " + id));
+            Role role = rolesRepository.get(id).orElseThrow(() -> new OperationException(ResponseCode.ERROR_ROLE_NOT_FOUND));
 
             EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
             ObjectNode node = entitySerializer.serialize(role);
@@ -38,7 +40,7 @@ public class RoleGetOperation implements GetOperation {
 
             return node;
         } catch (SerializationException e) {
-            throw new OperationException(e);
+            throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }
 

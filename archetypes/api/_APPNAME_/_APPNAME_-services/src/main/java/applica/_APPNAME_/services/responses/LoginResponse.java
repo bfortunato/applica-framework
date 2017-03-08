@@ -1,4 +1,4 @@
-package applica._APPNAME_.api.responses;
+package applica._APPNAME_.services.responses;
 
 import applica.framework.library.responses.Response;
 import applica.framework.security.User;

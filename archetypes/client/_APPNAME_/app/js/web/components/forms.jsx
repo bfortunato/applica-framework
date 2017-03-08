@@ -20,6 +20,15 @@ export class Model extends Observable {
         this.descriptor = null
         this.data = {}
         this.validationResult = {}
+        this.initialized = false
+    }
+
+    load(data) {
+        this.data = data ? data : {}
+        if (!this.initialized && data != null) {
+            this.invoke("load", this)
+            this.initialized = true
+        }
     }
 
     findField(property) {
@@ -102,9 +111,14 @@ export class Model extends Observable {
     }
 
     set(property, value) {
-        this.data[property] = value
+        this.data[property] = value 
 
-        this.invoke("property:change", property, value)
+        this.invoke("property:change", property, value)   
+    }
+
+    assign(property, value) {
+        let actual = optional(this.get(property), {})
+        this.set(property, _.assign(actual, value))
     }
 
     get(property) {
@@ -237,7 +251,7 @@ export class AreaNoCard extends React.Component {
             <div className="area-no-card">
                 <div className="area-no-card-header">
                     {area.title &&
-                    <h2>{area.title} {area.subtitle && <small>{area.subtitle}</small>}</h2>
+                        <h2>{area.title} {area.subtitle && <small>{area.subtitle}</small>}</h2>
                     }
 
                     <Actions actions={area.actions} />
@@ -351,6 +365,16 @@ export class Form extends React.Component {
         }
 
         try {
+            let descriptor = this.props.descriptor
+            if (_.isFunction(descriptor.beforeSubmit)) {
+                descriptor.beforeSubmit(this.model)
+            }
+        } catch (e) {
+            swal(e)
+            return
+        }
+
+        try {
             this.model.validate()
             if (_.isFunction(this.props.onSubmit)) {
                 this.props.onSubmit(this.model.sanitized())
@@ -372,7 +396,7 @@ export class Form extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.model.descriptor = nextProps.descriptor
-        this.model.data = nextProps.data ? nextProps.data : {}
+        this.model.load(nextProps.data)
     }
 
     render() {
@@ -393,11 +417,11 @@ export class Form extends React.Component {
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
                     {areas}
                     {(tabs.length > 0 || fields.length > 0) &&
-                    <Card padding="true">
-                        {tabs}
-                        {fields}
-                        <div className="clearfix"></div>
-                    </Card>
+                        <Card padding="true">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </Card>
                     }
 
                     <div className="row">
@@ -415,7 +439,7 @@ export class Form extends React.Component {
 
 
 /************************
- Controls and Fields
+    Controls and Fields
  ************************/
 
 export class Field extends React.Component {
@@ -432,7 +456,7 @@ export class Field extends React.Component {
 
             <div className={className}>
                 {hasLabel &&
-                <Label field={this.props.field}/>
+                    <Label field={this.props.field}/>
                 }
                 {control}
             </div>
@@ -526,6 +550,7 @@ export class TextArea extends Control {
 export class ReadOnlyText extends Control {
     render() {
         let field = this.props.field
+        let formatter = optional(() => this.props.formatter, () => { return v => v })
 
         return (
             <div className="fg-line">
@@ -537,9 +562,17 @@ export class ReadOnlyText extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property), "")}
+                    value={optional(formatter(this.props.model.get(field.property)), "")}
                     onChange={this.onValueChange.bind(this)} />
             </div>
+        )
+    }
+}
+
+export class Spacer extends Control {
+    render() {
+        return (
+            <div className="form-spacer-control"></div>
         )
     }
 }
@@ -606,7 +639,7 @@ export class Switch extends Control {
         let field = this.props.field
 
         return (
-            <div className="toggle-switch" data-ts-color="blue">
+            <div className="toggle-switch">
                 <input
                     type="checkbox"
                     hidden="hidden"
@@ -635,7 +668,7 @@ export class Number extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property))}
+                    value={optional(this.props.model.get(field.property), 0)}
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
@@ -653,13 +686,38 @@ export class Select extends Control {
         }
     }
 
+    onValueChange(e) {
+        let multiple = optional(this.props.multiple, false)
+        let value = $(e.target).val()
+        let model = this.props.model
+        let field = this.props.field
+
+        if (multiple) {
+            if (value == null) {
+                value = []
+            }
+        }
+
+        model.set(field.property, value)
+        this.forceUpdate()
+    }
+
     componentDidMount() {
         if (!_.isEmpty(this.props.datasource)) {
             this.props.datasource.on("change", this.__dataSourceOnChange)
         }
 
         let me = ReactDOM.findDOMNode(this)
-        $(me).selectpicker({
+
+        $(me)
+            .focus(() => {
+                $(me).addClass("fg-toggled")
+            })
+            .blur(() => {
+                $(me).removeClass("fg-toggled")
+            })
+
+        $(me).find("select").selectpicker({
             liveSearch: optional(this.props.searchEnabled, false)
         })
     }
@@ -669,7 +727,7 @@ export class Select extends Control {
         let field = this.props.field
         let me = ReactDOM.findDOMNode(this)
 
-        $(me).selectpicker("refresh")
+        $(me).find("select").selectpicker("refresh")
     }
 
     componentWillUnmount() {
@@ -683,21 +741,24 @@ export class Select extends Control {
         let field = this.props.field
         let datasource = this.props.datasource
         let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)
+        let multiple = optional(this.props.multiple, false)
 
         return (
-            <select
-                id={field.property}
-                className="form-control"
-                data-property={field.property}
-                onChange={this.onValueChange.bind(this)}
-                title={field.placeholder}
-                value={optional(model.get(field.property), "")}
-                multiple={optional(this.props.multiple, false)}>
-                {this.props.allowNull &&
-                <option value="" style={{color: "#999999"}}>{optional(this.props.nullText, "(none)")}</option>
-                }
-                {options}
-            </select>
+            <div className="fg-line">
+                <select
+                    id={field.property}
+                    className="form-control"
+                    data-property={field.property}
+                    onChange={this.onValueChange.bind(this)}
+                    title={field.placeholder}
+                    value={optional(model.get(field.property), multiple ? [] : "")}
+                    multiple={multiple}>
+                    {this.props.allowNull &&
+                        <option key="empty" value="" style={{color: "#999999"}}>{optional(this.props.nullText, "(none)")}</option>
+                    }
+                    {options}
+                </select>
+            </div>
         )
     }
 }
@@ -709,7 +770,7 @@ export class Lookup extends Control {
 
         this.datasource = this.props.datasource || datasource.create()
         this.query = this.props.query || query.create()
-
+        
         this.__dataSourceOnChange = (data) => {
             this.forceUpdate()
         }
@@ -721,7 +782,7 @@ export class Lookup extends Control {
         }
     }
 
-    componentDidMount() {
+    componentDidMount() {        
         this.datasource.on("change", this.__dataSourceOnChange)
         this.query.on("change", this.__queryChange)
 
@@ -967,20 +1028,20 @@ export class Lookup extends Control {
                     </div>
 
                     {mode == "multiple" &&
-                    <Grid
-                        ref="selectionGrid"
-                        descriptor={selectionGrid}
-                        data={resultToGridData({rows: rows, totalRows: rows.length})}
-                        showInCard="false"
-                        quickSearchEnabled="false"
-                        headerVisible="false"
-                        footerVisible="false"
-                        summaryVisible="false"
-                        noResultsVisible="false"
-                        paginationEnabled="false"
-                        tableClassName="table table-condensed table-hover"
-                        onKeyDown={this.onGridKeyDown.bind(this)}
-                    />
+                        <Grid
+                            ref="selectionGrid"
+                            descriptor={selectionGrid}
+                            data={resultToGridData({rows: rows, totalRows: rows.length})}
+                            showInCard="false"
+                            quickSearchEnabled="false"
+                            headerVisible="false"
+                            footerVisible="false"
+                            summaryVisible="false"
+                            noResultsVisible="false"
+                            paginationEnabled="false"
+                            tableClassName="table table-condensed table-hover"
+                            onKeyDown={this.onGridKeyDown.bind(this)}
+                        />
                     }
                 </div>
 
@@ -992,12 +1053,12 @@ export class Lookup extends Control {
                                 <h4 className="modal-title" id="myModalLabel">Select roles</h4>
                             </div>
                             <div className="modal-body">
-                                <Grid
-                                    ref="searchGrid"
+                                <Grid 
+                                    ref="searchGrid" 
                                     descriptor={this.props.popupGrid}
                                     data={resultToGridData(this.datasource.data)}
                                     query={this.props.query}
-                                    showInCard="false"
+                                    showInCard="false" 
                                     quickSearchEnabled="true"
                                     footerVisible="false"
                                     summaryVisible="false"
@@ -1069,7 +1130,7 @@ export class File extends Control {
                             </div>
                             <span className="placeholder">{field.placeholder}</span>
                         </div>
-                        :
+                    : 
                         <div>
                             <div className="actions pull-right">
                                 <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
@@ -1152,7 +1213,7 @@ export class Image extends Control {
                             </div>
                             <div className="input-image" style={_.assign(imgStyle, {"backgroundImage": `url("${imageData}")`})}></div>
                         </div>
-                        :
+                    :
                         <div className="input-image" style={_.assign(imgStyle, {"backgroundImage": `url("resources/images/noimage.png")`})}></div>
                     }
                 </div>

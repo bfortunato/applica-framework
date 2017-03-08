@@ -1,6 +1,7 @@
 "use strict"
 
 import {optional} from "../../utils/lang"
+import {isEnter} from "../utils/keyboard"
 
 export class ActionButton extends React.Component {
     perform() {
@@ -59,10 +60,14 @@ export class Card extends React.Component {
         if (this.props.padding) {
             bodyClass += " card-padding"
         }
+        let headerClass = "card-header"
+        if (this.props.inverseHeader) {
+            headerClass += " card-header-inverse"
+        }
         return (
             <div className={cardClass}>
                 {!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ?
-                    <div className="card-header">
+                    <div className={headerClass}>
                         <h2>
                             {this.props.title}
                             {!_.isEmpty(this.props.subtitle) ?
@@ -126,5 +131,73 @@ export class ActionsMatcher {
         }
 
         return actions;
+    }
+}
+
+
+export class EditableText extends React.Component {
+    constructor(props) {
+        super(props)
+
+        this.state = {
+            editing: _.isEmpty(props.value),
+            value: props.value
+        }
+    }
+
+    componentWillReceiveProps(newProps) {
+        this.setState({
+            editing: _.isEmpty(newProps.value),
+            value: newProps.value
+        })
+    }
+
+    onBlur() {
+        this.setState({editing: false, value: this.state.lastValue})
+    }
+
+    onValueChange(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        this.setState(_.assign(this.state, {editing: true, value: e.target.value}))
+    }
+
+    onKeyDown(e) {
+        if (isEnter(e.which)) {
+            e.preventDefault()
+            e.stopPropagation()
+
+            this.setState(_.assign(this.state, {editing: false, lastValue: this.state.value}))
+
+            if (_.isFunction(this.props.onChange)) {
+                this.props.onChange(this.state.value)
+            }
+        }
+    }
+
+    edit() {
+        this.setState(_.assign(this.state, {editing: true, lastValue: this.state.value}))
+    }
+
+    render() {
+        let className = this.props.className
+        return (
+            (this.state.editing || _.isEmpty(this.state.value))  ?
+                <div className={"fg-line editable-text " + optional(className, "")}>
+                    <input
+                        ref="name"
+                        type="text"
+                        className="form-control"
+                        onKeyDown={this.onKeyDown.bind(this)}
+                        onChange={this.onValueChange.bind(this)}
+                        value={optional(this.state.value, "")}
+                        placeholder={this.props.placeholder}
+                        autoFocus="autoFocus"
+                        onBlur={this.onBlur.bind(this)}/>
+                </div>
+                :
+                <span className={optional(className, "")} onClick={this.edit.bind(this)}>{this.state.value}</span>
+        )
     }
 }

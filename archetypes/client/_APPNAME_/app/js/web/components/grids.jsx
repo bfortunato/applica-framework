@@ -318,7 +318,7 @@ export class HeaderCell extends React.Component {
                 }
 
                 {this.props.column.searchable &&
-                    <a ref="search" className="btn bgm-bluegray btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
+                    <a ref="search" className="btn btn-primary btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
                 }
 
                 {this.props.column.searchable &&
@@ -417,6 +417,14 @@ export class Row extends React.Component {
             return <td key={key++} className={c.tdClassName}><div className="grid-cell-container">{cell}</div></td>
         })
         let className = `level-${this.props.row.level} ` + (this.props.row.selected ? "selected" : "")
+        let rowClassName = this.props.descriptor.rowClassName
+        if (rowClassName) {
+            if (_.isFunction(rowClassName)) {
+                className += " " + rowClassName(this.props.row.data)
+            } else {
+                className += " " + rowClassName
+            }
+        }
 
         return (
             <tr onMouseDown={this.onMouseDown.bind(this)} onDoubleClick={this.doubleClick.bind(this)} className={className}>{cells}</tr>
@@ -585,7 +593,7 @@ export class ActionsCell extends Cell {
         let actions = this.props.column.actions.map(a => <a key={key++} style={{display: "none"}} href="javascript:;" className="grid-action" onClick={a.action.bind(this, this.props.row.data)}><i className={a.icon} /></a>)
 
         return (
-            <div>{actions}</div>
+            <div className="grid-actions-container">{actions}</div>
         )
     }
 }
@@ -619,7 +627,7 @@ export class Filter extends React.Component {
 
     render() {
         return (
-            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow bgm-bluegray waves-effect m-r-10" >{this.props.data.property} <i className="zmdi zmdi-close"></i></button>
+            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10" >{this.props.data.property} <i className="zmdi zmdi-close"></i></button>
         )
     }
 }
@@ -645,7 +653,7 @@ export class Filters extends React.Component {
 
         return (
             <div className="filters p-30">
-                <button type="button" className="btn btn-no-shadow bgm-bluegray waves-effect m-r-10"><i className="zmdi zmdi-delete" /></button>{filters}
+                <button type="button" className="btn btn-no-shadow btn-primary waves-effect m-r-10"><i className="zmdi zmdi-delete" /></button>{filters}
             </div>
         )
     }
@@ -757,10 +765,12 @@ export class QuickSearch extends React.Component {
 
     render() {
         return (
-            <div className="quick-search pull-right m-r-10">
-                <i className="zmdi zmdi-search pull-right" />
-                <div className="quick-search-input-container">
-                    <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} />
+            <div className="quick-search-container">
+                <div className="quick-search">
+                    <i className="zmdi zmdi-search pull-right" />
+                    <div className="quick-search-input-container">
+                        <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} />
+                    </div>
                 </div>
             </div>
         )
