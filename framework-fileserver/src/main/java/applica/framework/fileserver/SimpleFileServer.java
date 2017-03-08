@@ -51,7 +51,7 @@ public class SimpleFileServer implements FileServer {
 
         String generatedName = String.format("%s.%s", UUID.randomUUID().toString().replace("-", "_"), extension);
         NormalizedUrl normalizedUrl = normalizeUrl(path);
-        String fullPath = normalizedUrl.url.concat(generatedName);
+        String fullPath = FilenameUtils.concat(normalizedUrl.url, generatedName);
 
         logger.info(String.format("Saving file on path %s", fullPath));
 

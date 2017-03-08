@@ -39,6 +39,10 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
             }
         }
 
+        if (StringUtils.isEmpty(token)) {
+            token = request.getParameter("__TOKEN");
+        }
+
         if (StringUtils.isNotEmpty(token)) {
             try {
                 Security.tokenLogin(token);
