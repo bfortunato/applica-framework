@@ -1,5 +1,6 @@
 package applica.framework.widgets.mapping;
 
+import applica.framework.AEntity;
 import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
@@ -9,6 +10,7 @@ import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +103,27 @@ public class EntityMapper {
             String id = relatedEntity.getId() != null ? relatedEntity.getId().toString() : null;
             destination.put(destinationProperty, id);
         }
+    }
 
+    public void entityToId(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(source, "Cannot convert entity to id: node is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to id: entity is null");
+
+        ObjectNode sourceEntityNode = (ObjectNode) source.get(sourceProperty);
+        if (sourceEntityNode == null) {
+            throw new RuntimeException("Source entity node is null or not an js object");
+        }
+
+        Object id = AEntity.checkedId(sourceEntityNode.get("id").asText());
+        if (id == null) {
+            throw new RuntimeException("Source entity node id is null");
+        }
+
+        try {
+            BeanUtils.setProperty(destination, destinationProperty, id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void imageToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, String size) {
