@@ -20,6 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         app.debug = false
         app.initialize()
         
+        AJ.register(plugin: LoaderPlugin())
+        AJ.register(plugin: AlertPlugin())
+        AJ.register(plugin: ToastPlugin())
+        
         ThemeInitializer.configure()
         
         window = UIWindow(frame: UIScreen.main.bounds)
@@ -28,6 +32,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.makeKeyAndVisible()
         
         return true
+    }
+    
+    func replaceRootViewController(_ viewController: UIViewController) {
+        UIView.transition(with: window!, duration: 0.5, options: UIViewAnimationOptions.transitionCrossDissolve, animations: {
+            self.window?.rootViewController = viewController
+        }, completion: nil)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
