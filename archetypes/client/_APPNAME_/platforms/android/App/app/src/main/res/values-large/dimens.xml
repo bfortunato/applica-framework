@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="halfPadding">3dp</dimen>
+    <dimen name="padding">6dp</dimen>
+    <dimen name="doublePadding">12dp</dimen>
+    <dimen name="quadPadding">24dp</dimen>
+
+    <dimen name="size_height">135dp</dimen>
+    <dimen name="size_width">135dp</dimen>
+    <dimen name="tickoff_button_size">150dp</dimen>
+    <dimen name="pieceCountdownText">54dp</dimen>
+    <dimen name="remainingPiecesText">18dp</dimen>
+    <dimen name="sizeText">21dp</dimen>
+    <dimen name="infoRouteText">32dp</dimen>
+
+    <dimen name="smallText">10dp</dimen>
+    <dimen name="mediumText">12dp</dimen>
+    <dimen name="largeText">18dp</dimen>
+    <dimen name="colorSize">30dp</dimen>
+</resources>

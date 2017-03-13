@@ -7,7 +7,7 @@
 
 package applica.app;
         
-class Stores {
+public class Stores {
+	public static final String COMMONS = "COMMONS";
 	public static final String SESSION = "SESSION";
-	public static final String ACCOUNT = "ACCOUNT";
 }

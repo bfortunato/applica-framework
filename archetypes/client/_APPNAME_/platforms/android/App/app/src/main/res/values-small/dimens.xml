@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="size_height">60dp</dimen>
+    <dimen name="size_width">60dp</dimen>
+    <dimen name="tickoff_button_size">75dp</dimen>
+    <dimen name="pieceCountdownText">24dp</dimen>
+    <dimen name="remainingPiecesText">10dp</dimen>
+    <dimen name="sizeText">12dp</dimen>
+    <dimen name="infoRouteText">22dp</dimen>
+
+    <dimen name="smallText">6dp</dimen>
+    <dimen name="mediumText">8dp</dimen>
+    <dimen name="largeText">10dp</dimen>
+    <dimen name="colorSize">16dp</dimen>
+</resources>

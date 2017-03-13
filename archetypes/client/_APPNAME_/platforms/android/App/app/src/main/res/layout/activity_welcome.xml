@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_welcome"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="applica.app.ui.WelcomeActivity"
+    android:background="@color/primary">
+
+    <LinearLayout
+        android:paddingBottom="@dimen/quadPadding"
+        android:paddingLeft="@dimen/quadPadding"
+        android:paddingRight="@dimen/quadPadding"
+        android:paddingTop="@dimen/quadPadding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/logo"
+            android:layout_marginBottom="@dimen/quadPadding"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to\n_APPNAME_"
+            style="@style/TextAppearance.AppCompat.Display1"
+            android:textColor="@color/text_light"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/padding"
+        android:paddingLeft="@dimen/padding"
+        android:paddingRight="@dimen/padding"
+        android:paddingTop="@dimen/padding">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/signUp"
+            android:backgroundTint="@color/text_light"/>
+
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:textColor="@color/text_light"/>
+
+    </LinearLayout>
+
+
+
+</FrameLayout>

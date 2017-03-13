@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="halfPadding">2dp</dimen>
+    <dimen name="padding">4dp</dimen>
+    <dimen name="doublePadding">8dp</dimen>
+    <dimen name="quadPadding">16dp</dimen>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="size_height">90dp</dimen>
+    <dimen name="size_width">90dp</dimen>
+    <dimen name="tickoff_button_size">100dp</dimen>
+    <dimen name="pieceCountdownText">36dp</dimen>
+    <dimen name="remainingPiecesText">12dp</dimen>
+    <dimen name="sizeText">14dp</dimen>
+    <dimen name="infoRouteText">26dp</dimen>
+
+    <dimen name="smallText">8dp</dimen>
+    <dimen name="mediumText">10dp</dimen>
+    <dimen name="largeText">12dp</dimen>
+    <dimen name="colorSize">20dp</dimen>
+
+</resources>
