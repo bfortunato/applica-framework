@@ -11,9 +11,15 @@ import ApplicaFramework
 
 public typealias AJPluginCallback = (_ error: Bool, _ result: AJObject?) -> Void
 
-public struct AJPluginCallData {
-    let argument: AJObject
-    let callback: AJPluginCallback
+@objc
+public class AJPluginCallData : NSObject {
+    init(argument: AJObject, callback: @escaping AJPluginCallback) {
+        self.argument = argument
+        self.callback = callback
+    }
+    
+    public let argument: AJObject
+    public let callback: AJPluginCallback
 }
 
 @objc

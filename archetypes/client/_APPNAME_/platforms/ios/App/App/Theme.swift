@@ -11,7 +11,7 @@ import UIKit
 import ApplicaFramework
 
 struct Dimensions {
-    static let padding = CGFloat(8)
+    static let padding = CGFloat(16)
     static let doublePadding = Dimensions.padding * 2
     static let quadPadding = Dimensions.padding * 4
     
@@ -22,22 +22,27 @@ struct Dimensions {
     static let statusAndNavigationBarHeight = CGFloat(64)
     
     static let cornerRadius = CGFloat(5)
+    static let jumbotronFontSize = CGFloat(48)
     static let bigFontSize = CGFloat(24)
     static let mediumFont = CGFloat(18)
     static let smallFont = CGFloat(14)
+    static let buttonWidth = CGFloat(120)
+    static let buttonHeight = CGFloat(40)
 }
 
 struct Colors {
-    static let viewBackground = UIColor.lightGray
-    static let primary = RGB(205, 102, 0)
+    static let viewBackground = UIColor.white
+    static let primary = RGB(58, 93, 164)
     static let disabled = RGB(100, 100, 100)
     static let text = RGB(20, 20, 20)
     static let textInverse = UIColor.white
     static let viewBackgroundInverse = UIColor.black
+    static let separator = RGB(200, 200, 200)
 }
 
 enum Style {
-    case view
+    case mainView
+    case mainViewInverse
     case buttonPrimary
     case textTitle1
     case textTitle2
@@ -50,6 +55,24 @@ enum Style {
     case textCaption1
     case textCaption2
     case textField
+    case textTitle1Inverse
+    case textTitle2Inverse
+    case textTitle3Inverse
+    case textHeadlineInverse
+    case textBodyInverse
+    case textCalloutInverse
+    case textSubheadInverse
+    case textFootnoteInverse
+    case textCaption1Inverse
+    case textCaption2Inverse
+    case textJumbotron
+    case textJumbotronInverse
+    
+    case loginTextField
+    case loginButton
+    case welcomeButtonLogin
+    case welcomeButtonSignup
+    case separator
 }
 
 typealias ThemeStyler = (UIView) -> Void
@@ -86,8 +109,12 @@ class ThemeInitializer {
     class func configure() {
         let defaultTheme = Theme()
         
-        defaultTheme.configure(style: .view) { (view) in
+        defaultTheme.configure(style: .mainView) { (view) in
             view.backgroundColor = Colors.viewBackground
+        }
+        
+        defaultTheme.configure(style: .mainViewInverse) { (view) in
+            view.backgroundColor = Colors.primary
         }
         
         defaultTheme.configure(style: .buttonPrimary) { (view) in
@@ -100,7 +127,6 @@ class ThemeInitializer {
         defaultTheme.configure(style: .textTitle1) { (view) in
             let label = view as! UILabel
             label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title1)
-            label.font = label.font.withSize(CGFloat(18))
             label.numberOfLines = 0
             label.textColor = Colors.text
         }
@@ -157,6 +183,109 @@ class ThemeInitializer {
             let label = view as! UILabel
             label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.caption2)
             label.textColor = Colors.text
+        }
+        
+        defaultTheme.configure(style: .textJumbotron) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title1).withSize(Dimensions.jumbotronFontSize)
+            label.numberOfLines = 0
+            label.textColor = Colors.text
+        }
+        
+        defaultTheme.configure(style: .textTitle1Inverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title1)
+            label.numberOfLines = 0
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textTitle2Inverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title2)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textTitle3Inverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title3)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textHeadlineInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textBodyInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textCalloutInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.callout)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textSubheadInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.subheadline)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textFootnoteInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.footnote)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textCaption1Inverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.caption1)
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .textCaption2Inverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.caption2)
+            label.textColor = Colors.text
+        }
+        
+        defaultTheme.configure(style: .textJumbotronInverse) { (view) in
+            let label = view as! UILabel
+            label.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.title1).withSize(Dimensions.jumbotronFontSize)
+            label.numberOfLines = 0
+            label.textColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .loginTextField) { (view) in
+            let textField = view as! UITextField
+            textField.layer.borderWidth = 0
+        }
+        
+        defaultTheme.configure(style: .separator) { (view) in
+            view.backgroundColor = Colors.separator
+        }
+        
+        defaultTheme.configure(style: .loginButton) { (view) in
+            view.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y, width: Dimensions.buttonWidth, height: Dimensions.buttonHeight)
+            view.backgroundColor = Colors.primary
+            view.layer.cornerRadius = Dimensions.cornerRadius
+            view.tintColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .welcomeButtonLogin) { (view) in
+            view.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y, width: view.frame.width, height: Dimensions.buttonHeight)
+            view.tintColor = Colors.textInverse
+        }
+        
+        defaultTheme.configure(style: .welcomeButtonSignup) { (view) in
+            view.frame = CGRect(x: view.frame.origin.x, y: view.frame.origin.y, width: view.frame.width, height: Dimensions.buttonHeight)
+            view.backgroundColor = Colors.viewBackground
+            view.layer.cornerRadius = Dimensions.cornerRadius
+            view.tintColor = Colors.primary
         }
         
         Theme.load(defaultTheme)

@@ -20,21 +20,22 @@ import AJ
 import ApplicaFramework
 
 class WelcomeViewController: UIViewController {
-    
-    private var _formView: UIView?
-    private var _emailField: UITextField?
-    private var _passwordField: UITextField?
-    private var _loginButton: UIButton?
-    private var _forgotButton: UIButton?
-    private var _loader: AFLoader?
-    private var _indicator: UIActivityIndicatorView?
-    
-    
+
+    private var _lastState = AJObject.create()
+
     init() {
         super.init(nibName: nil, bundle: nil)
         
         AJ.subscribe(to: Stores.SESSION, owner: self) { [weak self] (state) -> Void in
-            
+            if let me = self {
+                if state.differs(at: "isLoggedIn").from(me._lastState) {
+                    if state.get("isLoggedIn")?.bool ?? false {
+                        (UIApplication.shared.delegate as! AppDelegate).replaceRootViewController(HomeViewController())
+                    }
+                }
+                
+                me._lastState = state
+            }
         }
     }
     
@@ -49,49 +50,35 @@ class WelcomeViewController: UIViewController {
     override func loadView() {
         super.loadView()
         
-        let backgroundImage = UIImageView(image: nil)
-        backgroundImage.frame = self.view.bounds
+        Theme.apply(style: .mainViewInverse, to: view)
         
-        _indicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-        _indicator!.center = backgroundImage.center
-        _indicator!.startAnimating()
-        backgroundImage.addSubview(_indicator!)
+        let logo = UIImageView(image: #imageLiteral(resourceName: "logo"))
+        logo.frame = RB.withParent(view.frame).sameAs(logo.frame).top(Dimensions.actionBarHeight + Dimensions.padding).left(Dimensions.padding).make()
         
-        let width = view.bounds.width - Dimensions.padding * 2
+        let titleLabel = UILabel()
+        titleLabel.text = M("Welcome to\n_APPNAME_")
+        titleLabel.numberOfLines = 2
+        Theme.apply(style: .textJumbotronInverse, to: titleLabel)
+        titleLabel.sizeToFit()
+        titleLabel.frame = RB.withParent(view.frame).sameAs(titleLabel.frame).vcenter(-Dimensions.quadPadding).left(Dimensions.padding).make()
         
-        _formView = UIView()
-        _formView?.backgroundColor = UIColor.white
-        _formView?.isHidden = true
-        _formView?.frame = RB.withParent(view.frame).width(width).height(220).vcenter().center().make()
+        let loginButton = UIButton(type: .system)
+        loginButton.setTitle(M("Login"), for: .normal)
+        loginButton.frame = RB.withParent(view.frame).left(Dimensions.padding).fillWidth(Dimensions.padding).height(Dimensions.buttonHeight).bottom(Dimensions.padding).right(Dimensions.padding).make()
+        loginButton.addTarget(self, action: #selector(login), for: .touchUpInside)
+        Theme.apply(style: .welcomeButtonLogin, to: loginButton)
         
-        _emailField = UITextField()
-        _emailField?.frame = RB.withParent(_formView!.frame).sameAs(_emailField!.frame).width(width).center().make()
+        let registerButton = UIButton(type: .system)
+        registerButton.setTitle(M("Sign up"), for: .normal)
+        registerButton.frame = RB.withParent(view.frame).left(Dimensions.padding).fillWidth(Dimensions.padding).height(Dimensions.buttonHeight).topOf(loginButton.frame, offset: Dimensions.padding).right(Dimensions.padding).make()
+        registerButton.addTarget(self, action: #selector(register), for: .touchUpInside)
+        Theme.apply(style: .welcomeButtonSignup, to: registerButton)
         
-        _passwordField = UITextField()
-        _passwordField?.sizeToFit()
-        _passwordField?.frame = RB.withParent(_formView!.frame).width(width).height(Dimensions.textFieldHeight).bottomOf(_emailField.frame).center().make()
         
-        _loginButton = UIButton()
-        _loginButton?.setTitle("ACCEDI", for: .normal)
-        _loginButton?.sizeToFit()
-        _loginButton?.frame = RB.withParent(_formView!.frame).sameAs(_loginButton!.frame).bottomOf(_passwordField!.frame, offset: Dimensions.doublePadding).center().make()
-        _loginButton?.addTarget(self, action: #selector(self.login), for: .touchUpInside)
-        
-        _forgotButton = UIButton()
-        _forgotButton?.setTitle("Hai dimenticato la password?", for: .normal)
-        _forgotButton?.setTitleColor(Colors.placeholderText, for: .normal)
-        _forgotButton?.titleLabel?.font = _forgotButton!.titleLabel?.font.withSize(Dimensions.smallFont)
-        _forgotButton?.sizeToFit()
-        _forgotButton?.frame = RB.withParent(_formView!.frame).sameAs(_forgotButton!.frame).bottomOf(_loginButton!.frame, offset: Dimensions.padding).center().make()
-        _forgotButton?.addTarget(self, action: #selector(self.forgotPassword), for: .touchUpInside)
-        
-        _formView?.addSubview(_emailField!)
-        _formView?.addSubview(_passwordField!)
-        _formView?.addSubview(_loginButton!)
-        _formView?.addSubview(_forgotButton!)
-        
-        view.addSubview(backgroundImage)
-        view.addSubview(_formView!)
+        view.addSubview(logo)
+        view.addSubview(titleLabel)
+        view.addSubview(registerButton)
+        view.addSubview(loginButton)
     }
     
     override func viewDidLoad() {
@@ -101,11 +88,16 @@ class WelcomeViewController: UIViewController {
     }
     
     func login() {
-        _loader = AFLoader.show()
-        _ = AJ.run(action: Actions.LOGIN, data: AJObject.create().set("mail", _emailField.text).set("password", _passwordField.text))
+        present(LoginViewController(), animated: true, completion: nil)
     }
     
-    func forgotPassword(){
-        print("forgot password")
+    func register() {
+        present(LoginViewController(), animated: true, completion: nil)
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        get {
+            return true
+        }
     }
 }

@@ -1,6 +1,6 @@
 "use strict"
 
-import * as aj from "../aj"
+import * as aj from "./aj"
 
 let loaderCounter = 0
 

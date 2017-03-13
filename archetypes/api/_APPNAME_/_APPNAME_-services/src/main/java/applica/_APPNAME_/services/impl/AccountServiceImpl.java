@@ -86,7 +86,7 @@ public class AccountServiceImpl implements AccountService {
 
         usersRepository.save(user);
 
-        String activationUrl = String.format("%saccount/confirm?activationCode=%s", options.get("frontend.public.url"), user.getActivationCode());
+        String activationUrl = String.format("%s/#/confirm?activationCode=%s", options.get("frontend.public.url"), user.getActivationCode());
         final TemplatedMail templatedMail = new TemplatedMail();
         templatedMail.setOptions(options);
         templatedMail.setMailFormat(TemplatedMail.HTML);

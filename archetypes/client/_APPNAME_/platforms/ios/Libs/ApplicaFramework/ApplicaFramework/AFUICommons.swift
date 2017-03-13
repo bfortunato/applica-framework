@@ -23,6 +23,9 @@ import UIKit
 public func X2(_ v:CGFloat) -> CGFloat{ return v / 2.0 }
 public func X3(_ v:CGFloat) -> CGFloat { return v / 3.0 }
 
+public func M(_ key: String) -> String {
+    return NSLocalizedString(key, comment: key)
+}
 
 //MARK: color utils
 public func RGB(_ r:CGFloat, _ g:CGFloat, _ b:CGFloat) -> UIColor {
