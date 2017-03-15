@@ -48,7 +48,7 @@ public class BaseSaveOperation implements SaveOperation {
         }
     }
 
-    private void beforeSave(ObjectNode data, Entity entity) throws OperationException {
+    protected void beforeSave(ObjectNode data, Entity entity) throws OperationException {
 
     }
 
