@@ -6,7 +6,7 @@ import applica.framework.annotations.Action;
 import applica.framework.data.hibernate.annotations.IgnoreMapping;
 import applica.framework.library.utils.FileWalker;
 import applica.framework.library.utils.FileWalkerListener;
-import applica.framework.library.utils.TypeUtils;
+import applica.framework.utils.TypeUtils;
 import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.modules.hibernate.Mapper;
 import org.apache.commons.io.FileUtils;

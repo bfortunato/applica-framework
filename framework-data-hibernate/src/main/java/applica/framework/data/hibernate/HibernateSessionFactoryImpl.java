@@ -5,7 +5,7 @@ import applica.framework.data.hibernate.annotations.IgnoreMapping;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.library.utils.ProgramException;
-import applica.framework.library.utils.TypeUtils;
+import applica.framework.utils.TypeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,7 +21,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
 
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -4,7 +4,7 @@ import applica.framework.*;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
-import applica.framework.library.utils.TypeUtils;
+import applica.framework.utils.TypeUtils;
 import com.mongodb.BasicDBObject;
 import org.apache.commons.logging.Log;
 import org.bson.types.ObjectId;

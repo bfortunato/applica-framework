@@ -6,6 +6,8 @@ import applica._APPNAME_.api.configuration.MongoConfiguration;
 import applica._APPNAME_.api.configuration.SecurityConfiguration;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
+import applica.framework.EntitiesScanner;
+import applica.framework.relations.RelationsRegistry;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -59,7 +61,10 @@ public class Application {
 
     public static void main(String[] args) {
         try {
-            EntitiesRegistry.instance().init(User.class.getPackage());
+            EntitiesScanner scanner = new EntitiesScanner();
+            scanner.addHandler(EntitiesRegistry.instance());
+            scanner.addHandler(RelationsRegistry.instance());
+            scanner.scan(User.class.getPackage());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

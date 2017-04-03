@@ -1,10 +1,9 @@
-package applica.framework.library.utils;
+package applica.framework.utils;
 
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

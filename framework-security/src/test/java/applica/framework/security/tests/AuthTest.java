@@ -1,6 +1,7 @@
 package applica.framework.security.tests;
 
 import applica.framework.ApplicationContextProvider;
+import applica.framework.EntitiesScanner;
 import applica.framework.security.Role;
 import applica.framework.security.Security;
 import applica.framework.security.User;
