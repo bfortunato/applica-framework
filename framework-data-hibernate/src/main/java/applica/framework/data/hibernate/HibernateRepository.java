@@ -2,7 +2,7 @@ package applica.framework.data.hibernate;
 
 import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
-import applica.framework.utils.TypeUtils;
+import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;

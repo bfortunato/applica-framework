@@ -1,4 +1,4 @@
-package applica.framework.utils;
+package applica.framework.library.utils;
 
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;

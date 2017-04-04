@@ -3,7 +3,7 @@ package applica.framework.data;
 import applica.framework.Entity;
 import applica.framework.Filter;
 import applica.framework.Query;
-import applica.framework.utils.TypeUtils;
+import applica.framework.library.utils.TypeUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

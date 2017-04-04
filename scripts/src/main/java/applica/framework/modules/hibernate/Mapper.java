@@ -4,7 +4,7 @@ import applica.framework.Key;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.library.utils.Strings;
-import applica.framework.utils.TypeUtils;
+import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.lang.reflect.Field;

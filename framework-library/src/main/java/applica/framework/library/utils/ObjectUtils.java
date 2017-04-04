@@ -1,6 +1,5 @@
 package applica.framework.library.utils;
 
-import applica.framework.utils.TypeUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.MutablePropertyValues;
