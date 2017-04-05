@@ -8,6 +8,7 @@ import applica.framework.library.base64.URLData;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.beanutils.BeanUtils;
@@ -109,12 +110,14 @@ public class EntityMapper {
         Objects.requireNonNull(source, "Cannot convert entity to id: node is null");
         Objects.requireNonNull(destination, "Cannot convert entity to id: entity is null");
 
-        ObjectNode sourceEntityNode = (ObjectNode) source.get(sourceProperty);
-        if (sourceEntityNode == null) {
+        JsonNode sourceNode = source.get(sourceProperty);
+        if (sourceNode == null) {
             throw new RuntimeException("Source entity node is null or not an js object");
         }
 
-        if (!sourceEntityNode.isNull()) {
+        if (!sourceNode.isNull()) {
+            ObjectNode sourceEntityNode = (ObjectNode) sourceNode;
+
             Object id = AEntity.checkedId(sourceEntityNode.get("id").asText());
             if (id == null) {
                 throw new RuntimeException("Source entity node id is null");
