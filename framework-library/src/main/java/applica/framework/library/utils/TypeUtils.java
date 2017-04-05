@@ -142,6 +142,27 @@ public class TypeUtils {
         return field;
     }
 
+    /**
+     * Gets a class field, checking also from superclasses and nested classes
+     * @param type
+     * @param name You could specify a path with dots to go deep in class
+     * @return
+     * @throws NoSuchFieldException
+     */
+    public static Field getFieldRecursive(Class<?> type, String name) throws NoSuchFieldException {
+        String[] paths = name.split("\\.");
+        int count = paths.length;
+        Class<?> currentType = type;
+        Field field = null;
+
+        for (int i = 0; i < count; i++) {
+            field = getField(currentType, paths[i]);
+            currentType = field.getType();
+        }
+
+        return field;
+    }
+
     public static <T extends Annotation> T getFieldAnnotation(Class<T> annotationClass, Class<?> type, String fieldName) {
         Field field = null;
         try {
