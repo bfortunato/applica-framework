@@ -115,19 +115,21 @@ public class EntityMapper {
             throw new RuntimeException("Source entity node is null or not an js object");
         }
 
+        Object id = null;
+
         if (!sourceNode.isNull()) {
             ObjectNode sourceEntityNode = (ObjectNode) sourceNode;
 
-            Object id = AEntity.checkedId(sourceEntityNode.get("id").asText());
+            id = AEntity.checkedId(sourceEntityNode.get("id").asText());
             if (id == null) {
                 throw new RuntimeException("Source entity node id is null");
             }
+        }
 
-            try {
-                BeanUtils.setProperty(destination, destinationProperty, id);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            BeanUtils.setProperty(destination, destinationProperty, id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
