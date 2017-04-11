@@ -40,12 +40,16 @@ public class BaseSaveOperation implements SaveOperation {
 
             finishEntity(data, entity);
 
+            validate(entity);
             beforeSave(data, entity);
             persist(entity);
             afterSave(data, entity);
         } catch (SerializationException e) {
             throw new OperationException(Response.ERROR_SERIALIZATION);
         }
+    }
+
+    public void validate(Entity entity) {
     }
 
     protected void beforeSave(ObjectNode data, Entity entity) throws OperationException {

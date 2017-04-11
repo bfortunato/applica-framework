@@ -130,7 +130,6 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
             return discriminate(state, action.discriminator, {error: true, result: null})
 
         case actions.NEW_ENTITY:
-            return discriminate(state, action.discriminator, {error: false, data: null, saved: false})
             return discriminate(state, action.discriminator, {error: false, data: {}, saved: false})
 
         case actions.GET_ENTITY:
@@ -149,11 +148,9 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
             return discriminate(state, action.discriminator, {error: false, saved: false})
 
         case completed(actions.SAVE_ENTITY):
-            return discriminate(state, action.discriminator, {error: false, saved: true})
             return discriminate(state, action.discriminator, {error: false, data: action.data, saved: true})
 
         case failed(actions.SAVE_ENTITY):
-            return discriminate(state, action.discriminator, {error: true, saved: false})
             return discriminate(state, action.discriminator, {error: true, data: action.data, saved: false})
 
     }
