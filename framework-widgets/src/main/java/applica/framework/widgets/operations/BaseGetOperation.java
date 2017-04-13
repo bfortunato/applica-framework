@@ -41,7 +41,7 @@ public class BaseGetOperation implements GetOperation {
     }
 
 
-    protected void finishNode(Entity entity, ObjectNode node) {
+    protected void finishNode(Entity entity, ObjectNode node) throws OperationException {
 
     }
 

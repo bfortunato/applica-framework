@@ -49,7 +49,7 @@ public class BaseSaveOperation implements SaveOperation {
         }
     }
 
-    public void validate(Entity entity) {
+    public void validate(Entity entity) throws OperationException {
     }
 
     protected void beforeSave(ObjectNode data, Entity entity) throws OperationException {
@@ -60,11 +60,11 @@ public class BaseSaveOperation implements SaveOperation {
         ((Repository) Repo.of(getEntityType())).save(entity);
     }
 
-    protected void afterSave(ObjectNode node, Entity entity) {
+    protected void afterSave(ObjectNode node, Entity entity) throws OperationException {
 
     }
 
-    protected void finishEntity(ObjectNode node, Entity entity) {
+    protected void finishEntity(ObjectNode node, Entity entity) throws OperationException {
 
     }
 
