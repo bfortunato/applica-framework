@@ -249,7 +249,7 @@ class Footer extends React.Component {
     render() {
         return (
             <footer id="footer">
-                Copyright &copy 2016 Applica srl
+                Copyright 2017 Applica srl
 
                 <ul className="f-menu">
                     <li><a href="">Home</a></li>

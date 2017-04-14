@@ -1,6 +1,6 @@
 package applica.framework.library.responses;
 
-import applica.framework.ValidationResult;
+import applica.framework.library.validation.ValidationResult;
 
 public class FormActionResponse extends Response {
     private boolean valid;

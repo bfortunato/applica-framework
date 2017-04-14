@@ -6,6 +6,8 @@ import applica.framework.data.mongodb.constraints.ConstraintException;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.library.utils.ObjectUtils;
+import applica.framework.library.validation.ValidationException;
+import applica.framework.library.validation.ValidationResponse;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.factory.OperationsFactory;
@@ -139,6 +141,8 @@ public class EntitiesController {
             }
 
             return new Response(e.getErrorCode());
+        } catch (ValidationException e) {
+            return new ValidationResponse(ResponseCode.ERROR_VALIDATION, e.getValidationResult());
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);

@@ -1,4 +1,4 @@
-package applica.framework;
+package applica.framework.library.validation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ public class ValidationResult {
 
     List<Error> errors = new ArrayList<>();
 
-    public void rejectValue(String property, String message) {
+    public void reject(String property, String message) {
         errors.add(new Error(property, message));
     }
 

@@ -3,16 +3,16 @@
 import * as datasource from "../../utils/datasource"
 import {LookupStore, SelectStore} from "../../stores"
 import {
+    freeLookup,
+    freeSelect,
     getLookupResult,
     getLookupValues,
-    freeLookup,
-    getSelectValues,
-    freeSelect,
-    getSelectEntities
+    getSelectEntities,
+    getSelectValues
 } from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
-import {Lookup, Select, Control} from "./forms"
+import {Control, Lookup, Select} from "./forms"
 
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {
@@ -75,7 +75,6 @@ export class ValuesLookupContainer extends Control  {
         }
 
         this.__queryOnChange = () => {
-            console.log(this.query)
             getLookupValues({discriminator: this.discriminator, collection: this.props.collection, keyword: this.query.keyword})
         }
 
@@ -156,6 +155,7 @@ export class EntitiesSelectContainer extends Control {
 
         this.discriminator = `entity_select_${this.props.entity}`
         this.datasource = datasource.create()
+        this.query = null
     }
 
     componentDidMount() {
@@ -163,12 +163,33 @@ export class EntitiesSelectContainer extends Control {
             this.datasource.setData(discriminated(state, this.discriminator).values)
         })
 
-        getSelectEntities({discriminator: this.discriminator, entity: this.props.entity})
+        let model = this.props.model
+
+        this.query = null
+        if (this.props.query) {
+            if (_.isFunction(this.props.query)) {
+                this.query = this.props.query(model)
+            } else {
+                this.query = this.props.query
+            }
+        }
+
+        if (!_.isEmpty(this.query)) {
+            this.__onQueryChange = () => {
+                getSelectEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
+            }
+
+            this.query.on("change", this.__onQueryChange)
+        }
+
+        getSelectEntities({discriminator: this.discriminator, entity: this.props.entity, query: this.query})
     }
 
     componentWillUnmount() {
         SelectStore.unsubscribe(this)
-
+        if (this.query) {
+            this.query.off("change", this.__onQueryChange)
+        }
         freeSelect({discriminator: this.discriminator})
     }
 

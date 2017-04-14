@@ -527,6 +527,55 @@ export class Cell extends React.Component {
 
 }
 
+export class EditTextCell extends Cell {
+
+    constructor(props) {
+        super(props)
+
+        this.state = {value: ""}
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (nextProps.value != nextState.value) {
+            this.setState({value: nextProps.value})
+        }
+    }
+
+    componentDidMount() {
+        this.setState({value: this.props.value})
+    }
+
+    onValueChange(e) {
+        let newValue = e.target.value
+        this.setState({value: newValue})
+
+        if (_.isFunction(this.props.onValueChange)) {
+            let column = this.props.column
+            let property = this.props.property
+            let row = this.props.row
+            this.props.onValueChange(column, row.data, newValue)
+        }
+    }
+
+    render() {
+        let column = this.props.column
+        let property = this.props.property
+        let row = this.props.row
+
+        return (
+            <div className="edit-text-cell">
+                <input
+                    type={optional(this.props.type, "text")}
+                    className="form-control input-sm"
+                    data-property={property}
+                    placeholder={this.props.placeholder}
+                    value={optional(this.state.value, "")}
+                    onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
 export class TextCell extends Cell {
     toggleExpand(e) {
         if (_.isFunction(this.props.onExpand)) {
@@ -974,12 +1023,12 @@ export class Grid extends React.Component {
         //let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
         let paginationEnabled = optional(parseBoolean(this.props.paginationEnabled), true)
         let tableClassName = optional(this.props.tableClassName, "table table-striped table-hover")
+        let noResultsText = optional(this.props.noResultsText, M("noResults"))
 
         let myQuery = optional(this.props.query, query.create())
         let showFilters = myQuery.filters.length > 0
         let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
         let hasPagination = this.getTotalPages() > 1
-        let noResultsText = optional(this.props.noResultsText, M("noResults"))
         let Container = optional(parseBoolean(this.props.showInCard), true) ? Card : NoCard
 
         return (

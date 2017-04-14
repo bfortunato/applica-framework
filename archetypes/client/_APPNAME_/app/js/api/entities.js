@@ -4,6 +4,9 @@ import * as config from "../framework/config"
 import * as utils from "./utils"
 import * as _ from "../libs/underscore"
 import {flatten} from "../utils/lang"
+import * as http from "../aj/http"
+import {addToken} from "./utils"
+import * as responses from "./responses"
 
 export function find(entity, query) {
     return load(entity, query)
@@ -30,7 +33,28 @@ export function delete_(entity, ids) {
 
 export function save(entity, data) {
     let url = config.get("entities.url") + "/" + entity
-    return utils.postJson(url, data)
+    return new Promise((resolve, reject) => {
+        let json = typeof(data) === "string" ? data : JSON.stringify(data)
+        let headers = {"Content-Type": "application/json"}
+        http.post(url, json, addToken(headers))
+            .then(json => {
+                if (_.isEmpty(json)) {
+                    reject(responses.ERROR)
+                } else {
+                    let response = JSON.parse(json)
+
+                    if (responses.OK != response.responseCode) {
+                        reject(response)
+                    } else {
+                        resolve(response)
+                    }
+                }
+            })
+            .catch(e => {
+                logger.e("Error in request:", e)
+                reject(responses.ERROR)
+            })
+    })
 }
 
 export function get(entity, id) {

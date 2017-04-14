@@ -12,6 +12,14 @@ var __runtime = null;
 var __stores = {};
 var __actions = {};
 
+function stringifyIfNotBrowser(obj) {
+    if (window) {
+        return obj
+    } else {
+        JSON.stringify(obj)
+    }
+}
+
 class AJRuntime {
     constructor() {
 
@@ -74,7 +82,8 @@ if (platform.test) {
             }
 
             __trigger(store, state) {
-                logger.i("Triggering", store, "with state", JSON.stringify(state));
+                logger.i("Triggering", store);
+                logger.i(stringifyIfNotBrowser(state));
             }
 
             createBuffer(data) {
@@ -170,7 +179,8 @@ else if (platform.engine == "node") {
 
             __trigger(store, state) {
                 if (DEBUG) {
-                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                    logger.i("Triggering", store);
+                    logger.i(stringifyIfNotBrowser(state))
                 }
 
                 return new Promise((resolve, reject) => {
@@ -266,7 +276,8 @@ else if (platform.engine == "node") {
                 }
 
                 if (DEBUG) {
-                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                    logger.i("Triggering", store);
+                    logger.i(stringifyIfNotBrowser(state));
                 }
 
                 return new Promise((resolve, reject) => {
@@ -453,6 +464,10 @@ function createAction(type, fn) {
     }
 
     var act = __actions[type] = (data) => {
+        if (DEBUG) {
+            logger.i("Running action", type);
+            logger.i(stringifyIfNotBrowser(data));
+        }
         fn(data);
     };
 
@@ -463,7 +478,8 @@ function createAction(type, fn) {
 
 function dispatch(action) {
     if (DEBUG) {
-        logger.i("Dispatching action", JSON.stringify(action));
+        logger.i("Dispatching action", action.type);
+        logger.i(stringifyIfNotBrowser(action));
     }
 
     _.each(__stores, (store) => {
@@ -477,10 +493,6 @@ function dispatch(action) {
 }
 
 function run(action, data) {
-    if (DEBUG) {
-        logger.i("Running action", action, "with data", JSON.stringify(data));
-    }
-
     if (_.has(__actions, action)) {
         __actions[action](data);
     } else {

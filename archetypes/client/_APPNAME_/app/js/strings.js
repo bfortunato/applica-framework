@@ -71,7 +71,8 @@ strings["en"] = {
     save: "Save",
     image: "Image",
     cover: "Cover",
-    saveComplete: "Save complete"
+    saveComplete: "Save complete",
+    remove: "Remove"
 }
 
 export function setLanguage(language_) {

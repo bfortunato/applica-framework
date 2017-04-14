@@ -58,6 +58,17 @@ export default class EntityForm extends Screen {
             this.goBack()
             return false
         }
+
+        if (state.validationError) {
+            if (state.validationResult) {
+                let form = this.refs.form
+                if (form && form.model) {
+                    _.each(state.validationResult.errors, e => {
+                        form.model.setError(e.property, M(e.message))
+                    })
+                }
+            }
+        }
     }
 
     getEntity() {

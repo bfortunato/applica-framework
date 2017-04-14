@@ -5,7 +5,7 @@ import * as responses from "./responses"
 import {getSessionToken} from "./session"
 import * as _ from "../libs/underscore"
 
-function addToken(headers) {
+export function addToken(headers) {
     if (!_.isEmpty(getSessionToken())) {
         return _.assign(headers || {}, {"x-auth-token": getSessionToken()})
     } else {

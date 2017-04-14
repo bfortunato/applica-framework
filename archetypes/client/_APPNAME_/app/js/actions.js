@@ -305,11 +305,16 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
                 }
             }
         })
-        .catch(e => {
+        .catch(r => {
             hideLoader()
-            alert(M("ooops"), responses.msg(e), "error")
 
-            saveEntity.fail({discriminator: data.discriminator, data: data.data})
+            if (r.responseCode === responses.ERROR_VALIDATION) {
+                saveEntity.fail({discriminator: data.discriminator, data: data.data, validationError: true, validationResult: r.result})
+            } else {
+                alert(M("ooops"), responses.msg(r.responseCode), "error")
+
+                saveEntity.fail({discriminator: data.discriminator, data: data.data, validationError: false, validationResult: null})
+            }
         })
 });
 
@@ -456,7 +461,7 @@ export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => 
         discriminator: data.discriminator
     })
 
-    ValuesApi.loadEntities(data.entity, data.keyword)
+    ValuesApi.loadEntities(data.entity, data.query)
         .then(response => {
             getSelectEntities.complete({entities: response.value, discriminator: data.discriminator})
         })

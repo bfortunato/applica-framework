@@ -1,7 +1,7 @@
 package applica._APPNAME_.services;
 
 import applica._APPNAME_.services.exceptions.*;
-import applica.framework.ValidationException;
+import applica.framework.library.validation.ValidationException;
 import applica.framework.library.base64.URLData;
 
 import java.io.IOException;

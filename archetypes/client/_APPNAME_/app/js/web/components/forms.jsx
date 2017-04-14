@@ -11,7 +11,7 @@ import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
 
-const VALIDATION_ERROR = {}
+export const VALIDATION_ERROR = {}
 
 export class Model extends Observable {
     constructor() {
@@ -207,6 +207,23 @@ export class Model extends Observable {
             throw VALIDATION_ERROR
         }
     }
+
+    resetValidation() {
+        this.validationResult = {}
+    }
+
+    setError(property, message) {
+        this.validationResult[property] = {
+            valid: false,
+            message: message
+        }
+    }
+
+    resetError(property) {
+        this.validationResult[property] = {
+            valid: true
+        }
+    }
 }
 
 export class Label extends React.Component {
@@ -221,6 +238,18 @@ export class Label extends React.Component {
 }
 
 export class Area extends React.Component {
+
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let area = this.props.area
@@ -228,7 +257,7 @@ export class Area extends React.Component {
         inline = optional(area.inline, inline)
         let defaultFieldCass = inline ? InlineField : Field
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} descriptor={descriptor} />
-        let fields = !_.isEmpty(area.fields) && area.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
 
         return (
             <Card padding="true" title={area.title} subtitle={area.subtitle} actions={area.actions}>
@@ -241,10 +270,22 @@ export class Area extends React.Component {
 }
 
 export class AreaNoCard extends React.Component {
+
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
     render() {
         let area = this.props.area
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = !_.isEmpty(area.fields) && area.fields.map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f}))
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f}))
         let actionKey = 1
 
         return (
@@ -276,6 +317,17 @@ export class Tabs extends React.Component {
         })
     }
 
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let first = true
@@ -292,7 +344,7 @@ export class Tabs extends React.Component {
             let inline = optional(descriptor.inline, false)
             inline = optional(c.inline, inline)
             let defaultFieldClass = inline ? InlineField : Field
-            let fields = _.isEmpty(c.fields) && c.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f}))
+            let fields = _.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f}))
             let el = (
                 <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
                     <div className="row">{fields}</div>
@@ -348,6 +400,22 @@ function generateKeys(descriptor) {
     }
 }
 
+export class FormSubmitEvent {
+    constructor(form, model) {
+        this.form = form
+        this.model = model
+        this.stopped = false
+    }
+
+    stop() {
+        this.stopped = true
+    }
+
+    forceSubmit() {
+        this.form.forceSubmit()
+    }
+}
+
 export class Form extends React.Component {
     constructor(props) {
         super(props)
@@ -359,19 +427,35 @@ export class Form extends React.Component {
         this.onSubmit()
     }
 
+    forceSubmit() {
+        if (_.isFunction(this.props.onSubmit)) {
+            this.props.onSubmit(this.model.sanitized())
+        }
+    }
+
     onSubmit(e) {
         if (e) {
             e.preventDefault()
         }
 
+        let event = new FormSubmitEvent(this, this.model)
+
         try {
             let descriptor = this.props.descriptor
             if (_.isFunction(descriptor.beforeSubmit)) {
-                descriptor.beforeSubmit(this.model)
+                descriptor.beforeSubmit(event)
+
+                if (event.stopped) {
+                    return
+                }
             }
         } catch (e) {
-            swal(e)
-            return
+            if (e === VALIDATION_ERROR) {
+                this.forceUpdate()
+                return
+            } else {
+                throw e
+            }
         }
 
         try {
@@ -399,6 +483,17 @@ export class Form extends React.Component {
         this.model.load(nextProps.data)
     }
 
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let model = this.model
@@ -409,7 +504,7 @@ export class Form extends React.Component {
         let defaultFieldCass = inline ? InlineField : Field
         let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
         let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
-        let fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
+        let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
         let className = inline ? "form-horizontal" : ""
 
         return (
@@ -448,7 +543,7 @@ export class Field extends React.Component {
         let className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12")
         let control = React.createElement(this.props.field.control, _.assign({field: this.props.field, model: this.props.model}, this.props.field.props))
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
-        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
+        let validationResult = optional(model.validationResult[this.props.field.property], {valid: true})
         if (!validationResult.valid) {
             className += " has-error"
         }
@@ -459,6 +554,9 @@ export class Field extends React.Component {
                     <Label field={this.props.field}/>
                 }
                 {control}
+                {!validationResult.valid && !_.isEmpty(validationResult.message) &&
+                    <small className="help-block">{validationResult.message}</small>
+                }
             </div>
         )
     }
@@ -472,7 +570,7 @@ export class InlineField extends React.Component {
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
         let inline = optional(this.props.inline, false)
         let controlSize = hasLabel ? "col-sm-10" : "col-sm-12"
-        let validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : {valid: true}
+        let validationResult = optional(model.validationResult[this.props.field.property], {valid: true})
         if (!validationResult.valid) {
             className += " has-error"
         }
@@ -486,6 +584,9 @@ export class InlineField extends React.Component {
                 }
                 <div className={controlSize}>
                     {control}
+                    {!validationResult.valid && !_.isEmpty(validationResult.message) &&
+                        <small className="help-block">{validationResult.message}</small>
+                    }
                 </div>
             </div>
         )
@@ -564,6 +665,51 @@ export class ReadOnlyText extends Control {
                     placeholder={field.placeholder}
                     value={optional(formatter(this.props.model.get(field.property)), "")}
                     onChange={this.onValueChange.bind(this)} />
+            </div>
+        )
+    }
+}
+
+export class Color extends Control {
+
+    componentDidMount() {
+        let field = this.props.field
+        let model = this.props.model
+        let me = ReactDOM.findDOMNode(this)
+        let input = $(me).find("#" + field.property)
+        $(me).find(".color-picker").farbtastic(v => {
+            model.set(field.property, v)
+            this.forceUpdate()
+        })
+    }
+
+    render() {
+        let field = this.props.field
+        let value = this.props.model.get(field.property)
+        let colorStyle = {backgroundColor: `${optional(value, "#000000")}`}
+
+        return (
+            <div className="cp-container">
+                <div className="">
+                    <div className="fg-line dropdown">
+                        <input
+                            type="text"
+                            className="form-control cp-value"
+                            data-toggle="dropdown"
+                            aria-expanded="false"
+                            id={field.property}
+                            data-property={field.property}
+                            placeholder={field.placeholder}
+                            value={optional(this.props.model.get(field.property), "")}
+                            onChange={this.onValueChange.bind(this)} />
+
+                        <div className="dropdown-menu">
+                            <div className="color-picker" data-cp-default="#000000"></div>
+                        </div>
+
+                        <i className="cp-value" style={colorStyle} />
+                    </div>
+                </div>
             </div>
         )
     }
@@ -708,6 +854,9 @@ export class Select extends Control {
         }
 
         let me = ReactDOM.findDOMNode(this)
+        let model = this.props.model
+        let field = this.props.field
+        let multiple = optional(this.props.multiple, false)
 
         $(me)
             .focus(() => {
@@ -717,9 +866,21 @@ export class Select extends Control {
                 $(me).removeClass("fg-toggled")
             })
 
-        $(me).find("select").selectpicker({
-            liveSearch: optional(this.props.searchEnabled, false)
-        })
+        $(me).find("select")
+            .selectpicker({
+                liveSearch: optional(this.props.searchEnabled, false)
+            })
+            .on("loaded.bs.select", function() {
+                let value = $(this).val()
+
+                if (multiple) {
+                    if (_.isEmpty(value)) {
+                        value = []
+                    }
+                }
+
+                model.set(field.property, value)
+            })
     }
 
     componentDidUpdate() {

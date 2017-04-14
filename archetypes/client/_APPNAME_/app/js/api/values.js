@@ -5,16 +5,18 @@ const http = require("../aj/http")
 
 const preferences = require("../framework/preferences")
 const config = require("../framework/config")
+
 import * as _ from "../libs/underscore"
-import * as responses from "./responses"
+import {flatten} from "../utils/lang"
+import * as query from "../api/query"
 import {get} from "./utils"
 
-export function loadEntities(entity, keyword) {
-    let url = config.get(`values.entities.url`) + "/" + entity
-    if (!_.isEmpty(keyword)) {
-        url += "?keyword=" + keyword
+export function loadEntities(entity, _query) {
+    if (_.isEmpty(_query)) {
+        _query = query.create();
     }
-    return get(url)
+    let url = config.get(`values.entities.url`) + "/" + entity
+    return get(url, flatten(_query.cleaned()))
 }
 
 export function load(collection, keyword) {

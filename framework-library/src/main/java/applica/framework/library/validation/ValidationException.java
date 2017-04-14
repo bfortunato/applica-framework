@@ -1,4 +1,4 @@
-package applica.framework;
+package applica.framework.library.validation;
 
 public class ValidationException extends Exception {
 

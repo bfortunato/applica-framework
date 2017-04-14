@@ -3,7 +3,7 @@ package applica._APPNAME_.api.controllers;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
-import applica.framework.ValidationException;
+import applica.framework.library.validation.ValidationException;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;

@@ -405,19 +405,31 @@ var LOG_LEVEL = LOG_LEVEL_INFO;
     global.logger = {
         i: function(msg) {
             if (LOG_LEVEL >= LOG_LEVEL_INFO) {
-                console.log("AJ: " + Array.prototype.join.call(arguments, " "));
+                if (arguments.length == 1) {
+                    console.log(msg);
+                } else {
+                    console.log(Array.prototype.join.call(arguments, " "));
+                }
             }
         },
 
         e: function(msg) {
             if (LOG_LEVEL >= LOG_LEVEL_ERROR) {
-                console.error("AJ: " + Array.prototype.join.call(arguments, " "));
+                if (arguments.length == 1) {
+                    console.error(msg);
+                } else {
+                    console.error(Array.prototype.join.call(arguments, " "));
+                }
             }
         },
 
         w: function(msg) {
             if (LOG_LEVEL >= LOG_LEVEL_WARNING) {
-                console.warn("AJ: " + Array.prototype.join.call(arguments, " "));
+                if (arguments.length == 1) {
+                    console.warn(msg);
+                } else {
+                    console.warn(Array.prototype.join.call(arguments, " "));
+                }
             }
         }
     };

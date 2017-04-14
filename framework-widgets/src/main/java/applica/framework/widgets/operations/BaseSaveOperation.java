@@ -5,6 +5,8 @@ import applica.framework.Repo;
 import applica.framework.Repository;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
+import applica.framework.library.validation.Validation;
+import applica.framework.library.validation.ValidationException;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -31,7 +33,7 @@ public class BaseSaveOperation implements SaveOperation {
     }
 
     @Override
-    public void save(ObjectNode data) throws OperationException {
+    public void save(ObjectNode data) throws OperationException, ValidationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
@@ -49,7 +51,8 @@ public class BaseSaveOperation implements SaveOperation {
         }
     }
 
-    public void validate(Entity entity) throws OperationException {
+    public void validate(Entity entity) throws ValidationException {
+        Validation.validate(entity);
     }
 
     protected void beforeSave(ObjectNode data, Entity entity) throws OperationException {
