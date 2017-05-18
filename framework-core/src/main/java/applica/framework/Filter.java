@@ -28,6 +28,7 @@ public class Filter{
     public static final String AND = "and";
     public static final String CUSTOM = "custom";
     public static final String RANGE = "range";
+    public static final String GEO = "geo";
 
     private String property;
     private Object value;
