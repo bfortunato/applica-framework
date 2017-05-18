@@ -1,5 +1,6 @@
 package applica.framework.data.mongodb;
 
+import applica.framework.GeoFilter;
 import applica.framework.library.utils.ProgramException;
 import com.mongodb.BasicDBObject;
 import org.bson.types.ObjectId;
@@ -95,7 +96,16 @@ public class MongoQuery extends BasicDBObject {
 		}
 		return this;
 	}
-
+	public MongoQuery geo(String key, GeoFilter value){
+		if ( value != null ){
+			List circle = new ArrayList();
+			circle.add(new double[] { value.getCenterLat(), value.getCenterLng() }); // Centre of circle
+			circle.add(value.getRadius()); // Radius
+			this.put(key, new BasicDBObject("$geoWithin",
+					new BasicDBObject("$centerSphere", circle)));
+		}
+		return this;
+	}
 
 	/**
 	 * Use in to find elements in values list
