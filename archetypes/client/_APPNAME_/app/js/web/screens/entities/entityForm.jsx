@@ -83,12 +83,14 @@ export default class EntityForm extends Screen {
     getActions() {
         let defaultActions = [
             {
+                id: "back",
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
                 tooltip: M("back"),
                 action: () => { this.goBack() }
             },
             {
+                id: "save",
                 type: "button",
                 icon: "zmdi zmdi-save",
                 tooltip: M("save"),

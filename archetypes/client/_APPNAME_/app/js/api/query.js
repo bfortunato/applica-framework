@@ -27,7 +27,17 @@ export class Query extends Observable {
         this.filters = []
         this.keyword = null
 
+        this.invokationEnabled = true
+
         _.assign(this, init)
+    }
+
+    live() {
+        this.invokationEnabled = true
+    }
+
+    die() {
+        this.invokationEnabled = false
     }
 
     filter(type, property, value) {
@@ -170,7 +180,9 @@ export class Query extends Observable {
     }
 
     invokeChange() {
-        this.invoke("change")
+        if (this.invokationEnabled) {
+            this.invoke("change")
+        }
     }
 
     cleaned() {

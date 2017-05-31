@@ -23,7 +23,7 @@ export function post(url, data, headers = {}) {
                     let response = JSON.parse(json)
 
                     if (responses.OK != response.responseCode) {
-                        reject(response.responseCode)
+                        reject(response.responseCode, response)
                     } else {
                         resolve(response)
                     }
@@ -71,7 +71,7 @@ export function get(url, data, headers = {}) {
                     let response = JSON.parse(json)
 
                     if (responses.OK != response.responseCode) {
-                        reject(response.responseCode)
+                        reject(response.responseCode, response)
                     } else {
                         resolve(response)
                     }
@@ -94,7 +94,7 @@ export function delete_(url, data, headers) {
                     let response = JSON.parse(json)
 
                     if (responses.OK != response.responseCode) {
-                        reject(response.responseCode)
+                        reject(response.responseCode, response)
                     } else {
                         resolve(response)
                     }

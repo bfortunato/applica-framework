@@ -522,7 +522,7 @@ export class Form extends React.Component {
                     <div className="row">
                         <div className="text-right col-sm-12">
                             <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("cancel")}</button>
-                            <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || M("submit")}</button>
+                            <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || M("save")}</button>
                         </div>
                     </div>
                     <div className="clearfix"></div>

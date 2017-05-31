@@ -21,7 +21,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         try {
             remove(id);
         } catch (Exception e) {
-            throw new OperationException(Response.ERROR);
+            throw new OperationException(Response.ERROR, e);
         }
     }
 
@@ -33,7 +33,7 @@ public class BaseDeleteOperation implements DeleteOperation {
             try {
                 remove(id);
             } catch (Exception e) {
-                throw new OperationException(Response.ERROR);
+                throw new OperationException(Response.ERROR, e);
             }
         }
     }
