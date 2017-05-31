@@ -123,6 +123,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                     return q;
                 }).collect(Collectors.toList()));
                 break;
+            case Filter.GEO:
+                mongoQuery.geo(filter.getProperty(), (GeoFilter) filter.getValue());
+                break;
             case Filter.AND:
                 List<Filter> ands = (List<Filter>) filter.getValue();
                 mongoQuery.and(ands.stream().map((f) -> {
