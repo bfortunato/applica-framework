@@ -13,6 +13,7 @@ import {
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
 import {Control, Lookup, Select} from "./forms"
+import {optional} from "../../utils/lang"
 
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {
@@ -124,12 +125,20 @@ export class ValuesSelectContainer extends Control {
         this.datasource = datasource.create()
     }
 
+    reload() {
+        getSelectValues({discriminator: this.discriminator, collection: this.props.collection, params: this.getParams()})
+    }
+
     componentDidMount() {
         SelectStore.subscribe(this,  state => {
             this.datasource.setData(discriminated(state, this.discriminator).values)
         })
 
-        getSelectValues({discriminator: this.discriminator, collection: this.props.collection})
+        this.reload()
+    }
+
+    getParams() {
+        return optional(this.props.params, {})
     }
 
     componentWillUnmount() {
