@@ -256,7 +256,7 @@ strings["it"] = {
     congratulations: "Congratulazioni",
     welcomeMessage: "Ciao {0}, la tua registrazione è completa.\nUn link per la conferma è stato inviato a {1}.\nPer favore conferma prima di effettuare l'accesso",
     continue: "Continuare",
-    register: "Registrare",
+    register: "Registrati",
     forgotPassword: "Dimenticato la password",
     signIn: "Rgistrati",
     mailAddress: "Indirizzo mail",
@@ -311,7 +311,7 @@ strings["it"] = {
     nameOfRole: "Nome del ruolo",
     role: "Ruolo",
     permissions: "Permessi",
-    selectPermissions: "Seleziona i premessi per la ruolo",
+    selectPermissions: "Seleziona i premessi per il ruolo",
     back: "Indietro",
     save: "Salva",
     image: "Immagine",
@@ -478,7 +478,9 @@ strings["it"] = {
     confirmRemoveConfigurablePhase: "Conferma la rimozione della fase configurabile",
     coverOptionColorConfiguration: "Configurazione i colori dell'opzione rivestimento",
     addComplementaryArticleForColor: "Aggiungi articolo a contrasto a {0}",
-    addAnalogousArticleForColor: "Aggiungi articolo a {0}"
+    addAnalogousArticleForColor: "Aggiungi articolo a {0}",
+    usersList: "Lista utenti",
+    rolesList: "Lista ruoli"
 }
 
 

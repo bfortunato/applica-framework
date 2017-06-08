@@ -25374,7 +25374,7 @@ strings["it"] = (_strings$it = {
     congratulations: "Congratulazioni",
     welcomeMessage: "Ciao {0}, la tua registrazione è completa.\nUn link per la conferma è stato inviato a {1}.\nPer favore conferma prima di effettuare l'accesso",
     continue: "Continuare",
-    register: "Registrare",
+    register: "Registrati",
     forgotPassword: "Dimenticato la password",
     signIn: "Rgistrati",
     mailAddress: "Indirizzo mail",
@@ -25429,7 +25429,7 @@ strings["it"] = (_strings$it = {
     nameOfRole: "Nome del ruolo",
     role: "Ruolo",
     permissions: "Permessi",
-    selectPermissions: "Seleziona i premessi per la ruolo",
+    selectPermissions: "Seleziona i premessi per il ruolo",
     back: "Indietro",
     save: "Salva",
     image: "Immagine",
@@ -25559,7 +25559,7 @@ strings["it"] = (_strings$it = {
     coverOptions: "Opzioni del rivestimento",
     addCoverOption: "Aggiungi opzione del rivestimento",
     removeThisCoverOption: "Rimuovi questa opzione del rivestimento"
-}, _defineProperty(_strings$it, "noArticlesSelected", "Nessun articolo selezionato"), _defineProperty(_strings$it, "analogousColorArticles", "Articoli analoghi"), _defineProperty(_strings$it, "complementaryColorArticles", "Articoli complementari"), _defineProperty(_strings$it, "addComplementaryArticleToCoverOption", "Aggiungi articoli complementari per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "addAnalogousArticleToCoverOption", "Aggiungi articoli analoghi per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "coverType", "Tipo di rivestimento"), _defineProperty(_strings$it, "color", "Colore"), _defineProperty(_strings$it, "characteristicsDisabledForCoverOptions", "Caratteristiche disabilitate per le opzioni del rivestimento"), _defineProperty(_strings$it, "compositions", "Composizioni"), _defineProperty(_strings$it, "customers", "Clienti"), _defineProperty(_strings$it, "customersListDescription", "Creare clienti del sistema"), _defineProperty(_strings$it, "companyName", "Nome dell'Azienda"), _defineProperty(_strings$it, "paymentCode", "Codice di pagamento"), _defineProperty(_strings$it, "zipCode", "CAP"), _defineProperty(_strings$it, "fiscalCode", "Codice fiscale"), _defineProperty(_strings$it, "vatCode", "I.V.A."), _defineProperty(_strings$it, "componentsAccessoriesCovers", "Componenti dei rivestimenti degli accessori"), _defineProperty(_strings$it, "removeThisPhase", "Rimuovi questa fase"), _defineProperty(_strings$it, "phases", "Fasi"), _defineProperty(_strings$it, "addPhase", "Aggiungi fase"), _defineProperty(_strings$it, "addComponentToPhase", "Aggiungi componente alla fase"), _defineProperty(_strings$it, "workingTime", "Tempo di lavoro"), _defineProperty(_strings$it, "address", "Indirizzo"), _defineProperty(_strings$it, "city", "Città"), _defineProperty(_strings$it, "phasesListDescription", "Lista delle descrizioni della fase"), _defineProperty(_strings$it, "defaultTime", "Tempo predefinito"), _defineProperty(_strings$it, "editPhase", "Modifica fase"), _defineProperty(_strings$it, "editPhaseDescription", "Modifica la descrizione della fase"), _defineProperty(_strings$it, "nameOfPhase", "Nome della fase"), _defineProperty(_strings$it, "production", "Produzione"), _defineProperty(_strings$it, "customer", "Cliente"), _defineProperty(_strings$it, "coverings", "Rivestimenti"), _defineProperty(_strings$it, "allCoverings", "Tutti i rivestimenti"), _defineProperty(_strings$it, "allAccessories", "Tutti gli accessori"), _defineProperty(_strings$it, "confirmRemoveConfigurablePhase", "Conferma la rimozione della fase configurabile"), _defineProperty(_strings$it, "coverOptionColorConfiguration", "Configurazione i colori dell'opzione rivestimento"), _defineProperty(_strings$it, "addComplementaryArticleForColor", "Aggiungi articolo a contrasto a {0}"), _defineProperty(_strings$it, "addAnalogousArticleForColor", "Aggiungi articolo a {0}"), _strings$it);
+}, _defineProperty(_strings$it, "noArticlesSelected", "Nessun articolo selezionato"), _defineProperty(_strings$it, "analogousColorArticles", "Articoli analoghi"), _defineProperty(_strings$it, "complementaryColorArticles", "Articoli complementari"), _defineProperty(_strings$it, "addComplementaryArticleToCoverOption", "Aggiungi articoli complementari per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "addAnalogousArticleToCoverOption", "Aggiungi articoli analoghi per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "coverType", "Tipo di rivestimento"), _defineProperty(_strings$it, "color", "Colore"), _defineProperty(_strings$it, "characteristicsDisabledForCoverOptions", "Caratteristiche disabilitate per le opzioni del rivestimento"), _defineProperty(_strings$it, "compositions", "Composizioni"), _defineProperty(_strings$it, "customers", "Clienti"), _defineProperty(_strings$it, "customersListDescription", "Creare clienti del sistema"), _defineProperty(_strings$it, "companyName", "Nome dell'Azienda"), _defineProperty(_strings$it, "paymentCode", "Codice di pagamento"), _defineProperty(_strings$it, "zipCode", "CAP"), _defineProperty(_strings$it, "fiscalCode", "Codice fiscale"), _defineProperty(_strings$it, "vatCode", "I.V.A."), _defineProperty(_strings$it, "componentsAccessoriesCovers", "Componenti dei rivestimenti degli accessori"), _defineProperty(_strings$it, "removeThisPhase", "Rimuovi questa fase"), _defineProperty(_strings$it, "phases", "Fasi"), _defineProperty(_strings$it, "addPhase", "Aggiungi fase"), _defineProperty(_strings$it, "addComponentToPhase", "Aggiungi componente alla fase"), _defineProperty(_strings$it, "workingTime", "Tempo di lavoro"), _defineProperty(_strings$it, "address", "Indirizzo"), _defineProperty(_strings$it, "city", "Città"), _defineProperty(_strings$it, "phasesListDescription", "Lista delle descrizioni della fase"), _defineProperty(_strings$it, "defaultTime", "Tempo predefinito"), _defineProperty(_strings$it, "editPhase", "Modifica fase"), _defineProperty(_strings$it, "editPhaseDescription", "Modifica la descrizione della fase"), _defineProperty(_strings$it, "nameOfPhase", "Nome della fase"), _defineProperty(_strings$it, "production", "Produzione"), _defineProperty(_strings$it, "customer", "Cliente"), _defineProperty(_strings$it, "coverings", "Rivestimenti"), _defineProperty(_strings$it, "allCoverings", "Tutti i rivestimenti"), _defineProperty(_strings$it, "allAccessories", "Tutti gli accessori"), _defineProperty(_strings$it, "confirmRemoveConfigurablePhase", "Conferma la rimozione della fase configurabile"), _defineProperty(_strings$it, "coverOptionColorConfiguration", "Configurazione i colori dell'opzione rivestimento"), _defineProperty(_strings$it, "addComplementaryArticleForColor", "Aggiungi articolo a contrasto a {0}"), _defineProperty(_strings$it, "addAnalogousArticleForColor", "Aggiungi articolo a {0}"), _defineProperty(_strings$it, "usersList", "Lista utenti"), _defineProperty(_strings$it, "rolesList", "Lista ruoli"), _strings$it);
 
 function setLanguage(language_) {
     language = language_;
@@ -33366,6 +33366,42 @@ function isEsc(which) {
     return which == 27;
 }
 });
+define('web/utils/mobile.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isAndroid = isAndroid;
+exports.isiOS = isiOS;
+exports.isOpera = isOpera;
+exports.isBlackBerry = isBlackBerry;
+exports.isWindows = isWindows;
+exports.isMobile = isMobile;
+function isAndroid() {
+    return navigator.userAgent.match(/Android/i);
+}
+
+function isiOS() {
+    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+}
+
+function isOpera() {
+    return navigator.userAgent.match(/Opera Mini/i);
+}
+
+function isBlackBerry() {
+    return navigator.userAgent.match(/BlackBerry/i);
+}
+
+function isWindows() {
+    return navigator.userAgent.match(/IEMobile/i) || navigator.userAgent.match(/WPDesktop/i);
+}
+
+function isMobile() {
+    return isAndroid() || isBlackBerry() || isiOS() || isOpera() || isWindows();
+}
+});
 define('web/utils/path.js', function(module, exports) {
 "use strict";
 
@@ -33515,42 +33551,6 @@ exports.addScreenChangeListener = function (listener) {
 exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
-});
-define('web/utils/mobile.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.isAndroid = isAndroid;
-exports.isiOS = isiOS;
-exports.isOpera = isOpera;
-exports.isBlackBerry = isBlackBerry;
-exports.isWindows = isWindows;
-exports.isMobile = isMobile;
-function isAndroid() {
-    return navigator.userAgent.match(/Android/i);
-}
-
-function isiOS() {
-    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
-}
-
-function isOpera() {
-    return navigator.userAgent.match(/Opera Mini/i);
-}
-
-function isBlackBerry() {
-    return navigator.userAgent.match(/BlackBerry/i);
-}
-
-function isWindows() {
-    return navigator.userAgent.match(/IEMobile/i) || navigator.userAgent.match(/WPDesktop/i);
-}
-
-function isMobile() {
-    return isAndroid() || isBlackBerry() || isiOS() || isOpera() || isWindows();
-}
 });
 
 require('./aj').createRuntime();
