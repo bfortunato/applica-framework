@@ -3,7 +3,7 @@
 import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import M from "../../../strings"
-import {loadEntities, deleteEntities} from "../../../actions"
+import {loadEntities, deleteEntities, freeEntities} from "../../../actions"
 import {connectDiscriminated} from "../../utils/aj"
 import {HeaderBlock, FloatingButton, ActionsMatcher} from "../../components/common"
 import {Grid, resultToGridData} from "../../components/grids"
@@ -43,6 +43,10 @@ export default class EntitiesGrid extends Screen {
 
     componentDidMount() {
         loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query})
+    }
+
+    componentWillUnmount() {
+        freeEntities({discriminator: this.discriminator})
     }
 
     onQueryChanged() {

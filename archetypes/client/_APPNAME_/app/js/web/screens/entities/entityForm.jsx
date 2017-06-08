@@ -33,7 +33,7 @@ export default class EntityForm extends Screen {
     }
 
     componentWillUnmount() {
-        freeEntities(this.discriminator)
+        freeEntities({discriminator: this.discriminator})
     }
 
     onSubmit(data) {
