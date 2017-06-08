@@ -6,6 +6,7 @@ import {Card, HeaderBlock} from "./common"
 import {format, optional, parseBoolean} from "../../utils/lang"
 import {Observable} from "../../aj/events"
 import {isControl, isDown, isEnter, isShift, isUp, isEsc} from "../utils/keyboard"
+import * as mobile from "../utils/mobile"
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
@@ -616,7 +617,7 @@ export class TextCell extends Cell {
 
 export class CheckCell extends Cell {
     render() {
-        let checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0
+        let checked = this.props.value === true || this.props.value === "true" || parseInt(this.props.value) > 0
         let icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o"
 
         return (
@@ -628,18 +629,22 @@ export class CheckCell extends Cell {
 export class ActionsCell extends Cell {
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
-        $(me).closest("tr")
-            .mouseenter(() => {
-                $(me).find(".grid-action").stop().fadeIn(250)
-            })
-            .mouseleave(() => {
-                $(me).find(".grid-action").stop().fadeOut(250)
-            })
+        let showAlways = parseBoolean(this.props.showAlways)
+        if (!showAlways) {
+            $(me).closest("tr")
+                .mouseenter(() => {
+                    $(me).find(".grid-action").stop().fadeIn(250)
+                })
+                .mouseleave(() => {
+                    $(me).find(".grid-action").stop().fadeOut(250)
+                })
+        }
+
     }
 
     render() {
         let key = 1
-        let actions = this.props.column.actions.map(a => <a key={key++} style={{display: "none"}} href="javascript:;" className="grid-action" onClick={a.action.bind(this, this.props.row.data)}><i className={a.icon} /></a>)
+        let actions = this.props.column.actions.map(a => <a key={key++} href="javascript:;" className="grid-action" onClick={a.action.bind(this, this.props.row.data)}><i className={a.icon} /></a>)
 
         return (
             <div className="grid-actions-container">{actions}</div>
@@ -736,6 +741,14 @@ export class Pagination extends React.Component {
         }
     }
 
+    firstPage() {
+        this.props.query.setPage(1)
+    }
+
+    lastPage() {
+        this.props.query.setPage(this.getTotalPages())
+    }
+
     render() {
         if (_.isEmpty(this.props.query) || _.isEmpty(this.props.data.rows)) {
             return null
@@ -745,13 +758,39 @@ export class Pagination extends React.Component {
         let visible = totalPages > 1
         let page = parseInt(this.props.query.page || 1)
         let pages = []
-        for (let i = 1; i <= totalPages; i++) {
-            let active = i == page ? "active" : ""
-            pages.push(<li key={i} className={active}><a href="javascript:;" onClick={this.changePage.bind(this, i)}>{i}</a></li>)
+        let visiblePages = []
+        if (totalPages > 10) {
+            if (page > 1) {
+                visiblePages.push(page - 1)
+            }
+            visiblePages.push(page)
+            if (page < totalPages) {
+                visiblePages.push(page + 1)
+            }
+
+            let range = 10
+            if (totalPages > 100) {
+                range = 100
+            } else if (totalPages > 1000) {
+                range = 1000
+            }
+
+            visiblePages = _.sortBy(_.union(visiblePages, _.range(range, totalPages, range)), i => i)
+        } else {
+            visiblePages = _.range(1, totalPages + 1)
         }
+        visiblePages.forEach(i => {
+            let active = i === page ? "active" : ""
+            pages.push(<li key={i} className={active}><a href="javascript:;" onClick={this.changePage.bind(this, i)}>{i}</a></li>)
+        })
 
         return (
             <ul className="pagination" hidden={!visible}>
+                <li>
+                    <a href="javascript:;" onClick={this.firstPage.bind(this)} aria-label="First">
+                        <i className="zmdi zmdi-arrow-left"></i>
+                    </a>
+                </li>
                 <li>
                     <a href="javascript:;" onClick={this.previousPage.bind(this)} aria-label="Previous">
                         <i className="zmdi zmdi-chevron-left"></i>
@@ -761,6 +800,11 @@ export class Pagination extends React.Component {
                 <li>
                     <a href="javascript:;" onClick={this.nextPage.bind(this)} aria-label="Next">
                         <i className="zmdi zmdi-chevron-right"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="javascript:;" onClick={this.lastPage.bind(this)} aria-label="First">
+                        <i className="zmdi zmdi-arrow-right"></i>
                     </a>
                 </li>
             </ul>
@@ -1030,6 +1074,22 @@ export class Grid extends React.Component {
         let hasResults = (this.props.data && this.props.data.rows) ? this.props.data.rows.length > 0 : false
         let hasPagination = this.getTotalPages() > 1
         let Container = optional(parseBoolean(this.props.showInCard), true) ? Card : NoCard
+        let descriptor = mobile.isMobile()
+            ? _.assign({}, this.props.descriptor, {columns: _.union(this.props.descriptor.columns, [{
+                cell: ActionsCell,
+                tdClassName: "grid-actions",
+                actions: [
+                    {icon: "zmdi zmdi-edit", action: (row) => {
+                        if (_.isFunction(this.props.onRowDoubleClick)) {
+                            this.props.onRowDoubleClick(row)
+                        }
+                    }}
+                ],
+                props: {
+                    showAlways: true
+                }
+            }])})
+            : this.props.descriptor
 
         return (
             <div className="grid" tabIndex="0" onBlur={this.onBlur.bind(this)} onKeyPress={this.onKeyPress.bind(this)} onKeyUp={this.onKeyUp.bind(this)} onKeyDown={this.onKeyDown.bind(this)}>
@@ -1049,11 +1109,11 @@ export class Grid extends React.Component {
                             <div className="with-result">
                                 <table className={tableClassName}>
                                     {headerVisible && 
-                                        <GridHeader descriptor={this.props.descriptor} query={myQuery}/>
+                                        <GridHeader descriptor={descriptor} query={myQuery}/>
                                     }
-                                    <GridBody descriptor={this.props.descriptor} data={this.props.data} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
+                                    <GridBody descriptor={descriptor} data={this.props.data} query={myQuery} onRowExpand={this.onRowExpand.bind(this)} onRowMouseDown={this.onRowMouseDown.bind(this)} onRowDoubleClick={this.onRowDoubleClick.bind(this)} />
                                     {footerVisible &&
-                                        <GridFooter descriptor={this.props.descriptor} />
+                                        <GridFooter descriptor={descriptor} />
                                     }
                                 </table>
 

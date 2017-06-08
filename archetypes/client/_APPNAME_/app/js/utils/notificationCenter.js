@@ -5,19 +5,16 @@ import {Observable} from "../aj/events";
 let instance = new Observable()
 
 export function addObserver(evt, handler) {
-    instance.on(evt, handler)
-
-    logger.i("Added observer for event:", evt)
+	logger.i("Added observer for event:", evt)
+    return instance.on(evt, handler)
 }
 
 export function removeObserver(evt, handler) {
-    instance.off(evt, handler)
-
     logger.i("Removed observer for event:", evt)
+    instance.off(evt, handler)
 }
 
 export function invoke(evt, data = null) {
-    instance.invoke(evt, data)
-
     logger.i("Invoking observers for event:", evt)
+    instance.invoke(evt, data)
 }

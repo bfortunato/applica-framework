@@ -119,22 +119,28 @@ export default class EntityForm extends Screen {
         return form.descriptor
     }
 
+    getFormComponent() {
+        let form = entities[this.getEntity()].form
+        return optional(() => form.component, () => Form)
+    }
+
     render() {
         let title = this.getTitle()
         let subtitle = this.getSubtitle()
         let actions = this.getActions()
         let descriptor = this.getDescriptor()
+        let component = this.getFormComponent()
 
         return (
             <Layout>
                 <HeaderBlock title={title} subtitle={subtitle} actions={actions}/>
-                <Form
-                    ref="form"
-                    descriptor={descriptor} 
-                    data={this.state.data} 
-                    onSubmit={this.onSubmit.bind(this)} 
-                    onCancel={this.onCancel.bind(this)}
-                    />
+                {React.createElement(component, {
+                    ref: "form",
+                    descriptor: descriptor,
+                    data: this.state.data,
+                    onSubmit: this.onSubmit.bind(this),
+                    onCancel: this.onCancel.bind(this)
+                })}
             </Layout>
         )
     }

@@ -2,6 +2,7 @@ let language = "it"
 
 let strings = {}
 strings["en"] = {
+    appName: "_APPNAME_",
     registering: "Registering...",
     ooops: "Ooops...",
     badLogin: "Cannot login! Please check your email address or password!",
@@ -247,6 +248,7 @@ strings["en"] = {
 }
 
 strings["it"] = {
+    appName: "_APPNAME_",
     registering: "Registrazione...",
     ooops: "Ooops...",
     badLogin: "Non riesco ad accedere! Per favore controlla il tuo indirizzo email o password!",

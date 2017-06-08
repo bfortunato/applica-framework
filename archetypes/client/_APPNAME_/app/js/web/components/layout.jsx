@@ -7,6 +7,7 @@ import {PageLoader, GlobalLoader} from "./loader"
 import {connect} from "../utils/aj"
 import {optional, parseBoolean} from "../../utils/lang"
 import {setActiveMenuItem, expandMenuItem} from "../../actions"
+import M from "../../strings"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -30,7 +31,7 @@ class Header extends React.Component {
                     </li>
 
                     <li className="hi-logo hidden-xs">
-                        <a href="index.html">commodo</a>
+                        <a href="index.html">{M("appName")}</a>
                     </li>
 
                     <li className="pull-right">

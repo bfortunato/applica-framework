@@ -8,9 +8,9 @@ let lastFragment = null;
 let screens = new Observable();
 
 function _handleRoute(fragment) {
-	var route = router.recognize(fragment);
+	let route = router.recognize(fragment);
 	if (route) {
-		var params = _.extend(route[0].params, route.queryParams || {});
+		let params = _.extend(route[0].params, route.queryParams || {});
 		route[0].handler(params);
 	}
 }
@@ -26,13 +26,13 @@ exports.addRoute = function(path, handler) {
 exports.startNavigation = function(_base) {
 	base = _base || "#";
 
-	var loop = () => {
-		var fragment = "/";
-		if (location.href.indexOf("#") != -1) {
+	let loop = () => {
+		let fragment = "/";
+		if (location.href.indexOf("#") !== -1) {
 			fragment = _clearSlashes(location.href.split("#")[1]);
 		}
 
-		if (lastFragment != fragment) {
+		if (lastFragment !== fragment) {
 			lastFragment = fragment;
 			_handleRoute(fragment);
 		}

@@ -10,17 +10,26 @@ import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
+import {Dialog} from "./dialogs"
+import moment from "../../libs/moment"
 
 export const VALIDATION_ERROR = {}
 
 export class Model extends Observable {
-    constructor() {
+    constructor(form) {
         super()
 
         this.descriptor = null
         this.data = {}
         this.validationResult = {}
         this.initialized = false
+        this.form = form
+    }
+
+    invalidatForm() {
+        if (this.form) {
+            this.form.forceUpdate()
+        }
     }
 
     load(data) {
@@ -250,6 +259,10 @@ export class Area extends React.Component {
         return true
     }
 
+    getExtra() {
+        return null
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let area = this.props.area
@@ -264,6 +277,8 @@ export class Area extends React.Component {
                 {tabs}
                 <div className="row">{fields}</div>
                 <div className="clearfix"></div>
+
+                {this.getExtra()}
             </Card>
         )
     }
@@ -420,7 +435,7 @@ export class Form extends React.Component {
     constructor(props) {
         super(props)
 
-        this.model = new Model()
+        this.model = new Model(this)
     }
 
     submit() {
@@ -494,6 +509,10 @@ export class Form extends React.Component {
         return true
     }
 
+    getExtra() {
+        return null
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let model = this.model
@@ -526,6 +545,7 @@ export class Form extends React.Component {
                         </div>
                     </div>
                     <div className="clearfix"></div>
+                    {this.getExtra()}
                 </form>
             </div>
         )
@@ -547,9 +567,12 @@ export class Field extends React.Component {
         if (!validationResult.valid) {
             className += " has-error"
         }
+        if (!_.isEmpty(this.props.field.className)) {
+            className += " " + this.props.field.className
+        }
         return (
 
-            <div className={className}>
+            <div className={className} style={{minHeight: 58}}>
                 {hasLabel &&
                     <Label field={this.props.field}/>
                 }
@@ -573,6 +596,9 @@ export class InlineField extends React.Component {
         let validationResult = optional(model.validationResult[this.props.field.property], {valid: true})
         if (!validationResult.valid) {
             className += " has-error"
+        }
+        if (!_.isEmpty(this.props.field.className)) {
+            className += " " + this.props.field.className
         }
         return (
 
@@ -742,6 +768,56 @@ export class Mail extends Control {
     }
 }
 
+export class DateTime extends Control {
+
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).datetimepicker({
+            locale: this.props.locale,
+            format: this.props.format
+        })
+
+        let field = this.props.field
+        let model = this.props.model
+
+        $(me).on("dp.change", (e) => {
+            let date = e.date.toDate()
+            let time = date.getTime()
+            model.set(field.property, time)
+        })
+
+        model.once("load", () => {
+            let value = model.get(field.property)
+            let date = new Date()
+            if (value) {
+                date.setTime(value)
+            }
+            $(me).data("DateTimePicker").date(date)
+        })
+    }
+
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="input-group">
+                <div className="fg-line">
+                    <input
+                        type="text"
+                        className="form-control input-sm"
+                        id={field.property}
+                        data-property={field.property}
+                        placeholder={field.placeholder} />
+                </div>
+                <div className="input-group-addon">
+                    <span className="zmdi zmdi-calendar" />
+                </div>
+            </div>
+        )
+    }
+}
+
+
 export class YesNo extends Control {
     onValueChange(e) {
         let value = parseBoolean(e.target.value)
@@ -749,6 +825,21 @@ export class YesNo extends Control {
         let field = this.props.field
         model.set(field.property, value)
         this.forceUpdate()
+    }
+
+    componentDidMount() {
+        let model = this.props.model
+        let field = this.props.field
+        let fn = () => {
+            let value = parseBoolean(model.get(field.property))
+            if (value === null || value === undefined) {
+                value = false
+            }
+            model.set(field.property, value)
+        }
+
+        model.once("load", fn)
+        fn()
     }
 
     render() {
@@ -803,6 +894,7 @@ export class Switch extends Control {
 }
 
 export class Number extends Control {
+
     render() {
         let field = this.props.field
 
@@ -1126,7 +1218,8 @@ export class Lookup extends Control {
                 return ""
             }
 
-            let formatter = _.isFunction(field.formatter) ? field.formatter : (row) => {
+            let customFormatter = field.formatter || this.props.formatter
+            let formatter = _.isFunction(customFormatter) ? customFormatter : (row) => {
                 if (_.has(row, "name")) {
                     return row["name"]
                 } else if (_.has(row, "description")) {
@@ -1180,7 +1273,7 @@ export class Lookup extends Control {
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
                     <div className="lookup-header" onClick={this.showEntities.bind(this)}>
-                        <div className="actions pull-right">
+                        <div className="actions">
                             <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
                             <a href="javascript:;" title={M("add")} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
                         </div>
@@ -1211,7 +1304,7 @@ export class Lookup extends Control {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 className="modal-title" id="myModalLabel">Select roles</h4>
+                                <h4 className="modal-title" id="myModalLabel">{field.label}</h4>
                             </div>
                             <div className="modal-body">
                                 <Grid 

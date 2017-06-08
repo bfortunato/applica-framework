@@ -6,43 +6,47 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getUserProfileImage = exports.GET_USER_PROFILE_IMAGE = exports.getUserCoverImage = exports.GET_USER_COVER_IMAGE = exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeSelect = exports.FREE_SELECT = exports.getSelectValues = exports.GET_SELECT_VALUES = exports.getSelectEntities = exports.GET_SELECT_ENTITIES = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
 
-var _aj = require("../aj");
+var _aj = require("./aj");
 
 var aj = _interopRequireWildcard(_aj);
 
-var _ajex = require("../utils/ajex");
+var _ajex = require("./utils/ajex");
 
-var _session = require("../api/session");
+var _session = require("./api/session");
 
 var SessionApi = _interopRequireWildcard(_session);
 
-var _account = require("../api/account");
+var _account = require("./api/account");
 
 var AccountApi = _interopRequireWildcard(_account);
 
-var _responses = require("../api/responses");
+var _responses = require("./api/responses");
 
 var responses = _interopRequireWildcard(_responses);
 
-var _plugins = require("../plugins");
+var _plugins = require("./plugins");
 
-var _lang = require("../utils/lang");
+var _lang = require("./utils/lang");
 
-var _strings = require("../strings");
+var _strings = require("./strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _grids = require("../api/grids");
+var _grids = require("./api/grids");
 
 var GridsApi = _interopRequireWildcard(_grids);
 
-var _entities = require("../api/entities");
+var _entities = require("./api/entities");
 
 var EntitiesApi = _interopRequireWildcard(_entities);
 
-var _values = require("../api/values");
+var _values = require("./api/values");
 
 var ValuesApi = _interopRequireWildcard(_values);
+
+var _underscore = require("./libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -51,7 +55,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 var LOGIN = exports.LOGIN = "LOGIN";
 var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailAndPasswordRequired, "warning");
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailAndPasswordRequired"), "warning");
         return;
     }
 
@@ -62,7 +66,7 @@ var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) 
     (0, _plugins.showLoader)();
     SessionApi.start(data.mail, data.password).then(function (user) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
+        (0, _plugins.toast)((0, _strings2.default)("welcome") + " " + user.name);
 
         login.complete({ user: user });
 
@@ -70,7 +74,7 @@ var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) 
         getUserCoverImage();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, _strings2.default.badLogin, "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), (0, _strings2.default)("badLogin"), "error");
 
         login.fail();
     });
@@ -84,7 +88,7 @@ var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_
 
     SessionApi.resume().then(function (user) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.toast)(_strings2.default.welcome + " " + user.name);
+        (0, _plugins.toast)((0, _strings2.default)("welcome") + " " + user.name);
 
         resumeSession.complete({ user: user });
         getUserProfileImage();
@@ -108,7 +112,7 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
 var REGISTER = exports.REGISTER = "REGISTER";
 var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, function (data) {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.nameMailAndPasswordRequired, "warning");
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("nameMailAndPasswordRequired"), "warning");
         return;
     }
 
@@ -116,15 +120,15 @@ var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, functio
         type: REGISTER
     });
 
-    (0, _plugins.showLoader)(_strings2.default.registering);
+    (0, _plugins.showLoader)((0, _strings2.default)("registering"));
     AccountApi.register(data.name, data.mail, data.password).then(function () {
         (0, _plugins.hideLoader)();
 
-        var message = (0, _lang.format)(_strings2.default.welcomeMessage, data.name, data.mail);
+        var message = (0, _lang.format)((0, _strings2.default)("welcomeMessage"), data.name, data.mail);
         register.complete({ name: data.name, mail: data.mail, message: message });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         register.fail();
     });
@@ -133,7 +137,7 @@ var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, functio
 var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
 var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(RECOVER_ACCOUNT, function (data) {
     if (_.isEmpty(data.mail)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.mailRequired, "warning");
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
         return;
     }
 
@@ -144,12 +148,12 @@ var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(RECOV
     (0, _plugins.showLoader)();
     AccountApi.recover(data.mail).then(function () {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.congratulations, (0, _lang.format)(_strings2.default.accountRecovered, data.mail));
+        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _lang.format)((0, _strings2.default)("accountRecovered"), data.mail));
 
         recoverAccount.complete();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         recoverAccount.fail();
     });
@@ -166,7 +170,7 @@ var setActivationCode = exports.setActivationCode = aj.createAction(SET_ACTIVATI
 var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
 var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFIRM_ACCOUNT, function (data) {
     if (_.isEmpty(data.activationCode)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.activationCodeRequired, "warning");
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("activationCodeRequired"), "warning");
         return;
     }
 
@@ -177,12 +181,12 @@ var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFI
     (0, _plugins.showLoader)();
     AccountApi.confirm(data.activationCode).then(function () {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.congratulations, _strings2.default.accountConfirmed);
+        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _strings2.default)("accountConfirmed"));
 
         confirmAccount.complete();
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         confirmAccount.fail();
     });
@@ -192,7 +196,7 @@ var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFI
 var GET_GRID = exports.GET_GRID = "GET_GRID";
 var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function (data) {
     if (_.isEmpty(data.id)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
         return;
     }
 
@@ -207,7 +211,7 @@ var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function 
         getGrid.complete({ grid: JSON.parse(response.value) });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getGrid.fail();
     });
@@ -220,7 +224,7 @@ var queries = {};
 var LOAD_ENTITIES = exports.LOAD_ENTITIES = "LOAD_ENTITIES";
 var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTITIES, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
@@ -242,7 +246,7 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
         loadEntities.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         loadEntities.fail({ discriminator: data.discriminator });
     });
@@ -251,12 +255,12 @@ var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTI
 var DELETE_ENTITIES = exports.DELETE_ENTITIES = "DELETE_ENTITIES";
 var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELETE_ENTITIES, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
     if (_.isEmpty(data.ids)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
         return;
     }
 
@@ -279,7 +283,7 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
         }
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         deleteEntities.fail({ discriminator: data.discriminator });
     });
@@ -288,12 +292,12 @@ var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELET
 var SAVE_ENTITY = exports.SAVE_ENTITY = "SAVE_ENTITY";
 var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
     if (_.isEmpty(data.data)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyData);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyData"));
         return;
     }
 
@@ -309,7 +313,7 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
 
     EntitiesApi.save(data.entity, data.data).then(function () {
         (0, _plugins.hideLoader)();
-        (0, _plugins.toast)(_strings2.default.saveComplete);
+        (0, _plugins.toast)((0, _strings2.default)("saveComplete"));
 
         saveEntity.complete({ discriminator: data.discriminator, data: data.data });
 
@@ -319,11 +323,16 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, 
                 getUserCoverImage();
             }
         }
-    }).catch(function (e) {
+    }).catch(function (r) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
 
-        saveEntity.fail({ discriminator: data.discriminator, data: data.data });
+        if (r.responseCode === responses.ERROR_VALIDATION) {
+            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: true, validationResult: r.result });
+        } else {
+            (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(r.responseCode), "error");
+
+            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: false, validationResult: null });
+        }
     });
 });
 
@@ -342,12 +351,12 @@ var newEntity = exports.newEntity = aj.createAction(NEW_ENTITY, function (data) 
 var GET_ENTITY = exports.GET_ENTITY = "GET_ENTITY";
 var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
     if (_.isEmpty(data.id)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyId);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
         return;
     }
 
@@ -366,7 +375,7 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, fun
         getEntity.complete({ data: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getEntity.fail({ discriminator: data.discriminator });
     });
@@ -387,7 +396,7 @@ var freeEntities = exports.freeEntities = aj.createAction(FREE_ENTITIES, functio
 var GET_LOOKUP_RESULT = exports.GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT";
 var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET_LOOKUP_RESULT, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
@@ -403,7 +412,7 @@ var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET
     EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
         getLookupResult.complete({ result: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getLookupResult.fail({ discriminator: data.discriminator });
     });
@@ -412,7 +421,7 @@ var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET
 var GET_LOOKUP_VALUES = exports.GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES";
 var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(GET_LOOKUP_VALUES, function (data) {
     if (_.isEmpty(data.collection)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
@@ -428,7 +437,7 @@ var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(GET
     ValuesApi.load(data.collection, data.keyword).then(function (response) {
         getLookupValues.complete({ values: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getLookupValues.fail({ discriminator: data.discriminator });
     });
@@ -449,7 +458,7 @@ var freeLookup = exports.freeLookup = aj.createAction(FREE_LOOKUP, function (dat
 var GET_SELECT_ENTITIES = exports.GET_SELECT_ENTITIES = "GET_SELECT_ENTITIES";
 var getSelectEntities = exports.getSelectEntities = (0, _ajex.createAsyncAction)(GET_SELECT_ENTITIES, function (data) {
     if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
@@ -462,10 +471,10 @@ var getSelectEntities = exports.getSelectEntities = (0, _ajex.createAsyncAction)
         discriminator: data.discriminator
     });
 
-    ValuesApi.loadEntities(data.entity, data.keyword).then(function (response) {
+    ValuesApi.loadEntities(data.entity, data.query).then(function (response) {
         getSelectEntities.complete({ entities: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getSelectEntities.fail({ discriminator: data.discriminator });
     });
@@ -474,7 +483,7 @@ var getSelectEntities = exports.getSelectEntities = (0, _ajex.createAsyncAction)
 var GET_SELECT_VALUES = exports.GET_SELECT_VALUES = "GET_SELECT_VALUES";
 var getSelectValues = exports.getSelectValues = (0, _ajex.createAsyncAction)(GET_SELECT_VALUES, function (data) {
     if (_.isEmpty(data.collection)) {
-        (0, _plugins.alert)(_strings2.default.problemOccoured, _strings2.default.pleaseSpecifyEntity);
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
         return;
     }
 
@@ -490,7 +499,7 @@ var getSelectValues = exports.getSelectValues = (0, _ajex.createAsyncAction)(GET
     ValuesApi.load(data.collection, data.keyword).then(function (response) {
         getSelectValues.complete({ values: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
 
         getSelectValues.fail({ discriminator: data.discriminator });
     });
@@ -550,8 +559,6 @@ var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)
     AccountApi.getCoverImage(user.id).then(function (data) {
         getUserCoverImage.complete({ data: data.value });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
-
         getUserCoverImage.fail({ e: e });
     });
 });
@@ -570,8 +577,6 @@ var getUserProfileImage = exports.getUserProfileImage = (0, _ajex.createAsyncAct
     AccountApi.getProfileImage(user.id).then(function (data) {
         getUserProfileImage.complete({ data: data.value });
     }).catch(function (e) {
-        (0, _plugins.alert)(_strings2.default.ooops, responses.msg(e), "error");
-
         getUserProfileImage.fail({ e: e });
     });
 });
@@ -903,6 +908,20 @@ EventEmitter.addListener = function (obj, evt, handler) {
     listeners[evt].push(handler);
 };
 
+EventEmitter.addCallback = function (obj, evt, handler) {
+    var callbacks = obj.$$events_callbacks;
+    if (!callbacks) {
+        callbacks = {};
+        obj.$$events_callbacks = callbacks;
+    }
+
+    if (!callbacks[evt]) {
+        callbacks[evt] = [];
+    }
+
+    callbacks[evt].push(handler);
+};
+
 EventEmitter.addListeners = function (obj, listeners) {
     for (var key in listeners) {
         EventEmitter.addListener(obj, key, listeners[key]);
@@ -966,6 +985,23 @@ EventEmitter.invoke = function (obj, evt) {
             h.apply(obj, Array.prototype.slice.call(arguments, 2));
         }
     }
+
+    var callbacks = obj.$$events_callbacks;
+    if (!callbacks) {
+        callbacks = {};
+        obj.$$events_callbacks = callbacks;
+    }
+
+    var callbackHandlers = callbacks[evt];
+    if (callbackHandlers) {
+        var _size = callbackHandlers.length;
+        for (var _i = 0; _i < _size; _i++) {
+            var _h = callbackHandlers[_i];
+            _h.apply(obj, Array.prototype.slice.call(arguments, 2));
+        }
+    }
+
+    callbacks[evt] = [];
 };
 
 var Observable = exports.Observable = function () {
@@ -977,6 +1013,11 @@ var Observable = exports.Observable = function () {
         key: "on",
         value: function on(evt, handler) {
             EventEmitter.on(this, evt, handler);
+        }
+    }, {
+        key: "once",
+        value: function once(evt, handler) {
+            EventEmitter.addCallback(this, evt, handler);
         }
     }, {
         key: "off",
@@ -1040,6 +1081,11 @@ var HttpClient = function () {
 
                     var data = _.isObject(_this.data) ? buildQueryString(_this.data) : _this.data;
                     var headers = _this.headers || {};
+
+                    logger.i(_this.method.toUpperCase() + " " + _this.url);
+                    if (data) {
+                        logger.i(data);
+                    }
 
                     __httpClient.request(_this.url, _this.method, data, headers, _this.accept, _this.contentType, _this.rawResponse, function (error, value) {
                         if (error) {
@@ -1177,6 +1223,14 @@ var __runtime = null;
 var __stores = {};
 var __actions = {};
 
+function stringifyIfNotBrowser(obj) {
+    if (window) {
+        return obj;
+    } else {
+        JSON.stringify(obj);
+    }
+}
+
 var AJRuntime = function () {
     function AJRuntime() {
         _classCallCheck(this, AJRuntime);
@@ -1256,7 +1310,8 @@ if (platform.test) {
             }, {
                 key: "__trigger",
                 value: function __trigger(store, state) {
-                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                    logger.i("Triggering", store);
+                    logger.i(stringifyIfNotBrowser(state));
                 }
             }, {
                 key: "createBuffer",
@@ -1376,7 +1431,10 @@ if (platform.test) {
                 value: function __trigger(store, state) {
                     var _this5 = this;
 
-                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                    if (DEBUG) {
+                        logger.i("Triggering", store);
+                        logger.i(stringifyIfNotBrowser(state));
+                    }
 
                     return new Promise(function (resolve, reject) {
                         _this5.socket.emit("trigger", store, state, function () {
@@ -1498,7 +1556,10 @@ if (platform.test) {
                         throw "__trigger function not defined";
                     }
 
-                    logger.i("Triggering", store, "with state", JSON.stringify(state));
+                    if (DEBUG) {
+                        logger.i("Triggering", store);
+                        logger.i(stringifyIfNotBrowser(state));
+                    }
 
                     return new Promise(function (resolve, reject) {
                         try {
@@ -1714,6 +1775,10 @@ function createAction(type, fn) {
     }
 
     var act = __actions[type] = function (data) {
+        if (DEBUG) {
+            logger.i("Running action", type);
+            logger.i(stringifyIfNotBrowser(data));
+        }
         fn(data);
     };
 
@@ -1723,7 +1788,10 @@ function createAction(type, fn) {
 }
 
 function dispatch(action) {
-    logger.i("Dispatching action", JSON.stringify(action));
+    if (DEBUG) {
+        logger.i("Dispatching action", action.type);
+        logger.i(stringifyIfNotBrowser(action));
+    }
 
     _.each(__stores, function (store) {
         try {
@@ -1738,8 +1806,6 @@ function dispatch(action) {
 }
 
 function _run(action, data) {
-    logger.i("Running action", action, "with data", JSON.stringify(data));
-
     if (_.has(__actions, action)) {
         __actions[action](data);
     } else {
@@ -2145,6 +2211,7 @@ define('api/entities.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.find = find;
 exports.load = load;
 exports.delete_ = delete_;
 exports.save = save;
@@ -2164,7 +2231,19 @@ var _ = _interopRequireWildcard(_underscore);
 
 var _lang = require("../utils/lang");
 
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function find(entity, query) {
+    return load(entity, query);
+}
 
 function load(entity, query) {
     var url = config.get("entities.url") + "/" + entity;
@@ -2187,7 +2266,26 @@ function delete_(entity, ids) {
 
 function save(entity, data) {
     var url = config.get("entities.url") + "/" + entity;
-    return utils.postJson(url, data);
+    return new Promise(function (resolve, reject) {
+        var json = typeof data === "string" ? data : JSON.stringify(data);
+        var headers = { "Content-Type": "application/json" };
+        http.post(url, json, (0, _utils.addToken)(headers)).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
 }
 
 function get(entity, id) {
@@ -2270,11 +2368,23 @@ var Query = exports.Query = function (_Observable) {
         _this.filters = [];
         _this.keyword = null;
 
+        _this.invokationEnabled = true;
+
         _.assign(_this, init);
         return _this;
     }
 
     _createClass(Query, [{
+        key: "live",
+        value: function live() {
+            this.invokationEnabled = true;
+        }
+    }, {
+        key: "die",
+        value: function die() {
+            this.invokationEnabled = false;
+        }
+    }, {
         key: "filter",
         value: function filter(type, property, value) {
             var current = _.find(this.filters, function (s) {
@@ -2447,7 +2557,9 @@ var Query = exports.Query = function (_Observable) {
     }, {
         key: "invokeChange",
         value: function invokeChange() {
-            this.invoke("change");
+            if (this.invokationEnabled) {
+                this.invoke("change");
+            }
         }
     }, {
         key: "cleaned",
@@ -2476,8 +2588,16 @@ define('api/responses.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+exports.ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_ARTICLE_NOT_FOUND = exports.ERROR_INVALID_DATA = exports.ERROR_IO = exports.ERROR_ROLE_NOT_FOUND = exports.ERROR_CONNECTOR = exports.ERROR_CONSTRAINT_VIOLATION = exports.ERROR_USER_NOT_FOUND = exports.ERROR_NOT_FOUND = exports.ERROR_VALIDATION = exports.ERROR_PASSWORD_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = exports.ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_GENERATION = exports.ERROR_BAD_CREDENTIALS = exports.ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_ALREADY_EXISTS = exports.UNAUTHORIZED = exports.ERROR = exports.OK = undefined;
 exports.msg = msg;
 exports.value = value;
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var OK = exports.OK = 0;
 var ERROR = exports.ERROR = 1;
 var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
@@ -2490,23 +2610,83 @@ var ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_FORMAT = 1005;
 var ERROR_MAIL_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = 1006;
 var ERROR_PASSWORD_NOT_VALID = exports.ERROR_PASSWORD_NOT_VALID = 1007;
 var ERROR_VALIDATION = exports.ERROR_VALIDATION = 1008;
+var ERROR_NOT_FOUND = exports.ERROR_NOT_FOUND = 1009;
+var ERROR_USER_NOT_FOUND = exports.ERROR_USER_NOT_FOUND = 1010;
+var ERROR_CONSTRAINT_VIOLATION = exports.ERROR_CONSTRAINT_VIOLATION = 1011;
+var ERROR_CONNECTOR = exports.ERROR_CONNECTOR = 1012;
+var ERROR_ROLE_NOT_FOUND = exports.ERROR_ROLE_NOT_FOUND = 1013;
+var ERROR_IO = exports.ERROR_IO = 1014;
+var ERROR_INVALID_DATA = exports.ERROR_INVALID_DATA = 1015;
+var ERROR_ARTICLE_NOT_FOUND = exports.ERROR_ARTICLE_NOT_FOUND = 2001;
+var ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_INVALID_DEFAULT_ARTICLE = 2002;
+var ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_USER_COMPANY_NOT_SETTED = 2003;
+var ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = 2004;
+var ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = 2005;
+var ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = 3001;
+var ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = 4001;
+var ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_DOCUMENT_NOT_FOUND = 5001;
 
-var messages = {};
-messages[OK] = "OK";
-messages[ERROR] = "Generic error";
-messages[UNAUTHORIZED] = "Unauthorized";
-messages[ERROR_MAIL_ALREADY_EXISTS] = "Mail already exists";
-messages[ERROR_MAIL_NOT_FOUND] = "Mail not found";
-messages[ERROR_BAD_CREDENTIALS] = "Bad mail or password";
-messages[ERROR_TOKEN_GENERATION] = "Error generating token";
-messages[ERROR_TOKEN_FORMAT] = "Bad token format";
-messages[ERROR_MAIL_NOT_VALID] = "Mail not valid";
-messages[ERROR_PASSWORD_NOT_VALID] = "Password not valid";
-messages[ERROR_VALIDATION] = "Please check your data and try again";
+var messages = {
+	en: {},
+
+	it: {}
+};
+
+messages["en"][OK] = "OK";
+messages["en"][ERROR] = "Generic error";
+messages["en"][ERROR_MAIL_ALREADY_EXISTS] = "Cannot register: mail already exists";
+messages["en"][ERROR_MAIL_NOT_FOUND] = "Mail not found";
+messages["en"][ERROR_BAD_CREDENTIALS] = "Cannot login: bad username or password";
+messages["en"][ERROR_TOKEN_GENERATION] = "Error generating token";
+messages["en"][ERROR_TOKEN_FORMAT] = "Bat token format";
+messages["en"][ERROR_MAIL_NOT_VALID] = "Invalid email";
+messages["en"][ERROR_PASSWORD_NOT_VALID] = "Password not valid";
+messages["en"][ERROR_VALIDATION] = "Validation error. Please control inserted data and retry";
+messages["en"][ERROR_NOT_FOUND] = "Not found";
+messages["en"][ERROR_USER_NOT_FOUND] = "User not found";
+messages["en"][ERROR_CONSTRAINT_VIOLATION] = "Constraint violation";
+messages["en"][ERROR_CONNECTOR] = "There is a problem retrieving data from Gamma";
+messages["en"][ERROR_ROLE_NOT_FOUND] = "Role not found";
+messages["en"][ERROR_IO] = "IO error";
+messages["en"][ERROR_INVALID_DATA] = "Invalid data";
+messages["en"][ERROR_ARTICLE_NOT_FOUND] = "Article not found";
+messages["en"][ERROR_INVALID_DEFAULT_ARTICLE] = "Invalid default article";
+messages["en"][ERROR_USER_COMPANY_NOT_SETTED] = "User company not setted";
+messages["en"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Cover component already exists";
+messages["en"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Cover component not configured";
+messages["en"][ERROR_CUSTOMER_NOT_FOUND] = "Customer not found";
+messages["en"][ERROR_WAREHOUSE_NOT_FOUND] = "Warehouse not found";
+messages["en"][ERROR_DOCUMENT_NOT_FOUND] = "Document not found";
+
+messages["it"][OK] = "OK";
+messages["it"][ERROR] = "Si è verificato un errore";
+messages["it"][ERROR_MAIL_ALREADY_EXISTS] = "Impossibile registrarsi: indirizzo email già presente";
+messages["it"][ERROR_MAIL_NOT_FOUND] = "Mail non trovata";
+messages["it"][ERROR_BAD_CREDENTIALS] = "Impossibile accedere: email o password errati";
+messages["it"][ERROR_TOKEN_GENERATION] = "Errore durante la generazione del token";
+messages["it"][ERROR_TOKEN_FORMAT] = "Formato del token non valido";
+messages["it"][ERROR_MAIL_NOT_VALID] = "Email non valida";
+messages["it"][ERROR_PASSWORD_NOT_VALID] = "Password non valida";
+messages["it"][ERROR_VALIDATION] = "Errore di validazione: ricontrollare i dati inseriti e riprovare";
+messages["it"][ERROR_NOT_FOUND] = "Non trovato";
+messages["it"][ERROR_USER_NOT_FOUND] = "Utente non trovato";
+messages["it"][ERROR_CONSTRAINT_VIOLATION] = "Impossibile proseguire. Esistono entità collegate che dipendono da questa entità";
+messages["it"][ERROR_CONNECTOR] = "Problema durante la comunicazione con Gamma";
+messages["it"][ERROR_ROLE_NOT_FOUND] = "Ruolo non trovato";
+messages["it"][ERROR_IO] = "IO error";
+messages["it"][ERROR_INVALID_DATA] = "Dati non validi";
+messages["it"][ERROR_ARTICLE_NOT_FOUND] = "Articolo non trovato";
+messages["it"][ERROR_INVALID_DEFAULT_ARTICLE] = "Articolo predefinito non trovato";
+messages["it"][ERROR_USER_COMPANY_NOT_SETTED] = "Azienda non configurata per l'utente corrente";
+messages["it"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Componente di tipo rivestimento già presente";
+messages["it"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Componente di tipo rivestimento non trovato";
+messages["it"][ERROR_CUSTOMER_NOT_FOUND] = "Cliente non trovato";
+messages["it"][ERROR_WAREHOUSE_NOT_FOUND] = "Magazzino non trovato";
+messages["it"][ERROR_DOCUMENT_NOT_FOUND] = "Documento non trovato";
 
 function msg(code) {
-	if (_.has(messages, code)) {
-		return messages[code];
+	if (_.has(messages[(0, _strings.getLanguage)()], code)) {
+		return messages[(0, _strings.getLanguage)()][code];
 	}
 
 	return "Code: = " + code;
@@ -2710,6 +2890,7 @@ define('api/utils.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.addToken = addToken;
 exports.post = post;
 exports.postJson = postJson;
 exports.get = get;
@@ -2750,7 +2931,7 @@ function post(url, data) {
                 var response = JSON.parse(json);
 
                 if (responses.OK != response.responseCode) {
-                    reject(response.responseCode);
+                    reject(response.responseCode, response);
                 } else {
                     resolve(response);
                 }
@@ -2798,7 +2979,7 @@ function get(url, data) {
                 var response = JSON.parse(json);
 
                 if (responses.OK != response.responseCode) {
-                    reject(response.responseCode);
+                    reject(response.responseCode, response);
                 } else {
                     resolve(response);
                 }
@@ -2819,7 +3000,7 @@ function delete_(url, data, headers) {
                 var response = JSON.parse(json);
 
                 if (responses.OK != response.responseCode) {
-                    reject(response.responseCode);
+                    reject(response.responseCode, response);
                 } else {
                     resolve(response);
                 }
@@ -2837,15 +3018,18 @@ define('api/values.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.loadEntities = loadEntities;
 exports.load = load;
 
 var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
-var _responses = require("./responses");
+var _lang = require("../utils/lang");
 
-var responses = _interopRequireWildcard(_responses);
+var _query2 = require("../api/query");
+
+var query = _interopRequireWildcard(_query2);
 
 var _utils = require("./utils");
 
@@ -2856,11 +3040,37 @@ var http = require("../aj/http");
 
 var preferences = require("../framework/preferences");
 var config = require("../framework/config");
+
+function loadEntities(entity, _query) {
+    if (_.isEmpty(_query)) {
+        _query = query.create();
+    }
+    var url = config.get("values.entities.url") + "/" + entity;
+    return (0, _utils.get)(url, (0, _lang.flatten)(_query.cleaned()));
+}
+
 function load(collection, keyword) {
-    var url = config.get("values." + collection + ".url");
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    var url = config.get("values.url") + "/" + collection;
     if (!_.isEmpty(keyword)) {
         url += "?keyword=" + keyword;
     }
+
+    var separator = "&";
+    if (url.indexOf("?") == -1) {
+        separator = "?";
+    }
+
+    var paramsString = "";
+    _.each(_.allKeys(params), function (k) {
+        paramsString += k + "=" + encodeURIComponent(params[k]);
+    });
+
+    if (!_.isEmpty(paramsString)) {
+        url += separator + paramsString;
+    }
+
     return (0, _utils.get)(url);
 }
 });
@@ -2871,6 +3081,7 @@ var serviceBase = "http://localhost:8080/";
 
 module.exports = {
     "service.url": "" + serviceBase,
+    "fs.url": serviceBase + "fs",
     "login.url": serviceBase + "auth/login",
     "account.url": serviceBase + "account",
     "account.register.url": serviceBase + "account/register",
@@ -2880,7 +3091,8 @@ module.exports = {
     "grids.url": serviceBase + "grids",
     "entities.url": serviceBase + "entities",
     "entities.delete.url": serviceBase + "entities/delete",
-    "values.permissions.url": serviceBase + "values/permissions"
+    "values.url": serviceBase + "values",
+    "values.entities.url": serviceBase + "values/entities"
 };
 });
 define('framework/config.js', function(module, exports) {
@@ -24557,7 +24769,7 @@ exports.showLoader = showLoader;
 exports.hideLoader = hideLoader;
 exports.toast = toast;
 
-var _aj = require("../aj");
+var _aj = require("./aj");
 
 var aj = _interopRequireWildcard(_aj);
 
@@ -24770,7 +24982,7 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
             return (0, _ajex.discriminate)(state, action.discriminator, { error: true, result: null });
 
         case actions.NEW_ENTITY:
-            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: null, saved: false });
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: {}, saved: false });
 
         case actions.GET_ENTITY:
             return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: null, saved: false });
@@ -24788,10 +25000,22 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
             return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: false });
 
         case (0, _ajex.completed)(actions.SAVE_ENTITY):
-            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: true });
+            return (0, _ajex.discriminate)(state, action.discriminator, {
+                error: false,
+                data: action.data,
+                saved: true,
+                validationError: false,
+                validationResult: null
+            });
 
         case (0, _ajex.failed)(actions.SAVE_ENTITY):
-            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, saved: false });
+            return (0, _ajex.discriminate)(state, action.discriminator, {
+                error: true,
+                data: action.data,
+                saved: false,
+                validationError: action.validationError,
+                validationResult: action.validationResult
+            });
 
     }
 });
@@ -24862,6 +25086,15 @@ var SelectStore = exports.SelectStore = aj.createStore(SELECT, function () {
         case (0, _ajex.failed)(actions.GET_SELECT_VALUES):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: true, loading: false, values: null });
 
+        case actions.GET_SELECT_ENTITIES:
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, loading: true });
+
+        case (0, _ajex.completed)(actions.GET_SELECT_ENTITIES):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, loading: false, values: action.entities });
+
+        case (0, _ajex.failed)(actions.GET_SELECT_ENTITIES):
+            return (0, _ajex.discriminate)(state, action.discriminator, { error: true, loading: false, values: null });
+
         case actions.FREE_SELECT:
             return _.omit(state, action.discriminator);
 
@@ -24874,7 +25107,20 @@ define('strings.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.default = {
+
+var _strings$it;
+
+exports.setLanguage = setLanguage;
+exports.getLanguage = getLanguage;
+exports.default = M;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var language = "it";
+
+var strings = {};
+strings["en"] = {
+    appName: "_APPNAME_",
     registering: "Registering...",
     ooops: "Ooops...",
     badLogin: "Cannot login! Please check your email address or password!",
@@ -24927,14 +25173,12 @@ exports.default = {
     nElementsSelected: "{0} elements selected",
     oneElementSelected: "1 element selected",
     nothingSelected: "Nothing selected",
-    usersList: "Users list",
     usersListDescription: "Create, edit or delete system users",
     mail: "Email",
     active: "Active",
     editUser: "Edit user",
     editUserDescription: "Use this form to edit user informations",
     generalInformations: "General informations",
-    rolesList: "Roles list",
     rolesListDescription: "A role is an entity that gives to user authorization to do something",
     nameOfRole: "Name of role",
     role: "Role",
@@ -24944,8 +25188,395 @@ exports.default = {
     save: "Save",
     image: "Image",
     cover: "Cover",
-    saveComplete: "Save complete"
+    saveComplete: "Save complete",
+    articles: "Articles",
+    articlesListDescription: "Articles must exists in Gamma system. Commodo only extends Gamma articles",
+    company: "Company",
+    id: "ID",
+    description: "Description",
+    companies: "Companies",
+    companiesListDescription: "List of companies, read only!",
+    components: "Components",
+    componentsListDescription: "Components are base elements of a \"bill of materials\"",
+    characteristic: "Characteristic",
+    characteristics: "Characteristics",
+    nameOfComponent: "Name of component",
+    editComponent: "Edit component",
+    editComponentDescription: "Use this form to edit component informations",
+    optionValue: "Option value",
+    nameOfCharacteristic: "Name of characteristic",
+    addCharacteristic: "Add characteristic",
+    newOption: "New option",
+    areYouSureToRemoveCharacteristic: "Are you sure to remove characteristic '{0}'?",
+    editArticle: "Edit article",
+    editArticleDescription: "Not all article informations are editable in Commodo because is connected to TeamSystem Gamma",
+    article: "Article",
+    select: "Select",
+    component: "Component",
+    pleaseSpecifyComponentId: "Please specify component id",
+    pleaseSelectComponent: "Please select component",
+    characteristicValues: "Characteristic values",
+    selectedComponent: "Selected component",
+    noComponentSelected: "No component selected",
+    versions: "Versions",
+    version: "Version",
+    versionsListDescription: "Use versions to create configurable associations with models",
+    editVersion: "Edit version",
+    editVersionDescription: "Use this form to edit version informations",
+    nameOfVersion: "Name of version",
+    collections: "Collections",
+    collection: "Collection",
+    collectionsListDescription: "Collections are used in models",
+    editCollection: "Edit collection",
+    editCollectionDescription: "Use this form to edit collection informations",
+    nameOfCollection: "Name of collection",
+    countries: "Countries",
+    country: "Country",
+    countriesListDescription: "Countries are used in models",
+    editCountry: "Edit country",
+    editCountryDescription: "Use this form to edit country informations",
+    nameOfCountry: "Name of country",
+    design: "Design",
+    state: "State",
+    model: "Model",
+    models: "Models",
+    nameOfModel: "Name of model",
+    modelsListDescription: "Models are base entities to create a sofa",
+    editModel: "Edit model",
+    editModelDescription: "Use this form to edit model informations",
+    code: "Code",
+    extraSize: "Extra size",
+    destinationCountry: "Destination country",
+    revision: "Revision",
+    lastUpdate: "Last update",
+    editedBy: "Edited by",
+    yes: "Yes",
+    no: "No",
+    notes: "Notes",
+    makeACopy: "Make a copy",
+    associateVersion: "Associate version",
+    pleaseSpecifyVersion: "Please specify version",
+    versionAlreadyAssociated: "Version already associated",
+    areYouSureToRemoveVersion: "Are you sure to remove version '{0}'?",
+    duplicate: "Duplicate",
+    edit: "Edit",
+    pleaseSaveTheModel: "Please save the model to continue",
+    configurables: "Configurables",
+    configurablesListDescription: "List of versions associated to models. Use Models registry to make new associations",
+    nameOfConfigurable: "Name of configurable",
+    addComponent: "Add component",
+    editRole: "Edit role",
+    editRoleDescription: "Use role to manage what an user can do in system",
+    unableToExcludeDefaultArticle: "Unable to exclude an article marked as default",
+    addArticleToComponent: "Add article to component {0}",
+    selectByArticle: "Select by article",
+    removeThisComponent: "Remove this component",
+    addArticle: "Add article",
+    confirmRemoveConfigurableComponent: "Do you want to remove {0}?",
+    editConfigurable: "Edit configurable",
+    editConfigurableDescription: "A configurable is the base object for a sofa customization. Use this area to design a model-version in all of its parts",
+    noArticlesSelected: "No articles selected for component {0}",
+    pleaseSelectDefaultArticleForComponent: "Please select default article for component {0}",
+    invalidDefaultArticleSelectedForComponent: "Invalid default article selected for component {0}",
+    accessories: "Accessories",
+    accessoriesListDescription: "Accessories list",
+    editAccessory: "Edit accessory",
+    editAccessoryDescription: "Use this form to edit accessory informations",
+    nameOfAccessory: "Name of accessory",
+    unitOfMeasurements: "Unit of measurements",
+    unitOfMeasurementsListDescription: "Unit of measurements list",
+    shortName: "Short name",
+    conversionFactor: "Conversion factor",
+    status: "Status",
+    quantity: "Quantity",
+    remove: "Remove",
+    unitOfMeasurement: "Unit of measurements",
+    parts: "Parts",
+    partsListDescription: "Represents a coverable part of a sofa",
+    editPart: "Edit part",
+    editPartDescription: "Use this form to edit part informations",
+    nameOfPart: "Name of part",
+    covers: "Covers",
+    addPart: "Add part",
+    type: "Type",
+    coverTypes: "Cover types",
+    coverTypesListDescription: "Types of coverings used for cover sofa",
+    nameOfCoverType: "Name of cover type",
+    editCoverType: "Edit cover type",
+    editCoverTypeDescription: "Use this form to edit cover type informations",
+    colors: "Colors",
+    colorsListDescription: "List of colors used in your systems",
+    nameOfColor: "Name of color",
+    editColor: "Edit color",
+    editColorDescription: "Use this form to edit color informations",
+    removeThisPart: "Remove this part",
+    coverOptions: "Cover options",
+    addCoverOption: "Add cover option",
+    removeThisCoverOption: "Remove this cover option",
+    analogousColorArticles: "Analogous articles",
+    complementaryColorArticles: "Complementary articles",
+    addComplementaryArticleToCoverOption: "Add complementary article to cover option {0}",
+    addAnalogousArticleToCoverOption: "Add analogous article to cover option {0}",
+    coverType: "Cover type",
+    color: "Color",
+    characteristicsDisabledForCoverOptions: "Characteristics disabled for cover options",
+    compositions: "Compositions",
+    customers: "Customers",
+    customersListDescription: "Create system customers",
+    paymentCode: "Payment code",
+    fiscalCode: "Fiscal code",
+    editCustomer: "Edit customer",
+    firstName: "First name",
+    lastName: "Last name",
+    companyName: "Company name",
+    cityCode: "City code",
+    countryCode: "Country code",
+    tel1: "Telephonic number 1",
+    tel2: "Telephonic number 2",
+    fax: "Fax",
+    cellNumber: "Cellular number",
+    pec: "Pec",
+    vatCode: "Vat",
+    componentsAccessoriesCovers: "Components accessories covers",
+    removeThisPhase: "Remove this phase",
+    phases: "Phases",
+    addPhase: "Add phase",
+    addComponentToPhase: "Add component to phase",
+    workingTime: "Working time",
+    address: "Address",
+    phasesListDescription: "Phases list description",
+    defaultTime: "default time",
+    editPhase: "Edit phase",
+    editPhaseDescription: "Edit phase description",
+    nameOfPhase: "Name of phase",
+    production: "Production",
+    customer: "Customer",
+    coverings: "Coverings",
+    allCoverings: "All coverings",
+    allAccessories: "All accessories",
+    confirmRemoveConfigurablePhase: "Confirm remove configurable phase",
+    addArticleToPart: "Add article to part",
+    email: "Email",
+    website: "Web site",
+    zipCode: "Zip code",
+    city: "City",
+    coverOptionColorConfiguration: "Cover option color configuration",
+    addComplementaryArticleForColor: "Add complementary article for {0}",
+    addAnalogousArticleForColor: "Add analogous article for {0}"
 };
+
+strings["it"] = (_strings$it = {
+    appName: "_APPNAME_",
+    registering: "Registrazione...",
+    ooops: "Ooops...",
+    badLogin: "Non riesco ad accedere! Per favore controlla il tuo indirizzo email o password!",
+    welcome: "Benvenuto",
+    congratulations: "Congratulazioni",
+    welcomeMessage: "Ciao {0}, la tua registrazione è completa.\nUn link per la conferma è stato inviato a {1}.\nPer favore conferma prima di effettuare l'accesso",
+    continue: "Continuare",
+    register: "Registrare",
+    forgotPassword: "Dimenticato la password",
+    signIn: "Rgistrati",
+    mailAddress: "Indirizzo mail",
+    name: "Nome",
+    password: "Password",
+    accountConfirmText: "Inserisci il codice di attivazione che abbiamo inviato alla tua casella mail per confermare il tuo account",
+    accountConfirmed: "Il tuo account è confermato. Puoi effettuare l'accesso ora",
+    mailAndPasswordRequired: "Email e password sono richieste",
+    nameMailAndPasswordRequired: "Nome, email e password sono richieste",
+    mailRequired: "Email è richiesta",
+    activationCodeRequired: "Codice di attivazione richiesto",
+    accountRecoverText: "Per favore inserisci il tuo indirizzo email per recuperare la password. Ti invieremo una nuova password al tuo indirizzo mail!",
+    problemOccoured: "C'è un problema",
+    accountRecovered: "Una nuova password è stata inviata a {0}",
+    pleaseSpecifyId: "Per favore specifica il tuo ID",
+    pleaseSpecifyQuery: "Per favore specifica la domanda",
+    pleaseSpecifyEntity: "Per favore specifica l'entità",
+    search: "Ricerca",
+    close: "Chiuso",
+    selectFilterType: "Selezione il tipo di filtro",
+    typeValueToSearch: "Tipo di valore da cercare",
+    value: "Valore",
+    filters: "Filtri",
+    pagination: "Mostrando {0} di {1} di {2}",
+    noResults: "Non ci sono risultati con i criteri specificati",
+    selectAll: "Seleziona tutto",
+    delete: "Rimuovi",
+    create: "Crea",
+    refresh: "Ricarica",
+    confirm: "Conferma",
+    entityDeleteConfirm: "Sei sicuro di voler eliminare {0} entità?",
+    submit: "Invia",
+    cancel: "Annulla",
+    add: "Aggiungi",
+    pleaseSpecifyData: "Per favore specifica la data",
+    ok: "OK",
+    security: "Securezza",
+    users: "Utenti",
+    roles: "Ruoli",
+    setup: "Setup",
+    categories: "Categorie",
+    nElementsSelected: "{0} elementi selezionati",
+    oneElementSelected: "1 elemento selezionato",
+    nothingSelected: "Niente selezionato",
+    usersListDescription: "Creare, modificare o eliminare gli utenti di sistema",
+    mail: "Email",
+    active: "Attivo",
+    editUser: "Modifica utente",
+    editUserDescription: "Usa questo modulo per modificare le informazioni dell'utente",
+    generalInformations: "Informazioni generali",
+    rolesListDescription: "Un ruolo è un'entità che da all'utente l'autorizzazione per fare qualcosa",
+    nameOfRole: "Nome del ruolo",
+    role: "Ruolo",
+    permissions: "Permessi",
+    selectPermissions: "Seleziona i premessi per la ruolo",
+    back: "Indietro",
+    save: "Salva",
+    image: "Immagine",
+    cover: "Rivestimenti",
+    saveComplete: "Salvataggio completato",
+    articles: "Articoli",
+    articlesListDescription: "Gli articoli devono essere presenti sul sistema Gamma. In commodo gli articoli vengono estesi per aggiungere funzionalità richiesta solo a Commodo",
+    company: "Azienda",
+    id: "ID",
+    description: "Descrizione",
+    companies: "Aziende",
+    companiesListDescription: "Lista delle aziende, sola lettura!",
+    components: "Componenti",
+    componentsListDescription: "I componenti sono elementi base di una \"distinta di materiali\"",
+    characteristic: "Caratteritica",
+    characteristics: "Caratteristiche",
+    nameOfComponent: "Nome del componente",
+    editComponent: "Modifica componente",
+    editComponentDescription: "Usa questo modulo per modificare le informazioni del componente",
+    optionValue: "Valore di opzione",
+    nameOfCharacteristic: "Nome della caratteristica",
+    addCharacteristic: "Aggiungi caratteristica",
+    newOption: "Nuova opzione",
+    areYouSureToRemoveCharacteristic: "Sei sicuro di voler rimuovere la caratteristica '{0}'?",
+    editArticle: "Modifica articolo",
+    editArticleDescription: "Non tutte le informazini dell'articolo sono modificabili in Commodo perchè è connesso a TeamSystem Gamma",
+    article: "Articolo",
+    select: "Seleziona",
+    component: "Componente",
+    pleaseSpecifyComponentId: "Per favore specifica l'id del componente",
+    pleaseSelectComponent: "Per favore seleziona il componente",
+    characteristicValues: "Valori della caratteristica",
+    selectedComponent: "Componente selezionato",
+    noComponentSelected: "Nessun componente selezionato",
+    versions: "Versioni",
+    version: "Versione",
+    versionsListDescription: "Usa le versioni per creare associazioni configurabili con i modelli",
+    editVersion: "Modifica la versione",
+    editVersionDescription: "Usa questo modulo per modificare le informazioni della versione",
+    nameOfVersion: "Nome della versione",
+    collections: "Collezioni",
+    collection: "Collezione",
+    collectionsListDescription: "Le collezioni sono usate nei modelli",
+    editCollection: "Modifica collezioni",
+    editCollectionDescription: "Usa questo modulo per modificare le informazioni delle collezioni",
+    nameOfCollection: "Nome delle collezioni",
+    countries: "Paesi",
+    country: "Paese",
+    countriesListDescription: "I paesi sono usati nei modelli",
+    editCountry: "Modifica il paese",
+    editCountryDescription: "Usa questo modulo per modificare le informazioni del paese",
+    nameOfCountry: "Nome del paese",
+    design: "Design",
+    state: "Stato",
+    model: "Modello",
+    models: "Modelli",
+    nameOfModel: "Nome del modello",
+    modelsListDescription: "I modelli sono entità base per creare un divano",
+    editModel: "Modifica modello",
+    editModelDescription: "Usa questo modulo per modificare le informazioni del modello",
+    code: "Codice",
+    extraSize: "Extra size",
+    destinationCountry: "Paese di destinazione",
+    revision: "Revisione",
+    lastUpdate: "Ultimo aggiornamento",
+    editedBy: "Modificato da",
+    yes: "Si",
+    no: "No",
+    notes: "Appunti",
+    makeACopy: "Crea una copia",
+    associateVersion: "Associa versione",
+    pleaseSpecifyVersion: "Per favore specifica la versione",
+    versionAlreadyAssociated: "Versione già associata",
+    areYouSureToRemoveVersion: "Sei sicuro di voler rimuovere la versione '{0}'?",
+    duplicate: "Duplica",
+    edit: "Modifica",
+    pleaseSaveTheModel: "Per favore salva il modello per continuare",
+    configurables: "Configurabili",
+    configurablesListDescription: "Lista delle versioni associate ai modelli. Usa il registro dei modelli per creare nuove associazioni",
+    nameOfConfigurable: "Nome del configurabile",
+    addComponent: "Aggiungi componente",
+    editRole: "Modifica ruolo",
+    editRoleDescription: "Usa un ruolo per gestire cosa può fare un utente nel sistema",
+    unableToExcludeDefaultArticle: "Incapace di escludere un articolo contrassegnato come predefinito",
+    addArticleToComponent: "Aggiungi articolo al componente {0}",
+    selectByArticle: "Selezionare dall'articolo",
+    removeThisComponent: "Rimuovi questo componente",
+    addArticle: "Aggiungi articolo",
+    confirmRemoveConfigurableComponent: "Desideri rimuovere {0}?",
+    editConfigurable: "Modifica configurabile",
+    editConfigurableDescription: "Un configurabile è l'oggetto base per la personalizzazione del divano. Usa quest'area per progettare un modello-versione in tutte le sue parti",
+    noArticlesSelected: "Nessun artivolo selezionato per il componente {0}",
+    pleaseSelectDefaultArticleForComponent: "Per favore seleziona l'articolo di default per il componente {0}",
+    invalidDefaultArticleSelectedForComponent: "L'articolo di default invalido selezionato per il componente {0}",
+    accessories: "Accessori",
+    accessoriesListDescription: "Lista accessori",
+    editAccessory: "Modifica accessori",
+    editAccessoryDescription: "Usa questo modulo per modificare le informationi dell'accessorio",
+    nameOfAccessory: "Nome dell'accessorio",
+    unitOfMeasurements: "Unità di misura",
+    unitOfMeasurementsListDescription: "Lista della unità di misura",
+    shortName: "Nome breve",
+    conversionFactor: "Fattore di conversione",
+    status: "Stato",
+    quantity: "Quantità",
+    remove: "Rimuovi",
+    unitOfMeasurement: "Unità di misura",
+    parts: "Parti",
+    partsListDescription: "Rappresenta una parte rivestibile di un divano",
+    editPart: "Modifica parte",
+    editPartDescription: "Usa questo modulo per modificare le informazioni della parte",
+    nameOfPart: "Nome della parte",
+    covers: "Rivestimenti",
+    addPart: "Aggiungi parte",
+    type: "Tipo",
+    coverTypes: "Tipi di rivestimento",
+    coverTypesListDescription: "Tipi di rivestimenti usati per rivestire il divano",
+    nameOfCoverType: "Nome del tipo di rivestimento",
+    editCoverType: "Modifica il tipo di rivestimento",
+    editCoverTypeDescription: "Usa questo modulo per modificare il tipo di informazioni del rivestimento",
+    colors: "Colori",
+    colorsListDescription: "Lista dei colori utilizzati per i tuoi sistemi",
+    nameOfColor: "Nome del colore",
+    editColor: "Modifica colore",
+    editColorDescription: "Usa questo modulo per modificare le informazioni del colore",
+    removeThisPart: "Rimuovi questa parte",
+    coverOptions: "Opzioni del rivestimento",
+    addCoverOption: "Aggiungi opzione del rivestimento",
+    removeThisCoverOption: "Rimuovi questa opzione del rivestimento"
+}, _defineProperty(_strings$it, "noArticlesSelected", "Nessun articolo selezionato"), _defineProperty(_strings$it, "analogousColorArticles", "Articoli analoghi"), _defineProperty(_strings$it, "complementaryColorArticles", "Articoli complementari"), _defineProperty(_strings$it, "addComplementaryArticleToCoverOption", "Aggiungi articoli complementari per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "addAnalogousArticleToCoverOption", "Aggiungi articoli analoghi per l'opzione del rivestimento {0}"), _defineProperty(_strings$it, "coverType", "Tipo di rivestimento"), _defineProperty(_strings$it, "color", "Colore"), _defineProperty(_strings$it, "characteristicsDisabledForCoverOptions", "Caratteristiche disabilitate per le opzioni del rivestimento"), _defineProperty(_strings$it, "compositions", "Composizioni"), _defineProperty(_strings$it, "customers", "Clienti"), _defineProperty(_strings$it, "customersListDescription", "Creare clienti del sistema"), _defineProperty(_strings$it, "companyName", "Nome dell'Azienda"), _defineProperty(_strings$it, "paymentCode", "Codice di pagamento"), _defineProperty(_strings$it, "zipCode", "CAP"), _defineProperty(_strings$it, "fiscalCode", "Codice fiscale"), _defineProperty(_strings$it, "vatCode", "I.V.A."), _defineProperty(_strings$it, "componentsAccessoriesCovers", "Componenti dei rivestimenti degli accessori"), _defineProperty(_strings$it, "removeThisPhase", "Rimuovi questa fase"), _defineProperty(_strings$it, "phases", "Fasi"), _defineProperty(_strings$it, "addPhase", "Aggiungi fase"), _defineProperty(_strings$it, "addComponentToPhase", "Aggiungi componente alla fase"), _defineProperty(_strings$it, "workingTime", "Tempo di lavoro"), _defineProperty(_strings$it, "address", "Indirizzo"), _defineProperty(_strings$it, "city", "Città"), _defineProperty(_strings$it, "phasesListDescription", "Lista delle descrizioni della fase"), _defineProperty(_strings$it, "defaultTime", "Tempo predefinito"), _defineProperty(_strings$it, "editPhase", "Modifica fase"), _defineProperty(_strings$it, "editPhaseDescription", "Modifica la descrizione della fase"), _defineProperty(_strings$it, "nameOfPhase", "Nome della fase"), _defineProperty(_strings$it, "production", "Produzione"), _defineProperty(_strings$it, "customer", "Cliente"), _defineProperty(_strings$it, "coverings", "Rivestimenti"), _defineProperty(_strings$it, "allCoverings", "Tutti i rivestimenti"), _defineProperty(_strings$it, "allAccessories", "Tutti gli accessori"), _defineProperty(_strings$it, "confirmRemoveConfigurablePhase", "Conferma la rimozione della fase configurabile"), _defineProperty(_strings$it, "coverOptionColorConfiguration", "Configurazione i colori dell'opzione rivestimento"), _defineProperty(_strings$it, "addComplementaryArticleForColor", "Aggiungi articolo a contrasto a {0}"), _defineProperty(_strings$it, "addAnalogousArticleForColor", "Aggiungi articolo a {0}"), _strings$it);
+
+function setLanguage(language_) {
+    language = language_;
+}
+
+function getLanguage() {
+    return language;
+}
+
+function M(key) {
+    if (strings[language] && strings[language][key]) {
+        return strings[language][key];
+    } else {
+        logger.w("String not found for language " + language + ":", key);
+        return key;
+    }
+}
 });
 define('utils/ajex.js', function(module, exports) {
 "use strict";
@@ -25095,6 +25726,14 @@ exports.parseBoolean = parseBoolean;
 exports.walk = walk;
 exports.use = use;
 exports.flatten = flatten;
+exports.uuid = uuid;
+exports.updatedList = updatedList;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -25248,6 +25887,56 @@ function flatten(target) {
 
     return output;
 }
+
+/**
+ * Generates unique identifier
+ * @returns {string}
+ */
+function uuid() {
+    var d = new Date().getTime();
+    if (window.performance && typeof window.performance.now === "function") {
+        d += performance.now(); //use high-precision timer if available
+    }
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
+    });
+    return uuid;
+}
+
+/**
+ * Updates list element found with predicate and return an updated copy of the list
+ * @param list
+ * @param predicate
+ * @param updater
+ */
+function updatedList(list, predicate, updater) {
+    var addIfNotFound = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+    if (_.isArray(list) && _.isFunction(predicate) && _.isFunction(updater)) {
+        var result = new Array(list.length);
+        var found = false;
+        for (var i = 0; i < list.length; i++) {
+            var v = list[i];
+            if (predicate(v)) {
+                result[i] = _.assign(v, updater(v));
+                found = true;
+            } else {
+                result[i] = v;
+            }
+        }
+
+        if (addIfNotFound && !found) {
+            result.push(updater(null));
+        }
+
+        return result;
+    } else {
+        logger.w("Bad parameters in updater. Returning an empty list");
+        return [];
+    }
+}
 });
 define('utils/notificationCenter.js', function(module, exports) {
 "use strict";
@@ -25264,23 +25953,20 @@ var _events = require("../aj/events");
 var instance = new _events.Observable();
 
 function addObserver(evt, handler) {
-    instance.on(evt, handler);
-
     logger.i("Added observer for event:", evt);
+    return instance.on(evt, handler);
 }
 
 function removeObserver(evt, handler) {
-    instance.off(evt, handler);
-
     logger.i("Removed observer for event:", evt);
+    instance.off(evt, handler);
 }
 
 function invoke(evt) {
     var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-    instance.invoke(evt, data);
-
     logger.i("Invoking observers for event:", evt);
+    instance.invoke(evt, data);
 }
 });
 define('web/components/common.js', function(module, exports) {
@@ -25289,11 +25975,13 @@ define('web/components/common.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.ActionsMatcher = exports.FloatingButton = exports.Card = exports.HeaderBlock = exports.Actions = exports.ActionButton = undefined;
+exports.EditableText = exports.ActionsMatcher = exports.FloatingButton = exports.Card = exports.HeaderBlock = exports.Actions = exports.ActionButton = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _lang = require("../../utils/lang");
+
+var _keyboard = require("../utils/keyboard");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -25416,12 +26104,16 @@ var Card = exports.Card = function (_React$Component4) {
             if (this.props.padding) {
                 bodyClass += " card-padding";
             }
+            var headerClass = "card-header";
+            if (this.props.inverseHeader) {
+                headerClass += " card-header-inverse";
+            }
             return React.createElement(
                 "div",
                 { className: cardClass },
                 !_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ? React.createElement(
                     "div",
-                    { className: "card-header" },
+                    { className: headerClass },
                     React.createElement(
                         "h2",
                         null,
@@ -25519,6 +26211,89 @@ var ActionsMatcher = exports.ActionsMatcher = function () {
 
     return ActionsMatcher;
 }();
+
+var EditableText = exports.EditableText = function (_React$Component6) {
+    _inherits(EditableText, _React$Component6);
+
+    function EditableText(props) {
+        _classCallCheck(this, EditableText);
+
+        var _this7 = _possibleConstructorReturn(this, (EditableText.__proto__ || Object.getPrototypeOf(EditableText)).call(this, props));
+
+        _this7.state = {
+            editing: _.isEmpty(props.value),
+            value: props.value
+        };
+        return _this7;
+    }
+
+    _createClass(EditableText, [{
+        key: "componentWillReceiveProps",
+        value: function componentWillReceiveProps(newProps) {
+            this.setState({
+                editing: _.isEmpty(newProps.value),
+                value: newProps.value
+            });
+        }
+    }, {
+        key: "onBlur",
+        value: function onBlur() {
+            this.setState({ editing: false, value: this.state.lastValue });
+        }
+    }, {
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            this.setState(_.assign(this.state, { editing: true, value: e.target.value }));
+        }
+    }, {
+        key: "onKeyDown",
+        value: function onKeyDown(e) {
+            if ((0, _keyboard.isEnter)(e.which)) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                this.setState(_.assign(this.state, { editing: false, lastValue: this.state.value }));
+
+                if (_.isFunction(this.props.onChange)) {
+                    this.props.onChange(this.state.value);
+                }
+            }
+        }
+    }, {
+        key: "edit",
+        value: function edit() {
+            this.setState(_.assign(this.state, { editing: true, lastValue: this.state.value }));
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var className = this.props.className;
+            return this.state.editing || _.isEmpty(this.state.value) ? React.createElement(
+                "div",
+                { className: "fg-line editable-text " + (0, _lang.optional)(className, "") },
+                React.createElement("input", {
+                    ref: "name",
+                    type: "text",
+                    className: "form-control",
+                    onKeyDown: this.onKeyDown.bind(this),
+                    onChange: this.onValueChange.bind(this),
+                    value: (0, _lang.optional)(this.state.value, ""),
+                    placeholder: this.props.placeholder,
+                    autoFocus: "autoFocus",
+                    onBlur: this.onBlur.bind(this) })
+            ) : React.createElement(
+                "span",
+                { className: (0, _lang.optional)(className, ""), onClick: this.edit.bind(this) },
+                this.state.value
+            );
+        }
+    }]);
+
+    return EditableText;
+}(React.Component);
 });
 define('web/components/containers.js', function(module, exports) {
 "use strict";
@@ -25545,6 +26320,8 @@ var _query = require("../../api/query");
 var query = _interopRequireWildcard(_query);
 
 var _forms = require("./forms");
+
+var _lang = require("../../utils/lang");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -25633,7 +26410,6 @@ var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2)
         }
 
         _this3.__queryOnChange = function () {
-            console.log(_this3.query);
             (0, _actions.getLookupValues)({ discriminator: _this3.discriminator, collection: _this3.props.collection, keyword: _this3.query.keyword });
         };
 
@@ -25697,6 +26473,11 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
     }
 
     _createClass(ValuesSelectContainer, [{
+        key: "reload",
+        value: function reload() {
+            (0, _actions.getSelectValues)({ discriminator: this.discriminator, collection: this.props.collection, params: this.getParams() });
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             var _this6 = this;
@@ -25705,7 +26486,12 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
                 _this6.datasource.setData((0, _ajex.discriminated)(state, _this6.discriminator).values);
             });
 
-            (0, _actions.getSelectValues)({ discriminator: this.discriminator, collection: this.props.collection });
+            this.reload();
+        }
+    }, {
+        key: "getParams",
+        value: function getParams() {
+            return (0, _lang.optional)(this.props.params, {});
         }
     }, {
         key: "componentWillUnmount",
@@ -25738,6 +26524,7 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
 
         _this7.discriminator = "entity_select_" + _this7.props.entity;
         _this7.datasource = datasource.create();
+        _this7.query = null;
         return _this7;
     }
 
@@ -25750,13 +26537,34 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
                 _this8.datasource.setData((0, _ajex.discriminated)(state, _this8.discriminator).values);
             });
 
-            (0, _actions.getSelectEntities)({ discriminator: this.discriminator, entity: this.props.entity });
+            var model = this.props.model;
+
+            this.query = null;
+            if (this.props.query) {
+                if (_.isFunction(this.props.query)) {
+                    this.query = this.props.query(model);
+                } else {
+                    this.query = this.props.query;
+                }
+            }
+
+            if (!_.isEmpty(this.query)) {
+                this.__onQueryChange = function () {
+                    (0, _actions.getSelectEntities)({ discriminator: _this8.discriminator, entity: _this8.props.entity, query: _this8.query });
+                };
+
+                this.query.on("change", this.__onQueryChange);
+            }
+
+            (0, _actions.getSelectEntities)({ discriminator: this.discriminator, entity: this.props.entity, query: this.query });
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
             _stores.SelectStore.unsubscribe(this);
-
+            if (this.query) {
+                this.query.off("change", this.__onQueryChange);
+            }
             (0, _actions.freeSelect)({ discriminator: this.discriminator });
         }
     }, {
@@ -25811,22 +26619,40 @@ var Dialog = exports.Dialog = function (_React$Component) {
             var _this2 = this;
 
             var me = ReactDOM.findDOMNode(this);
-            $(me).modal({ show: false }).on("shown.bs.modal", function () {
+            $(me).modal({ show: false }).on("show.bs.modal", function () {
                 return _this2.opened = true;
-            }).on("hidden.bs.modal", function () {
+            }).on("hide.bs.modal", function () {
                 _this2.opened = false;
                 if (_.isFunction(_this2.props.onClose)) {
                     _this2.props.onClose(_this2.dialogResult);
                 }
             });
+
+            if (!this.props.hidden) {
+                if (!this.opened) {
+                    this.opened = true;
+                    this.show();
+                }
+            } else {
+                if (this.opened) {
+                    this.opened = false;
+                    this.hide();
+                }
+            }
         }
     }, {
         key: "componentDidUpdate",
         value: function componentDidUpdate() {
-            if (!this.props.hidden && !this.opened) {
-                this.show();
-            } else if (this.props.hidden && this.opened) {
-                this.hide();
+            if (!this.props.hidden) {
+                if (!this.opened) {
+                    this.opened = true;
+                    this.show();
+                }
+            } else {
+                if (this.opened) {
+                    this.opened = false;
+                    this.hide();
+                }
             }
         }
     }, {
@@ -25867,12 +26693,15 @@ var Dialog = exports.Dialog = function (_React$Component) {
                 padding: this.props.noPadding ? "0px" : undefined
             };
 
+            var modalDialogClassName = "modal-dialog";
+            modalDialogClassName += (0, _lang.parseBoolean)(this.props.large) ? " modal-lg" : "";
+
             return React.createElement(
                 "div",
                 { className: "modal fade", role: "dialog", tabIndex: "-1", style: style },
                 React.createElement(
                     "div",
-                    { className: "modal-dialog" },
+                    { className: modalDialogClassName },
                     React.createElement(
                         "div",
                         { className: "modal-content" },
@@ -25910,7 +26739,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Image = exports.File = exports.Lookup = exports.Select = exports.Number = exports.Switch = exports.YesNo = exports.Mail = exports.ReadOnlyText = exports.TextArea = exports.Text = exports.Control = exports.InlineField = exports.Field = exports.Form = exports.Tabs = exports.AreaNoCard = exports.Area = exports.Label = exports.Model = undefined;
+exports.Image = exports.File = exports.Lookup = exports.Select = exports.Number = exports.Switch = exports.YesNo = exports.DateTime = exports.Mail = exports.Spacer = exports.Color = exports.ReadOnlyText = exports.TextArea = exports.Text = exports.Control = exports.InlineField = exports.Field = exports.Form = exports.FormSubmitEvent = exports.Tabs = exports.AreaNoCard = exports.Area = exports.Label = exports.Model = exports.VALIDATION_ERROR = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -25942,6 +26771,12 @@ var datasource = _interopRequireWildcard(_datasource);
 
 var _lang2 = require("../../utils/lang");
 
+var _dialogs = require("./dialogs");
+
+var _moment = require("../../libs/moment");
+
+var _moment2 = _interopRequireDefault(_moment);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -25952,12 +26787,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var VALIDATION_ERROR = {};
+var VALIDATION_ERROR = exports.VALIDATION_ERROR = {};
 
 var Model = exports.Model = function (_Observable) {
     _inherits(Model, _Observable);
 
-    function Model() {
+    function Model(form) {
         _classCallCheck(this, Model);
 
         var _this = _possibleConstructorReturn(this, (Model.__proto__ || Object.getPrototypeOf(Model)).call(this));
@@ -25965,10 +26800,28 @@ var Model = exports.Model = function (_Observable) {
         _this.descriptor = null;
         _this.data = {};
         _this.validationResult = {};
+        _this.initialized = false;
+        _this.form = form;
         return _this;
     }
 
     _createClass(Model, [{
+        key: "invalidatForm",
+        value: function invalidatForm() {
+            if (this.form) {
+                this.form.forceUpdate();
+            }
+        }
+    }, {
+        key: "load",
+        value: function load(data) {
+            this.data = data ? data : {};
+            if (!this.initialized && data != null) {
+                this.invoke("load", this);
+                this.initialized = true;
+            }
+        }
+    }, {
         key: "findField",
         value: function findField(property) {
             if (this.descriptor == null) {
@@ -26054,6 +26907,12 @@ var Model = exports.Model = function (_Observable) {
             this.data[property] = value;
 
             this.invoke("property:change", property, value);
+        }
+    }, {
+        key: "assign",
+        value: function assign(property, value) {
+            var actual = (0, _lang.optional)(this.get(property), {});
+            this.set(property, _.assign(actual, value));
         }
     }, {
         key: "get",
@@ -26152,6 +27011,26 @@ var Model = exports.Model = function (_Observable) {
                 throw VALIDATION_ERROR;
             }
         }
+    }, {
+        key: "resetValidation",
+        value: function resetValidation() {
+            this.validationResult = {};
+        }
+    }, {
+        key: "setError",
+        value: function setError(property, message) {
+            this.validationResult[property] = {
+                valid: false,
+                message: message
+            };
+        }
+    }, {
+        key: "resetError",
+        value: function resetError(property) {
+            this.validationResult[property] = {
+                valid: true
+            };
+        }
     }]);
 
     return Model;
@@ -26193,6 +27072,23 @@ var Area = exports.Area = function (_React$Component2) {
     }
 
     _createClass(Area, [{
+        key: "isFieldVisible",
+        value: function isFieldVisible(field) {
+            var descriptor = this.props.descriptor;
+            var model = this.props.model;
+
+            if (_.isFunction(descriptor.visibility)) {
+                return descriptor.visibility(field, model, descriptor);
+            }
+
+            return true;
+        }
+    }, {
+        key: "getExtra",
+        value: function getExtra() {
+            return null;
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this6 = this;
@@ -26203,7 +27099,9 @@ var Area = exports.Area = function (_React$Component2) {
             inline = (0, _lang.optional)(area.inline, inline);
             var defaultFieldCass = inline ? InlineField : Field;
             var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model, descriptor: descriptor });
-            var fields = !_.isEmpty(area.fields) && area.fields.map(function (f) {
+            var fields = !_.isEmpty(area.fields) && _.filter(area.fields, function (f) {
+                return _this6.isFieldVisible(f);
+            }).map(function (f) {
                 return React.createElement((0, _lang.optional)(function () {
                     return f.component;
                 }, function () {
@@ -26220,7 +27118,8 @@ var Area = exports.Area = function (_React$Component2) {
                     { className: "row" },
                     fields
                 ),
-                React.createElement("div", { className: "clearfix" })
+                React.createElement("div", { className: "clearfix" }),
+                this.getExtra()
             );
         }
     }]);
@@ -26238,13 +27137,27 @@ var AreaNoCard = exports.AreaNoCard = function (_React$Component3) {
     }
 
     _createClass(AreaNoCard, [{
+        key: "isFieldVisible",
+        value: function isFieldVisible(field) {
+            var descriptor = this.props.descriptor;
+            var model = this.props.model;
+
+            if (_.isFunction(descriptor.visibility)) {
+                return descriptor.visibility(field, model, descriptor);
+            }
+
+            return true;
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this8 = this;
 
             var area = this.props.area;
             var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model });
-            var fields = !_.isEmpty(area.fields) && area.fields.map(function (f) {
+            var fields = !_.isEmpty(area.fields) && _.filter(area.fields, function (f) {
+                return _this8.isFieldVisible(f);
+            }).map(function (f) {
                 return React.createElement((0, _lang.optional)(function () {
                     return f.component;
                 }, function () {
@@ -26310,6 +27223,18 @@ var Tabs = exports.Tabs = function (_React$Component4) {
             });
         }
     }, {
+        key: "isFieldVisible",
+        value: function isFieldVisible(field) {
+            var descriptor = this.props.descriptor;
+            var model = this.props.model;
+
+            if (_.isFunction(descriptor.visibility)) {
+                return descriptor.visibility(field, model, descriptor);
+            }
+
+            return true;
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this11 = this;
@@ -26335,7 +27260,9 @@ var Tabs = exports.Tabs = function (_React$Component4) {
                 var inline = (0, _lang.optional)(descriptor.inline, false);
                 inline = (0, _lang.optional)(c.inline, inline);
                 var defaultFieldClass = inline ? InlineField : Field;
-                var fields = _.isEmpty(c.fields) && c.fields.map(function (f) {
+                var fields = !_.isEmpty(c.fields) && _.filter(c.fields, function (f) {
+                    return _this11.isFieldVisible(f);
+                }).map(function (f) {
                     return React.createElement((0, _lang.optional)(function () {
                         return f.component;
                     }, function () {
@@ -26405,6 +27332,30 @@ function generateKeys(descriptor) {
     }
 }
 
+var FormSubmitEvent = exports.FormSubmitEvent = function () {
+    function FormSubmitEvent(form, model) {
+        _classCallCheck(this, FormSubmitEvent);
+
+        this.form = form;
+        this.model = model;
+        this.stopped = false;
+    }
+
+    _createClass(FormSubmitEvent, [{
+        key: "stop",
+        value: function stop() {
+            this.stopped = true;
+        }
+    }, {
+        key: "forceSubmit",
+        value: function forceSubmit() {
+            this.form.forceSubmit();
+        }
+    }]);
+
+    return FormSubmitEvent;
+}();
+
 var Form = exports.Form = function (_React$Component5) {
     _inherits(Form, _React$Component5);
 
@@ -26413,7 +27364,7 @@ var Form = exports.Form = function (_React$Component5) {
 
         var _this12 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
 
-        _this12.model = new Model();
+        _this12.model = new Model(_this12);
         return _this12;
     }
 
@@ -26423,10 +27374,37 @@ var Form = exports.Form = function (_React$Component5) {
             this.onSubmit();
         }
     }, {
+        key: "forceSubmit",
+        value: function forceSubmit() {
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(this.model.sanitized());
+            }
+        }
+    }, {
         key: "onSubmit",
         value: function onSubmit(e) {
             if (e) {
                 e.preventDefault();
+            }
+
+            var event = new FormSubmitEvent(this, this.model);
+
+            try {
+                var descriptor = this.props.descriptor;
+                if (_.isFunction(descriptor.beforeSubmit)) {
+                    descriptor.beforeSubmit(event);
+
+                    if (event.stopped) {
+                        return;
+                    }
+                }
+            } catch (e) {
+                if (e === VALIDATION_ERROR) {
+                    this.forceUpdate();
+                    return;
+                } else {
+                    throw e;
+                }
             }
 
             try {
@@ -26453,11 +27431,30 @@ var Form = exports.Form = function (_React$Component5) {
         key: "componentWillReceiveProps",
         value: function componentWillReceiveProps(nextProps) {
             this.model.descriptor = nextProps.descriptor;
-            this.model.data = nextProps.data ? nextProps.data : {};
+            this.model.load(nextProps.data);
+        }
+    }, {
+        key: "isFieldVisible",
+        value: function isFieldVisible(field) {
+            var descriptor = this.props.descriptor;
+            var model = this.model;
+
+            if (_.isFunction(descriptor.visibility)) {
+                return descriptor.visibility(field, model, descriptor);
+            }
+
+            return true;
+        }
+    }, {
+        key: "getExtra",
+        value: function getExtra() {
+            return null;
         }
     }, {
         key: "render",
         value: function render() {
+            var _this13 = this;
+
             var descriptor = this.props.descriptor;
             var model = this.model;
 
@@ -26473,7 +27470,9 @@ var Form = exports.Form = function (_React$Component5) {
                 }), { key: a.key, model: model, area: a, descriptor: descriptor });
             });
             var tabs = !_.isEmpty(descriptor.tabs) && React.createElement(Tabs, { tabs: descriptor.tabs, model: model, descriptor: descriptor });
-            var fields = !_.isEmpty(descriptor.fields) && descriptor.fields.map(function (f) {
+            var fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, function (f) {
+                return _this13.isFieldVisible(f);
+            }).map(function (f) {
                 return React.createElement((0, _lang.optional)(function () {
                     return f.component;
                 }, function () {
@@ -26507,18 +27506,19 @@ var Form = exports.Form = function (_React$Component5) {
                                 { type: "button", className: "btn btn-default waves-effect m-r-10", onClick: this.onCancel.bind(this) },
                                 React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
                                 " ",
-                                descriptor.cancelText || _strings2.default.cancel
+                                descriptor.cancelText || (0, _strings2.default)("cancel")
                             ),
                             React.createElement(
                                 "button",
                                 { type: "submit", className: "btn btn-primary waves-effect" },
                                 React.createElement("i", { className: "zmdi zmdi-save" }),
                                 " ",
-                                descriptor.submitText || _strings2.default.submit
+                                descriptor.submitText || (0, _strings2.default)("save")
                             )
                         )
                     ),
-                    React.createElement("div", { className: "clearfix" })
+                    React.createElement("div", { className: "clearfix" }),
+                    this.getExtra()
                 )
             );
         }
@@ -26528,7 +27528,7 @@ var Form = exports.Form = function (_React$Component5) {
 }(React.Component);
 
 /************************
- Controls and Fields
+    Controls and Fields
  ************************/
 
 var Field = exports.Field = function (_React$Component6) {
@@ -26547,15 +27547,23 @@ var Field = exports.Field = function (_React$Component6) {
             var className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12");
             var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.props));
             var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
-            var validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : { valid: true };
+            var validationResult = (0, _lang.optional)(model.validationResult[this.props.field.property], { valid: true });
             if (!validationResult.valid) {
                 className += " has-error";
             }
+            if (!_.isEmpty(this.props.field.className)) {
+                className += " " + this.props.field.className;
+            }
             return React.createElement(
                 "div",
-                { className: className },
+                { className: className, style: { minHeight: 58 } },
                 hasLabel && React.createElement(Label, { field: this.props.field }),
-                control
+                control,
+                !validationResult.valid && !_.isEmpty(validationResult.message) && React.createElement(
+                    "small",
+                    { className: "help-block" },
+                    validationResult.message
+                )
             );
         }
     }]);
@@ -26581,9 +27589,12 @@ var InlineField = exports.InlineField = function (_React$Component7) {
             var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
             var inline = (0, _lang.optional)(this.props.inline, false);
             var controlSize = hasLabel ? "col-sm-10" : "col-sm-12";
-            var validationResult = model.validationResult[this.props.field.property] ? model.validationResult[this.props.field.property] : { valid: true };
+            var validationResult = (0, _lang.optional)(model.validationResult[this.props.field.property], { valid: true });
             if (!validationResult.valid) {
                 className += " has-error";
+            }
+            if (!_.isEmpty(this.props.field.className)) {
+                className += " " + this.props.field.className;
             }
             return React.createElement(
                 "div",
@@ -26596,7 +27607,12 @@ var InlineField = exports.InlineField = function (_React$Component7) {
                 React.createElement(
                     "div",
                     { className: controlSize },
-                    control
+                    control,
+                    !validationResult.valid && !_.isEmpty(validationResult.message) && React.createElement(
+                        "small",
+                        { className: "help-block" },
+                        validationResult.message
+                    )
                 )
             );
         }
@@ -26706,7 +27722,16 @@ var ReadOnlyText = exports.ReadOnlyText = function (_Control3) {
     _createClass(ReadOnlyText, [{
         key: "render",
         value: function render() {
+            var _this20 = this;
+
             var field = this.props.field;
+            var formatter = (0, _lang.optional)(function () {
+                return _this20.props.formatter;
+            }, function () {
+                return function (v) {
+                    return v;
+                };
+            });
 
             return React.createElement(
                 "div",
@@ -26719,7 +27744,7 @@ var ReadOnlyText = exports.ReadOnlyText = function (_Control3) {
                     id: field.property,
                     "data-property": field.property,
                     placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                    value: (0, _lang.optional)(formatter(this.props.model.get(field.property)), ""),
                     onChange: this.onValueChange.bind(this) })
             );
         }
@@ -26728,8 +27753,91 @@ var ReadOnlyText = exports.ReadOnlyText = function (_Control3) {
     return ReadOnlyText;
 }(Control);
 
-var Mail = exports.Mail = function (_Control4) {
-    _inherits(Mail, _Control4);
+var Color = exports.Color = function (_Control4) {
+    _inherits(Color, _Control4);
+
+    function Color() {
+        _classCallCheck(this, Color);
+
+        return _possibleConstructorReturn(this, (Color.__proto__ || Object.getPrototypeOf(Color)).apply(this, arguments));
+    }
+
+    _createClass(Color, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this22 = this;
+
+            var field = this.props.field;
+            var model = this.props.model;
+            var me = ReactDOM.findDOMNode(this);
+            var input = $(me).find("#" + field.property);
+            $(me).find(".color-picker").farbtastic(function (v) {
+                model.set(field.property, v);
+                _this22.forceUpdate();
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+            var value = this.props.model.get(field.property);
+            var colorStyle = { backgroundColor: "" + (0, _lang.optional)(value, "#000000") };
+
+            return React.createElement(
+                "div",
+                { className: "cp-container" },
+                React.createElement(
+                    "div",
+                    { className: "" },
+                    React.createElement(
+                        "div",
+                        { className: "fg-line dropdown" },
+                        React.createElement("input", {
+                            type: "text",
+                            className: "form-control cp-value",
+                            "data-toggle": "dropdown",
+                            "aria-expanded": "false",
+                            id: field.property,
+                            "data-property": field.property,
+                            placeholder: field.placeholder,
+                            value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                            onChange: this.onValueChange.bind(this) }),
+                        React.createElement(
+                            "div",
+                            { className: "dropdown-menu" },
+                            React.createElement("div", { className: "color-picker", "data-cp-default": "#000000" })
+                        ),
+                        React.createElement("i", { className: "cp-value", style: colorStyle })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Color;
+}(Control);
+
+var Spacer = exports.Spacer = function (_Control5) {
+    _inherits(Spacer, _Control5);
+
+    function Spacer() {
+        _classCallCheck(this, Spacer);
+
+        return _possibleConstructorReturn(this, (Spacer.__proto__ || Object.getPrototypeOf(Spacer)).apply(this, arguments));
+    }
+
+    _createClass(Spacer, [{
+        key: "render",
+        value: function render() {
+            return React.createElement("div", { className: "form-spacer-control" });
+        }
+    }]);
+
+    return Spacer;
+}(Control);
+
+var Mail = exports.Mail = function (_Control6) {
+    _inherits(Mail, _Control6);
 
     function Mail() {
         _classCallCheck(this, Mail);
@@ -26760,8 +27868,74 @@ var Mail = exports.Mail = function (_Control4) {
     return Mail;
 }(Control);
 
-var YesNo = exports.YesNo = function (_Control5) {
-    _inherits(YesNo, _Control5);
+var DateTime = exports.DateTime = function (_Control7) {
+    _inherits(DateTime, _Control7);
+
+    function DateTime() {
+        _classCallCheck(this, DateTime);
+
+        return _possibleConstructorReturn(this, (DateTime.__proto__ || Object.getPrototypeOf(DateTime)).apply(this, arguments));
+    }
+
+    _createClass(DateTime, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).datetimepicker({
+                locale: this.props.locale,
+                format: this.props.format
+            });
+
+            var field = this.props.field;
+            var model = this.props.model;
+
+            $(me).on("dp.change", function (e) {
+                var date = e.date.toDate();
+                var time = date.getTime();
+                model.set(field.property, time);
+            });
+
+            model.once("load", function () {
+                var value = model.get(field.property);
+                var date = new Date();
+                if (value) {
+                    date.setTime(value);
+                }
+                $(me).data("DateTimePicker").date(date);
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "input-group" },
+                React.createElement(
+                    "div",
+                    { className: "fg-line" },
+                    React.createElement("input", {
+                        type: "text",
+                        className: "form-control input-sm",
+                        id: field.property,
+                        "data-property": field.property,
+                        placeholder: field.placeholder })
+                ),
+                React.createElement(
+                    "div",
+                    { className: "input-group-addon" },
+                    React.createElement("span", { className: "zmdi zmdi-calendar" })
+                )
+            );
+        }
+    }]);
+
+    return DateTime;
+}(Control);
+
+var YesNo = exports.YesNo = function (_Control8) {
+    _inherits(YesNo, _Control8);
 
     function YesNo() {
         _classCallCheck(this, YesNo);
@@ -26777,6 +27951,22 @@ var YesNo = exports.YesNo = function (_Control5) {
             var field = this.props.field;
             model.set(field.property, value);
             this.forceUpdate();
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var model = this.props.model;
+            var field = this.props.field;
+            var fn = function fn() {
+                var value = (0, _lang2.parseBoolean)(model.get(field.property));
+                if (value === null || value === undefined) {
+                    value = false;
+                }
+                model.set(field.property, value);
+            };
+
+            model.once("load", fn);
+            fn();
         }
     }, {
         key: "render",
@@ -26815,8 +28005,8 @@ var YesNo = exports.YesNo = function (_Control5) {
     return YesNo;
 }(Control);
 
-var Switch = exports.Switch = function (_Control6) {
-    _inherits(Switch, _Control6);
+var Switch = exports.Switch = function (_Control9) {
+    _inherits(Switch, _Control9);
 
     function Switch() {
         _classCallCheck(this, Switch);
@@ -26840,7 +28030,7 @@ var Switch = exports.Switch = function (_Control6) {
 
             return React.createElement(
                 "div",
-                { className: "toggle-switch", "data-ts-color": "blue" },
+                { className: "toggle-switch" },
                 React.createElement("input", {
                     type: "checkbox",
                     hidden: "hidden",
@@ -26862,8 +28052,8 @@ var Switch = exports.Switch = function (_Control6) {
     return Switch;
 }(Control);
 
-var Number = exports.Number = function (_Control7) {
-    _inherits(Number, _Control7);
+var Number = exports.Number = function (_Control10) {
+    _inherits(Number, _Control10);
 
     function Number() {
         _classCallCheck(this, Number);
@@ -26885,7 +28075,7 @@ var Number = exports.Number = function (_Control7) {
                     id: field.property,
                     "data-property": field.property,
                     placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property)),
+                    value: (0, _lang.optional)(this.props.model.get(field.property), 0),
                     onChange: this.onValueChange.bind(this) })
             );
         }
@@ -26894,21 +28084,38 @@ var Number = exports.Number = function (_Control7) {
     return Number;
 }(Control);
 
-var Select = exports.Select = function (_Control8) {
-    _inherits(Select, _Control8);
+var Select = exports.Select = function (_Control11) {
+    _inherits(Select, _Control11);
 
     function Select(props) {
         _classCallCheck(this, Select);
 
-        var _this23 = _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).call(this, props));
+        var _this29 = _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).call(this, props));
 
-        _this23.__dataSourceOnChange = function (data) {
-            _this23.forceUpdate();
+        _this29.__dataSourceOnChange = function (data) {
+            _this29.forceUpdate();
         };
-        return _this23;
+        return _this29;
     }
 
     _createClass(Select, [{
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var multiple = (0, _lang.optional)(this.props.multiple, false);
+            var value = $(e.target).val();
+            var model = this.props.model;
+            var field = this.props.field;
+
+            if (multiple) {
+                if (value == null) {
+                    value = [];
+                }
+            }
+
+            model.set(field.property, value);
+            this.forceUpdate();
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             if (!_.isEmpty(this.props.datasource)) {
@@ -26916,8 +28123,28 @@ var Select = exports.Select = function (_Control8) {
             }
 
             var me = ReactDOM.findDOMNode(this);
-            $(me).selectpicker({
+            var model = this.props.model;
+            var field = this.props.field;
+            var multiple = (0, _lang.optional)(this.props.multiple, false);
+
+            $(me).focus(function () {
+                $(me).addClass("fg-toggled");
+            }).blur(function () {
+                $(me).removeClass("fg-toggled");
+            });
+
+            $(me).find("select").selectpicker({
                 liveSearch: (0, _lang.optional)(this.props.searchEnabled, false)
+            }).on("loaded.bs.select", function () {
+                var value = $(this).val();
+
+                if (multiple) {
+                    if (_.isEmpty(value)) {
+                        value = [];
+                    }
+                }
+
+                model.set(field.property, value);
             });
         }
     }, {
@@ -26927,7 +28154,7 @@ var Select = exports.Select = function (_Control8) {
             var field = this.props.field;
             var me = ReactDOM.findDOMNode(this);
 
-            $(me).selectpicker("refresh");
+            $(me).find("select").selectpicker("refresh");
         }
     }, {
         key: "componentWillUnmount",
@@ -26951,23 +28178,28 @@ var Select = exports.Select = function (_Control8) {
                     o.label
                 );
             });
+            var multiple = (0, _lang.optional)(this.props.multiple, false);
 
             return React.createElement(
-                "select",
-                {
-                    id: field.property,
-                    className: "form-control",
-                    "data-property": field.property,
-                    onChange: this.onValueChange.bind(this),
-                    title: field.placeholder,
-                    value: (0, _lang.optional)(model.get(field.property), ""),
-                    multiple: (0, _lang.optional)(this.props.multiple, false) },
-                this.props.allowNull && React.createElement(
-                    "option",
-                    { value: "", style: { color: "#999999" } },
-                    (0, _lang.optional)(this.props.nullText, "(none)")
-                ),
-                options
+                "div",
+                { className: "fg-line" },
+                React.createElement(
+                    "select",
+                    {
+                        id: field.property,
+                        className: "form-control",
+                        "data-property": field.property,
+                        onChange: this.onValueChange.bind(this),
+                        title: field.placeholder,
+                        value: (0, _lang.optional)(model.get(field.property), multiple ? [] : ""),
+                        multiple: multiple },
+                    this.props.allowNull && React.createElement(
+                        "option",
+                        { key: "empty", value: "", style: { color: "#999999" } },
+                        (0, _lang.optional)(this.props.nullText, "(none)")
+                    ),
+                    options
+                )
             );
         }
     }]);
@@ -26975,27 +28207,27 @@ var Select = exports.Select = function (_Control8) {
     return Select;
 }(Control);
 
-var Lookup = exports.Lookup = function (_Control9) {
-    _inherits(Lookup, _Control9);
+var Lookup = exports.Lookup = function (_Control12) {
+    _inherits(Lookup, _Control12);
 
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        var _this24 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this30 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this24.datasource = _this24.props.datasource || datasource.create();
-        _this24.query = _this24.props.query || query.create();
+        _this30.datasource = _this30.props.datasource || datasource.create();
+        _this30.query = _this30.props.query || query.create();
 
-        _this24.__dataSourceOnChange = function (data) {
-            _this24.forceUpdate();
+        _this30.__dataSourceOnChange = function (data) {
+            _this30.forceUpdate();
         };
 
-        _this24.__queryChange = function () {
-            if (_.isFunction(_this24.props.loader)) {
-                _this24.props.loader(_this24.query, _this24.datasource);
+        _this30.__queryChange = function () {
+            if (_.isFunction(_this30.props.loader)) {
+                _this30.props.loader(_this30.query, _this30.datasource);
             }
         };
-        return _this24;
+        return _this30;
     }
 
     _createClass(Lookup, [{
@@ -27185,14 +28417,15 @@ var Lookup = exports.Lookup = function (_Control9) {
 
             if (mode == "multiple") {
                 var rows = model.get(field.property);
-                return rows.length == 1 ? _strings2.default.oneElementSelected : (0, _lang.format)(_strings2.default.nElementsSelected, rows.length);
+                return rows.length == 1 ? (0, _strings2.default)("oneElementSelected") : (0, _lang.format)((0, _strings2.default)("nElementsSelected"), rows.length);
             } else if (mode == "single") {
                 var row = model.get(field.property);
                 if (row == null) {
                     return "";
                 }
 
-                var formatter = _.isFunction(field.formatter) ? field.formatter : function (row) {
+                var customFormatter = field.formatter || this.props.formatter;
+                var formatter = _.isFunction(customFormatter) ? customFormatter : function (row) {
                     if (_.has(row, "name")) {
                         return row["name"];
                     } else if (_.has(row, "description")) {
@@ -27221,13 +28454,13 @@ var Lookup = exports.Lookup = function (_Control9) {
             if (field.placeholder) {
                 return field.placeholder;
             } else {
-                return _strings2.default.nothingSelected;
+                return (0, _strings2.default)("nothingSelected");
             }
         }
     }, {
         key: "render",
         value: function render() {
-            var _this25 = this;
+            var _this31 = this;
 
             var mode = this.checkedMode();
             var model = this.props.model;
@@ -27237,7 +28470,7 @@ var Lookup = exports.Lookup = function (_Control9) {
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this25.removeRow(row);
+                            return _this31.removeRow(row);
                         } }]
                 }]) }) : null;
             var addClassName = void 0;
@@ -27258,15 +28491,15 @@ var Lookup = exports.Lookup = function (_Control9) {
                         { className: "lookup-header", onClick: this.showEntities.bind(this) },
                         React.createElement(
                             "div",
-                            { className: "actions pull-right" },
+                            { className: "actions" },
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this), className: "m-r-0" },
+                                { href: "javascript:;", title: (0, _strings2.default)("remove"), onClick: this.remove.bind(this), className: "m-r-0" },
                                 React.createElement("i", { className: "zmdi zmdi-close" })
                             ),
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: _strings2.default.add, onClick: this.showEntities.bind(this) },
+                                { href: "javascript:;", title: (0, _strings2.default)("add"), onClick: this.showEntities.bind(this) },
                                 React.createElement("i", { className: addClassName })
                             )
                         ),
@@ -27316,7 +28549,7 @@ var Lookup = exports.Lookup = function (_Control9) {
                                 React.createElement(
                                     "h4",
                                     { className: "modal-title", id: "myModalLabel" },
-                                    "Select roles"
+                                    field.label
                                 )
                             ),
                             React.createElement(
@@ -27342,12 +28575,12 @@ var Lookup = exports.Lookup = function (_Control9) {
                                 React.createElement(
                                     "button",
                                     { type: "button", className: "btn btn-link", onClick: this.select.bind(this) },
-                                    _strings2.default.ok
+                                    (0, _strings2.default)("ok")
                                 ),
                                 React.createElement(
                                     "button",
                                     { type: "button", className: "btn btn-link", "data-dismiss": "modal" },
-                                    _strings2.default.cancel
+                                    (0, _strings2.default)("cancel")
                                 )
                             )
                         )
@@ -27360,29 +28593,29 @@ var Lookup = exports.Lookup = function (_Control9) {
     return Lookup;
 }(Control);
 
-var File = exports.File = function (_Control10) {
-    _inherits(File, _Control10);
+var File = exports.File = function (_Control13) {
+    _inherits(File, _Control13);
 
     function File(props) {
         _classCallCheck(this, File);
 
-        var _this26 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
+        var _this32 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
 
-        _this26.state = { filename: null };
-        return _this26;
+        _this32.state = { filename: null };
+        return _this32;
     }
 
     _createClass(File, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this27 = this;
+            var _this33 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this27.setState({ filename: file.name });
+                _this33.setState({ filename: file.name });
             });
         }
     }, {
@@ -27427,7 +28660,7 @@ var File = exports.File = function (_Control10) {
                             { className: "actions pull-right" },
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: _strings2.default.search, onClick: this.search.bind(this), className: "m-r-0" },
+                                { href: "javascript:;", title: (0, _strings2.default)("search"), onClick: this.search.bind(this), className: "m-r-0" },
                                 React.createElement("i", { className: "zmdi zmdi-search" })
                             )
                         ),
@@ -27444,7 +28677,7 @@ var File = exports.File = function (_Control10) {
                             { className: "actions pull-right" },
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: _strings2.default.remove, onClick: this.remove.bind(this), className: "m-r-0" },
+                                { href: "javascript:;", title: (0, _strings2.default)("remove"), onClick: this.remove.bind(this), className: "m-r-0" },
                                 React.createElement("i", { className: "zmdi zmdi-close" })
                             )
                         ),
@@ -27465,8 +28698,8 @@ var File = exports.File = function (_Control10) {
     return File;
 }(Control);
 
-var Image = exports.Image = function (_Control11) {
-    _inherits(Image, _Control11);
+var Image = exports.Image = function (_Control14) {
+    _inherits(Image, _Control14);
 
     function Image(props) {
         _classCallCheck(this, Image);
@@ -27477,14 +28710,14 @@ var Image = exports.Image = function (_Control11) {
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this29 = this;
+            var _this35 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this29.forceUpdate();
+                _this35.forceUpdate();
             });
         }
     }, {
@@ -27568,7 +28801,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.EditTextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -27590,6 +28823,10 @@ var _lang = require("../../utils/lang");
 var _events = require("../../aj/events");
 
 var _keyboard = require("../utils/keyboard");
+
+var _mobile = require("../utils/mobile");
+
+var mobile = _interopRequireWildcard(_mobile);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -27675,8 +28912,6 @@ var Selection = function (_Observable) {
     }, {
         key: "handle",
         value: function handle(row) {
-            var _this2 = this;
-
             var flatRows = this.flatRows();
 
             if (this.shiftPressed) {
@@ -27691,16 +28926,14 @@ var Selection = function (_Observable) {
                     this.lastSelected = row;
                     row.selected = true;
                 } else {
-                    (function () {
-                        var startIndex = Math.min(_this2.rangeStartRow.index, row.index);
-                        var endIndex = Math.max(_this2.rangeStartRow.index, row.index);
-                        flatRows.forEach(function (r) {
-                            if (r.index >= startIndex && r.index <= endIndex) {
-                                r.selected = true;
-                            }
-                        });
-                        _this2.lastSelected = row;
-                    })();
+                    var startIndex = Math.min(this.rangeStartRow.index, row.index);
+                    var endIndex = Math.max(this.rangeStartRow.index, row.index);
+                    flatRows.forEach(function (r) {
+                        if (r.index >= startIndex && r.index <= endIndex) {
+                            r.selected = true;
+                        }
+                    });
+                    this.lastSelected = row;
                 }
             } else if (this.controlPressed) {
                 row.selected = !row.selected;
@@ -27729,10 +28962,10 @@ var Selection = function (_Observable) {
     }, {
         key: "toggleAll",
         value: function toggleAll() {
-            var _this3 = this;
+            var _this2 = this;
 
             this.flatRows().forEach(function (r) {
-                return r.selected = !_this3.allSelected;
+                return r.selected = !_this2.allSelected;
             });
             this.allSelected = !this.allSelected;
             this.lastSelected = null;
@@ -27805,10 +29038,10 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
     function SearchDialog(props) {
         _classCallCheck(this, SearchDialog);
 
-        var _this4 = _possibleConstructorReturn(this, (SearchDialog.__proto__ || Object.getPrototypeOf(SearchDialog)).call(this, props));
+        var _this3 = _possibleConstructorReturn(this, (SearchDialog.__proto__ || Object.getPrototypeOf(SearchDialog)).call(this, props));
 
-        _this4.state = { value: "", type: "eq" };
-        return _this4;
+        _this3.state = { value: "", type: "eq" };
+        return _this3;
     }
 
     _createClass(SearchDialog, [{
@@ -27874,7 +29107,7 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
                                 React.createElement(
                                     "p",
                                     { className: "c-black f-500 m-b-20 m-t-20" },
-                                    _strings2.default.typeValueToSearch
+                                    (0, _strings2.default)("typeValueToSearch")
                                 ),
                                 React.createElement(
                                     "div",
@@ -27882,13 +29115,13 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
                                     React.createElement(
                                         "div",
                                         { className: "fg-line" },
-                                        React.createElement("input", { type: "text", className: "form-control", placeholder: _strings2.default.value, onChange: this.onChangeValue.bind(this), value: this.state.value })
+                                        React.createElement("input", { type: "text", className: "form-control", placeholder: (0, _strings2.default)("value"), onChange: this.onChangeValue.bind(this), value: this.state.value })
                                     )
                                 ),
                                 React.createElement(
                                     "p",
                                     { className: "c-black f-500 m-b-20 m-t-20" },
-                                    _strings2.default.selectFilterType
+                                    (0, _strings2.default)("selectFilterType")
                                 ),
                                 React.createElement(
                                     "div",
@@ -27930,12 +29163,12 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
                             React.createElement(
                                 "button",
                                 { type: "button", className: "btn btn-link waves-effect", onClick: this.filter.bind(this) },
-                                _strings2.default.search
+                                (0, _strings2.default)("search")
                             ),
                             React.createElement(
                                 "button",
                                 { type: "button", className: "btn btn-link waves-effect", "data-dismiss": "modal" },
-                                _strings2.default.close
+                                (0, _strings2.default)("close")
                             )
                         )
                     )
@@ -27953,10 +29186,10 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     function HeaderCell(props) {
         _classCallCheck(this, HeaderCell);
 
-        var _this5 = _possibleConstructorReturn(this, (HeaderCell.__proto__ || Object.getPrototypeOf(HeaderCell)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (HeaderCell.__proto__ || Object.getPrototypeOf(HeaderCell)).call(this, props));
 
-        _this5.state = { sorting: false, sortDescending: false };
-        return _this5;
+        _this4.state = { sorting: false, sortDescending: false };
+        return _this4;
     }
 
     _createClass(HeaderCell, [{
@@ -28029,7 +29262,7 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
                 ),
                 this.props.column.searchable && React.createElement(
                     "a",
-                    { ref: "search", className: "btn bgm-bluegray btn-no-shadow", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-5px", position: "absolute", right: "30px" } },
+                    { ref: "search", className: "btn btn-primary btn-no-shadow", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-5px", position: "absolute", right: "30px" } },
                     React.createElement("i", { className: "zmdi zmdi-search" })
                 ),
                 this.props.column.searchable && React.createElement(SearchDialog, { column: this.props.column, query: this.props.query })
@@ -28052,7 +29285,7 @@ var GridHeader = exports.GridHeader = function (_React$Component3) {
     _createClass(GridHeader, [{
         key: "render",
         value: function render() {
-            var _this7 = this;
+            var _this6 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -28060,7 +29293,7 @@ var GridHeader = exports.GridHeader = function (_React$Component3) {
 
             var id = 1;
             var headerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(HeaderCell, { key: id++, column: c, query: _this7.props.query });
+                return React.createElement(HeaderCell, { key: id++, column: c, query: _this6.props.query });
             });
 
             return React.createElement(
@@ -28126,22 +29359,22 @@ var Row = exports.Row = function (_React$Component4) {
     }, {
         key: "render",
         value: function render() {
-            var _this9 = this;
+            var _this8 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
 
             var onExpand = function onExpand(row) {
-                if (_.isFunction(_this9.props.onExpand)) {
-                    _this9.props.onExpand(row);
+                if (_.isFunction(_this8.props.onExpand)) {
+                    _this8.props.onExpand(row);
                 }
             };
 
             var firstElement = true;
             var key = 1;
             var cells = this.props.descriptor.columns.map(function (c) {
-                var cell = createCell(c, _this9.props.row, firstElement, onExpand, c.props);
+                var cell = createCell(c, _this8.props.row, firstElement, onExpand, c.props);
                 firstElement = false;
                 return React.createElement(
                     "td",
@@ -28154,6 +29387,14 @@ var Row = exports.Row = function (_React$Component4) {
                 );
             });
             var className = "level-" + this.props.row.level + " " + (this.props.row.selected ? "selected" : "");
+            var rowClassName = this.props.descriptor.rowClassName;
+            if (rowClassName) {
+                if (_.isFunction(rowClassName)) {
+                    className += " " + rowClassName(this.props.row.data);
+                } else {
+                    className += " " + rowClassName;
+                }
+            }
 
             return React.createElement(
                 "tr",
@@ -28199,7 +29440,7 @@ var GridBody = exports.GridBody = function (_React$Component5) {
     }, {
         key: "render",
         value: function render() {
-            var _this11 = this;
+            var _this10 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -28216,12 +29457,12 @@ var GridBody = exports.GridBody = function (_React$Component5) {
                     r.level = level;
                     var element = React.createElement(Row, {
                         key: parentKey + "_" + key++,
-                        descriptor: _this11.props.descriptor,
+                        descriptor: _this10.props.descriptor,
                         row: r,
-                        query: _this11.props.query,
-                        onMouseDown: _this11.onRowMouseDown.bind(_this11),
-                        onDoubleClick: _this11.onRowDoubleClick.bind(_this11),
-                        onExpand: _this11.onRowExpand.bind(_this11) });
+                        query: _this10.props.query,
+                        onMouseDown: _this10.onRowMouseDown.bind(_this10),
+                        onDoubleClick: _this10.onRowDoubleClick.bind(_this10),
+                        onExpand: _this10.onRowExpand.bind(_this10) });
 
                     rowElements.push(element);
 
@@ -28281,7 +29522,7 @@ var GridFooter = exports.GridFooter = function (_React$Component7) {
     _createClass(GridFooter, [{
         key: "render",
         value: function render() {
-            var _this14 = this;
+            var _this13 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -28289,7 +29530,7 @@ var GridFooter = exports.GridFooter = function (_React$Component7) {
 
             var id = 1;
             var footerCells = this.props.descriptor.columns.map(function (c) {
-                return React.createElement(FooterCell, { key: id++, column: c, query: _this14.props.query });
+                return React.createElement(FooterCell, { key: id++, column: c, query: _this13.props.query });
             });
 
             return React.createElement(
@@ -28319,8 +29560,69 @@ var Cell = exports.Cell = function (_React$Component8) {
     return Cell;
 }(React.Component);
 
-var TextCell = exports.TextCell = function (_Cell) {
-    _inherits(TextCell, _Cell);
+var EditTextCell = exports.EditTextCell = function (_Cell) {
+    _inherits(EditTextCell, _Cell);
+
+    function EditTextCell(props) {
+        _classCallCheck(this, EditTextCell);
+
+        var _this15 = _possibleConstructorReturn(this, (EditTextCell.__proto__ || Object.getPrototypeOf(EditTextCell)).call(this, props));
+
+        _this15.state = { value: "" };
+        return _this15;
+    }
+
+    _createClass(EditTextCell, [{
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(nextProps, nextState) {
+            if (nextProps.value != nextState.value) {
+                this.setState({ value: nextProps.value });
+            }
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.setState({ value: this.props.value });
+        }
+    }, {
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var newValue = e.target.value;
+            this.setState({ value: newValue });
+
+            if (_.isFunction(this.props.onValueChange)) {
+                var column = this.props.column;
+                var property = this.props.property;
+                var row = this.props.row;
+                this.props.onValueChange(column, row.data, newValue);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var column = this.props.column;
+            var property = this.props.property;
+            var row = this.props.row;
+
+            return React.createElement(
+                "div",
+                { className: "edit-text-cell" },
+                React.createElement("input", {
+                    type: (0, _lang.optional)(this.props.type, "text"),
+                    className: "form-control input-sm",
+                    "data-property": property,
+                    placeholder: this.props.placeholder,
+                    value: (0, _lang.optional)(this.state.value, ""),
+                    onChange: this.onValueChange.bind(this) })
+            );
+        }
+    }]);
+
+    return EditTextCell;
+}(Cell);
+
+var TextCell = exports.TextCell = function (_Cell2) {
+    _inherits(TextCell, _Cell2);
 
     function TextCell() {
         _classCallCheck(this, TextCell);
@@ -28383,8 +29685,8 @@ var TextCell = exports.TextCell = function (_Cell) {
     return TextCell;
 }(Cell);
 
-var CheckCell = exports.CheckCell = function (_Cell2) {
-    _inherits(CheckCell, _Cell2);
+var CheckCell = exports.CheckCell = function (_Cell3) {
+    _inherits(CheckCell, _Cell3);
 
     function CheckCell() {
         _classCallCheck(this, CheckCell);
@@ -28395,7 +29697,7 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
     _createClass(CheckCell, [{
         key: "render",
         value: function render() {
-            var checked = this.props.value === true || this.props.value == "true" || parseInt(this.props.value) > 0;
+            var checked = this.props.value === true || this.props.value === "true" || parseInt(this.props.value) > 0;
             var icon = checked ? "zmdi zmdi-check" : "zmdi zmdi-square-o";
 
             return React.createElement("i", { className: icon });
@@ -28405,8 +29707,8 @@ var CheckCell = exports.CheckCell = function (_Cell2) {
     return CheckCell;
 }(Cell);
 
-var ActionsCell = exports.ActionsCell = function (_Cell3) {
-    _inherits(ActionsCell, _Cell3);
+var ActionsCell = exports.ActionsCell = function (_Cell4) {
+    _inherits(ActionsCell, _Cell4);
 
     function ActionsCell() {
         _classCallCheck(this, ActionsCell);
@@ -28418,11 +29720,14 @@ var ActionsCell = exports.ActionsCell = function (_Cell3) {
         key: "componentDidMount",
         value: function componentDidMount() {
             var me = ReactDOM.findDOMNode(this);
-            $(me).closest("tr").mouseenter(function () {
-                $(me).find(".grid-action").stop().fadeIn(250);
-            }).mouseleave(function () {
-                $(me).find(".grid-action").stop().fadeOut(250);
-            });
+            var showAlways = (0, _lang.parseBoolean)(this.props.showAlways);
+            if (!showAlways) {
+                $(me).closest("tr").mouseenter(function () {
+                    $(me).find(".grid-action").stop().fadeIn(250);
+                }).mouseleave(function () {
+                    $(me).find(".grid-action").stop().fadeOut(250);
+                });
+            }
         }
     }, {
         key: "render",
@@ -28433,14 +29738,14 @@ var ActionsCell = exports.ActionsCell = function (_Cell3) {
             var actions = this.props.column.actions.map(function (a) {
                 return React.createElement(
                     "a",
-                    { key: key++, style: { display: "none" }, href: "javascript:;", className: "grid-action", onClick: a.action.bind(_this19, _this19.props.row.data) },
+                    { key: key++, href: "javascript:;", className: "grid-action", onClick: a.action.bind(_this19, _this19.props.row.data) },
                     React.createElement("i", { className: a.icon })
                 );
             });
 
             return React.createElement(
                 "div",
-                null,
+                { className: "grid-actions-container" },
                 actions
             );
         }
@@ -28512,7 +29817,7 @@ var Filter = exports.Filter = function (_React$Component10) {
         value: function render() {
             return React.createElement(
                 "button",
-                { onClick: this.unfilter.bind(this), className: "btn btn-no-shadow bgm-bluegray waves-effect m-r-10" },
+                { onClick: this.unfilter.bind(this), className: "btn btn-no-shadow btn-primary waves-effect m-r-10" },
                 this.props.data.property,
                 " ",
                 React.createElement("i", { className: "zmdi zmdi-close" })
@@ -28560,7 +29865,7 @@ var Filters = exports.Filters = function (_React$Component11) {
                 { className: "filters p-30" },
                 React.createElement(
                     "button",
-                    { type: "button", className: "btn btn-no-shadow bgm-bluegray waves-effect m-r-10" },
+                    { type: "button", className: "btn btn-no-shadow btn-primary waves-effect m-r-10" },
                     React.createElement("i", { className: "zmdi zmdi-delete" })
                 ),
                 filters
@@ -28611,8 +29916,20 @@ var Pagination = exports.Pagination = function (_React$Component12) {
             }
         }
     }, {
+        key: "firstPage",
+        value: function firstPage() {
+            this.props.query.setPage(1);
+        }
+    }, {
+        key: "lastPage",
+        value: function lastPage() {
+            this.props.query.setPage(this.getTotalPages());
+        }
+    }, {
         key: "render",
         value: function render() {
+            var _this25 = this;
+
             if (_.isEmpty(this.props.query) || _.isEmpty(this.props.data.rows)) {
                 return null;
             }
@@ -28621,22 +29938,54 @@ var Pagination = exports.Pagination = function (_React$Component12) {
             var visible = totalPages > 1;
             var page = parseInt(this.props.query.page || 1);
             var pages = [];
-            for (var i = 1; i <= totalPages; i++) {
-                var active = i == page ? "active" : "";
+            var visiblePages = [];
+            if (totalPages > 10) {
+                if (page > 1) {
+                    visiblePages.push(page - 1);
+                }
+                visiblePages.push(page);
+                if (page < totalPages) {
+                    visiblePages.push(page + 1);
+                }
+
+                var range = 10;
+                if (totalPages > 100) {
+                    range = 100;
+                } else if (totalPages > 1000) {
+                    range = 1000;
+                }
+
+                visiblePages = _.sortBy(_.union(visiblePages, _.range(range, totalPages, range)), function (i) {
+                    return i;
+                });
+            } else {
+                visiblePages = _.range(1, totalPages + 1);
+            }
+            visiblePages.forEach(function (i) {
+                var active = i === page ? "active" : "";
                 pages.push(React.createElement(
                     "li",
                     { key: i, className: active },
                     React.createElement(
                         "a",
-                        { href: "javascript:;", onClick: this.changePage.bind(this, i) },
+                        { href: "javascript:;", onClick: _this25.changePage.bind(_this25, i) },
                         i
                     )
                 ));
-            }
+            });
 
             return React.createElement(
                 "ul",
                 { className: "pagination", hidden: !visible },
+                React.createElement(
+                    "li",
+                    null,
+                    React.createElement(
+                        "a",
+                        { href: "javascript:;", onClick: this.firstPage.bind(this), "aria-label": "First" },
+                        React.createElement("i", { className: "zmdi zmdi-arrow-left" })
+                    )
+                ),
                 React.createElement(
                     "li",
                     null,
@@ -28654,6 +30003,15 @@ var Pagination = exports.Pagination = function (_React$Component12) {
                         "a",
                         { href: "javascript:;", onClick: this.nextPage.bind(this), "aria-label": "Next" },
                         React.createElement("i", { className: "zmdi zmdi-chevron-right" })
+                    )
+                ),
+                React.createElement(
+                    "li",
+                    null,
+                    React.createElement(
+                        "a",
+                        { href: "javascript:;", onClick: this.lastPage.bind(this), "aria-label": "First" },
+                        React.createElement("i", { className: "zmdi zmdi-arrow-right" })
                     )
                 )
             );
@@ -28691,7 +30049,7 @@ var ResultSummary = exports.ResultSummary = function (_React$Component13) {
             return React.createElement(
                 "p",
                 { className: "result-summary" },
-                (0, _lang.format)(_strings2.default.pagination, start, stop, totalRows)
+                (0, _lang.format)((0, _strings2.default)("pagination"), start, stop, totalRows)
             );
         }
     }]);
@@ -28751,12 +30109,16 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
         value: function render() {
             return React.createElement(
                 "div",
-                { className: "quick-search pull-right m-r-10" },
-                React.createElement("i", { className: "zmdi zmdi-search pull-right" }),
+                { className: "quick-search-container" },
                 React.createElement(
                     "div",
-                    { className: "quick-search-input-container" },
-                    React.createElement("input", { type: "search", onKeyDown: this.onKeyDown.bind(this), onChange: this.onChange.bind(this) })
+                    { className: "quick-search" },
+                    React.createElement("i", { className: "zmdi zmdi-search pull-right" }),
+                    React.createElement(
+                        "div",
+                        { className: "quick-search-input-container" },
+                        React.createElement("input", { type: "search", onKeyDown: this.onKeyDown.bind(this), onChange: this.onChange.bind(this) })
+                    )
                 )
             );
         }
@@ -28771,13 +30133,13 @@ var Grid = exports.Grid = function (_React$Component16) {
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this28 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this29 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        _this28.selection = null;
-        _this28.state = { rows: null };
+        _this29.selection = null;
+        _this29.state = { rows: null };
 
-        _this28.initSelection(props);
-        return _this28;
+        _this29.initSelection(props);
+        return _this29;
     }
 
     _createClass(Grid, [{
@@ -28870,7 +30232,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
-            var _this29 = this;
+            var _this30 = this;
 
             var expanded = !row.expanded;
 
@@ -28888,7 +30250,7 @@ var Grid = exports.Grid = function (_React$Component16) {
 
                 setTimeout(function () {
                     row.expanded = expanded;
-                    _this29.forceUpdate();
+                    _this30.forceUpdate();
                 }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
@@ -28898,7 +30260,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "initSelection",
         value: function initSelection(props) {
-            var _this30 = this;
+            var _this31 = this;
 
             var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(props.selectionEnabled), true);
             if (!selectionEnabled) {
@@ -28909,9 +30271,9 @@ var Grid = exports.Grid = function (_React$Component16) {
             if (rows) {
                 this.selection = new Selection(rows);
                 this.selection.on("change", function () {
-                    _this30.setState(_this30.state);
-                    if (_.isFunction(_this30.props.onSelectionChanged)) {
-                        _this30.props.onSelectionChanged(_this30.selection.getSelectedData());
+                    _this31.setState(_this31.state);
+                    if (_.isFunction(_this31.props.onSelectionChanged)) {
+                        _this31.props.onSelectionChanged(_this31.selection.getSelectedData());
                     }
                 });
             }
@@ -28975,6 +30337,8 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "render",
         value: function render() {
+            var _this32 = this;
+
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
             }
@@ -28988,13 +30352,25 @@ var Grid = exports.Grid = function (_React$Component16) {
             //let selectionEnabled = optional(parseBoolean(this.props.selectionEnabled), true)
             var paginationEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.paginationEnabled), true);
             var tableClassName = (0, _lang.optional)(this.props.tableClassName, "table table-striped table-hover");
+            var noResultsText = (0, _lang.optional)(this.props.noResultsText, (0, _strings2.default)("noResults"));
 
             var myQuery = (0, _lang.optional)(this.props.query, query.create());
             var showFilters = myQuery.filters.length > 0;
             var hasResults = this.props.data && this.props.data.rows ? this.props.data.rows.length > 0 : false;
             var hasPagination = this.getTotalPages() > 1;
-            var noResultsText = (0, _lang.optional)(this.props.noResultsText, _strings2.default.noResults);
             var Container = (0, _lang.optional)((0, _lang.parseBoolean)(this.props.showInCard), true) ? _common.Card : NoCard;
+            var descriptor = mobile.isMobile() ? _.assign({}, this.props.descriptor, { columns: _.union(this.props.descriptor.columns, [{
+                    cell: ActionsCell,
+                    tdClassName: "grid-actions",
+                    actions: [{ icon: "zmdi zmdi-edit", action: function action(row) {
+                            if (_.isFunction(_this32.props.onRowDoubleClick)) {
+                                _this32.props.onRowDoubleClick(row);
+                            }
+                        } }],
+                    props: {
+                        showAlways: true
+                    }
+                }]) }) : this.props.descriptor;
 
             return React.createElement(
                 "div",
@@ -29014,9 +30390,9 @@ var Grid = exports.Grid = function (_React$Component16) {
                             React.createElement(
                                 "table",
                                 { className: tableClassName },
-                                headerVisible && React.createElement(GridHeader, { descriptor: this.props.descriptor, query: myQuery }),
-                                React.createElement(GridBody, { descriptor: this.props.descriptor, data: this.props.data, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
-                                footerVisible && React.createElement(GridFooter, { descriptor: this.props.descriptor })
+                                headerVisible && React.createElement(GridHeader, { descriptor: descriptor, query: myQuery }),
+                                React.createElement(GridBody, { descriptor: descriptor, data: this.props.data, query: myQuery, onRowExpand: this.onRowExpand.bind(this), onRowMouseDown: this.onRowMouseDown.bind(this), onRowDoubleClick: this.onRowDoubleClick.bind(this) }),
+                                footerVisible && React.createElement(GridFooter, { descriptor: descriptor })
                             ),
                             hasPagination && paginationEnabled && React.createElement(
                                 "div",
@@ -29077,6 +30453,12 @@ var _aj = require("../utils/aj");
 
 var _lang = require("../../utils/lang");
 
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -29128,7 +30510,7 @@ var Header = function (_React$Component) {
                         React.createElement(
                             "a",
                             { href: "index.html" },
-                            "commodo"
+                            (0, _strings2.default)("appName")
                         )
                     ),
                     React.createElement(
@@ -29496,7 +30878,7 @@ var Footer = function (_React$Component7) {
             return React.createElement(
                 "footer",
                 { id: "footer" },
-                "Copyright &copy 2016 Applica srl",
+                "Copyright 2017 Applica srl",
                 React.createElement(
                     "ul",
                     { className: "f-menu" },
@@ -29733,7 +31115,7 @@ var ListItem = exports.ListItem = function (_React$Component) {
     }, {
         key: "render",
         value: function render() {
-            var view = React.createElement(this.props.view, { item: this.props.item });
+            var view = React.createElement(this.props.view, { item: this.props.item, list: this.props.list });
             return React.createElement(
                 "div",
                 { className: "list-group-item hover pointer-cursor", onClick: this.onClick.bind(this) },
@@ -29755,13 +31137,31 @@ var List = exports.List = function (_React$Component2) {
     }
 
     _createClass(List, [{
+        key: "invokeAction",
+        value: function invokeAction(action, data) {
+            if (_.isFunction(this.props.onAction)) {
+                this.props.onAction(action, data);
+            }
+        }
+    }, {
+        key: "getKey",
+        value: function getKey(item) {
+            if (_.isFunction(this.props.keygen)) {
+                return this.props.keygen(item);
+            } else {
+                return item.id;
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
+            var _this3 = this;
+
             var view = this.props.view;
             var data = this.props.data;
             var onItemClick = this.props.onItemClick;
             var items = data.map(function (i) {
-                return React.createElement(ListItem, { key: i.id, view: view, item: i, onClick: onItemClick });
+                return React.createElement(ListItem, { key: _this3.getKey(i), view: view, item: i, list: _this3, onClick: onItemClick });
             });
             return React.createElement(
                 "div",
@@ -29977,24 +31377,24 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var entities = {
 	user: {
 		grid: {
-			title: _strings2.default.usersList,
-			subtitle: _strings2.default.usersListDescription,
+			title: (0, _strings2.default)("usersList"),
+			subtitle: (0, _strings2.default)("usersListDescription"),
 			descriptor: {
-				columns: [{ property: "name", header: _strings2.default.name, cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: _strings2.default.mail, cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: _strings2.default.active, cell: _grids.CheckCell, sortable: true, searchable: true }]
+				columns: [{ property: "name", header: (0, _strings2.default)("name"), cell: _grids.TextCell, sortable: true, searchable: true }, { property: "mail", header: (0, _strings2.default)("mail"), cell: _grids.TextCell, sortable: true, searchable: true }, { property: "active", header: (0, _strings2.default)("active"), cell: _grids.CheckCell, sortable: true, searchable: true }]
 			}
 		},
 		form: {
-			title: _strings2.default.editUser,
-			subtitle: _strings2.default.editUserDescription,
+			title: (0, _strings2.default)("editUser"),
+			subtitle: (0, _strings2.default)("editUserDescription"),
 			descriptor: {
 				areas: [{
-					title: _strings2.default.generalInformations,
+					title: (0, _strings2.default)("generalInformations"),
 					subtitle: null,
 					fields: [{
 						property: "name",
 						control: _forms.Text,
-						label: _strings2.default.name,
-						placeholder: _strings2.default.name,
+						label: (0, _strings2.default)("name"),
+						placeholder: (0, _strings2.default)("name"),
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).trim();
 						},
@@ -30004,8 +31404,8 @@ var entities = {
 					}, {
 						property: "mail",
 						control: _forms.Mail,
-						label: _strings2.default.mail,
-						placeholder: _strings2.default.mailAddress,
+						label: (0, _strings2.default)("mail"),
+						placeholder: (0, _strings2.default)("mailAddress"),
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).trim();
 						},
@@ -30015,31 +31415,31 @@ var entities = {
 					}, {
 						property: "active",
 						control: _forms.YesNo,
-						label: _strings2.default.active,
+						label: (0, _strings2.default)("active"),
 						sanitizer: function sanitizer(value) {
 							return (0, _validator.sanitize)(value).toBoolean();
 						}
 					}, {
 						property: "_image",
 						control: _forms.Image,
-						label: _strings2.default.image
+						label: (0, _strings2.default)("image")
 					}, {
 						property: "_cover",
 						control: _forms.Image,
-						label: _strings2.default.cover
+						label: (0, _strings2.default)("cover")
 					}, {
 						property: "roles",
-						label: _strings2.default.roles,
+						label: (0, _strings2.default)("roles"),
 						control: _containers.EntitiesLookupContainer,
 						props: {
 							id: "user_roles",
 							mode: "multiple",
 							entity: "role",
 							selectionGrid: {
-								columns: [{ property: "role", header: _strings2.default.name, cell: _grids.TextCell }]
+								columns: [{ property: "role", header: (0, _strings2.default)("name"), cell: _grids.TextCell }]
 							},
 							popupGrid: {
-								columns: [{ property: "role", header: _strings2.default.name, cell: _grids.TextCell }]
+								columns: [{ property: "role", header: (0, _strings2.default)("name"), cell: _grids.TextCell }]
 							}
 						}
 					}]
@@ -30050,8 +31450,8 @@ var entities = {
 
 	role: {
 		grid: {
-			title: _strings2.default.rolesList,
-			subtitle: _strings2.default.rolesListDescription,
+			title: (0, _strings2.default)("rolesList"),
+			subtitle: (0, _strings2.default)("rolesListDescription"),
 			descriptor: {
 				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
 			}
@@ -30063,8 +31463,8 @@ var entities = {
 				fields: [{
 					property: "role",
 					control: _forms.Text,
-					label: _strings2.default.role,
-					placeholder: _strings2.default.nameOfRole,
+					label: (0, _strings2.default)("role"),
+					placeholder: (0, _strings2.default)("nameOfRole"),
 					sanitizer: function sanitizer(value) {
 						return (0, _validator.sanitize)(value).trim();
 					},
@@ -30073,8 +31473,8 @@ var entities = {
 					}
 				}, {
 					property: "_permissions",
-					label: _strings2.default.permissions,
-					placeholder: _strings2.default.selectPermissions,
+					label: (0, _strings2.default)("permissions"),
+					placeholder: (0, _strings2.default)("selectPermissions"),
 					control: _containers.ValuesLookupContainer,
 					//sanitizer: value => _.map(value, v => v.value),
 					validator: function validator(value) {
@@ -30085,10 +31485,10 @@ var entities = {
 						collection: "permissions",
 						mode: "multiple",
 						selectionGrid: {
-							columns: [{ property: "label", header: _strings2.default.name, cell: _grids.TextCell }]
+							columns: [{ property: "label", header: (0, _strings2.default)("name"), cell: _grids.TextCell }]
 						},
 						popupGrid: {
-							columns: [{ property: "label", header: _strings2.default.name, cell: _grids.TextCell }]
+							columns: [{ property: "label", header: (0, _strings2.default)("name"), cell: _grids.TextCell }]
 						}
 					}
 
@@ -30223,22 +31623,22 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = [{
     icon: "zmdi zmdi-shield-security",
-    text: _strings2.default.security,
+    text: (0, _strings2.default)("security"),
     children: [{
         icon: "zmdi zmdi-accounts-alt",
-        text: _strings2.default.users,
+        text: (0, _strings2.default)("users"),
         href: "/#/entities/user?grid=users"
     }, {
         icon: "zmdi zmdi-key",
-        text: _strings2.default.roles,
+        text: (0, _strings2.default)("roles"),
         href: "/#/entities/role?grid=roles"
     }]
 }, {
     icon: "zmdi zmdi-wrench",
-    text: _strings2.default.setup,
+    text: (0, _strings2.default)("setup"),
     children: [{
         icon: "zmdi zmdi-labels",
-        text: _strings2.default.categories,
+        text: (0, _strings2.default)("categories"),
         href: "/#/entities/category?grid=categories"
     }]
 }];
@@ -30418,7 +31818,7 @@ var Recover = function (_Screen) {
                             React.createElement(
                                 "p",
                                 { className: "text-left" },
-                                _strings2.default.accountConfirmText
+                                (0, _strings2.default)("accountConfirmText")
                             ),
                             React.createElement(
                                 "div",
@@ -30431,7 +31831,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "text", name: "activationCode", className: "form-control", placeholder: _strings2.default.activationCode, value: this.state.activationCode })
+                                    React.createElement("input", { type: "text", name: "activationCode", className: "form-control", placeholder: (0, _strings2.default)("activationCode"), value: this.state.activationCode })
                                 )
                             ),
                             React.createElement(
@@ -30451,7 +31851,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.signIn
+                                    (0, _strings2.default)("signIn")
                                 )
                             ),
                             React.createElement(
@@ -30462,7 +31862,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.register
+                                    (0, _strings2.default)("register")
                                 )
                             )
                         )
@@ -30619,7 +32019,7 @@ var EntitiesGrid = function (_Screen) {
                 return;
             }
 
-            swal({ title: _strings2.default.confirm, text: (0, _lang.format)(_strings2.default.entityDeleteConfirm, selection.length), showCancelButton: true }).then(function () {
+            swal({ title: (0, _strings2.default)("confirm"), text: (0, _lang.format)((0, _strings2.default)("entityDeleteConfirm"), selection.length), showCancelButton: true }).then(function () {
                 (0, _actions.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
                         return s.id;
                     }) });
@@ -30660,7 +32060,7 @@ var EntitiesGrid = function (_Screen) {
                 id: "refresh",
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
-                tooltip: _strings2.default.refresh,
+                tooltip: (0, _strings2.default)("refresh"),
                 action: function action() {
                     (0, _actions.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.getEntity(), query: _this3.state.query });
                 }
@@ -30668,7 +32068,7 @@ var EntitiesGrid = function (_Screen) {
                 id: "create",
                 type: "button",
                 icon: "zmdi zmdi-plus",
-                tooltip: _strings2.default.create,
+                tooltip: (0, _strings2.default)("create"),
                 action: function action() {
                     _this3.createEntity();
                 }
@@ -30676,7 +32076,7 @@ var EntitiesGrid = function (_Screen) {
                 id: "delete",
                 type: "button",
                 icon: "zmdi zmdi-delete",
-                tooltip: _strings2.default.delete,
+                tooltip: (0, _strings2.default)("delete"),
                 action: function action() {
                     _this3.deleteEntities();
                 }
@@ -30684,7 +32084,7 @@ var EntitiesGrid = function (_Screen) {
                 id: "selectAll",
                 type: "button",
                 icon: "zmdi zmdi-select-all",
-                tooltip: _strings2.default.selectAll,
+                tooltip: (0, _strings2.default)("selectAll"),
                 action: function action() {
                     _this3.refs.grid.toggleSelectAll();
                 }
@@ -30751,7 +32151,7 @@ var EntitiesGrid = function (_Screen) {
                     onRowDoubleClick: this.onGridRowDoubleClick.bind(this),
                     quickSearchEnabled: this.isQuickSearchEnabled()
                 }),
-                this.canEdit() && React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
+                this.canCreate() && React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
             );
         }
     }]);
@@ -30864,6 +32264,17 @@ var EntityForm = function (_Screen) {
                 this.goBack();
                 return false;
             }
+
+            if (state.validationError) {
+                if (state.validationResult) {
+                    var form = this.refs.form;
+                    if (form && form.model) {
+                        _.each(state.validationResult.errors, function (e) {
+                            form.model.setError(e.property, (0, _strings2.default)(e.message));
+                        });
+                    }
+                }
+            }
         }
     }, {
         key: "getEntity",
@@ -30882,16 +32293,18 @@ var EntityForm = function (_Screen) {
             var _this2 = this;
 
             var defaultActions = [{
+                id: "back",
                 type: "button",
                 icon: "zmdi zmdi-arrow-left",
-                tooltip: _strings2.default.back,
+                tooltip: (0, _strings2.default)("back"),
                 action: function action() {
                     _this2.goBack();
                 }
             }, {
+                id: "save",
                 type: "button",
                 icon: "zmdi zmdi-save",
-                tooltip: _strings2.default.save,
+                tooltip: (0, _strings2.default)("save"),
                 action: function action() {
                     _this2.refs.form.submit();
                 }
@@ -30920,18 +32333,29 @@ var EntityForm = function (_Screen) {
             return form.descriptor;
         }
     }, {
+        key: "getFormComponent",
+        value: function getFormComponent() {
+            var form = _entities2.default[this.getEntity()].form;
+            return (0, _lang.optional)(function () {
+                return form.component;
+            }, function () {
+                return _forms.Form;
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
             var title = this.getTitle();
             var subtitle = this.getSubtitle();
             var actions = this.getActions();
             var descriptor = this.getDescriptor();
+            var component = this.getFormComponent();
 
             return React.createElement(
                 _layout.Layout,
                 null,
                 React.createElement(_common.HeaderBlock, { title: title, subtitle: subtitle, actions: actions }),
-                React.createElement(_forms.Form, {
+                React.createElement(component, {
                     ref: "form",
                     descriptor: descriptor,
                     data: this.state.data,
@@ -31031,6 +32455,10 @@ var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
+var _stores = require("../../stores");
+
+var _aj = require("../utils/aj");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -31044,10 +32472,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Login = function (_Screen) {
     _inherits(Login, _Screen);
 
-    function Login() {
+    function Login(props) {
         _classCallCheck(this, Login);
 
-        return _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).apply(this, arguments));
+        var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
+
+        (0, _aj.connect)(_this, _stores.SessionStore);
+        return _this;
     }
 
     _createClass(Login, [{
@@ -31055,6 +32486,15 @@ var Login = function (_Screen) {
         value: function login() {
             var data = forms.serialize(this.refs.login_form);
             (0, _actions.login)(data);
+        }
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate() {
+            if (this.state.isLoggedIn) {
+                if (location.href.indexOf("login") != -1) {
+                    location.href = "/#/";
+                }
+            }
         }
     }, {
         key: "render",
@@ -31087,7 +32527,7 @@ var Login = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
                                 )
                             ),
                             React.createElement(
@@ -31101,7 +32541,7 @@ var Login = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: _strings2.default.password })
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: (0, _strings2.default)("password") })
                                 )
                             ),
                             React.createElement(
@@ -31132,7 +32572,7 @@ var Login = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.register
+                                    (0, _strings2.default)("register")
                                 )
                             ),
                             React.createElement(
@@ -31147,7 +32587,7 @@ var Login = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.forgotPassword
+                                    (0, _strings2.default)("forgotPassword")
                                 )
                             )
                         )
@@ -31244,7 +32684,7 @@ var Recover = function (_Screen) {
                             React.createElement(
                                 "p",
                                 { className: "text-left" },
-                                _strings2.default.accountRecoverText
+                                (0, _strings2.default)("accountRecoverText")
                             ),
                             React.createElement(
                                 "div",
@@ -31257,7 +32697,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
                                 )
                             ),
                             React.createElement(
@@ -31277,7 +32717,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.signIn
+                                    (0, _strings2.default)("signIn")
                                 )
                             ),
                             React.createElement(
@@ -31288,7 +32728,7 @@ var Recover = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.register
+                                    (0, _strings2.default)("register")
                                 )
                             )
                         )
@@ -31393,7 +32833,7 @@ var Register = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "text", name: "name", className: "form-control", placeholder: _strings2.default.name })
+                                    React.createElement("input", { type: "text", name: "name", className: "form-control", placeholder: (0, _strings2.default)("name") })
                                 )
                             ),
                             React.createElement(
@@ -31407,7 +32847,7 @@ var Register = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: _strings2.default.mailAddress })
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
                                 )
                             ),
                             React.createElement(
@@ -31421,7 +32861,7 @@ var Register = function (_Screen) {
                                 React.createElement(
                                     "div",
                                     { className: "fg-line" },
-                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: _strings2.default.password })
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: (0, _strings2.default)("password") })
                                 )
                             ),
                             React.createElement(
@@ -31441,7 +32881,7 @@ var Register = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.signIn
+                                    (0, _strings2.default)("signIn")
                                 )
                             ),
                             React.createElement(
@@ -31456,7 +32896,7 @@ var Register = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.forgotPassword
+                                    (0, _strings2.default)("forgotPassword")
                                 )
                             )
                         )
@@ -31544,7 +32984,7 @@ var RegistrationOk = function (_Screen) {
                             React.createElement(
                                 "h1",
                                 null,
-                                _strings2.default.congratulations,
+                                (0, _strings2.default)("congratulations"),
                                 "!"
                             ),
                             React.createElement(
@@ -31558,7 +32998,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "a",
                                     { className: "btn btn-primary btn-lg waves-effect", href: "javascript:;", onClick: this.goHome.bind(this), role: "button" },
-                                    _strings2.default.continue
+                                    (0, _strings2.default)("continue")
                                 )
                             )
                         ),
@@ -31573,7 +33013,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.register
+                                    (0, _strings2.default)("register")
                                 )
                             ),
                             React.createElement(
@@ -31588,7 +33028,7 @@ var RegistrationOk = function (_Screen) {
                                 React.createElement(
                                     "span",
                                     null,
-                                    _strings2.default.forgotPassword
+                                    (0, _strings2.default)("forgotPassword")
                                 )
                             )
                         )
@@ -32045,11 +33485,11 @@ exports.startNavigation = function (_base) {
 
 	var loop = function loop() {
 		var fragment = "/";
-		if (location.href.indexOf("#") != -1) {
+		if (location.href.indexOf("#") !== -1) {
 			fragment = _clearSlashes(location.href.split("#")[1]);
 		}
 
-		if (lastFragment != fragment) {
+		if (lastFragment !== fragment) {
 			lastFragment = fragment;
 			_handleRoute(fragment);
 		}
@@ -32075,6 +33515,42 @@ exports.addScreenChangeListener = function (listener) {
 exports.removeScreenChangeListener = function (listener) {
 	screens.removeListener("screen.change", listener);
 };
+});
+define('web/utils/mobile.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isAndroid = isAndroid;
+exports.isiOS = isiOS;
+exports.isOpera = isOpera;
+exports.isBlackBerry = isBlackBerry;
+exports.isWindows = isWindows;
+exports.isMobile = isMobile;
+function isAndroid() {
+    return navigator.userAgent.match(/Android/i);
+}
+
+function isiOS() {
+    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+}
+
+function isOpera() {
+    return navigator.userAgent.match(/Opera Mini/i);
+}
+
+function isBlackBerry() {
+    return navigator.userAgent.match(/BlackBerry/i);
+}
+
+function isWindows() {
+    return navigator.userAgent.match(/IEMobile/i) || navigator.userAgent.match(/WPDesktop/i);
+}
+
+function isMobile() {
+    return isAndroid() || isBlackBerry() || isiOS() || isOpera() || isWindows();
+}
 });
 
 require('./aj').createRuntime();
