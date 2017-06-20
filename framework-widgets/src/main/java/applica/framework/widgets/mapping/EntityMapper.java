@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Created by bimbobruno on 14/02/2017.
@@ -42,6 +43,50 @@ public class EntityMapper {
         T get();
     }
 
+    public void property(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, Function<Object, Object> supplier) {
+        Objects.requireNonNull(destination, "Cannot map property: entity is null");
+        Objects.requireNonNull(source, "Cannot map property: node is null");
+
+        Object value;
+        try {
+            value = PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (value == null) {
+            destination.set(destinationProperty, NullNode.getInstance());
+        } else {
+            Object finalValue = supplier == null ? value : supplier.apply(value);
+            if (finalValue == null) {
+                destination.set(destinationProperty, NullNode.getInstance());
+            } else {
+                destination.putPOJO(destinationProperty, finalValue);
+            }
+        }
+    }
+
+    public void property(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, Function<JsonNode, Object> supplier) {
+        Objects.requireNonNull(destination, "Cannot map property: entity is null");
+        Objects.requireNonNull(source, "Cannot map property: node is null");
+
+        JsonNode jsonNode = source.get(sourceProperty);
+        if (jsonNode != null && !jsonNode.isNull()) {
+            Object finalValue = supplier == null ? jsonNode.textValue() : supplier.apply(jsonNode);
+
+            try {
+                PropertyUtils.setProperty(destination, destinationProperty, finalValue);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try {
+                PropertyUtils.setProperty(destination, destinationProperty, null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
         Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
@@ -55,6 +100,12 @@ public class EntityMapper {
 
             try {
                 PropertyUtils.setProperty(destination, destinationProperty, relatedEntity.get());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try {
+                PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -121,9 +172,6 @@ public class EntityMapper {
             ObjectNode sourceEntityNode = (ObjectNode) sourceNode;
 
             id = AEntity.checkedId(sourceEntityNode.get("id").asText());
-            if (id == null) {
-                throw new RuntimeException("Source entity node id is null");
-            }
         }
 
         try {
