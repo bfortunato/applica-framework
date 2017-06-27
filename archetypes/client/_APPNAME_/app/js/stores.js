@@ -139,7 +139,12 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
             return discriminate(state, action.discriminator, {error: false, data: action.data})
 
         case failed(actions.GET_ENTITY):
-            return discriminate(state, action.discriminator, {error: true, data: null})
+            return discriminate(state, action.discriminator, {
+                error: true,
+                data: null,
+                validationError: false,
+                validationResult: null
+            })
 
         case actions.FREE_ENTITIES:
             return _.omit(state, action.discriminator)
