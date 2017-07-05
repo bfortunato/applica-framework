@@ -15,7 +15,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.velocity.tools.config.Property;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -185,6 +184,40 @@ public class EntityMapper {
                 String actualImage = (String) PropertyUtils.getProperty(destination, destinationProperty);
                 if (actualImage != null) {
                     fileServer.deleteFile(actualImage);
+                }
+
+                PropertyUtils.setProperty(destination, destinationProperty, null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void dataUrlToFile(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(destination, "Cannot convert entity to file: entity is null");
+        Objects.requireNonNull(source, "Cannot convert entity to file: node is null");
+
+        String fileData = null;
+
+        if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
+            fileData = source.get(sourceProperty).asText();
+        }
+
+        if (StringUtils.isNotEmpty(fileData)) {
+            try {
+                URLData urlData = URLData.parse(fileData);
+                String filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+                PropertyUtils.setProperty(destination, destinationProperty, filePath);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try {
+                String actualFile = (String) PropertyUtils.getProperty(destination, destinationProperty);
+                if (actualFile != null) {
+                    fileServer.deleteFile(actualFile);
                 }
 
                 PropertyUtils.setProperty(destination, destinationProperty, null);

@@ -56,4 +56,14 @@ public interface FileServer {
      * @throws IOException
      */
     String saveImage(String path, String extension, InputStream imageStream) throws IOException;
+
+    /**
+     * Unzip file.
+     * File path must be relative to file server url: es: /files/users/documents/filename.zip
+     * Destination path must be absolute path
+     * @param filePath
+     * @param destinationPath
+     * @return filePath
+     */
+    String unzipFile(String filePath, String destinationPath);
 }

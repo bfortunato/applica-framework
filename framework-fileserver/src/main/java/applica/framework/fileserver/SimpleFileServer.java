@@ -1,12 +1,14 @@
 package applica.framework.fileserver;
 
 import applica.framework.library.options.OptionsManager;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -196,5 +198,23 @@ public class SimpleFileServer implements FileServer {
     private class NormalizedUrl {
         private String url;
         private String filename;
+    }
+
+    public String unzipFile(String filePath, String destinationPath) {
+        if (!filePath.endsWith(".zip")){
+            throw new RuntimeException("Cannot unzip the file because isn't zip");
+        }
+        NormalizedUrl normalizedUrl = normalizeUrl(filePath);
+        String fullPath = String.format("%s/%s", options.get("applica.framework.fileserver.basePath"), filePath);
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(fullPath);
+            zipFile.extractAll(destinationPath);
+            FileHeader fileHeader = (FileHeader) zipFile.getFileHeaders().get(0);
+            String path = String.format("%s%s", destinationPath, fileHeader.getFileName());;
+            return path;
+        } catch (ZipException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
