@@ -162,13 +162,10 @@ public class EntityMapper {
         Objects.requireNonNull(destination, "Cannot convert entity to id: entity is null");
 
         JsonNode sourceNode = source.get(sourceProperty);
-        if (sourceNode == null) {
-            throw new RuntimeException("Source entity node is null or not an js object");
-        }
 
         Object id = null;
 
-        if (!sourceNode.isNull()) {
+        if (sourceNode != null && !sourceNode.isNull()) {
             ObjectNode sourceEntityNode = (ObjectNode) sourceNode;
 
             id = AEntity.checkedId(sourceEntityNode.get("id").asText());
