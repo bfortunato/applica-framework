@@ -103,6 +103,14 @@ public class Query {
         return request;
     }
 
+    public String getFilterType(String property) {
+        if (this.hasFilter(property)) {
+            return this.getFilters().stream().filter(f -> f.getProperty().equals(property)).findFirst().get().getType();
+        } else {
+            return null;
+        }
+    }
+
     public Object getFilterValue(final String property) {
         Filter filter = (Filter) CollectionUtils.find(filters, new Predicate() {
             @Override
