@@ -24,6 +24,8 @@ export class Model extends Observable {
         this.validationResult = {}
         this.initialized = false
         this.form = form
+        this.changes = []
+        this.changesTrackingDisabled = false
     }
 
     invalidatForm() {
@@ -119,8 +121,36 @@ export class Model extends Observable {
         return field
     }
 
+    hasChanges() {
+        return this.changes.length > 0
+    }
+
+    trackChanges() {
+        this.changesTrackingDisabled = false
+    }
+
+    untrackChanges() {
+        this.changesTrackingDisabled = true
+    }
+
+    resetChanges() {
+        this.changes = []
+    }
+
     set(property, value) {
+        let initialValue = this.data[property]
         this.data[property] = value 
+
+        if (!this.changesTrackingDisabled) {
+            if (initialValue !== value) {
+                let change = _.find(this.changes, c => c.property === property)
+                if (change) {
+                    change.value = value
+                } else {
+                    this.changes.push({property, initialValue, value})
+                }
+            }
+        }
 
         this.invoke("property:change", property, value)   
     }
@@ -390,28 +420,32 @@ let AREA_KEY = 1
 let TAB_KEY = 1
 
 function generateKeys(descriptor) {
-    if (!_.isEmpty(descriptor.areas)) {
-        descriptor.areas.forEach(a => {
-            if (_.isEmpty(a.key)) {
-                a.key = "area" + AREA_KEY++
-            }
+    if (!descriptor.hasKeys) {
+        if (!_.isEmpty(descriptor.areas)) {
+            descriptor.areas.forEach(a => {
+                if (_.isEmpty(a.key)) {
+                    a.key = "area" + AREA_KEY++
+                }
 
-            if (!_.isEmpty(a.tabs)) {
-                a.tabs.forEach(t => {
-                    if (_.isEmpty(t.key)) {
-                        t.key = "tab" + TAB_KEY++
-                    }
-                })
-            }
-        })
-    }
+                if (!_.isEmpty(a.tabs)) {
+                    a.tabs.forEach(t => {
+                        if (_.isEmpty(t.key)) {
+                            t.key = "tab" + TAB_KEY++
+                        }
+                    })
+                }
+            })
+        }
 
-    if (!_.isEmpty(descriptor.tabs)) {
-        descriptor.tabs.forEach(t => {
-            if (_.isEmpty(t.key)) {
-                t.key = "tab" + TAB_KEY++
-            }
-        })
+        if (!_.isEmpty(descriptor.tabs)) {
+            descriptor.tabs.forEach(t => {
+                if (_.isEmpty(t.key)) {
+                    t.key = "tab" + TAB_KEY++
+                }
+            })
+        }
+
+        descriptor.hasKeys = true
     }
 }
 
@@ -428,6 +462,54 @@ export class FormSubmitEvent {
 
     forceSubmit() {
         this.form.forceSubmit()
+    }
+}
+
+export class FormBody extends React.Component {
+
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
+    render() {
+        let descriptor = this.props.descriptor
+        generateKeys(descriptor)
+        let model = this.props.model
+        let inline = optional(descriptor.inline, false)
+        let defaultFieldCass = inline ? InlineField : Field
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
+        let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
+        let showInCard = optional(descriptor.showInCard, true)
+
+        return (
+            <div className="form-body">
+                {areas}
+                {(tabs.length > 0 || fields.length > 0) &&
+                    (showInCard
+                        ?
+                        <Card padding="true">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </Card> 
+                        :
+                        <div className="form-body-content">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </div>
+                    )
+                }
+            </div>
+        )
     }
 }
 
@@ -517,30 +599,17 @@ export class Form extends React.Component {
         let descriptor = this.props.descriptor
         let model = this.model
 
-        generateKeys(descriptor)
-
         let inline = optional(descriptor.inline, false)
-        let defaultFieldCass = inline ? InlineField : Field
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
-        let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
         let className = inline ? "form-horizontal" : ""
 
         return (
             <div className="form">
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
-                    {areas}
-                    {(tabs.length > 0 || fields.length > 0) &&
-                        <Card padding="true">
-                            {tabs}
-                            {fields}
-                            <div className="clearfix"></div>
-                        </Card>
-                    }
+                    <FormBody descriptor={descriptor} model={model} />
 
                     <div className="row">
                         <div className="text-right col-sm-12">
-                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("cancel")}</button>
+                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("back")}</button>
                             <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || M("save")}</button>
                         </div>
                     </div>
@@ -675,9 +744,17 @@ export class TextArea extends Control {
 }
 
 export class ReadOnlyText extends Control {
+
+    getText() {
+        let field = this.props.field
+        let model = this.props.model
+        let formatter = optional(() => this.props.formatter, () => { return v => v })
+        return optional(formatter(model.get(field.property)), "")
+    }
+
     render() {
         let field = this.props.field
-        let formatter = optional(() => this.props.formatter, () => { return v => v })
+        
 
         return (
             <div className="fg-line">
@@ -689,7 +766,7 @@ export class ReadOnlyText extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={optional(formatter(this.props.model.get(field.property)), "")}
+                    value={this.getText()}
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
@@ -835,7 +912,9 @@ export class YesNo extends Control {
             if (value === null || value === undefined) {
                 value = false
             }
+            model.untrackChanges()
             model.set(field.property, value)
+            model.trackChanges()
         }
 
         model.once("load", fn)
@@ -971,7 +1050,9 @@ export class Select extends Control {
                     }
                 }
 
+                model.untrackChanges()
                 model.set(field.property, value)
+                model.trackChanges()
             })
     }
 
@@ -1314,9 +1395,9 @@ export class Lookup extends Control {
                                     query={this.props.query}
                                     showInCard="false" 
                                     quickSearchEnabled="true"
-                                    footerVisible="false"
-                                    summaryVisible="false"
-                                    paginationEnabled="false"
+                                    footerVisible="true"
+                                    summaryVisible="true"
+                                    paginationEnabled="true"
                                     tableClassName="table table-condensed table-striped table-hover"
                                     onRowDoubleClick={this.select.bind(this)}
                                 />

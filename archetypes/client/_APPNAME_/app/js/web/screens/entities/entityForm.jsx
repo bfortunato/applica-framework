@@ -20,11 +20,25 @@ export default class EntityForm extends Screen {
         }
 
         this.discriminator = "entity_form_" + props.entity
+        this.initialEntity = null
 
         connectDiscriminated(this.discriminator, this, EntitiesStore, {data: null})
     }
 
     componentDidMount() {
+        let form = this.refs.form
+        let model = form.model
+
+        this.onBeforeUnload = function() {
+            console.log(model.changes)
+            if (model.hasChanges()) {
+                return M("formChangeAlert")
+            }
+        }
+
+        window.onbeforeunload = this.onBeforeUnload
+        ui.addOnBeforeChangeListener(this.onBeforeUnload)
+
         if (!_.isEmpty(this.props.entityId) && this.props.entityId != "create") {
             getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
         } else {
@@ -34,15 +48,22 @@ export default class EntityForm extends Screen {
 
     componentWillUnmount() {
         freeEntities({discriminator: this.discriminator})
+
+        window.onbeforeunload = null
+        ui.removeOnBeforeChangeListener(this.onBeforeUnload)
+    }
+
+    submit(goBack) {
+        this.willGoBack = goBack
+        this.refs.form.submit()
     }
 
     onSubmit(data) {
         if (_.isFunction(this.props.onSubmit)) {
             this.props.onSubmit(data)
         } else {
-            saveEntity({discriminator: this.discriminator, entity: this.props.entity, data: data})    
-        }
-        
+            saveEntity({discriminator: this.discriminator, entity: this.props.entity, data: data, reload: !this.willGoBack})    
+        }        
     }
 
     onCancel() {
@@ -55,6 +76,10 @@ export default class EntityForm extends Screen {
 
     componentWillUpdate(props, state) {
         if (state.saved) {
+            this.refs.form.model.resetChanges()
+        }
+
+        if (state.saved && this.willGoBack) {
             this.goBack()
             return false
         }
@@ -94,7 +119,14 @@ export default class EntityForm extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-save",
                 tooltip: M("save"),
-                action: () => { this.refs.form.submit() }
+                action: () => { this.submit(false) }
+            },
+            {
+                id: "save-go-back",
+                type: "button",
+                icon: "zmdi zmdi-rotate-ccw",
+                tooltip: M("saveAndGoBack"),
+                action: () => { this.submit(true) }
             }
 
         ]

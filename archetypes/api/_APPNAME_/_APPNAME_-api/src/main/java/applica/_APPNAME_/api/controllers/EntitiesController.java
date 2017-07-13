@@ -1,6 +1,7 @@
 package applica._APPNAME_.api.controllers;
 
 import applica._APPNAME_.services.responses.ResponseCode;
+import applica.framework.Entity;
 import applica.framework.Query;
 import applica.framework.data.mongodb.constraints.ConstraintException;
 import applica.framework.library.responses.Response;
@@ -13,6 +14,8 @@ import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.factory.OperationsFactory;
 import applica.framework.widgets.operations.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +31,8 @@ import java.util.Optional;
 @RequestMapping("/entities/{entity}")
 public class EntitiesController {
 
+    private Log logger = LogFactory.getLog(getClass());
+
     @Autowired
     private OperationsFactory operationsFactory;
 
@@ -42,6 +47,7 @@ public class EntitiesController {
 
                 return new ValueResponse(result);
             } else {
+                logger.warn("Entity definition not found: " + entity);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {
@@ -63,6 +69,7 @@ public class EntitiesController {
 
                 return new Response(Response.OK);
             } else {
+                logger.warn("Entity definition not found: " + entityName);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {
@@ -87,6 +94,7 @@ public class EntitiesController {
 
                 return new Response(Response.OK);
             } else {
+                logger.warn("Entity definition not found: " + entityName);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {
@@ -113,6 +121,7 @@ public class EntitiesController {
 
                 return new ValueResponse(node);
             } else {
+                logger.warn("Entity definition not found: " + entityName);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {
@@ -127,10 +136,11 @@ public class EntitiesController {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
             if (definition.isPresent()) {
                 SaveOperation saveOperation = operationsFactory.createSave(definition.get().getType());
-                saveOperation.save(data);
+                Entity savedEntity = saveOperation.save(data);
 
-                return new Response(Response.OK);
+                return new ValueResponse(savedEntity);
             } else {
+                logger.warn("Entity definition not found: " + entity);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {

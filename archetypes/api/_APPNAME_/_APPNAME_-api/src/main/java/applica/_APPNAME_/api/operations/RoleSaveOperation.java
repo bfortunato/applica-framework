@@ -32,7 +32,7 @@ public class RoleSaveOperation implements SaveOperation {
     }
 
     @Override
-    public void save(ObjectNode data) throws OperationException {
+    public Entity save(ObjectNode data) throws OperationException {
         try {
             EntitySerializer entitySerializer = new DefaultEntitySerializer(getEntityType());
             Role role = ((Role) entitySerializer.deserialize(data));
@@ -44,6 +44,8 @@ public class RoleSaveOperation implements SaveOperation {
             role.setPermissions(permissions);
 
             rolesRepository.save(role);
+
+            return role;
         } catch (SerializationException e) {
             throw new OperationException(Response.ERROR_SERIALIZATION);
         }

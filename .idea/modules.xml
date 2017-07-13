@@ -6,7 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/framework.iml" filepath="$PROJECT_DIR$/framework.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-core/framework-core.iml" filepath="$PROJECT_DIR$/framework-core/framework-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data/framework-data.iml" filepath="$PROJECT_DIR$/framework-data/framework-data.iml" />
-      <module fileurl="file://$PROJECT_DIR$/framework-data/framework-data.iml" filepath="$PROJECT_DIR$/framework-data/framework-data.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" filepath="$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" filepath="$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-security/framework-data-security.iml" filepath="$PROJECT_DIR$/framework-data-security/framework-data-security.iml" />
