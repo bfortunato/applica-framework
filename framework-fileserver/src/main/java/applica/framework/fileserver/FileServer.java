@@ -60,10 +60,8 @@ public interface FileServer {
     /**
      * Unzip file.
      * File path must be relative to file server url: es: /files/users/documents/filename.zip
-     * Destination path must be absolute path
      * @param filePath
-     * @param destinationPath
      * @return filePath
      */
-    String unzipFile(String filePath, String destinationPath);
+    String unzipFile(String filePath);
 }

@@ -200,16 +200,20 @@ public class SimpleFileServer implements FileServer {
         private String filename;
     }
 
-    public String unzipFile(String filePath, String destinationPath) {
+    public String unzipFile(String filePath) {
         if (!filePath.endsWith(".zip")){
             throw new RuntimeException("Cannot unzip the file because isn't zip");
         }
-        NormalizedUrl normalizedUrl = normalizeUrl(filePath);
-        String fullPath = String.format("%s/%s", options.get("applica.framework.fileserver.basePath"), filePath);
+        String basePath = options.get("applica.framework.fileserver.basePath");
+        String filePathFull = String.format("%s/%s", basePath, filePath);
         ZipFile zipFile = null;
+        String destinationPath = null;
         try {
-            zipFile = new ZipFile(fullPath);
-            zipFile.extractAll(destinationPath);
+            zipFile = new ZipFile(filePathFull);
+            String[] strings = filePath.split("/");
+            destinationPath = filePath.replace(strings[strings.length-1], "");
+            zipFile.extractAll(String.format("%s/%s", basePath, destinationPath));
+
             FileHeader fileHeader = (FileHeader) zipFile.getFileHeaders().get(0);
             String path = String.format("%s%s", destinationPath, fileHeader.getFileName());;
             return path;
