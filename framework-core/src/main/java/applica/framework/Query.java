@@ -109,6 +109,7 @@ public class Query {
         } else {
             return null;
         }
+
     }
 
     public Object getFilterValue(final String property) {
