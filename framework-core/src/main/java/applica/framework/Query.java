@@ -112,6 +112,7 @@ public class Query {
 
     }
 
+
     public Object getFilterValue(final String property) {
         Filter filter = (Filter) CollectionUtils.find(filters, new Predicate() {
             @Override
