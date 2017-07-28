@@ -298,7 +298,11 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
 
             saveEntity.complete({discriminator: data.discriminator, data: data.data})
 
-            if (data.entity == "user") {
+            if (data.reload) {
+                getEntity({discriminator: data.discriminator, entity: data.entity, id: response.value.id})
+            }
+
+            if (data.entity === "user") {
                 if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
                     getUserProfileImage()
                     getUserCoverImage()
