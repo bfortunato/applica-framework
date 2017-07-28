@@ -33,7 +33,7 @@ public class BaseSaveOperation implements SaveOperation {
     }
 
     @Override
-    public void save(ObjectNode data) throws OperationException, ValidationException {
+    public Entity save(ObjectNode data) throws OperationException, ValidationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
@@ -46,6 +46,8 @@ public class BaseSaveOperation implements SaveOperation {
             beforeSave(data, entity);
             persist(entity);
             afterSave(data, entity);
+
+            return entity;
         } catch (SerializationException e) {
             throw new OperationException(Response.ERROR_SERIALIZATION);
         }

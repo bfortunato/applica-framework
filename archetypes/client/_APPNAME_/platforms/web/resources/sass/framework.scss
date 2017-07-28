@@ -89,6 +89,13 @@ html.ismobile .global-loader {
   animation-duration: 0.25s;
 }
 
+.card-header-inverse {
+  background-color: $primary-color;
+
+  h2 {
+    color: $primary-color-text;
+  }
+}
 
 /*-------------------------
     Tables
@@ -119,20 +126,24 @@ html.ismobile .global-loader {
     Forms
 --------------------------*/
 
-.form-group {
-  .toggle-switch {
-    margin-top: 9px;
+.form {
 
-    .ts-label {
-      margin: 0px 0px 0px 10px
+  .form-group {
+    .toggle-switch {
+      margin-top: 9px;
+
+      .ts-label {
+        margin: 0px 0px 0px 10px
+      }
     }
   }
-}
 
-.has-error {
-  label {
-    color: $error-color;
+  .has-error {
+    label {
+      color: $error-color;
+    }
   }
+
 }
 
 /*-------------------------
@@ -140,10 +151,6 @@ html.ismobile .global-loader {
 --------------------------*/
 
 $darken-value: 10%;
-
-.grid-action {
-  position: absolute;
-}
 
 @for $i from 0 to 10 {
   .table-hover > tbody > tr.level-#{$i} {
@@ -170,6 +177,14 @@ $darken-value: 10%;
 
 .grid .table>thead>tr>th:last-child {
   padding-right: 15px;
+}
+
+.grid .table>tbody>tr:last-child>td, .table>tfoot>tr:last-child>td {
+  padding-bottom: 15px;
+}
+
+.grid .table.table-condensed>tbody>tr:last-child>td, .table.table-condensed>tfoot>tr:last-child>td {
+  padding-bottom: 10px;
 }
 
 tr.collapsible {
@@ -201,60 +216,80 @@ tr.collapsible {
   }
 }
 
-.quick-search {
-  border: solid 1px #efefef;
-  padding: 5px;
+.quick-search-container {
+  float: right;
   width: 40%;
-  margin-bottom: 10px;
-  margin-top: 10px;
 
-  .quick-search-input-container {
-    margin-right: 30px;
+  .quick-search {
+    border: solid 1px #efefef;
+    padding: 5px;
+    margin: 10px;
 
-    input {
-      border: 0px;
-      width: 100%;
-      height: 100%;
-      font-weight: 500;
+    .quick-search-input-container {
+      margin-right: 30px;
+
+      input {
+        border: 0px;
+        width: 100%;
+        height: 100%;
+        font-weight: 500;
+      }
+    }
+
+    i.zmdi {
+      font-size: 20px;
     }
   }
+}
 
-  i.zmdi {
-    font-size: 20px;
+.modal {
+  .quick-search {
+    margin-right: 0px !important;
   }
 }
 
 @media (max-width: 767px) {
-  .quick-search {
+  .quick-search-container {
     width: 100%;
   }
 }
 
 .grid-actions {
-  position: relative;
   width: 1%;
   padding-right: 0px !important;
   padding-left: 0px !important;
+  position: relative;
 
-  a.grid-action {
-    color: #5E5E5E;
+  .grid-actions-container {
+    white-space: nowrap;
     position: absolute;
-    width: 25px;
-    height: 25px;
-    border-radius: 2px;
-    display: inline-block;
-    font-size: 16px;
-    text-align: center;
-    top: 50%;
-    margin-top: -12.5px;
     right: 7px;
-  }
+    margin-top: -2px;
 
-  a.grid-action:hover {
-    background-color: darken($hover-color, 10%);
+    a.grid-action {
+      display: inline-block;
+      color: #5E5E5E;
+      width: 25px;
+      height: 25px;
+      border-radius: 2px;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    a.grid-action:hover {
+      background-color: darken($hover-color, 10%);
+    }
   }
 }
 
+.edit-text-cell {
+  .form-control {
+    margin: 0px;
+    border: 0px;
+    padding: 0px;
+    height: 18px;
+  }
+}
 
 /*-------------------------
     Select2
@@ -295,6 +330,7 @@ tr.collapsible {
 .lookup {
   background-color: #ffffff;
   border: solid 1px $border-color;
+  margin-bottom: 3px;
 
   .lookup-header {
     background-color: #FFFFFF;
@@ -303,7 +339,12 @@ tr.collapsible {
     cursor: pointer;
 
     .placeholder {
-      color: $placeholder-color
+      color: $placeholder-color;
+    }
+
+    .actions {
+      position: absolute;
+      right: 0px;
     }
   }
 
@@ -347,13 +388,12 @@ tr.collapsible {
   }
 
   .lookup-current-value {
-    display: inline-block;
-    margin-top: 7px;
+    margin-right: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    padding-top: 5px;
   }
-}
-
-.table>tbody>tr:last-child>td, .table>tfoot>tr:last-child>td {
-  padding-bottom: 10px;
 }
 
 
@@ -510,4 +550,49 @@ tr.collapsible {
       border-color: $error-color !important;
     }
   }
+}
+
+
+/*-------------------------
+    Toggle switch inverse
+--------------------------*/
+
+.toggle-switch.toggle-switch-inverse:not([data-ts-color]) input:not(:disabled):checked + .ts-helper {
+  background: $success-color;
+}
+
+.toggle-switch.toggle-switch-inverse .ts-helper {
+  background-color: $background-color-2;
+  -webkit-transition: background-color 0.28s;
+  transition: background-color 0.28s;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.toggle-switch:not([data-ts-color]) input:not(:disabled):checked + .ts-helper:before {
+  background-color: $background-color-1;
+}
+
+.form-group .toggle-switch .ts-label {
+  color: $text-color-caption1-inverse;
+}
+
+
+
+/*-------------------------
+    form spacer
+--------------------------*/
+
+.form-spacer-control {
+  height: 60px;
+}
+
+
+/*-------------------------
+    color picker
+--------------------------*/
+
+.cp-container input.cp-value {
+  color: #000!important;
+  background: 0 0!important;
 }

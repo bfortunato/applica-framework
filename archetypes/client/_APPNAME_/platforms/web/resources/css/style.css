@@ -74,6 +74,11 @@ html.ismobile .global-loader {
   -o-animation-duration: 0.25s;
   animation-duration: 0.25s; }
 
+.card-header-inverse {
+  background-color: #2196F3; }
+  .card-header-inverse h2 {
+    color: #FFFFFF; }
+
 /*-------------------------
     Tables
 --------------------------*/
@@ -93,20 +98,17 @@ html.ismobile .global-loader {
 /*-------------------------
     Forms
 --------------------------*/
-.form-group .toggle-switch {
+.form .form-group .toggle-switch {
   margin-top: 9px; }
-  .form-group .toggle-switch .ts-label {
+  .form .form-group .toggle-switch .ts-label {
     margin: 0px 0px 0px 10px; }
 
-.has-error label {
-  color: #f6675d; }
+.form .has-error label {
+  color: #FF3E63; }
 
 /*-------------------------
     Grids
 --------------------------*/
-.grid-action {
-  position: absolute; }
-
 .table-hover > tbody > tr.level-0 {
   background-color: white; }
 
@@ -270,6 +272,12 @@ html.ismobile .global-loader {
 .grid .table > thead > tr > th:last-child {
   padding-right: 15px; }
 
+.grid .table > tbody > tr:last-child > td, .table > tfoot > tr:last-child > td {
+  padding-bottom: 15px; }
+
+.grid .table.table-condensed > tbody > tr:last-child > td, .table.table-condensed > tfoot > tr:last-child > td {
+  padding-bottom: 10px; }
+
 tr.collapsible {
   -webkit-transition: transform 0.25s;
   -moz-transition: transform 0.25s;
@@ -294,45 +302,56 @@ tr.collapsible {
     -o-transform: scale(1, 1);
     transform: scale(1, 1); }
 
-.quick-search {
-  border: solid 1px #efefef;
-  padding: 5px;
-  width: 40%;
-  margin-bottom: 10px;
-  margin-top: 10px; }
-  .quick-search .quick-search-input-container {
-    margin-right: 30px; }
-    .quick-search .quick-search-input-container input {
-      border: 0px;
-      width: 100%;
-      height: 100%;
-      font-weight: 500; }
-  .quick-search i.zmdi {
-    font-size: 20px; }
+.quick-search-container {
+  float: right;
+  width: 40%; }
+  .quick-search-container .quick-search {
+    border: solid 1px #efefef;
+    padding: 5px;
+    margin: 10px; }
+    .quick-search-container .quick-search .quick-search-input-container {
+      margin-right: 30px; }
+      .quick-search-container .quick-search .quick-search-input-container input {
+        border: 0px;
+        width: 100%;
+        height: 100%;
+        font-weight: 500; }
+    .quick-search-container .quick-search i.zmdi {
+      font-size: 20px; }
+
+.modal .quick-search {
+  margin-right: 0px !important; }
 
 @media (max-width: 767px) {
-  .quick-search {
+  .quick-search-container {
     width: 100%; } }
 
 .grid-actions {
-  position: relative;
   width: 1%;
   padding-right: 0px !important;
-  padding-left: 0px !important; }
-  .grid-actions a.grid-action {
-    color: #5E5E5E;
+  padding-left: 0px !important;
+  position: relative; }
+  .grid-actions .grid-actions-container {
+    white-space: nowrap;
     position: absolute;
-    width: 25px;
-    height: 25px;
-    border-radius: 2px;
-    display: inline-block;
-    font-size: 16px;
-    text-align: center;
-    top: 50%;
-    margin-top: -12.5px;
-    right: 7px; }
-  .grid-actions a.grid-action:hover {
-    background-color: #d2d2d2; }
+    right: 7px;
+    margin-top: -2px; }
+    .grid-actions .grid-actions-container a.grid-action {
+      display: inline-block;
+      color: #5E5E5E;
+      width: 25px;
+      height: 25px;
+      border-radius: 2px;
+      font-size: 18px;
+      text-align: center; }
+    .grid-actions .grid-actions-container a.grid-action:hover {
+      background-color: #d2d2d2; }
+
+.edit-text-cell .form-control {
+  margin: 0px;
+  border: 0px;
+  padding: 0px;
+  height: 18px; }
 
 /*-------------------------
     Select2
@@ -376,7 +395,8 @@ tr.collapsible {
 --------------------------*/
 .lookup {
   background-color: #ffffff;
-  border: solid 1px #f0f0f0; }
+  border: solid 1px #f0f0f0;
+  margin-bottom: 3px; }
   .lookup .lookup-header {
     background-color: #FFFFFF;
     height: 30px;
@@ -384,6 +404,9 @@ tr.collapsible {
     cursor: pointer; }
     .lookup .lookup-header .placeholder {
       color: #AEAEAE; }
+    .lookup .lookup-header .actions {
+      position: absolute;
+      right: 0px; }
   .lookup .lookup-header:hover {
     background-color: #ebebeb; }
   .lookup table {
@@ -416,11 +439,11 @@ tr.collapsible {
         position: absolute;
         bottom: 3px; }
   .lookup .lookup-current-value {
-    display: inline-block;
-    margin-top: 7px; }
-
-.table > tbody > tr:last-child > td, .table > tfoot > tr:last-child > td {
-  padding-bottom: 10px; }
+    margin-right: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    padding-top: 5px; }
 
 /*-------------------------
     input-file
@@ -519,4 +542,36 @@ tr.collapsible {
   margin-top: -3px; }
 
 .has-error .bootstrap-select .btn-default {
-  border-color: #f6675d !important; }
+  border-color: #FF3E63 !important; }
+
+/*-------------------------
+    Toggle switch inverse
+--------------------------*/
+.toggle-switch.toggle-switch-inverse:not([data-ts-color]) input:not(:disabled):checked + .ts-helper {
+  background: #26DD9E; }
+
+.toggle-switch.toggle-switch-inverse .ts-helper {
+  background-color: #95989A;
+  -webkit-transition: background-color 0.28s;
+  transition: background-color 0.28s;
+  vertical-align: middle;
+  cursor: pointer; }
+
+.toggle-switch:not([data-ts-color]) input:not(:disabled):checked + .ts-helper:before {
+  background-color: #F4F4F4; }
+
+.form-group .toggle-switch .ts-label {
+  color: #9d9d9d; }
+
+/*-------------------------
+    form spacer
+--------------------------*/
+.form-spacer-control {
+  height: 60px; }
+
+/*-------------------------
+    color picker
+--------------------------*/
+.cp-container input.cp-value {
+  color: #000 !important;
+  background: 0 0 !important; }

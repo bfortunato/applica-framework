@@ -1,6 +1,7 @@
 "use strict"
 
 import {Observable} from "../aj/events"
+import * as _ from "../libs/underscore"
 
 function normalizeData(data) {
 	let result = null
@@ -51,4 +52,8 @@ export function promised(promiseFn) {
 
 export function create() {
 	return new DataSource()
+}
+
+export function fromEnum(Enum) {
+	return new DataSource(_.map(_.keys(Enum), k => { return {label: k, value: Enum[k]}}))
 }

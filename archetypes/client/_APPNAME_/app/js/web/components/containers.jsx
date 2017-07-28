@@ -2,17 +2,11 @@
 
 import * as datasource from "../../utils/datasource"
 import {LookupStore, SelectStore} from "../../stores"
-import {
-    freeLookup,
-    freeSelect,
-    getLookupResult,
-    getLookupValues,
-    getSelectEntities,
-    getSelectValues
-} from "../../actions"
+import {getLookupResult, getLookupValues, freeLookup, getSelectValues, freeSelect} from "../../actions"
 import {discriminated} from "../../../utils/ajex"
 import * as query from "../../api/query"
-import {Control, Lookup, Select} from "./forms"
+import {Lookup, Select, Control} from "./forms"
+import {getSelectEntities} from "../../actions"
 import {optional} from "../../utils/lang"
 
 let LOOKUP_DISCRIMINATOR = 1

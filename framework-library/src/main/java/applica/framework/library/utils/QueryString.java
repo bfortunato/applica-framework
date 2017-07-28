@@ -11,7 +11,7 @@ import java.net.URLEncoder;
  */
 public class QueryString {
 
-    public static String build(PropertyValues values) {
+    public static String build(PropertyValues values, boolean encodeUrl) {
         StringBuilder query = new StringBuilder();
         for (PropertyValue v : values.getPropertyValues()) {
             try {
@@ -22,13 +22,17 @@ public class QueryString {
                 query
                         .append(v.getName())
                         .append("=")
-                        .append(URLEncoder.encode(v.getValue().toString(), "UTF-8"));
+                        .append(encodeUrl ? URLEncoder.encode(v.getValue().toString(), "UTF-8") : v.getValue());
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         }
 
         return query.toString();
+    }
+
+    public static String build(PropertyValues values) {
+        return build(values, true);
     }
 
 }

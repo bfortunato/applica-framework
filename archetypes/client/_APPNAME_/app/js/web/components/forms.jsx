@@ -10,17 +10,28 @@ import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
+import {Dialog} from "./dialogs"
+import moment from "../../libs/moment"
 
 export const VALIDATION_ERROR = {}
 
 export class Model extends Observable {
-    constructor() {
+    constructor(form) {
         super()
 
         this.descriptor = null
         this.data = {}
         this.validationResult = {}
         this.initialized = false
+        this.form = form
+        this.changes = []
+        this.changesTrackingDisabled = false
+    }
+
+    invalidatForm() {
+        if (this.form) {
+            this.form.forceUpdate()
+        }
     }
 
     load(data) {
@@ -110,8 +121,36 @@ export class Model extends Observable {
         return field
     }
 
+    hasChanges() {
+        return this.changes.length > 0
+    }
+
+    trackChanges() {
+        this.changesTrackingDisabled = false
+    }
+
+    untrackChanges() {
+        this.changesTrackingDisabled = true
+    }
+
+    resetChanges() {
+        this.changes = []
+    }
+
     set(property, value) {
+        let initialValue = this.data[property]
         this.data[property] = value 
+
+        if (!this.changesTrackingDisabled) {
+            if (initialValue !== value) {
+                let change = _.find(this.changes, c => c.property === property)
+                if (change) {
+                    change.value = value
+                } else {
+                    this.changes.push({property, initialValue, value})
+                }
+            }
+        }
 
         this.invoke("property:change", property, value)   
     }
@@ -250,6 +289,10 @@ export class Area extends React.Component {
         return true
     }
 
+    getExtra() {
+        return null
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let area = this.props.area
@@ -264,6 +307,8 @@ export class Area extends React.Component {
                 {tabs}
                 <div className="row">{fields}</div>
                 <div className="clearfix"></div>
+
+                {this.getExtra()}
             </Card>
         )
     }
@@ -375,28 +420,32 @@ let AREA_KEY = 1
 let TAB_KEY = 1
 
 function generateKeys(descriptor) {
-    if (!_.isEmpty(descriptor.areas)) {
-        descriptor.areas.forEach(a => {
-            if (_.isEmpty(a.key)) {
-                a.key = "area" + AREA_KEY++
-            }
+    if (!descriptor.hasKeys) {
+        if (!_.isEmpty(descriptor.areas)) {
+            descriptor.areas.forEach(a => {
+                if (_.isEmpty(a.key)) {
+                    a.key = "area" + AREA_KEY++
+                }
 
-            if (!_.isEmpty(a.tabs)) {
-                a.tabs.forEach(t => {
-                    if (_.isEmpty(t.key)) {
-                        t.key = "tab" + TAB_KEY++
-                    }
-                })
-            }
-        })
-    }
+                if (!_.isEmpty(a.tabs)) {
+                    a.tabs.forEach(t => {
+                        if (_.isEmpty(t.key)) {
+                            t.key = "tab" + TAB_KEY++
+                        }
+                    })
+                }
+            })
+        }
 
-    if (!_.isEmpty(descriptor.tabs)) {
-        descriptor.tabs.forEach(t => {
-            if (_.isEmpty(t.key)) {
-                t.key = "tab" + TAB_KEY++
-            }
-        })
+        if (!_.isEmpty(descriptor.tabs)) {
+            descriptor.tabs.forEach(t => {
+                if (_.isEmpty(t.key)) {
+                    t.key = "tab" + TAB_KEY++
+                }
+            })
+        }
+
+        descriptor.hasKeys = true
     }
 }
 
@@ -416,11 +465,59 @@ export class FormSubmitEvent {
     }
 }
 
+export class FormBody extends React.Component {
+
+    isFieldVisible(field) {
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+
+        return true
+    }
+
+    render() {
+        let descriptor = this.props.descriptor
+        generateKeys(descriptor)
+        let model = this.props.model
+        let inline = optional(descriptor.inline, false)
+        let defaultFieldCass = inline ? InlineField : Field
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
+        let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
+        let showInCard = optional(descriptor.showInCard, true)
+
+        return (
+            <div className="form-body">
+                {areas}
+                {(tabs.length > 0 || fields.length > 0) &&
+                    (showInCard
+                        ?
+                        <Card padding="true">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </Card> 
+                        :
+                        <div className="form-body-content">
+                            {tabs}
+                            {fields}
+                            <div className="clearfix"></div>
+                        </div>
+                    )
+                }
+            </div>
+        )
+    }
+}
+
 export class Form extends React.Component {
     constructor(props) {
         super(props)
 
-        this.model = new Model()
+        this.model = new Model(this)
     }
 
     submit() {
@@ -494,38 +591,30 @@ export class Form extends React.Component {
         return true
     }
 
+    getExtra() {
+        return null
+    }
+
     render() {
         let descriptor = this.props.descriptor
         let model = this.model
 
-        generateKeys(descriptor)
-
         let inline = optional(descriptor.inline, false)
-        let defaultFieldCass = inline ? InlineField : Field
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
-        let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f}))
         let className = inline ? "form-horizontal" : ""
 
         return (
             <div className="form">
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
-                    {areas}
-                    {(tabs.length > 0 || fields.length > 0) &&
-                        <Card padding="true">
-                            {tabs}
-                            {fields}
-                            <div className="clearfix"></div>
-                        </Card>
-                    }
+                    <FormBody descriptor={descriptor} model={model} />
 
                     <div className="row">
                         <div className="text-right col-sm-12">
-                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("cancel")}</button>
+                            <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {descriptor.cancelText || M("back")}</button>
                             <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {descriptor.submitText || M("save")}</button>
                         </div>
                     </div>
                     <div className="clearfix"></div>
+                    {this.getExtra()}
                 </form>
             </div>
         )
@@ -547,9 +636,12 @@ export class Field extends React.Component {
         if (!validationResult.valid) {
             className += " has-error"
         }
+        if (!_.isEmpty(this.props.field.className)) {
+            className += " " + this.props.field.className
+        }
         return (
 
-            <div className={className}>
+            <div className={className} style={{minHeight: 58}}>
                 {hasLabel &&
                     <Label field={this.props.field}/>
                 }
@@ -573,6 +665,9 @@ export class InlineField extends React.Component {
         let validationResult = optional(model.validationResult[this.props.field.property], {valid: true})
         if (!validationResult.valid) {
             className += " has-error"
+        }
+        if (!_.isEmpty(this.props.field.className)) {
+            className += " " + this.props.field.className
         }
         return (
 
@@ -649,9 +744,17 @@ export class TextArea extends Control {
 }
 
 export class ReadOnlyText extends Control {
+
+    getText() {
+        let field = this.props.field
+        let model = this.props.model
+        let formatter = optional(() => this.props.formatter, () => { return v => v })
+        return optional(formatter(model.get(field.property)), "")
+    }
+
     render() {
         let field = this.props.field
-        let formatter = optional(() => this.props.formatter, () => { return v => v })
+        
 
         return (
             <div className="fg-line">
@@ -663,7 +766,7 @@ export class ReadOnlyText extends Control {
                     id={field.property}
                     data-property={field.property}
                     placeholder={field.placeholder}
-                    value={optional(formatter(this.props.model.get(field.property)), "")}
+                    value={this.getText()}
                     onChange={this.onValueChange.bind(this)} />
             </div>
         )
@@ -742,6 +845,56 @@ export class Mail extends Control {
     }
 }
 
+export class DateTime extends Control {
+
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this)
+        $(me).datetimepicker({
+            locale: this.props.locale,
+            format: this.props.format
+        })
+
+        let field = this.props.field
+        let model = this.props.model
+
+        $(me).on("dp.change", (e) => {
+            let date = e.date.toDate()
+            let time = date.getTime()
+            model.set(field.property, time)
+        })
+
+        model.once("load", () => {
+            let value = model.get(field.property)
+            let date = new Date()
+            if (value) {
+                date.setTime(value)
+            }
+            $(me).data("DateTimePicker").date(date)
+        })
+    }
+
+    render() {
+        let field = this.props.field
+
+        return (
+            <div className="input-group">
+                <div className="fg-line">
+                    <input
+                        type="text"
+                        className="form-control input-sm"
+                        id={field.property}
+                        data-property={field.property}
+                        placeholder={field.placeholder} />
+                </div>
+                <div className="input-group-addon">
+                    <span className="zmdi zmdi-calendar" />
+                </div>
+            </div>
+        )
+    }
+}
+
+
 export class YesNo extends Control {
     onValueChange(e) {
         let value = parseBoolean(e.target.value)
@@ -749,6 +902,23 @@ export class YesNo extends Control {
         let field = this.props.field
         model.set(field.property, value)
         this.forceUpdate()
+    }
+
+    componentDidMount() {
+        let model = this.props.model
+        let field = this.props.field
+        let fn = () => {
+            let value = parseBoolean(model.get(field.property))
+            if (value === null || value === undefined) {
+                value = false
+            }
+            model.untrackChanges()
+            model.set(field.property, value)
+            model.trackChanges()
+        }
+
+        model.once("load", fn)
+        fn()
     }
 
     render() {
@@ -803,6 +973,7 @@ export class Switch extends Control {
 }
 
 export class Number extends Control {
+
     render() {
         let field = this.props.field
 
@@ -879,7 +1050,9 @@ export class Select extends Control {
                     }
                 }
 
+                model.untrackChanges()
                 model.set(field.property, value)
+                model.trackChanges()
             })
     }
 
@@ -1126,7 +1299,8 @@ export class Lookup extends Control {
                 return ""
             }
 
-            let formatter = _.isFunction(field.formatter) ? field.formatter : (row) => {
+            let customFormatter = field.formatter || this.props.formatter
+            let formatter = _.isFunction(customFormatter) ? customFormatter : (row) => {
                 if (_.has(row, "name")) {
                     return row["name"]
                 } else if (_.has(row, "description")) {
@@ -1180,7 +1354,7 @@ export class Lookup extends Control {
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
                     <div className="lookup-header" onClick={this.showEntities.bind(this)}>
-                        <div className="actions pull-right">
+                        <div className="actions">
                             <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
                             <a href="javascript:;" title={M("add")} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
                         </div>
@@ -1211,7 +1385,7 @@ export class Lookup extends Control {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 className="modal-title" id="myModalLabel">Select roles</h4>
+                                <h4 className="modal-title" id="myModalLabel">{field.label}</h4>
                             </div>
                             <div className="modal-body">
                                 <Grid 
@@ -1221,9 +1395,9 @@ export class Lookup extends Control {
                                     query={this.props.query}
                                     showInCard="false" 
                                     quickSearchEnabled="true"
-                                    footerVisible="false"
-                                    summaryVisible="false"
-                                    paginationEnabled="false"
+                                    footerVisible="true"
+                                    summaryVisible="true"
+                                    paginationEnabled="true"
                                     tableClassName="table table-condensed table-striped table-hover"
                                     onRowDoubleClick={this.select.bind(this)}
                                 />

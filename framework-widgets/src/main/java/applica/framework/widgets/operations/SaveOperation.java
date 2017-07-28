@@ -7,6 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public interface SaveOperation {
 
     Class<? extends Entity> getEntityType();
-    void save(ObjectNode data) throws OperationException, ValidationException;
+    Entity save(ObjectNode data) throws OperationException, ValidationException;
 
 }

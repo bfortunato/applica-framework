@@ -2,6 +2,7 @@ let language = "it"
 
 let strings = {}
 strings["en"] = {
+    appName: "_APPNAME_",
     registering: "Registering...",
     ooops: "Ooops...",
     badLogin: "Cannot login! Please check your email address or password!",
@@ -30,6 +31,7 @@ strings["en"] = {
     search: "Search",
     close: "Close",
     selectFilterType: "Select filter type",
+    filterType: "Filter type",
     typeValueToSearch: "Type value to search",
     value: "Value",
     filters: "Filters",
@@ -247,6 +249,7 @@ strings["en"] = {
 }
 
 strings["it"] = {
+    appName: "_APPNAME_",
     registering: "Registrazione...",
     ooops: "Ooops...",
     badLogin: "Non riesco ad accedere! Per favore controlla il tuo indirizzo email o password!",
@@ -254,7 +257,7 @@ strings["it"] = {
     congratulations: "Congratulazioni",
     welcomeMessage: "Ciao {0}, la tua registrazione è completa.\nUn link per la conferma è stato inviato a {1}.\nPer favore conferma prima di effettuare l'accesso",
     continue: "Continuare",
-    register: "Registrare",
+    register: "Registrati",
     forgotPassword: "Dimenticato la password",
     signIn: "Rgistrati",
     mailAddress: "Indirizzo mail",
@@ -273,8 +276,9 @@ strings["it"] = {
     pleaseSpecifyQuery: "Per favore specifica la domanda",
     pleaseSpecifyEntity: "Per favore specifica l'entità",
     search: "Ricerca",
-    close: "Chiuso",
-    selectFilterType: "Selezione il tipo di filtro",
+    close: "Chiudi",
+    selectFilterType: "Seleziona il tipo di filtro",
+    filterType: "Tipo di filtro",
     typeValueToSearch: "Tipo di valore da cercare",
     value: "Valore",
     filters: "Filtri",
@@ -309,7 +313,7 @@ strings["it"] = {
     nameOfRole: "Nome del ruolo",
     role: "Ruolo",
     permissions: "Permessi",
-    selectPermissions: "Seleziona i premessi per la ruolo",
+    selectPermissions: "Seleziona i premessi per il ruolo",
     back: "Indietro",
     save: "Salva",
     image: "Immagine",
@@ -476,7 +480,9 @@ strings["it"] = {
     confirmRemoveConfigurablePhase: "Conferma la rimozione della fase configurabile",
     coverOptionColorConfiguration: "Configurazione i colori dell'opzione rivestimento",
     addComplementaryArticleForColor: "Aggiungi articolo a contrasto a {0}",
-    addAnalogousArticleForColor: "Aggiungi articolo a {0}"
+    addAnalogousArticleForColor: "Aggiungi articolo a {0}",
+    usersList: "Lista utenti",
+    rolesList: "Lista ruoli"
 }
 
 

@@ -3,8 +3,31 @@
 --------------------------*/
 
 $primary-color: #2196F3;
+$primary-color-text: #FFFFFF;
 $hover-color: #ebebeb;
 $placeholder-color: #AEAEAE;
+$background-color-body: #EAEAEA;
+$background-color-1: #F4F4F4;
+$background-color-2: #95989A;
+$background-color-3: #DDDDDD;
+$background-color-4: #CCCCCC;
 $border-color: #f0f0f0;
 $border-radius: 3px;
-$error-color: #f6675d;
+$error-color: #FF3E63;
+$warning-color: #FFA81C;
+$success-color: #26DD9E;
+$text-color-body: #191919;
+$text-color-caption3: #999999;
+$text-color-caption2: #777777;
+$text-color-caption1: #626262;
+
+$form-control-text-inverse: invert(#2e353b);
+$primary-color-inverse: invert($primary-color);
+$background-color-body-inverse: invert($background-color-body);
+$background-color-1-inverse: invert($background-color-1);
+$background-color-2-inverse: invert($background-color-2);
+$text-color-body-inverse: invert($text-color-body);
+$text-color-caption1-inverse: invert($text-color-caption1);
+$text-color-caption2-inverse: invert($text-color-caption2);
+$primary-color-text-inverse: invert($primary-color-text);
+$border-color-inverse: lighten(invert($border-color), 10%)

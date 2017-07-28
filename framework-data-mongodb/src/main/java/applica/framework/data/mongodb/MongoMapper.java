@@ -46,7 +46,11 @@ public class MongoMapper {
             
             //put entity id in document
             if (source.getId() != null) {
-                document.put("_id", new ObjectId(String.valueOf(source.getId())));
+            	try {
+					document.put("_id", new ObjectId(String.valueOf(source.getId())));
+				} catch (Exception e) {
+            		logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+				}
             }
             
 			//logger.warn("Converting " + type.getSimpleName());
@@ -197,7 +201,9 @@ public class MongoMapper {
                                             values.add(loadObject((BasicDBObject)el, typeArgument));
                                         } else if (isAllowed(typeArgument)) {
                                             values.add(el);
-                                        }
+                                        } else if (Object.class.equals(typeArgument)) {
+                                        	values.add(el);
+										}
                                     }
                                     field.set(destination, values);
                                 }
