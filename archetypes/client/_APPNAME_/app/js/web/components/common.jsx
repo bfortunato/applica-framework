@@ -3,9 +3,64 @@
 import {optional} from "../../utils/lang"
 import {isEnter} from "../utils/keyboard"
 
+export class DropdownActionButton extends React.Component {
+    componentDidMount() {
+        let button = this.refs.button
+        $(button).dropdown()
+    }
+
+    onItemClick(item) {
+        if (_.isFunction(item.action)) {
+            item.action.apply(this, this.props.arguments)
+        }
+    }
+
+    render() {
+        let index = 0
+        let dropdownItems = _.map(this.props.action.items, i =>             
+            <li key={index++}>
+                <a role="menuitem" tabIndex="-1" href="javascript:;" onClick={this.onItemClick.bind(this, i)}>
+                    {!_.isEmpty(i.icon) &&
+                        <i className={i.icon} />
+                    }
+
+                    {i.label}
+                </a>
+            </li>            
+        )
+
+        let dropdownMenuClass = "dropdown-menu pull-left"
+        let align = optional(this.props.action.align, "left")
+        if (align === "right") {
+            dropdownMenuClass = "dropdown-menu pull-right"
+        }
+
+        return (
+            <div className="dropdown">
+                <a  
+                    ref="button"
+                    href="javascript:;"
+                    className={this.props.className}
+                    data-toggle="dropdown"
+                    data-placement="bottom"
+                    title={this.props.action.tooltip}>
+
+                    <i className={this.props.action.icon}></i>
+                </a>
+                <ul className={dropdownMenuClass}>
+                    {dropdownItems}
+                </ul>
+            </div>
+        )
+    }
+}
+
 export class ActionButton extends React.Component {
-    perform() {
-        this.props.action.action()
+    onClick() {
+        let action = this.props.action
+        if (_.isFunction(action.action)) {
+            action.action.apply(this, this.props.arguments)
+        }
     }
 
     componentDidMount() {
@@ -14,22 +69,41 @@ export class ActionButton extends React.Component {
 
     render() {
         return (
-            <li><a ref="button" href="javascript:;" data-toggle="tooltip" data-placement="bottom" title={this.props.action.tooltip} onClick={this.perform.bind(this)}><i className={this.props.action.icon}></i></a></li>
+            <a  
+                ref="button" 
+                href="javascript:;" 
+                className={this.props.className}
+                data-toggle="tooltip" 
+                data-placement="bottom" 
+                title={this.props.action.tooltip} 
+                onClick={this.onClick.bind(this)}>
+                <i className={this.props.action.icon}></i>
+            </a>
         )
     }
 }
 
 export class Actions extends React.Component {
+
     render() {
         let actionKey = 1
 
         return (
             !_.isEmpty(this.props.actions) &&
                 <ul className="actions">
-                    {this.props.actions.map(a => <ActionButton key={actionKey++} action={a} />)}
+                    {this.props.actions.map(a => <li key={actionKey++}>{React.createElement(Actions.getButtonClass(a), {action: a})}</li>)}
                 </ul>
 
         )
+    }
+}
+
+Actions.getButtonClass = function(action) {
+    switch (action.type) {
+        case "dropdown":
+            return DropdownActionButton
+        default:
+            return ActionButton
     }
 }
 

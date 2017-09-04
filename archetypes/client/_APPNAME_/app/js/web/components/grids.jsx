@@ -2,15 +2,32 @@
 
 import * as query from "../../api/query"
 import M from "../../strings"
-import {Card, HeaderBlock} from "./common"
+import {Card, HeaderBlock, Actions, ActionButton, DropdownActionButton} from "./common"
 import {format, optional, parseBoolean} from "../../utils/lang"
 import {Observable} from "../../aj/events"
 import {isControl, isDown, isEnter, isShift, isUp, isEsc} from "../utils/keyboard"
 import * as mobile from "../utils/mobile"
+import * as datasource from "../../utils/datasource"
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
 const CELL_PADDING_BOTTOM = 15
+
+/* 
+ * hack to load forms when is useful but prevent circular references of modules. forms.jsx uses grids.jsx 
+ */
+
+let _forms = null
+function forms() {
+    if (_forms == null) {
+        //from this, the url is not absolute
+        _forms = require("./web/components/forms")
+    }
+
+    return _forms
+}
+
+
 
 function eachChildren(root, action) {
     if (_.isArray(root)) {
@@ -19,6 +36,16 @@ function eachChildren(root, action) {
 
             eachChildren(c.children, action)
         })
+    }
+}
+
+
+function clearSelection() {
+    if(document.selection && document.selection.empty) {
+        document.selection.empty();
+    } else if(window.getSelection) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
     }
 }
 
@@ -50,6 +77,7 @@ class Selection extends Observable {
         this.lastSelected = null
         this.rangeStartRow = null
         this.allSelected = false
+        this.single = false
     }
 
     flatRows() {
@@ -76,7 +104,7 @@ class Selection extends Observable {
     handle(row) {
         let flatRows = this.flatRows()
         
-        if (this.shiftPressed) {
+        if (this.shiftPressed && !this.single) {
             flatRows.forEach(r => r.selected = false)
             if (this.rangeStartRow == null) {
                 this.rangeStartRow = this.lastSelected
@@ -95,7 +123,7 @@ class Selection extends Observable {
                 })
                 this.lastSelected = row
             }
-        } else if (this.controlPressed) {
+        } else if (this.controlPressed && !this.singleF) {
             row.selected = !row.selected
             this.rangeStartRow = row
             this.lastSelected = row
@@ -172,16 +200,40 @@ class Selection extends Observable {
     }
 }
 
+const STANDARD_SEARCH_FORM_DESCRIPTOR = (column) => _.assign({}, {
+    showInCard: false,
+    fields: [
+        {
+            property: column.property,
+            label: M("value"),
+            placeholder: M("value"),
+            control: forms().Text
+        },
+        {
+            property: "_filterType",
+            label: M("filterType"),
+            control: forms().Select,
+            props: {
+                allowNull: false,
+                datasource: datasource.fixed([
+                    {label: "Equals", value: "eq"},
+                    {label: "Like", value: "like"}
+                ])
+            }
+        }
+    ]
+})
+
+
+
 export class SearchDialog extends React.Component {
     constructor(props) {
         super(props)
 
-        this.state = {value: "", type: "eq"}
+        this.model = new (forms().Model)()
     }
 
     componentDidMount() {
-        let me = ReactDOM.findDOMNode(this)
-        //$(me).find("select").selectpicker()
     }
 
     onChangeValue(e) {
@@ -199,15 +251,34 @@ export class SearchDialog extends React.Component {
         $(me).modal("hide")
     }
 
+    getFilterType() {
+        return optional(this.props.column.filterType, "eq")
+    }
+
     filter() {
         if (this.props.query && this.props.column && this.props.column.property) {
-            this.props.query.filter(this.state.type, this.props.column.property, this.state.value)
+            let filterType = optional(this.model.get("_filterType"), this.getFilterType())
+            let data = this.model.sanitized()
+            _.each(_.keys(data), k => {
+                if (k !== "_filterType") {
+                    this.props.query.filter(filterType, k, data[k])
+                }
+            })
 
             this.close()
         }
     }
 
     render() {
+        let column = this.props.column
+        let searchForm = STANDARD_SEARCH_FORM_DESCRIPTOR(column)
+        if (!_.isEmpty(column.searchForm)) {
+            searchForm = column.searchForm
+        }
+        this.model.descriptor = searchForm
+
+        const FormBody = forms().FormBody
+
         return (
             <div className="search-dialog modal fade" role="dialog" tabIndex="-1" style={{display: "none", zIndex: 1500}}>
                 <div className="modal-dialog">
@@ -216,25 +287,9 @@ export class SearchDialog extends React.Component {
                             <h4 className="modal-title">{this.props.column.header}</h4>
                         </div>
                         <div className="modal-body">
-                            <form action="javascript:;" onSubmit={this.filter.bind(this)}>
-                                <p className="c-black f-500 m-b-20 m-t-20">{M("typeValueToSearch")}</p>
-                                <div className="form-group">
-                                    <div className="fg-line">
-                                        <input type="text" className="form-control" placeholder={M("value")} onChange={this.onChangeValue.bind(this)} value={this.state.value} />
-                                    </div>
-                                </div>
-                                <p className="c-black f-500 m-b-20 m-t-20">{M("selectFilterType")}</p>
-                                <div className="form-group">
-                                    <div className="fg-line">
-                                        <select className="form-control" value={this.state.type} onChange={this.onTypeChange.bind(this)}>
-                                            <option value="ne">Equals</option>
-                                            <option value="like">Like</option>
-                                            <option value="gte">Greater then</option>
-                                            <option value="lte">Lesser then</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </form>
+                            <div className="row">
+                                <FormBody model={this.model} descriptor={searchForm} />
+                            </div>
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-link waves-effect" onClick={this.filter.bind(this)}>{M("search")}</button>
@@ -356,6 +411,8 @@ export class Row extends React.Component {
         if (_.isFunction(this.props.onDoubleClick)) {
             this.props.onDoubleClick(this.props.row)
             e.stopPropagation()
+            e.preventDefault()
+            clearSelection()
         }
     }
 
@@ -584,7 +641,6 @@ export class TextCell extends Cell {
             e.preventDefault()
             e.stopPropagation()
             e.nativeEvent.stopImmediatePropagation()
-            logger.i("propagation stopped")
         }
     }
 
@@ -625,7 +681,7 @@ export class CheckCell extends Cell {
         )
     }
 }
-
+    
 export class ActionsCell extends Cell {
     componentDidMount() {
         let me = ReactDOM.findDOMNode(this)
@@ -643,11 +699,15 @@ export class ActionsCell extends Cell {
     }
 
     render() {
-        let key = 1
-        let actions = this.props.column.actions.map(a => <a key={key++} href="javascript:;" className="grid-action" onClick={a.action.bind(this, this.props.row.data)}><i className={a.icon} /></a>)
+        let actionKey = 1
+        let actions = this.props.column.actions.map(a => 
+            React.createElement(Actions.getButtonClass(a), {key: actionKey++, action: a, arguments: [this.props.row.data], className: "grid-action"})
+        )
 
         return (
-            <div className="grid-actions-container">{actions}</div>
+            <div className="grid-actions-container">
+                {actions}
+            </div>
         )
     }
 }
@@ -707,7 +767,8 @@ export class Filters extends React.Component {
 
         return (
             <div className="filters p-30">
-                <button type="button" className="btn btn-no-shadow btn-primary waves-effect m-r-10"><i className="zmdi zmdi-delete" /></button>{filters}
+                <button type="button" onClick={this.clearFilters.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10"><i className="zmdi zmdi-delete" /></button>
+                {filters}
             </div>
         )
     }
@@ -843,11 +904,19 @@ export class NoCard extends React.Component {
 }
 
 export class QuickSearch extends React.Component {
+    constructor(props) {
+        super(props)
+
+        this._onChange = _.debounce((keyword) => {
+            if (!_.isEmpty(this.props.query)) {
+                this.props.query.setKeyword(keyword)
+            }
+        }, 250)
+        
+    }
+
     onChange(e) {
-        let keyword = e.target.value
-        if (!_.isEmpty(this.props.query)) {
-            this.props.query.setKeyword(keyword)
-        }
+        this._onChange(e.target.value)
     }
 
     onKeyDown(e) {
@@ -992,6 +1061,7 @@ export class Grid extends React.Component {
         let rows = props.data && props.data.rows
         if (rows) {
             this.selection = new Selection(rows)
+            this.selection.single = props.selectionMode === "single"
             this.selection.on("change", () => {
                 this.setState(this.state)
                 if (_.isFunction(this.props.onSelectionChanged)) {

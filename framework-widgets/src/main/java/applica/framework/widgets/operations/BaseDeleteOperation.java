@@ -27,7 +27,7 @@ public class BaseDeleteOperation implements DeleteOperation {
 
     @Override
     public void delete(List<String> ids) throws OperationException {
-        if (entityType == null) throw new ProgramException("Entity entityType is null");
+        if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         for (String id : ids) {
             try {

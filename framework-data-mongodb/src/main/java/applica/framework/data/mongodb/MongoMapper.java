@@ -201,7 +201,9 @@ public class MongoMapper {
                                             values.add(loadObject((BasicDBObject)el, typeArgument));
                                         } else if (isAllowed(typeArgument)) {
                                             values.add(el);
-                                        }
+                                        } else if (Object.class.equals(typeArgument)) {
+                                        	values.add(el);
+										}
                                     }
                                     field.set(destination, values);
                                 }
