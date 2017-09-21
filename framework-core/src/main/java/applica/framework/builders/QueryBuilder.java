@@ -4,7 +4,15 @@ import applica.framework.Filter;
 import applica.framework.Query;
 import applica.framework.Sort;
 
+import java.util.function.Predicate;
+
 public class QueryBuilder extends Query {
+
+    @FunctionalInterface
+    public interface ConditionalFilterPredicate {
+        boolean check();
+    }
+
     public QueryBuilder() {
         this(null);
     }
@@ -43,6 +51,19 @@ public class QueryBuilder extends Query {
             getFilters().add(new Filter(property, value, type));
         }
         return this;
+    }
+
+    public QueryBuilder filterIf(String property, Object value, String type, ConditionalFilterPredicate predicate) {
+        if(value != null) {
+            if (predicate.check()) {
+                getFilters().add(new Filter(property, value, type));
+            }
+        }
+        return this;
+    }
+
+    public QueryBuilder filterIf(String property, Object value, ConditionalFilterPredicate predicate) {
+        return filterIf(property, value, Filter.EQ, predicate);
     }
 
     public QueryBuilder like(String property, Object value) {
