@@ -3,6 +3,9 @@ package applica.framework;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class Result<T extends Entity> {
 
@@ -46,4 +49,11 @@ public class Result<T extends Entity> {
         this.totalRows = totalRows;
     }
 
+    public <R extends Entity> Result<R> map(Function<T, R> mapper) {
+        Result<R> mapped = new Result<>();
+        mapped.setTotalRows(this.getTotalRows());
+        mapped.setRows(this.getRows().stream().map(mapper).collect(Collectors.toList()));
+
+        return mapped;
+    }
 }
