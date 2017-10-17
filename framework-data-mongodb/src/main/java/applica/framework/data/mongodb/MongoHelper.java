@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.net.UnknownHostException;
 import java.util.*;
 
 public class MongoHelper {
@@ -75,10 +74,10 @@ public class MongoHelper {
                 String host = options.get(String.format("applica.framework.data.mongodb.%s.host", dataSource));
 				Integer port = Integer.parseInt(options.get(String.format("applica.framework.data.mongodb.%s.port", dataSource)));
                 if (StringUtils.isNotEmpty(username)) {
-                    MongoCredential mongoCredential = MongoCredential.createMongoCRCredential(username, db, password.toCharArray());
+
 					ds.mongo = new MongoClient(
                             new ServerAddress(host, port != null ? port : 27017),
-                            Arrays.asList(mongoCredential)
+                            Arrays.asList(createMongoCredential(dataSource, username, password, db))
                     );
                 } else {
 					ds.mongo = new MongoClient(host);
@@ -88,6 +87,31 @@ public class MongoHelper {
 			}
 		}
 		return ds.mongo;
+	}
+
+	/**
+	 * Istanzia la classe MongoCredential in base al meccanismo di autenticazione eventualmente settato
+	 * @param datasource
+	 * @param username
+	 * @param password
+	 * @param db
+	 * @return
+	 */
+	private MongoCredential createMongoCredential(String datasource, String username, String password, String db) {
+		MongoCredential mongoCredential;
+		String authMechanism = options.get(String.format("applica.framework.data.mongodb.%s.authMechanism", datasource));
+
+		if (StringUtils.isNotEmpty(authMechanism) && authMechanism.equals(MongoAuthenticationMechanism.SCRAM_SHA_1.getDescription())) {
+			mongoCredential = MongoCredential.createScramSha1Credential(username,
+					db,
+					password.toCharArray());
+		} else {
+			//default
+			mongoCredential = MongoCredential.createMongoCRCredential(username, db, password.toCharArray());
+		}
+
+		return mongoCredential;
+
 	}
 
 	public void close(String dataSource) {

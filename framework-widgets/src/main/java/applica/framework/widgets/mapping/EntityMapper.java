@@ -4,11 +4,13 @@ import applica.framework.AEntity;
 import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
+import applica.framework.library.SimpleItem;
 import applica.framework.library.base64.URLData;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.beanutils.BeanUtils;
@@ -20,6 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -137,6 +142,7 @@ public class EntityMapper {
             }
         }
     }
+
 
     public void entityToId(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
@@ -269,6 +275,131 @@ public class EntityMapper {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+
+
+    public void imagesToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, String size) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
+
+        List<String> imageDatas = new ArrayList<>();
+        List<String> imageUrls = null;
+        try {
+            imageUrls = (List<String>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (imageUrls != null && imageUrls.size() > 0) {
+            for (String imageUrl: imageUrls) {
+                if (StringUtils.isNotEmpty(imageUrl)) {
+                    InputStream in = null;
+                    try {
+                        in = fileServer.getImage(imageUrl, size);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (in != null) {
+                        URLData urlData = new URLData(String.format("image/%s", FilenameUtils.getExtension(imageUrl)), in);
+                        imageDatas.add(urlData.write());
+
+                    }
+                }
+            }
+
+            if (imageDatas.size() > 0) {
+                ArrayNode array = destination.putArray(destinationProperty);
+                for (String urlData: imageDatas) {
+                    array.add(urlData);
+                }
+            }
+        }
+    }
+
+    public void dataUrlToImages(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
+
+        List<String> imageDatas = new ArrayList<>();
+        List<String> imagesUrls = new ArrayList<>();
+        List<String> actualImages = new ArrayList<>();
+        try {
+            actualImages = (List<String>) PropertyUtils.getProperty(destination, destinationProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
+            source.get(sourceProperty).forEach(n -> imageDatas.add(n.asText()));
+        }
+
+        if (imageDatas.size() > 0) {
+            for (String imageData: imageDatas) {
+                try {
+
+                    URLData urlData = URLData.parse(imageData);
+                    String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+                    imagesUrls.add(imagePath);
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        }
+        try {
+            PropertyUtils.setProperty(destination, destinationProperty, imagesUrls);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        if (actualImages != null) {
+            for (String actualImage: actualImages) {
+                try {
+                    fileServer.deleteFile(actualImage);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    public void mapToSimpleItem(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        try {
+            Entity entityProperty = (Entity) PropertyUtils.getProperty(source, sourceProperty);
+            SimpleItem s = new SimpleItem();
+            s.setLabel(entityProperty.toString());
+            s.setValue(entityProperty.getId().toString());
+            destination.putPOJO(destinationProperty, s);
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void entitiesToIds(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
+
+        List<Entity> relatedEntities = null;
+        try {
+            relatedEntities = (List<Entity>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        ArrayNode arrayNode = destination.putArray(destinationProperty);
+        for (Entity entity: relatedEntities) {
+            arrayNode.add(String.valueOf(entity.getId()));
         }
     }
 

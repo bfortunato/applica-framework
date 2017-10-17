@@ -4,8 +4,6 @@ package applica.framework;
  * Created by bimbobruno on 13/02/2017.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.HashMap;
 
 /**
