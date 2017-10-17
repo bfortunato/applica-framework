@@ -1,172 +1,26 @@
+/** Entities **/
 "use strict"
 
-import * as aj from "./aj"
-import { createAsyncAction, completed, failed } from "./utils/ajex"
-import * as SessionApi from "./api/session"
-import * as AccountApi from "./api/account"
-import * as responses from "./api/responses"
-import { alert, confirm, showLoader, hideLoader, toast } from "./plugins"
-import { format } from "./utils/lang"
-import M from "./strings"
-import * as GridsApi from "./api/grids"
-import * as EntitiesApi from "./api/entities"
-import * as ValuesApi from "./api/values"
-import * as _ from "./libs/underscore"
-
-export const LOGIN = "LOGIN";
-export const login = createAsyncAction(LOGIN, data => {
-    if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(M("problemOccoured"), M("mailAndPasswordRequired"), "warning")
-        return;
-    }
-
-    aj.dispatch({
-        type: LOGIN
-    })
-
-    showLoader()
-    SessionApi.start(data.mail, data.password)
-        .then(user => {
-            hideLoader()
-            toast(M("welcome") + " " + user.name);
-
-            login.complete({user})
-
-            getUserProfileImage()
-            getUserCoverImage()
-        })
-        .catch(e => {
-            hideLoader()
-            alert(M("ooops"), M("badLogin"), "error")
-
-            login.fail()
-        })
-});
-
-export const RESUME_SESSION = "RESUME_SESSION"
-export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
-    aj.dispatch({
-        type: RESUME_SESSION
-    })
-
-    SessionApi.resume()
-        .then(user => {
-            hideLoader()
-            toast(M("welcome") + " " + user.name);
-
-            resumeSession.complete({user})
-            getUserProfileImage()
-            getUserCoverImage()
-        })
-        .catch(e => {
-            hideLoader()
-
-            resumeSession.fail()
-        })
-});
-
-export const LOGOUT = "LOGOUT";
-export const logout = aj.createAction(LOGOUT, data => {
-    SessionApi.destroy()
-        .then(() => {
-            aj.dispatch({
-                type: LOGOUT
-            })
-        })
-});
-
-export const REGISTER = "REGISTER";
-export const register = createAsyncAction(REGISTER, data => {
-    if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        alert(M("problemOccoured"), M("nameMailAndPasswordRequired"), "warning")
-        return;
-    }
-
-    aj.dispatch({
-        type: REGISTER
-    })
-
-    showLoader(M("registering"))
-    AccountApi.register(data.name, data.mail, data.password)
-        .then(() => {
-            hideLoader()
-
-            let message = format(M("welcomeMessage"), data.name, data.mail)
-            register.complete({name: data.name, mail: data.mail, message})
-        })
-        .catch(e => {
-            hideLoader()
-            alert(M("ooops"), responses.msg(e), "error")
-
-            register.fail()
-        })
-});
-
-export const RECOVER_ACCOUNT = "RECOVER_ACCOUNT"
-export const recoverAccount = createAsyncAction(RECOVER_ACCOUNT, data => {
-    if (_.isEmpty(data.mail)) {
-        alert(M("problemOccoured"), M("mailRequired"), "warning")
-        return;
-    }
-
-    aj.dispatch({
-        type: RECOVER_ACCOUNT,
-    })
-
-    showLoader()
-    AccountApi.recover(data.mail)
-        .then(() => {
-            hideLoader()
-            alert(M("congratulations"), format(M("accountRecovered"), data.mail))
-
-            recoverAccount.complete()
-        })
-        .catch(e => {
-            hideLoader()
-            alert(M("ooops"), responses.msg(e), "error")
-
-            recoverAccount.fail()
-        })
-})
-
-export const SET_ACTIVATION_CODE = "SET_ACTIVATION_CODE"
-export const setActivationCode = aj.createAction(SET_ACTIVATION_CODE, data => {
-    aj.dispatch({
-        type: SET_ACTIVATION_CODE,
-        activationCode: data.activationCode
-    })
-})
-
-export const CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT"
-export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
-    if (_.isEmpty(data.activationCode)) {
-        alert(M("problemOccoured"), M("activationCodeRequired"), "warning")
-        return;
-    }
-
-    aj.dispatch({
-        type: CONFIRM_ACCOUNT,
-    })
-
-    showLoader()
-    AccountApi.confirm(data.activationCode)
-        .then(() => {
-            hideLoader()
-            alert(M("congratulations"), M("accountConfirmed"))
-
-            confirmAccount.complete()
-        })
-        .catch(e => {
-            hideLoader()
-            alert(M("ooops"), responses.msg(e), "error")
-
-            confirmAccount.fail()
-        })
-})
+import * as aj from "../aj/index";
+import {createAsyncAction} from "../utils/ajex";
+import * as SessionApi from "../api/session";
+import * as responses from "../api/responses";
+import {alert, hideLoader, showLoader, toast} from "../plugins";
+import M from "../strings";
+import * as GridsApi from "../api/grids";
+import * as EntitiesApi from "../api/entities";
+import * as ValuesApi from "../api/values";
+import * as _ from "../libs/underscore";
+import {
+    DELETE_ENTITIES, FREE_ENTITIES, FREE_LOOKUP, FREE_SELECT, GET_ENTITY, GET_GRID, GET_LOOKUP_RESULT,
+    GET_LOOKUP_VALUES,
+    GET_SELECT_ENTITIES, GET_SELECT_VALUES,
+    LOAD_ENTITIES,
+    NEW_ENTITY,
+    SAVE_ENTITY
+} from "./types";
 
 
-/** Grids actions **/
-export const GET_GRID = "GET_GRID"
 export const getGrid = createAsyncAction(GET_GRID, data => {
     if (_.isEmpty(data.id)) {
         alert(M("problemOccoured"), M("pleaseSpecifyId"))
@@ -193,11 +47,8 @@ export const getGrid = createAsyncAction(GET_GRID, data => {
 })
 
 
-/** Entities **/
-
 let queries = {}
 
-export const LOAD_ENTITIES = "LOAD_ENTITIES"
 export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -230,7 +81,6 @@ export const loadEntities = createAsyncAction(LOAD_ENTITIES, data => {
         })
 })
 
-export const DELETE_ENTITIES = "DELETE_ENTITIES"
 export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -269,7 +119,6 @@ export const deleteEntities = createAsyncAction(DELETE_ENTITIES, data => {
         })
 })
 
-export const SAVE_ENTITY = "SAVE_ENTITY"
 export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -292,7 +141,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
     })
 
     EntitiesApi.save(data.entity, data.data)
-        .then(() => {
+        .then(response => {
             hideLoader()
             toast(M("saveComplete"))
 
@@ -302,7 +151,7 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
                 getEntity({discriminator: data.discriminator, entity: data.entity, id: response.value.id})
             }
 
-            if (data.entity === "user") {
+            if (data.entity == "user") {
                 if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
                     getUserProfileImage()
                     getUserCoverImage()
@@ -322,7 +171,6 @@ export const saveEntity = createAsyncAction(SAVE_ENTITY, data => {
         })
 });
 
-export const NEW_ENTITY = "NEW_ENTITY"
 export const newEntity = aj.createAction(NEW_ENTITY, data => {
     if (_.isEmpty(data.discriminator)) {
         throw new Error("Discriminator is required")
@@ -334,7 +182,6 @@ export const newEntity = aj.createAction(NEW_ENTITY, data => {
     })
 })
 
-export const GET_ENTITY = "GET_ENTITY"
 export const getEntity = createAsyncAction(GET_ENTITY, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -369,7 +216,6 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
         })
 })
 
-export const FREE_ENTITIES = "FREE_ENTITIES"
 export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
     aj.dispatch({
         type: FREE_ENTITIES,
@@ -382,7 +228,6 @@ export const freeEntities = aj.createAction(FREE_ENTITIES, data => {
  * LOOKUP ACTIONS
  */
 
-export const GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT"
 export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -409,7 +254,6 @@ export const getLookupResult = createAsyncAction(GET_LOOKUP_RESULT, data => {
         })
 })
 
-export const GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES"
 export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
     if (_.isEmpty(data.collection)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -436,7 +280,6 @@ export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
         })
 })
 
-export const FREE_LOOKUP = "FREE_LOOKUP"
 export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
     aj.dispatch({
         type: FREE_LOOKUP,
@@ -449,7 +292,6 @@ export const freeLookup = aj.createAction(FREE_LOOKUP, data => {
  * SELECT ACTIONS
  */
 
-export const GET_SELECT_ENTITIES = "GET_SELECT_ENTITIES"
 export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -476,7 +318,6 @@ export const getSelectEntities = createAsyncAction(GET_SELECT_ENTITIES, data => 
         })
 })
 
-export const GET_SELECT_VALUES = "GET_SELECT_VALUES"
 export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
     if (_.isEmpty(data.collection)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -503,85 +344,9 @@ export const getSelectValues = createAsyncAction(GET_SELECT_VALUES, data => {
         })
 })
 
-export const FREE_SELECT = "FREE_SELECT"
 export const freeSelect = aj.createAction(FREE_SELECT, data => {
     aj.dispatch({
         type: FREE_SELECT,
         discriminator: data.discriminator
     })
-})
-
-
-/**
- * MENU ACTIONS
- */
-
-export const SETUP_MENU = "SETUP_MENU"
-export const setupMenu = aj.createAction(SETUP_MENU, data => {
-    aj.dispatch({
-        type: SETUP_MENU,
-        menu: data.menu
-    })
-})
-
-export const SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM"
-export const setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, data => {
-    aj.dispatch({
-        type: SET_ACTIVE_MENU_ITEM,
-        item: data.item
-    })
-})
-
-export const EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM"
-export const expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, data => {
-    aj.dispatch({
-        type: EXPAND_MENU_ITEM,
-        item: data.item
-    })
-})
-
-
-/**
- UI Actions
- */
-
-export const GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE"
-export const getUserCoverImage = createAsyncAction(GET_USER_COVER_IMAGE, data => {
-    let user = SessionApi.getLoggedUser()
-    if (user == null) {
-        return
-    }
-
-    aj.dispatch({
-        type: GET_USER_COVER_IMAGE
-    })
-
-    AccountApi.getCoverImage(user.id)
-        .then(data => {
-            getUserCoverImage.complete({data: data.value})
-        })
-        .catch(e => {
-            getUserCoverImage.fail({e})
-        })
-
-})
-
-export const GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE"
-export const getUserProfileImage = createAsyncAction(GET_USER_PROFILE_IMAGE, data => {
-    let user = SessionApi.getLoggedUser()
-    if (user == null) {
-        return
-    }
-
-    aj.dispatch({
-        type: GET_USER_PROFILE_IMAGE
-    })
-
-    AccountApi.getProfileImage(user.id)
-        .then(data => {
-            getUserProfileImage.complete({data: data.value})
-        })
-        .catch(e => {
-            getUserProfileImage.fail({e})
-        })
 })

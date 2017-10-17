@@ -1,10 +1,10 @@
 "use strict"
 
-import {TextCell, CheckCell} from "./components/grids"
-import {check, sanitize} from "../libs/validator"
-import {Text, Mail, YesNo, Image} from "./components/forms"
-import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers"
-import M from "../strings"
+import {CheckCell, TextCell} from "./components/grids";
+import {check, sanitize} from "../libs/validator";
+import {Image, Mail, Text, YesNo} from "./components/forms";
+import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers";
+import M from "../strings";
 
 
 const entities = {

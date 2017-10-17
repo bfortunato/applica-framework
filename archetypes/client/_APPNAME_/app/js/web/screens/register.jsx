@@ -1,12 +1,12 @@
 "use strict";
 
-import {AccountStore} from "../../stores"
-import M from "../../strings"
-import {connect} from "../utils/aj"
-import {FullScreenLayout, Screen} from "../components/layout"
-import * as ui from "../utils/ui"
-import {register} from "../../actions"
-import * as forms from "../utils/forms"
+import {AccountStore} from "../../stores/account";
+import M from "../../strings";
+import {connect} from "../utils/aj";
+import {FullScreenLayout, Screen} from "../components/layout";
+import * as ui from "../utils/ui";
+import {register} from "../../actions/account";
+import * as forms from "../utils/forms";
 
 export default class Register extends Screen {
     constructor(props) {

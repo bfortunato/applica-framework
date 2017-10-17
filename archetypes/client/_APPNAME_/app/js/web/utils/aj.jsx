@@ -1,6 +1,6 @@
 "use strict"
 
-import {discriminated} from "../../utils/ajex"
+import {discriminated} from "../../utils/ajex";
 
 function connectInternal(setState, component, stores, localState) {
     let singleStore = !_.isArray(stores)

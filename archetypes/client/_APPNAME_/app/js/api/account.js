@@ -1,7 +1,7 @@
 "use strict";
 
-import * as config from "../framework/config"
-import { get, post } from "./utils"
+import * as config from "../framework/config";
+import {get, post} from "./utils";
 
 export function register(name, mail, password) {
     return post(config.get("account.register.url"), {name, mail, password})

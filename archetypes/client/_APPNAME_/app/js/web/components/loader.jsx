@@ -61,7 +61,22 @@ class Preloader extends React.Component {
     }
 }
 
+class UnobtrusiveLoader extends React.Component {
+
+    render() {
+        return (
+            <div className="unobtrusive-loader" style={{display: "none"}}>
+                <div className="preloader pls-white pl-sm">
+                    <svg className="pl-circular" viewBox="25 25 50 50">
+                        <circle className="plc-path" cx="50" cy="50" r="20" />
+                    </svg>
+                </div>
+            </div>
+        )
+    }
+}
+
 exports.PageLoader = PageLoader;
 exports.GlobalLoader = GlobalLoader;
 exports.Preloader = Preloader;
-
+exports.UnobtrusiveLoader = UnobtrusiveLoader;

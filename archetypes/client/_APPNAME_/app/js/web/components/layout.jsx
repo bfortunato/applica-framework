@@ -1,13 +1,16 @@
 "use strict"
 
-import {SessionStore, MenuStore, UIStore} from "../../stores"
-import {logout} from "../../actions"
-import * as ui from "../utils/ui"
-import {PageLoader, GlobalLoader} from "./loader"
-import {connect} from "../utils/aj"
-import {optional, parseBoolean} from "../../utils/lang"
-import {setActiveMenuItem, expandMenuItem} from "../../actions"
-import M from "../../strings"
+import {MenuStore} from "../../stores/menu";
+import {SessionStore} from "../../stores/session";
+import {UIStore} from "../../stores/ui";
+import {expandMenuItem, setActiveMenuItem} from "../../actions/menu";
+import {logout} from "../../actions/session";
+import * as ui from "../utils/ui";
+import {GlobalLoader, PageLoader, UnobtrusiveLoader} from "./loader";
+import {connect} from "../utils/aj";
+import {optional, parseBoolean} from "../../utils/lang";
+import M from "../../strings";
+import _ from "../../libs/underscore"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -338,6 +341,7 @@ class Index extends React.Component {
             <div>
                 <PageLoader />
                 <GlobalLoader />
+                <UnobtrusiveLoader />
                 <ScreenContainer />
             </div>
         )

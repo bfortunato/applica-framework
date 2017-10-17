@@ -6,10 +6,10 @@ const http = require("../aj/http")
 const preferences = require("../framework/preferences")
 const config = require("../framework/config")
 
-import * as _ from "../libs/underscore"
-import {flatten} from "../utils/lang"
-import * as query from "../api/query"
-import {get} from "./utils"
+import * as _ from "../libs/underscore";
+import {flatten} from "../utils/lang";
+import * as query from "../api/query";
+import {get} from "./utils";
 
 export function loadEntities(entity, _query) {
     if (_.isEmpty(_query)) {

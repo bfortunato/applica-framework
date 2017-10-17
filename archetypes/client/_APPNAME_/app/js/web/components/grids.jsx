@@ -1,13 +1,13 @@
 "use strict"
 
-import * as query from "../../api/query"
-import M from "../../strings"
-import {Card, HeaderBlock, Actions, ActionButton, DropdownActionButton} from "./common"
-import {format, optional, parseBoolean} from "../../utils/lang"
-import {Observable} from "../../aj/events"
-import {isControl, isDown, isEnter, isShift, isUp, isEsc} from "../utils/keyboard"
-import * as mobile from "../utils/mobile"
-import * as datasource from "../../utils/datasource"
+import * as query from "../../api/query";
+import M from "../../strings";
+import {Actions, Card} from "./common";
+import {format, optional, parseBoolean} from "../../utils/lang";
+import {Observable} from "../../aj/events";
+import {isControl, isDown, isEnter, isEsc, isShift, isUp} from "../utils/keyboard";
+import * as mobile from "../utils/mobile";
+import * as datasource from "../../utils/datasource";
 
 const EXPAND_ANIMATION_TIME = 250
 const CELL_PADDING_TOP = 15
@@ -49,18 +49,42 @@ function clearSelection() {
     }
 }
 
-export function resultToGridData(result) {
+function childrenData(children, index, childrenProp) {
+    if (_.isArray(children)) {
+        return children.map(r => {
+            return {
+                data: r,
+                index: index.value++,
+                children: childrenData(r[childrenProp], index, childrenProp),
+                selected: false
+            }
+        })
+    }
+
+    return null
+}
+
+export function arrayResult(arr) {
+    let narr = optional(arr, [])
+    return {
+        rows: narr,
+        totalRows: narr.length
+    }
+}
+
+export function resultToGridData(result, childrenProp = "children") {
     if (!result || !result.rows) {
         return {rows: [], totalRows: 0}
     }
-    let index = 0
+
+    let index = {value: 0}
     return {
         totalRows: result.totalRows,
         rows: result.rows.map(r => {
             return {
                 data: r,
-                index: index++,
-                children: null,
+                index: index.value++,
+                children: childrenData(r[childrenProp], index, childrenProp),
                 selected: false
             }
         })
@@ -123,7 +147,7 @@ class Selection extends Observable {
                 })
                 this.lastSelected = row
             }
-        } else if (this.controlPressed && !this.singleF) {
+        } else if (this.controlPressed && !this.single) {
             row.selected = !row.selected
             this.rangeStartRow = row
             this.lastSelected = row
@@ -251,16 +275,20 @@ export class SearchDialog extends React.Component {
         $(me).modal("hide")
     }
 
-    getFilterType() {
-        return optional(this.props.column.filterType, "eq")
+    getFieldFilterType(property) {
+        const field = this.model.findField(property)
+        if (field) {
+            return field.filterType
+        }
     }
 
     filter() {
         if (this.props.query && this.props.column && this.props.column.property) {
-            let filterType = optional(this.model.get("_filterType"), this.getFilterType())
-            let data = this.model.sanitized()
+            const manualFilterType = optional(this.model.get("_filterType"), "eq")
+            const data = this.model.sanitized()
             _.each(_.keys(data), k => {
                 if (k !== "_filterType") {
+                    const filterType = optional(this.getFieldFilterType(k), manualFilterType)
                     this.props.query.filter(filterType, k, data[k])
                 }
             })
@@ -694,6 +722,7 @@ export class ActionsCell extends Cell {
                 .mouseleave(() => {
                     $(me).find(".grid-action").stop().fadeOut(250)
                 })
+                .find(".grid-action").hide()
         }
 
     }
@@ -712,6 +741,57 @@ export class ActionsCell extends Cell {
     }
 }
 
+export class SelectCell extends Cell {
+
+    constructor(props) {
+        super(props)
+
+        if (_.isEmpty(props.datasource)) {
+            throw new Error("Datasource is null")
+        }
+    }
+
+    componentDidMount() {
+        this.onDataSourceChange = this.props.datasource.on("change", () => {
+            this.forceUpdate()
+        })
+    }
+
+    componentWillUnmount() {
+        this.props.datasource.off("change", this.onDataSourceChange);
+    }
+
+    onChange(e) {
+        const value = e.target.value
+        let column = this.props.column
+        let row = this.props.row
+        if (_.isFunction(this.props.onChange)) {
+            this.props.onChange(column, row.data, value)
+        }
+    }
+
+    render() {
+        let datasource = this.props.datasource
+        let options = optional(() => datasource.data.rows, []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)
+        let allowNull = parseBoolean(this.props.allowNull)
+
+        return (
+            <div className="form-group select-cell">
+                <div className="fg-line">
+                    <div className="select">
+                        <select className="form-control" value={optional(this.props.value, "")} onChange={this.onChange.bind(this)}>
+                            {allowNull && 
+                                <option value=""></option>
+                            }
+                            {options}
+                            
+                        </select>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
 
 export class KeywordSearch extends React.Component {
     render() {
@@ -741,7 +821,7 @@ export class Filter extends React.Component {
 
     render() {
         return (
-            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10" >{this.props.data.property} <i className="zmdi zmdi-close"></i></button>
+            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10" >{this.props.data.property}={this.props.data.value} <i className="zmdi zmdi-close"></i></button>
         )
     }
 }
@@ -959,7 +1039,10 @@ export class Grid extends React.Component {
     }
 
     onBlur() {
-        //if (this.selection) this.selection.clear()
+        if (this.selection) {
+            this.selection.shiftPressed = false
+            this.selection.controlPressed = false
+        }
     }
 
     onKeyDown(e) {
@@ -1048,6 +1131,10 @@ export class Grid extends React.Component {
         } else {
             row.expanded = expanded
             this.forceUpdate()
+        }
+
+        if (_.isFunction(this.props.onRowExpand)) {
+            this.props.onRowExpand(row.data, expanded)
         }
     }
 

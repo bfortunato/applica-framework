@@ -90,6 +90,7 @@ public class EntitiesController {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
                 DeleteOperation deleteOperation = operationsFactory.createDelete(definition.get().getType());
+
                 deleteOperation.delete(Arrays.asList(ids.split(",")));
 
                 return new Response(Response.OK);

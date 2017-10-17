@@ -1,9 +1,9 @@
 "use strict"
 
-import * as http from "../aj/http"
-import * as responses from "./responses"
-import {getSessionToken} from "./session"
-import * as _ from "../libs/underscore"
+import * as http from "../aj/http";
+import * as responses from "./responses";
+import {getSessionToken} from "./session";
+import * as _ from "../libs/underscore";
 
 export function addToken(headers) {
     if (!_.isEmpty(getSessionToken())) {

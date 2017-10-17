@@ -27,4 +27,14 @@ public class UserDetails extends UserDetailsImpl implements Entity {
     public void setId(Object id) {
         this.id = AEntity.checkedId(id);
     }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 }

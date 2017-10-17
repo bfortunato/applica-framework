@@ -645,6 +645,38 @@
         return this;
     }
 
+    Validator.prototype.isFiscalCode = function(fiscalCode) {
+
+        if(!fiscalCode || fiscalCode == "")
+            return this.error(this.msg || 'Not fiscal code');
+
+        var cf = fiscalCode.toUpperCase();
+
+        var cfReg = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
+
+        if (!cfReg.test(cf))
+            return this.error(this.msg || 'Not fiscal code');
+
+        var set1 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var set2 = "ABCDEFGHIJABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var setpari = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var setdisp = "BAKPLCQDREVOSFTGUHMINJWZYX";
+
+        var s = 0;
+
+        for( var i = 1; i <= 13; i += 2 )
+            s += setpari.indexOf( set2.charAt( set1.indexOf( cf.charAt(i) )));
+
+        for( var i = 0; i <= 14; i += 2 )
+            s += setdisp.indexOf( set2.charAt( set1.indexOf( cf.charAt(i) )));
+
+        if ( s%26 != cf.charCodeAt(15)-'A'.charCodeAt(0) )
+            return this.error(this.msg || 'Not fiscal code');
+
+        return this;
+
+    }
+
     Validator.prototype.contains = function(str) {
         if (this.str.indexOf(str) === -1) {
             return this.error(this.msg || 'Invalid characters');
@@ -801,8 +833,10 @@
     }
 
     Filter.prototype.trim = function(chars) {
-        chars = chars || whitespace;
-        this.modify(this.str.replace(new RegExp('^['+chars+']+|['+chars+']+$', 'g'), ''));
+        if(this.str) {
+            chars = chars || whitespace;
+            this.modify(this.str.replace(new RegExp('^['+chars+']+|['+chars+']+$', 'g'), ''));
+        }
         return this.str;
     }
 
@@ -815,6 +849,16 @@
 
     Filter.prototype.toFloat = function() {
         this.modify(parseFloat(this.str));
+        return this.str;
+    }
+
+    Filter.prototype.toLowerCase = function() {
+        this.modify(this.str.toLowerCase());
+        return this.str;
+    }
+
+    Filter.prototype.toUpperCase = function() {
+        this.modify(this.str.toUpperCase());
         return this.str;
     }
 

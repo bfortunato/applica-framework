@@ -1,12 +1,12 @@
 "use strict";
 
-import {AccountStore} from "../../stores"
-import {FullScreenLayout, Screen} from "../components/layout"
-import * as ui from "../utils/ui"
-import * as forms from "../utils/forms"
-import M from "../../strings"
-import {setActivationCode, confirmAccount} from "../../actions"
-import {connect} from "../utils/aj"
+import {AccountStore} from "../../stores/account";
+import {FullScreenLayout, Screen} from "../components/layout";
+import * as ui from "../utils/ui";
+import * as forms from "../utils/forms";
+import M from "../../strings";
+import {confirmAccount, setActivationCode} from "../../actions/account";
+import {connect} from "../utils/aj";
 
 export default class Recover extends Screen {
     constructor(props) {

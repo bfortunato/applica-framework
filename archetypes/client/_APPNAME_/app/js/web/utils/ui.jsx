@@ -1,8 +1,9 @@
 "use strict";
 
-const M = require("../../strings").default
+import M from "../../strings";
+import {Observable} from "./events";
+import {isControlPressed, isShiftPressed} from "./keyboard";
 
-const { Observable } = require("./events");
 
 let router = new RouteRecognizer();
 let base = null;
@@ -11,6 +12,27 @@ let veryLastFragment = null;
 let screens = new Observable();
 let beforeChangeListeners = [];
 let routerDisabledNextTime = false;
+let changeScreenConfirmEnabled = true
+
+
+export function getUrlParameter(sParam) {
+	let queryStringIndex = window.location.href.indexOf("?")
+	if (queryStringIndex == -1) {
+		return null
+	}
+    var sPageURL = decodeURIComponent(window.location.href.substring(queryStringIndex + 1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
 
 function _handleRoute(fragment) {
 	let route = router.recognize(fragment);
@@ -54,9 +76,27 @@ exports.startNavigation = function(_base) {
 	loop();
 };
 
-exports.navigate = function(path) {
-	history.pushState(null, null, _clearSlashes(base + path));
+exports.navigate = function(path, openInNewTab = false) {
+	if (isShiftPressed()) {
+		window.open(_clearSlashes(base + path)).focus()			
+	} else if (isControlPressed() || openInNewTab) {
+		$("<a>")
+			.attr("href", _clearSlashes(base + path))
+			.attr("target", "_blank")
+			.get(0)
+			.click()
+	} else {
+		history.pushState(null, null, _clearSlashes(base + path))
+	}	
 };
+
+exports.enableChangeScreenConfirm = function() {
+	changeScreenConfirmEnabled = true
+}
+
+exports.disableChangeScreenConfirm = function() {
+	changeScreenConfirmEnabled = false
+}
 
 exports.changeScreen = function(screen) {
 	for (let i = 0; i < beforeChangeListeners.length; i++) {
@@ -64,19 +104,23 @@ exports.changeScreen = function(screen) {
 		if (_.isFunction(listener)) {
 			let out = listener()
 
-			if (out) {
-				swal({title: M("confirm"), text: M("formChangeAlert"), showCancelButton: true})
-					.then(() => {
-						screens.invoke("screen.change", screen);
-					})
-					.catch(() => {
-						if (!_.isEmpty(veryLastFragment)) {
-							routerDisabledNextTime = true
-							window.location.href = "#" + veryLastFragment
-						}
-					})
+			if (changeScreenConfirmEnabled) {
+				if (out) {
+					swal({title: M("confirm"), text: M("formChangeAlert"), showCancelButton: true})
+						.then(() => {
+							screens.invoke("screen.change", screen);
+						})
+						.catch(() => {
+							if (!_.isEmpty(veryLastFragment)) {
+								routerDisabledNextTime = true
+								window.location.href = "#" + veryLastFragment
+							}
+						})
 
-				return;
+					return;
+				}
+			} else {
+				screens.invoke("screen.change", screen);
 			}
 		}
 	}	

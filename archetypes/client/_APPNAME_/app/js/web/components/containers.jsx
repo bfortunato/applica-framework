@@ -1,13 +1,19 @@
 "use strict"
 
-import * as datasource from "../../utils/datasource"
-import {LookupStore, SelectStore} from "../../stores"
-import {getLookupResult, getLookupValues, freeLookup, getSelectValues, freeSelect} from "../../actions"
-import {discriminated} from "../../../utils/ajex"
-import * as query from "../../api/query"
-import {Lookup, Select, Control} from "./forms"
-import {getSelectEntities} from "../../actions"
-import {optional} from "../../utils/lang"
+import * as datasource from "../../utils/datasource";
+import {LookupStore, SelectStore} from "../../stores/entities";
+import {
+    freeLookup,
+    freeSelect,
+    getLookupResult,
+    getLookupValues,
+    getSelectEntities,
+    getSelectValues
+} from "../../actions/entities";
+import {discriminated} from "../../../utils/ajex";
+import * as query from "../../api/query";
+import {Control, Lookup, Select} from "./forms";
+import {optional} from "../../utils/lang";
 
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {

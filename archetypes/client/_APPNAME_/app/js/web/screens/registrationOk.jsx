@@ -1,10 +1,10 @@
 "use strict";
 
-import {AccountStore} from "../../stores"
-import M from "../../strings"
-import {connect} from "../utils/aj"
-import {FullScreenLayout, Screen} from "../components/layout"
-import * as ui from "../utils/ui"
+import {AccountStore} from "../../stores/account";
+import M from "../../strings";
+import {connect} from "../utils/aj";
+import {FullScreenLayout, Screen} from "../components/layout";
+import * as ui from "../utils/ui";
 
 export default class RegistrationOk extends Screen {
 

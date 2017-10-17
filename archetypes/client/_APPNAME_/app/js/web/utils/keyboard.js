@@ -1,5 +1,19 @@
 "use strict"
 
+let pressedKeys = {}
+
+const onWindowKeyUp = (e) => {
+    pressedKeys[e.which] = false
+}
+
+const onWindowKeyDown = (e) => {
+    pressedKeys[e.which] = true
+}
+
+const onWindowBlur = (e) => {
+    pressedKeys = {}
+}
+
 function isMac() {
     return navigator.platform.indexOf('Mac') > -1
 }
@@ -34,4 +48,36 @@ export function isCancel(which) {
 
 export function isEsc(which) {
     return which == 27
+}
+
+export function attach() {
+    window.addEventListener("keydown", onWindowKeyDown)
+    window.addEventListener("keyup", onWindowKeyUp)
+    window.addEventListener("blur", onWindowBlur)
+
+    if (DEBUG) {
+        logger.i("Keyboard attached to global key events")
+    }
+}
+
+export function detach() {
+    window.removeEventListener("keydown", onWindowKeyDown)
+    window.removeEventListener("keyup", onWindowKeyUp)
+    window.removeEventListener("blur", onWindowBlur)
+
+    if (DEBUG) {
+        logger.i("Keyboard detached from global key events")
+    }
+}
+
+export function isShiftPressed() {
+    return pressedKeys[16]
+}
+
+export function isControlPressed() {
+    if (isMac()) {
+        return pressedKeys[91] || pressedKeys[93]
+    } else {
+        return pressedKeys[17]
+    }
 }

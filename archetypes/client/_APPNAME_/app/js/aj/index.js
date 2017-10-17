@@ -459,6 +459,10 @@ function createStore(type, reducer) {
 }
 
 function createAction(type, fn) {
+    if (type == undefined) {
+        throw new Error("Action type is undefined")
+    }
+
     if (_.has(__actions, type)) {
         throw "Cannot create action " + type + ". Already created";
     }

@@ -1,5 +1,4 @@
-import M from "../strings"
-import {getLanguage} from "../strings"
+import {getLanguage} from "../strings";
 
 
 export const OK                              = 0;

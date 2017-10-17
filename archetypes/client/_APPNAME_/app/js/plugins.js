@@ -1,8 +1,9 @@
 "use strict"
 
-import * as aj from "./aj"
+import * as aj from "./aj";
 
 let loaderCounter = 0
+let unobstrusiveLoaderCounter = 0
 
 export function alert(title, message, type) {
     return aj.exec("Alert", "alert", {title, message, type}, function() {}).then(() => {}).catch(() => {})
@@ -27,7 +28,7 @@ export function showLoader(message = "") {
         aj.exec("Loader", "show", {message}, function() {}).then(() => {}).catch(() => {})
     }
 
-    loaderCounter++;
+    loaderCounter++
 }
 
 export function hideLoader() {
@@ -35,6 +36,23 @@ export function hideLoader() {
 
     if (loaderCounter <= 0) {
         aj.exec("Loader", "hide", {}, function () {}).then(() => {}).catch(() => {})
+    }
+
+}
+
+export function showUnobtrusiveLoader(message = "") {
+    if (unobstrusiveLoaderCounter <= 0) {
+        aj.exec("Loader", "showUnobtrusive", {message}, function() {}).then(() => {}).catch(() => {})
+    }
+
+    unobstrusiveLoaderCounter++
+}
+
+export function hideUnobtrusiveLoader() {
+    unobstrusiveLoaderCounter--
+
+    if (unobstrusiveLoaderCounter <= 0) {
+        aj.exec("Loader", "hideUnobtrusive", {}, function () {}).then(() => {}).catch(() => {})
     }
 
 }
