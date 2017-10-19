@@ -49,6 +49,7 @@ public class BaseSaveOperation implements SaveOperation {
 
             return entity;
         } catch (SerializationException e) {
+            e.printStackTrace();
             throw new OperationException(Response.ERROR_SERIALIZATION);
         }
     }

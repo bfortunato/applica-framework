@@ -54,12 +54,13 @@ public class ObjectUtils {
                 List<Field> fields = TypeUtils.getAllFields(source.getClass());
 
                 for (Field field : fields) {
+                    field.setAccessible(true);
                     try {
                         String path = String.format("%s%s%s", parentPath, StringUtils.isEmpty(parentPath) ? "" : ".", field.getName());
                         Object fieldValue = PropertyUtils.getProperty(source, field.getName());
                         flattenChild(path, target, fieldValue);
                     } catch (Exception e) {
-                        //System.out.println(e.getMessage());
+                        System.out.println(e.getMessage());
                     }
                 }
             }

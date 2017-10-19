@@ -1,4 +1,4 @@
-import {optional, parseBoolean} from "../../utils/lang"
+import {optional, parseBoolean} from "../../utils/lang";
 "use strict"
 
 export const DIALOG_RESULT_OK = 0
@@ -73,6 +73,7 @@ export class Dialog extends React.Component {
             //display: this.props.hidden ? "none" : "block"
         }
 
+        let headerHidden = parseBoolean(optional(this.props.headerHidden, false))
         let bodyStyle = {
             padding: this.props.noPadding ? "0px" : undefined
         }
@@ -84,9 +85,11 @@ export class Dialog extends React.Component {
             <div className="modal fade" role="dialog" tabIndex="-1" style={style}>
                 <div className={modalDialogClassName}>
                     <div className="modal-content">
-                        <div className="modal-header">
-                            <h4 className="modal-title">{this.props.title}</h4>
-                        </div>
+                        {!headerHidden &&
+                            <div className="modal-header">
+                                <h4 className="modal-title">{this.props.title}</h4>
+                            </div>
+                        }
                         <div className="modal-body" style={bodyStyle}>
                             {this.props.children}
                         </div>

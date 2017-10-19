@@ -1,4 +1,4 @@
-import M from "../strings"
+import M from "../strings";
 
 export default [
     {

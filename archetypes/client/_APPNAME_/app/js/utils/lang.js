@@ -46,6 +46,16 @@ export function parseBoolean(val) {
 }
 
 /**
+ * Gets a forced boolean value casting also if is null or undefined (false in this case)
+ */
+export function forceBoolean(val) {
+    if (val == null) { return false }
+    if (val == undefined) { return false }
+
+    return (val == true || parseInt(val) > 0 || val == "true")
+}
+
+/**
  * Walk in a composite object
  * @param tree
  * @param property
@@ -159,7 +169,7 @@ export function updatedList(list, predicate, updater, addIfNotFound = false) {
         for (let i = 0; i < list.length; i++) {
             let v = list[i]
             if (predicate(v)) {
-                result[i] = _.assign(v, updater(v))
+                result[i] = _.assign({}, v, updater(v))
                 found = true
             } else {
                 result[i] = v
@@ -177,3 +187,126 @@ export function updatedList(list, predicate, updater, addIfNotFound = false) {
     }
 
 }
+
+/**
+ * List on each list element and assign returned updater object to current element.
+ * Each element will be a new element and list will be a new list, using immutability
+ * @param list
+ * @param updater
+ */
+export function peek(list, updater) {
+    let newList = []
+
+    _.each(list, i => {
+        let obj = updater(i)
+        if (obj === undefined && obj === null) {
+            obj = {}
+        }        
+
+        newList.push(_.assign({}, i, obj))
+    })
+
+    return newList
+}
+
+
+/**
+ * Gets object differences
+ * @param o1
+ * @param o2
+ */
+ export function diff(o1, o2) {
+    let fo1 = flatten(o1)
+    let fo2 = flatten(o2)
+
+    let diff = []
+    _.each(_.keys(fo1), k => {
+        let v1 = fo1[k]
+        if (!_.has(fo2, k)) {
+            diff.push({property: k, type: "add", value: v1})
+        } else {
+            let v2 = fo2[k]
+            if (v1 !== v2) {
+                diff.push({property: k, type: "change", value: v1, oldValue: v2})
+            }
+        }
+    })
+
+    _.each(_.keys(fo2), k => {
+        if (!_.has(fo1, k)) {
+            diff.push({property: k, type: "remove", value: fo2[k]})
+        }
+    })
+
+    return diff
+ }
+ 
+/**
+ * Return true if object tree is different
+ * @param o1
+ * @param o2
+ */
+ export function isDifferent(o1, o2) {
+    let fo1 = flatten(o1)
+    let fo2 = flatten(o2)
+
+    try {
+        _.each(_.keys(fo1), k => {
+            let v1 = fo1[k]
+            if (!_.has(fo2, k)) {
+                throw true
+            } else {
+                let v2 = fo2[k]
+                if (v1 !== v2) {
+                    throw true
+                }
+            }
+        })
+
+        _.each(_.keys(fo2), k => {
+            if (!_.has(fo1, k)) {
+                throw true
+            }
+        })
+    } catch (e) {
+        return true
+    }
+
+    return false
+ }
+
+
+/**
+ * Gets matchings characters positions of s1 in s2, inspired to sublime text commands palette search mode
+ */
+export function stringMatches(s1, s2, caseSensitive = false) {
+    let matches = []
+
+    if (!caseSensitive) {
+        s1 = s1.toLowerCase()
+        s2 = s2.toLowerCase()
+    }
+
+    if (s1 && s1.length > 0 && s2 && s2.length > 0) {
+        let i1 = 0
+        let i2 = 0
+
+        while(i1 < s1.length) {
+            let c1 = s1.charAt(i1++)
+            let i2 = s2.indexOf(c1, i2 + 1)
+            if (i2 != -1) {
+                matches.push({index: i2, char: c1})
+            } else {
+                break
+            }
+        }
+    }
+
+    return matches
+}
+
+
+window.stringMatches = stringMatches
+
+
+

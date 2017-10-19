@@ -1,17 +1,19 @@
-import {Index} from "./components/layout"
-import Login from "./screens/login"
-import Register from "./screens/register"
-import Recover from "./screens/recover"
-import Home from "./screens/home"
-import RegistrationOk from "./screens/registrationOk"
-import Confirm from "./screens/confirm"
-import * as ui from "./utils/ui"
-import * as plugins from "./pluginsimpl"
-import {resumeSession, setupMenu} from "../actions"
-import {SessionStore} from "../stores"
-import {EntitiesGrid, EntityForm} from "./screens/entities"
-import menu from "./menu"
-import {hidePageLoader} from "./components/loader"
+import {Index} from "./components/layout";
+import Login from "./screens/login";
+import Register from "./screens/register";
+import Recover from "./screens/recover";
+import Home from "./screens/home";
+import RegistrationOk from "./screens/registrationOk";
+import Confirm from "./screens/confirm";
+import * as ui from "./utils/ui";
+import * as plugins from "./pluginsimpl";
+import {setupMenu} from "../actions/menu";
+import {resumeSession} from "../actions/session";
+import * as keyboard from "./utils/keyboard";
+import {SessionStore} from "../stores/session";
+import {EntitiesGrid, EntityForm} from "./screens/entities";
+import menu from "./menu";
+import {hidePageLoader} from "./components/loader";
 
 /* Register plugins */
 plugins.register()
@@ -31,6 +33,9 @@ ui.addRoute("/confirm", params => ui.changeScreen(<Confirm activationCode={param
 
 /* home route */
 ui.addRoute("/", params => ui.changeScreen(<Home />))
+
+/* Attach keyboard for global key bindings */
+keyboard.attach()
 
 /* render main index page into dom */
 ReactDOM.render(<Index />, document.getElementById("entry-point"))

@@ -1,7 +1,7 @@
 "use strict"
 
-import * as _ from "../libs/underscore"
-import { Observable } from "../aj/events"
+import * as _ from "../libs/underscore";
+import {Observable} from "../aj/events";
 
 export const LIKE = "like"
 export const GT = "gt"
@@ -41,6 +41,11 @@ export class Query extends Observable {
     }
 
     filter(type, property, value) {
+        if (value === null || value === undefined) {
+            this.unfilter(property)
+            return
+        }
+
         let current = _.find(this.filters, s => s.property == property)
         if (current) {
             current.value = value

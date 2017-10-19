@@ -1,12 +1,12 @@
 "use strict"
 
-import * as config from "../framework/config"
-import * as utils from "./utils"
-import * as _ from "../libs/underscore"
-import {flatten} from "../utils/lang"
-import * as http from "../aj/http"
-import {addToken} from "./utils"
-import * as responses from "./responses"
+import * as config from "../framework/config";
+import * as utils from "./utils";
+import {addToken} from "./utils";
+import * as _ from "../libs/underscore";
+import {flatten} from "../utils/lang";
+import * as http from "../aj/http";
+import * as responses from "./responses";
 
 export function find(entity, query) {
     return load(entity, query)

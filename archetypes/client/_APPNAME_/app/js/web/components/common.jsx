@@ -1,7 +1,7 @@
 "use strict"
 
-import {optional} from "../../utils/lang"
-import {isEnter} from "../utils/keyboard"
+import {optional} from "../../utils/lang";
+import {isEnter} from "../utils/keyboard";
 
 export class DropdownActionButton extends React.Component {
     componentDidMount() {
@@ -169,7 +169,7 @@ export class FloatingButton extends React.Component {
 
     render() {
         return (
-            <button className="btn btn-float btn-danger m-btn waves-effect waves-circle waves-float" onClick={this.onClick.bind(this)}><i className={this.props.icon}></i></button>
+            <button type="button" className="btn btn-float btn-danger m-btn waves-effect waves-circle waves-float" onClick={this.onClick.bind(this)}><i className={this.props.icon}></i></button>
         )
     }
 }

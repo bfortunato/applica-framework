@@ -1,18 +1,17 @@
 "use strict";
 
-import {EntitiesStore} from "../../../stores"
-import {Layout, Screen} from "../../components/layout"
-import M from "../../../strings"
-import {loadEntities, deleteEntities, freeEntities} from "../../../actions"
-import {connectDiscriminated} from "../../utils/aj"
-import {HeaderBlock, FloatingButton, ActionsMatcher} from "../../components/common"
-import {Grid, resultToGridData} from "../../components/grids"
-import * as query from "../../../api/query"
-import {format} from "../../../utils/lang"
-import {isCancel} from "../../utils/keyboard"
-import entities from "../../entities"
-import * as ui from "../../utils/ui"
-import {optional} from "../../../utils/lang"
+import {EntitiesStore} from "../../../stores/entities";
+import {Layout, Screen} from "../../components/layout";
+import M from "../../../strings";
+import {deleteEntities, freeEntities, loadEntities} from "../../../actions/entities";
+import {connectDiscriminated} from "../../utils/aj";
+import {ActionsMatcher, FloatingButton, HeaderBlock} from "../../components/common";
+import {Grid, resultToGridData} from "../../components/grids";
+import * as query from "../../../api/query";
+import {format, optional} from "../../../utils/lang";
+import {isCancel} from "../../utils/keyboard";
+import entities from "../../entities";
+import * as ui from "../../utils/ui";
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
@@ -22,9 +21,15 @@ export default class EntitiesGrid extends Screen {
             throw new Error("Please specify entity for form")
         }
 
-        let _query = query.create()
-        _query.page = 1
-        _query.rowsPerPage = 50
+        let _query = entities[this.getEntity()].grid.initialQuery
+        if (_.isFunction(entities[this.getEntity()].grid.initialQuery)) {
+            _query = entities[this.getEntity()].grid.initialQuery()
+        }
+        if (!_query) {
+            _query = query.create()
+            _query.page = 1
+            _query.rowsPerPage = 50
+        }
 
         this.state = {grid: null, result: null, query: _query}
 
@@ -71,12 +76,18 @@ export default class EntitiesGrid extends Screen {
 
     getCreateUrl() {
         let grid = entities[this.getEntity()].grid
-        return optional(grid.createUrl, `/entities/${this.getEntity()}/create`)
+        let createUrl = grid.createUrl
+        if (_.isFunction(createUrl)) {
+            createUrl = createUrl()
+        }
+        return optional(createUrl, `/entities/${this.getEntity()}/create`)
     }
 
     getEditUrl(data) {
         let grid = entities[this.getEntity()].grid
-        if (!_.isEmpty(grid.editUrl)) {
+        if (_.isFunction(grid.editUrl)) {
+            return format(grid.editUrl(data))
+        } else if (!_.isEmpty(grid.editUrl)) {
             return format(grid.editUrl, data.id)
         } else {
             return `/entities/${this.getEntity()}/${data.id}`

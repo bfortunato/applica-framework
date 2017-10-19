@@ -1,50 +1,559 @@
-define('actions.js', function(module, exports) {
+define('actions/account.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.getUserProfileImage = exports.GET_USER_PROFILE_IMAGE = exports.getUserCoverImage = exports.GET_USER_COVER_IMAGE = exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = exports.freeSelect = exports.FREE_SELECT = exports.getSelectValues = exports.GET_SELECT_VALUES = exports.getSelectEntities = exports.GET_SELECT_ENTITIES = exports.freeLookup = exports.FREE_LOOKUP = exports.getLookupValues = exports.GET_LOOKUP_VALUES = exports.getLookupResult = exports.GET_LOOKUP_RESULT = exports.freeEntities = exports.FREE_ENTITIES = exports.getEntity = exports.GET_ENTITY = exports.newEntity = exports.NEW_ENTITY = exports.saveEntity = exports.SAVE_ENTITY = exports.deleteEntities = exports.DELETE_ENTITIES = exports.loadEntities = exports.LOAD_ENTITIES = exports.getGrid = exports.GET_GRID = exports.confirmAccount = exports.CONFIRM_ACCOUNT = exports.setActivationCode = exports.SET_ACTIVATION_CODE = exports.recoverAccount = exports.RECOVER_ACCOUNT = exports.register = exports.REGISTER = exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.confirmAccount = exports.setActivationCode = exports.recoverAccount = exports.register = undefined;
 
-var _aj = require("./aj");
+var _index = require("../aj/index");
 
-var aj = _interopRequireWildcard(_aj);
+var aj = _interopRequireWildcard(_index);
 
-var _ajex = require("./utils/ajex");
+var _ajex = require("../utils/ajex");
 
-var _session = require("./api/session");
+var _session = require("../api/session");
 
 var SessionApi = _interopRequireWildcard(_session);
 
-var _account = require("./api/account");
+var _account = require("../api/account");
 
 var AccountApi = _interopRequireWildcard(_account);
 
-var _responses = require("./api/responses");
+var _responses = require("../api/responses");
 
 var responses = _interopRequireWildcard(_responses);
 
-var _plugins = require("./plugins");
+var _plugins = require("../plugins");
 
-var _lang = require("./utils/lang");
+var _lang = require("../utils/lang");
 
-var _strings = require("./strings");
+var _strings = require("../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _grids = require("./api/grids");
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types = require("./types");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var register = exports.register = (0, _ajex.createAsyncAction)(_types.REGISTER, function (data) {
+    if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("nameMailAndPasswordRequired"), "warning");
+        return;
+    }
+
+    aj.dispatch({
+        type: _types.REGISTER
+    });
+
+    (0, _plugins.showLoader)((0, _strings2.default)("registering"));
+    AccountApi.register(data.name, data.mail, data.password).then(function () {
+        (0, _plugins.hideLoader)();
+
+        var message = (0, _lang.format)((0, _strings2.default)("welcomeMessage"), data.name, data.mail);
+        register.complete({ name: data.name, mail: data.mail, message: message });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        register.fail();
+    });
+});
+
+var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(_types.RECOVER_ACCOUNT, function (data) {
+    if (_.isEmpty(data.mail)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
+        return;
+    }
+
+    aj.dispatch({
+        type: _types.RECOVER_ACCOUNT
+    });
+
+    (0, _plugins.showLoader)();
+    AccountApi.recover(data.mail).then(function () {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _lang.format)((0, _strings2.default)("accountRecovered"), data.mail));
+
+        recoverAccount.complete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        recoverAccount.fail();
+    });
+});
+
+var setActivationCode = exports.setActivationCode = aj.createAction(_types.SET_ACTIVATION_CODE, function (data) {
+    aj.dispatch({
+        type: _types.SET_ACTIVATION_CODE,
+        activationCode: data.activationCode
+    });
+});
+
+var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(_types.CONFIRM_ACCOUNT, function (data) {
+    if (_.isEmpty(data.activationCode)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("activationCodeRequired"), "warning");
+        return;
+    }
+
+    aj.dispatch({
+        type: _types.CONFIRM_ACCOUNT
+    });
+
+    (0, _plugins.showLoader)();
+    AccountApi.confirm(data.activationCode).then(function () {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _strings2.default)("accountConfirmed"));
+
+        confirmAccount.complete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        confirmAccount.fail();
+    });
+});
+});
+define('actions/entities.js', function(module, exports) {
+/** Entities **/
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.freeSelect = exports.getSelectValues = exports.getSelectEntities = exports.freeLookup = exports.getLookupValues = exports.getLookupResult = exports.freeEntities = exports.getEntity = exports.newEntity = exports.saveEntity = exports.deleteEntities = exports.loadEntities = exports.getGrid = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _session = require("../api/session");
+
+var SessionApi = _interopRequireWildcard(_session);
+
+var _responses = require("../api/responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _plugins = require("../plugins");
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _grids = require("../api/grids");
 
 var GridsApi = _interopRequireWildcard(_grids);
 
-var _entities = require("./api/entities");
+var _entities = require("../api/entities");
 
 var EntitiesApi = _interopRequireWildcard(_entities);
 
-var _values = require("./api/values");
+var _values = require("../api/values");
 
 var ValuesApi = _interopRequireWildcard(_values);
 
-var _underscore = require("./libs/underscore");
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types = require("./types");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(_types.GET_GRID, function (data) {
+    if (_.isEmpty(data.id)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
+        return;
+    }
+
+    aj.dispatch({
+        type: _types.GET_GRID
+    });
+
+    (0, _plugins.showLoader)();
+    GridsApi.getGrid(data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
+
+        getGrid.complete({ grid: JSON.parse(response.value) });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getGrid.fail();
+    });
+});
+
+var queries = {};
+
+var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(_types.LOAD_ENTITIES, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    (0, _plugins.showLoader)();
+    aj.dispatch({
+        type: _types.LOAD_ENTITIES,
+        discriminator: data.discriminator
+    });
+
+    var query = !_.isEmpty(data.query) ? data.query : null;
+    queries[data.entity] = query;
+
+    EntitiesApi.load(data.entity, query).then(function (response) {
+        (0, _plugins.hideLoader)();
+        loadEntities.complete({ result: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        loadEntities.fail({ discriminator: data.discriminator });
+    });
+});
+
+var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(_types.DELETE_ENTITIES, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.ids)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    (0, _plugins.showLoader)();
+    aj.dispatch({
+        type: _types.DELETE_ENTITIES,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.delete_(data.entity, data.ids).then(function () {
+        (0, _plugins.hideLoader)();
+        deleteEntities.complete({ discriminator: data.discriminator });
+
+        if (_.has(queries, data.entity)) {
+            loadEntities({ discriminator: data.discriminator, entity: data.entity, query: queries[data.entity] });
+        }
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        deleteEntities.fail({ discriminator: data.discriminator });
+    });
+});
+
+var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(_types.SAVE_ENTITY, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.data)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyData"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    (0, _plugins.showLoader)();
+    aj.dispatch({
+        type: _types.SAVE_ENTITY,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.save(data.entity, data.data).then(function (response) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.toast)((0, _strings2.default)("saveComplete"));
+
+        saveEntity.complete({ discriminator: data.discriminator, data: data.data });
+
+        if (data.reload) {
+            getEntity({ discriminator: data.discriminator, entity: data.entity, id: response.value.id });
+        }
+
+        if (data.entity == "user") {
+            if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
+                getUserProfileImage();
+                getUserCoverImage();
+            }
+        }
+    }).catch(function (r) {
+        (0, _plugins.hideLoader)();
+
+        if (r.responseCode === responses.ERROR_VALIDATION) {
+            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: true, validationResult: r.result });
+        } else {
+            (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(r.responseCode), "error");
+
+            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: false, validationResult: null });
+        }
+    });
+});
+
+var newEntity = exports.newEntity = aj.createAction(_types.NEW_ENTITY, function (data) {
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: _types.NEW_ENTITY,
+        discriminator: data.discriminator
+    });
+});
+
+var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(_types.GET_ENTITY, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.id)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    (0, _plugins.showLoader)();
+    aj.dispatch({
+        type: _types.GET_ENTITY,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.get(data.entity, data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
+        getEntity.complete({ data: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getEntity.fail({ discriminator: data.discriminator });
+    });
+});
+
+var freeEntities = exports.freeEntities = aj.createAction(_types.FREE_ENTITIES, function (data) {
+    aj.dispatch({
+        type: _types.FREE_ENTITIES,
+        discriminator: data.discriminator
+    });
+});
+
+/**
+ * LOOKUP ACTIONS
+ */
+
+var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(_types.GET_LOOKUP_RESULT, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: _types.GET_LOOKUP_RESULT,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
+        getLookupResult.complete({ result: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getLookupResult.fail({ discriminator: data.discriminator });
+    });
+});
+
+var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(_types.GET_LOOKUP_VALUES, function (data) {
+    if (_.isEmpty(data.collection)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: _types.GET_LOOKUP_VALUES,
+        discriminator: data.discriminator
+    });
+
+    ValuesApi.load(data.collection, data.keyword).then(function (response) {
+        getLookupValues.complete({ values: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getLookupValues.fail({ discriminator: data.discriminator });
+    });
+});
+
+var freeLookup = exports.freeLookup = aj.createAction(_types.FREE_LOOKUP, function (data) {
+    aj.dispatch({
+        type: _types.FREE_LOOKUP,
+        discriminator: data.discriminator
+    });
+});
+
+/**
+ * SELECT ACTIONS
+ */
+
+var getSelectEntities = exports.getSelectEntities = (0, _ajex.createAsyncAction)(_types.GET_SELECT_ENTITIES, function (data) {
+    if (_.isEmpty(data.entity)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: _types.GET_SELECT_ENTITIES,
+        discriminator: data.discriminator
+    });
+
+    ValuesApi.loadEntities(data.entity, data.query).then(function (response) {
+        getSelectEntities.complete({ entities: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getSelectEntities.fail({ discriminator: data.discriminator });
+    });
+});
+
+var getSelectValues = exports.getSelectValues = (0, _ajex.createAsyncAction)(_types.GET_SELECT_VALUES, function (data) {
+    if (_.isEmpty(data.collection)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
+        return;
+    }
+
+    if (_.isEmpty(data.discriminator)) {
+        throw new Error("Discriminator is required");
+    }
+
+    aj.dispatch({
+        type: _types.GET_SELECT_VALUES,
+        discriminator: data.discriminator
+    });
+
+    ValuesApi.load(data.collection, data.keyword).then(function (response) {
+        getSelectValues.complete({ values: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        getSelectValues.fail({ discriminator: data.discriminator });
+    });
+});
+
+var freeSelect = exports.freeSelect = aj.createAction(_types.FREE_SELECT, function (data) {
+    aj.dispatch({
+        type: _types.FREE_SELECT,
+        discriminator: data.discriminator
+    });
+});
+});
+define('actions/menu.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var SETUP_MENU = exports.SETUP_MENU = "SETUP_MENU";
+var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) {
+    aj.dispatch({
+        type: SETUP_MENU,
+        menu: data.menu
+    });
+});
+
+var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
+var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
+    aj.dispatch({
+        type: SET_ACTIVE_MENU_ITEM,
+        item: data.item
+    });
+});
+
+var EXPAND_MENU_ITEM = exports.EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM";
+var expandMenuItem = exports.expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, function (data) {
+    aj.dispatch({
+        type: EXPAND_MENU_ITEM,
+        item: data.item
+    });
+});
+});
+define('actions/session.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _session = require("../api/session");
+
+var SessionApi = _interopRequireWildcard(_session);
+
+var _account = require("../api/account");
+
+var AccountApi = _interopRequireWildcard(_account);
+
+var _responses = require("../api/responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _plugins = require("../plugins");
+
+var _lang = require("../utils/lang");
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
@@ -108,442 +617,65 @@ var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
         });
     });
 });
+});
+define('actions/types.js', function(module, exports) {
+"use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var LOGIN = exports.LOGIN = "LOGIN";
+var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
+var LOGOUT = exports.LOGOUT = "LOGOUT";
 var REGISTER = exports.REGISTER = "REGISTER";
-var register = exports.register = (0, _ajex.createAsyncAction)(REGISTER, function (data) {
-    if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("nameMailAndPasswordRequired"), "warning");
-        return;
-    }
-
-    aj.dispatch({
-        type: REGISTER
-    });
-
-    (0, _plugins.showLoader)((0, _strings2.default)("registering"));
-    AccountApi.register(data.name, data.mail, data.password).then(function () {
-        (0, _plugins.hideLoader)();
-
-        var message = (0, _lang.format)((0, _strings2.default)("welcomeMessage"), data.name, data.mail);
-        register.complete({ name: data.name, mail: data.mail, message: message });
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        register.fail();
-    });
-});
-
 var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
-var recoverAccount = exports.recoverAccount = (0, _ajex.createAsyncAction)(RECOVER_ACCOUNT, function (data) {
-    if (_.isEmpty(data.mail)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
-        return;
-    }
-
-    aj.dispatch({
-        type: RECOVER_ACCOUNT
-    });
-
-    (0, _plugins.showLoader)();
-    AccountApi.recover(data.mail).then(function () {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _lang.format)((0, _strings2.default)("accountRecovered"), data.mail));
-
-        recoverAccount.complete();
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        recoverAccount.fail();
-    });
-});
-
 var SET_ACTIVATION_CODE = exports.SET_ACTIVATION_CODE = "SET_ACTIVATION_CODE";
-var setActivationCode = exports.setActivationCode = aj.createAction(SET_ACTIVATION_CODE, function (data) {
-    aj.dispatch({
-        type: SET_ACTIVATION_CODE,
-        activationCode: data.activationCode
-    });
-});
-
 var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
-var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(CONFIRM_ACCOUNT, function (data) {
-    if (_.isEmpty(data.activationCode)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("activationCodeRequired"), "warning");
-        return;
-    }
 
-    aj.dispatch({
-        type: CONFIRM_ACCOUNT
-    });
-
-    (0, _plugins.showLoader)();
-    AccountApi.confirm(data.activationCode).then(function () {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _strings2.default)("accountConfirmed"));
-
-        confirmAccount.complete();
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        confirmAccount.fail();
-    });
-});
-
-/** Grids actions **/
 var GET_GRID = exports.GET_GRID = "GET_GRID";
-var getGrid = exports.getGrid = (0, _ajex.createAsyncAction)(GET_GRID, function (data) {
-    if (_.isEmpty(data.id)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
-        return;
-    }
-
-    aj.dispatch({
-        type: GET_GRID
-    });
-
-    (0, _plugins.showLoader)();
-    GridsApi.getGrid(data.id).then(function (response) {
-        (0, _plugins.hideLoader)();
-
-        getGrid.complete({ grid: JSON.parse(response.value) });
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getGrid.fail();
-    });
-});
-
-/** Entities **/
-
-var queries = {};
-
 var LOAD_ENTITIES = exports.LOAD_ENTITIES = "LOAD_ENTITIES";
-var loadEntities = exports.loadEntities = (0, _ajex.createAsyncAction)(LOAD_ENTITIES, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    (0, _plugins.showLoader)();
-    aj.dispatch({
-        type: LOAD_ENTITIES,
-        discriminator: data.discriminator
-    });
-
-    var query = !_.isEmpty(data.query) ? data.query : null;
-    queries[data.entity] = query;
-
-    EntitiesApi.load(data.entity, query).then(function (response) {
-        (0, _plugins.hideLoader)();
-        loadEntities.complete({ result: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        loadEntities.fail({ discriminator: data.discriminator });
-    });
-});
-
 var DELETE_ENTITIES = exports.DELETE_ENTITIES = "DELETE_ENTITIES";
-var deleteEntities = exports.deleteEntities = (0, _ajex.createAsyncAction)(DELETE_ENTITIES, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.ids)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    (0, _plugins.showLoader)();
-    aj.dispatch({
-        type: DELETE_ENTITIES,
-        discriminator: data.discriminator
-    });
-
-    EntitiesApi.delete_(data.entity, data.ids).then(function () {
-        (0, _plugins.hideLoader)();
-        deleteEntities.complete({ discriminator: data.discriminator });
-
-        if (_.has(queries, data.entity)) {
-            loadEntities({ discriminator: data.discriminator, entity: data.entity, query: queries[data.entity] });
-        }
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        deleteEntities.fail({ discriminator: data.discriminator });
-    });
-});
-
 var SAVE_ENTITY = exports.SAVE_ENTITY = "SAVE_ENTITY";
-var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(SAVE_ENTITY, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.data)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyData"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    (0, _plugins.showLoader)();
-    aj.dispatch({
-        type: SAVE_ENTITY,
-        discriminator: data.discriminator
-    });
-
-    EntitiesApi.save(data.entity, data.data).then(function () {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.toast)((0, _strings2.default)("saveComplete"));
-
-        saveEntity.complete({ discriminator: data.discriminator, data: data.data });
-
-        if (data.entity == "user") {
-            if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
-                getUserProfileImage();
-                getUserCoverImage();
-            }
-        }
-    }).catch(function (r) {
-        (0, _plugins.hideLoader)();
-
-        if (r.responseCode === responses.ERROR_VALIDATION) {
-            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: true, validationResult: r.result });
-        } else {
-            (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(r.responseCode), "error");
-
-            saveEntity.fail({ discriminator: data.discriminator, data: data.data, validationError: false, validationResult: null });
-        }
-    });
-});
-
 var NEW_ENTITY = exports.NEW_ENTITY = "NEW_ENTITY";
-var newEntity = exports.newEntity = aj.createAction(NEW_ENTITY, function (data) {
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    aj.dispatch({
-        type: NEW_ENTITY,
-        discriminator: data.discriminator
-    });
-});
-
 var GET_ENTITY = exports.GET_ENTITY = "GET_ENTITY";
-var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(GET_ENTITY, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.id)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyId"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    (0, _plugins.showLoader)();
-    aj.dispatch({
-        type: GET_ENTITY,
-        discriminator: data.discriminator
-    });
-
-    EntitiesApi.get(data.entity, data.id).then(function (response) {
-        (0, _plugins.hideLoader)();
-        getEntity.complete({ data: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.hideLoader)();
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getEntity.fail({ discriminator: data.discriminator });
-    });
-});
-
 var FREE_ENTITIES = exports.FREE_ENTITIES = "FREE_ENTITIES";
-var freeEntities = exports.freeEntities = aj.createAction(FREE_ENTITIES, function (data) {
-    aj.dispatch({
-        type: FREE_ENTITIES,
-        discriminator: data.discriminator
-    });
-});
-
-/**
- * LOOKUP ACTIONS
- */
-
 var GET_LOOKUP_RESULT = exports.GET_LOOKUP_RESULT = "GET_LOOKUP_RESULT";
-var getLookupResult = exports.getLookupResult = (0, _ajex.createAsyncAction)(GET_LOOKUP_RESULT, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    aj.dispatch({
-        type: GET_LOOKUP_RESULT,
-        discriminator: data.discriminator
-    });
-
-    EntitiesApi.load(data.entity, !_.isEmpty(data.query) ? data.query : null).then(function (response) {
-        getLookupResult.complete({ result: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getLookupResult.fail({ discriminator: data.discriminator });
-    });
-});
-
 var GET_LOOKUP_VALUES = exports.GET_LOOKUP_VALUES = "GET_LOOKUP_VALUES";
-var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(GET_LOOKUP_VALUES, function (data) {
-    if (_.isEmpty(data.collection)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    aj.dispatch({
-        type: GET_LOOKUP_VALUES,
-        discriminator: data.discriminator
-    });
-
-    ValuesApi.load(data.collection, data.keyword).then(function (response) {
-        getLookupValues.complete({ values: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getLookupValues.fail({ discriminator: data.discriminator });
-    });
-});
-
 var FREE_LOOKUP = exports.FREE_LOOKUP = "FREE_LOOKUP";
-var freeLookup = exports.freeLookup = aj.createAction(FREE_LOOKUP, function (data) {
-    aj.dispatch({
-        type: FREE_LOOKUP,
-        discriminator: data.discriminator
-    });
-});
-
-/**
- * SELECT ACTIONS
- */
-
 var GET_SELECT_ENTITIES = exports.GET_SELECT_ENTITIES = "GET_SELECT_ENTITIES";
-var getSelectEntities = exports.getSelectEntities = (0, _ajex.createAsyncAction)(GET_SELECT_ENTITIES, function (data) {
-    if (_.isEmpty(data.entity)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    aj.dispatch({
-        type: GET_SELECT_ENTITIES,
-        discriminator: data.discriminator
-    });
-
-    ValuesApi.loadEntities(data.entity, data.query).then(function (response) {
-        getSelectEntities.complete({ entities: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getSelectEntities.fail({ discriminator: data.discriminator });
-    });
-});
-
 var GET_SELECT_VALUES = exports.GET_SELECT_VALUES = "GET_SELECT_VALUES";
-var getSelectValues = exports.getSelectValues = (0, _ajex.createAsyncAction)(GET_SELECT_VALUES, function (data) {
-    if (_.isEmpty(data.collection)) {
-        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("pleaseSpecifyEntity"));
-        return;
-    }
-
-    if (_.isEmpty(data.discriminator)) {
-        throw new Error("Discriminator is required");
-    }
-
-    aj.dispatch({
-        type: GET_SELECT_VALUES,
-        discriminator: data.discriminator
-    });
-
-    ValuesApi.load(data.collection, data.keyword).then(function (response) {
-        getSelectValues.complete({ values: response.value, discriminator: data.discriminator });
-    }).catch(function (e) {
-        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
-
-        getSelectValues.fail({ discriminator: data.discriminator });
-    });
-});
-
 var FREE_SELECT = exports.FREE_SELECT = "FREE_SELECT";
-var freeSelect = exports.freeSelect = aj.createAction(FREE_SELECT, function (data) {
-    aj.dispatch({
-        type: FREE_SELECT,
-        discriminator: data.discriminator
-    });
-});
-
-/**
- * MENU ACTIONS
- */
 
 var SETUP_MENU = exports.SETUP_MENU = "SETUP_MENU";
-var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) {
-    aj.dispatch({
-        type: SETUP_MENU,
-        menu: data.menu
-    });
-});
-
 var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
-var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
-    aj.dispatch({
-        type: SET_ACTIVE_MENU_ITEM,
-        item: data.item
-    });
-});
-
 var EXPAND_MENU_ITEM = exports.EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM";
-var expandMenuItem = exports.expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, function (data) {
-    aj.dispatch({
-        type: EXPAND_MENU_ITEM,
-        item: data.item
-    });
-});
 
-/**
- UI Actions
- */
+var GET_USER_COVER_IMAGE = exports.GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE";
+var GET_USER_PROFILE_IMAGE = exports.GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE";
+});
+define('actions/ui.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.getUserProfileImage = exports.GET_USER_PROFILE_IMAGE = exports.getUserCoverImage = exports.GET_USER_COVER_IMAGE = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _session = require("../api/session");
+
+var SessionApi = _interopRequireWildcard(_session);
+
+var _account = require("../api/account");
+
+var AccountApi = _interopRequireWildcard(_account);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var GET_USER_COVER_IMAGE = exports.GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE";
 var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)(GET_USER_COVER_IMAGE, function (data) {
@@ -1770,6 +1902,10 @@ function createStore(type, reducer) {
 }
 
 function createAction(type, fn) {
+    if (type == undefined) {
+        throw new Error("Action type is undefined");
+    }
+
     if (_.has(__actions, type)) {
         throw "Cannot create action " + type + ". Already created";
     }
@@ -2387,6 +2523,11 @@ var Query = exports.Query = function (_Observable) {
     }, {
         key: "filter",
         value: function filter(type, property, value) {
+            if (value === null || value === undefined) {
+                this.unfilter(property);
+                return;
+            }
+
             var current = _.find(this.filters, function (s) {
                 return s.property == property;
             });
@@ -2593,10 +2734,6 @@ exports.msg = msg;
 exports.value = value;
 
 var _strings = require("../strings");
-
-var _strings2 = _interopRequireDefault(_strings);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var OK = exports.OK = 0;
 var ERROR = exports.ERROR = 1;
@@ -24524,6 +24661,38 @@ define('libs/validator.js', function(module, exports) {
         return this;
     }
 
+    Validator.prototype.isFiscalCode = function(fiscalCode) {
+
+        if(!fiscalCode || fiscalCode == "")
+            return this.error(this.msg || 'Not fiscal code');
+
+        var cf = fiscalCode.toUpperCase();
+
+        var cfReg = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
+
+        if (!cfReg.test(cf))
+            return this.error(this.msg || 'Not fiscal code');
+
+        var set1 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var set2 = "ABCDEFGHIJABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var setpari = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var setdisp = "BAKPLCQDREVOSFTGUHMINJWZYX";
+
+        var s = 0;
+
+        for( var i = 1; i <= 13; i += 2 )
+            s += setpari.indexOf( set2.charAt( set1.indexOf( cf.charAt(i) )));
+
+        for( var i = 0; i <= 14; i += 2 )
+            s += setdisp.indexOf( set2.charAt( set1.indexOf( cf.charAt(i) )));
+
+        if ( s%26 != cf.charCodeAt(15)-'A'.charCodeAt(0) )
+            return this.error(this.msg || 'Not fiscal code');
+
+        return this;
+
+    }
+
     Validator.prototype.contains = function(str) {
         if (this.str.indexOf(str) === -1) {
             return this.error(this.msg || 'Invalid characters');
@@ -24680,8 +24849,10 @@ define('libs/validator.js', function(module, exports) {
     }
 
     Filter.prototype.trim = function(chars) {
-        chars = chars || whitespace;
-        this.modify(this.str.replace(new RegExp('^['+chars+']+|['+chars+']+$', 'g'), ''));
+        if(this.str) {
+            chars = chars || whitespace;
+            this.modify(this.str.replace(new RegExp('^['+chars+']+|['+chars+']+$', 'g'), ''));
+        }
         return this.str;
     }
 
@@ -24694,6 +24865,16 @@ define('libs/validator.js', function(module, exports) {
 
     Filter.prototype.toFloat = function() {
         this.modify(parseFloat(this.str));
+        return this.str;
+    }
+
+    Filter.prototype.toLowerCase = function() {
+        this.modify(this.str.toLowerCase());
+        return this.str;
+    }
+
+    Filter.prototype.toUpperCase = function() {
+        this.modify(this.str.toUpperCase());
         return this.str;
     }
 
@@ -24749,9 +24930,23 @@ exports.main = undefined;
 
 require("./libs/polyfill");
 
-require("./stores");
+require("./stores/session");
 
-require("./actions");
+require("./stores/account");
+
+require("./stores/entities");
+
+require("./stores/menu");
+
+require("./stores/ui");
+
+require("./actions/session");
+
+require("./actions/entities");
+
+require("./actions/menu");
+
+require("./actions/ui");
 
 var main = exports.main = function main() {
     //application entry point
@@ -24767,6 +24962,8 @@ exports.alert = alert;
 exports.confirm = confirm;
 exports.showLoader = showLoader;
 exports.hideLoader = hideLoader;
+exports.showUnobtrusiveLoader = showUnobtrusiveLoader;
+exports.hideUnobtrusiveLoader = hideUnobtrusiveLoader;
 exports.toast = toast;
 
 var _aj = require("./aj");
@@ -24776,6 +24973,7 @@ var aj = _interopRequireWildcard(_aj);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var loaderCounter = 0;
+var unobstrusiveLoaderCounter = 0;
 
 function alert(title, message, type) {
     return aj.exec("Alert", "alert", { title: title, message: message, type: type }, function () {}).then(function () {}).catch(function () {});
@@ -24815,98 +25013,55 @@ function hideLoader() {
     }
 }
 
+function showUnobtrusiveLoader() {
+    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+    if (unobstrusiveLoaderCounter <= 0) {
+        aj.exec("Loader", "showUnobtrusive", { message: message }, function () {}).then(function () {}).catch(function () {});
+    }
+
+    unobstrusiveLoaderCounter++;
+}
+
+function hideUnobtrusiveLoader() {
+    unobstrusiveLoaderCounter--;
+
+    if (unobstrusiveLoaderCounter <= 0) {
+        aj.exec("Loader", "hideUnobtrusive", {}, function () {}).then(function () {}).catch(function () {});
+    }
+}
+
 function toast(message) {
     aj.exec("Toast", "show", { message: message }, function () {}).then(function () {}).catch(function () {});
 }
 });
-define('stores.js', function(module, exports) {
+define('stores/account.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.SelectStore = exports.SELECT = exports.MenuStore = exports.MENU = exports.LookupStore = exports.LOOKUP = exports.EntitiesStore = exports.ENTITIES = exports.GridsStore = exports.GRIDS = exports.AccountStore = exports.ACCOUNT = exports.SessionStore = exports.SESSION = exports.UIStore = exports.UI = undefined;
+exports.AccountStore = undefined;
 
-var _aj = require("./aj");
+var _index = require("../aj/index");
 
-var aj = _interopRequireWildcard(_aj);
+var aj = _interopRequireWildcard(_index);
 
-var _ajex = require("./utils/ajex");
+var _ajex = require("../utils/ajex");
 
-var _actions = require("./actions");
+var _types = require("../actions/types");
 
-var actions = _interopRequireWildcard(_actions);
+var actions = _interopRequireWildcard(_types);
 
-var _underscore = require("./libs/underscore");
+var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
-var _strings = require("./strings");
-
-var _strings2 = _interopRequireDefault(_strings);
-
-var _lang = require("./utils/lang");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _types2 = require("./types");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var UI = exports.UI = "UI";
-var UIStore = exports.UIStore = aj.createStore(UI, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var action = arguments[1];
-
-
-    switch (action.type) {
-        case actions.GET_USER_COVER_IMAGE:
-            return _.assign(state, { error: false });
-
-        case (0, _ajex.completed)(actions.GET_USER_COVER_IMAGE):
-            return _.assign(state, { error: false, cover: action.data });
-
-        case (0, _ajex.failed)(actions.GET_USER_COVER_IMAGE):
-            return _.assign(state, { error: true });
-
-        case actions.GET_USER_PROFILE_IMAGE:
-            return _.assign(state, { error: false });
-
-        case (0, _ajex.completed)(actions.GET_USER_PROFILE_IMAGE):
-            return _.assign(state, { error: false, profileImage: action.data });
-
-        case (0, _ajex.failed)(actions.GET_USER_PROFILE_IMAGE):
-            return _.assign(state, { error: true });
-    }
-});
-
-var SESSION = exports.SESSION = "SESSION";
-var SessionStore = exports.SessionStore = aj.createStore(SESSION, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var action = arguments[1];
-
-
-    switch (action.type) {
-        case actions.LOGIN:
-            return _.assign(state, { isLoggedIn: false });
-
-        case (0, _ajex.completed)(actions.LOGIN):
-            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
-
-        case (0, _ajex.failed)(actions.LOGIN):
-            return _.assign(state, { isLoggedIn: false, error: true });
-
-        case actions.RESUME_SESSION:
-            return _.assign(state, { isLoggedIn: false, resumeComplete: false });
-
-        case (0, _ajex.completed)(actions.RESUME_SESSION):
-            return _.assign(state, { isLoggedIn: true, user: action.user, error: false, resumeComplete: true });
-
-        case (0, _ajex.failed)(actions.RESUME_SESSION):
-            return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
-    }
-});
-
-var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
-var AccountStore = exports.AccountStore = aj.createStore(ACCOUNT, function () {
+var AccountStore = exports.AccountStore = aj.createStore(_types2.ACCOUNT, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { activationCode: "" };
     var action = arguments[1];
 
@@ -24943,9 +25098,36 @@ var AccountStore = exports.AccountStore = aj.createStore(ACCOUNT, function () {
             return _.assign(state, { recovered: false, error: true });
     }
 });
+});
+define('stores/entities.js', function(module, exports) {
+"use strict";
 
-var GRIDS = exports.GRIDS = "GRIDS";
-var GridsStore = exports.GridsStore = aj.createStore(GRIDS, function () {
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.SelectStore = exports.LookupStore = exports.EntitiesStore = exports.GridsStore = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _lang = require("../utils/lang");
+
+var _types2 = require("./types");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var GridsStore = exports.GridsStore = aj.createStore(_types2.GRIDS, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { grid: null };
     var action = arguments[1];
 
@@ -24962,8 +25144,7 @@ var GridsStore = exports.GridsStore = aj.createStore(GRIDS, function () {
     }
 });
 
-var ENTITIES = exports.ENTITIES = "ENTITIES";
-var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function () {
+var EntitiesStore = exports.EntitiesStore = aj.createStore(_types2.ENTITIES, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -25025,8 +25206,7 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(ENTITIES, function ()
     }
 });
 
-var LOOKUP = exports.LOOKUP = "LOOKUP";
-var LookupStore = exports.LookupStore = aj.createStore(LOOKUP, function () {
+var LookupStore = exports.LookupStore = aj.createStore(_types2.LOOKUP, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -25050,32 +25230,7 @@ var LookupStore = exports.LookupStore = aj.createStore(LOOKUP, function () {
     }
 });
 
-var MENU = exports.MENU = "MENU";
-var MenuStore = exports.MenuStore = aj.createStore(MENU, function () {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var action = arguments[1];
-
-
-    switch (action.type) {
-        case actions.SETUP_MENU:
-            return _.assign(state, { menu: action.menu });
-
-        case actions.SET_ACTIVE_MENU_ITEM:
-            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
-                    i.active = i == action.item;
-                }) });
-
-        case actions.EXPAND_MENU_ITEM:
-            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
-                    if (i == action.item) {
-                        i.expanded = !(action.item.expanded || false);
-                    }
-                }) });
-    }
-});
-
-var SELECT = exports.SELECT = "SELECT";
-var SelectStore = exports.SelectStore = aj.createStore(SELECT, function () {
+var SelectStore = exports.SelectStore = aj.createStore(_types2.SELECT, function () {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var action = arguments[1];
 
@@ -25103,6 +25258,174 @@ var SelectStore = exports.SelectStore = aj.createStore(SELECT, function () {
         case actions.FREE_SELECT:
             return _.omit(state, action.discriminator);
 
+    }
+});
+});
+define('stores/menu.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MenuStore = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _lang = require("../utils/lang");
+
+var _types2 = require("./types");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var MenuStore = exports.MenuStore = aj.createStore(_types2.MENU, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.SETUP_MENU:
+            return _.assign(state, { menu: action.menu });
+
+        case actions.SET_ACTIVE_MENU_ITEM:
+            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
+                    i.active = i == action.item;
+                }) });
+
+        case actions.EXPAND_MENU_ITEM:
+            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
+                    if (i == action.item) {
+                        i.expanded = !(action.item.expanded || false);
+                    }
+                }) });
+    }
+});
+});
+define('stores/session.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.SessionStore = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types2 = require("./types");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var SessionStore = exports.SessionStore = aj.createStore(_types2.SESSION, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.LOGIN:
+            return _.assign(state, { isLoggedIn: false });
+
+        case (0, _ajex.completed)(actions.LOGIN):
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
+
+        case (0, _ajex.failed)(actions.LOGIN):
+            return _.assign(state, { isLoggedIn: false, error: true });
+
+        case actions.RESUME_SESSION:
+            return _.assign(state, { isLoggedIn: false, resumeComplete: false });
+
+        case (0, _ajex.completed)(actions.RESUME_SESSION):
+            return _.assign(state, { isLoggedIn: true, user: action.user, error: false, resumeComplete: true });
+
+        case (0, _ajex.failed)(actions.RESUME_SESSION):
+            return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
+    }
+});
+});
+define('stores/types.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var UI = exports.UI = "UI";
+var SESSION = exports.SESSION = "SESSION";
+var ACCOUNT = exports.ACCOUNT = "ACCOUNT";
+var GRIDS = exports.GRIDS = "GRIDS";
+var ENTITIES = exports.ENTITIES = "ENTITIES";
+var LOOKUP = exports.LOOKUP = "LOOKUP";
+var MENU = exports.MENU = "MENU";
+var SELECT = exports.SELECT = "SELECT";
+});
+define('stores/ui.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.UIStore = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types2 = require("./types");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var UIStore = exports.UIStore = aj.createStore(_types2.UI, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case actions.GET_USER_COVER_IMAGE:
+            return _.assign(state, { error: false });
+
+        case (0, _ajex.completed)(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, { error: false, cover: action.data });
+
+        case (0, _ajex.failed)(actions.GET_USER_COVER_IMAGE):
+            return _.assign(state, { error: true });
+
+        case actions.GET_USER_PROFILE_IMAGE:
+            return _.assign(state, { error: false });
+
+        case (0, _ajex.completed)(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, { error: false, profileImage: action.data });
+
+        case (0, _ajex.failed)(actions.GET_USER_PROFILE_IMAGE):
+            return _.assign(state, { error: true });
     }
 });
 });
@@ -25743,11 +26066,16 @@ var _createClass = function () { function defineProperties(target, props) { for 
 exports.format = format;
 exports.optional = optional;
 exports.parseBoolean = parseBoolean;
+exports.forceBoolean = forceBoolean;
 exports.walk = walk;
 exports.use = use;
 exports.flatten = flatten;
 exports.uuid = uuid;
 exports.updatedList = updatedList;
+exports.peek = peek;
+exports.diff = diff;
+exports.isDifferent = isDifferent;
+exports.stringMatches = stringMatches;
 
 var _underscore = require("../libs/underscore");
 
@@ -25802,6 +26130,20 @@ function parseBoolean(val) {
     }
     if (val == undefined) {
         return undefined;
+    }
+
+    return val == true || parseInt(val) > 0 || val == "true";
+}
+
+/**
+ * Gets a forced boolean value casting also if is null or undefined (false in this case)
+ */
+function forceBoolean(val) {
+    if (val == null) {
+        return false;
+    }
+    if (val == undefined) {
+        return false;
     }
 
     return val == true || parseInt(val) > 0 || val == "true";
@@ -25940,7 +26282,7 @@ function updatedList(list, predicate, updater) {
         for (var i = 0; i < list.length; i++) {
             var v = list[i];
             if (predicate(v)) {
-                result[i] = _.assign(v, updater(v));
+                result[i] = _.assign({}, v, updater(v));
                 found = true;
             } else {
                 result[i] = v;
@@ -25957,6 +26299,125 @@ function updatedList(list, predicate, updater) {
         return [];
     }
 }
+
+/**
+ * List on each list element and assign returned updater object to current element.
+ * Each element will be a new element and list will be a new list, using immutability
+ * @param list
+ * @param updater
+ */
+function peek(list, updater) {
+    var newList = [];
+
+    _.each(list, function (i) {
+        var obj = updater(i);
+        if (obj === undefined && obj === null) {
+            obj = {};
+        }
+
+        newList.push(_.assign({}, i, obj));
+    });
+
+    return newList;
+}
+
+/**
+ * Gets object differences
+ * @param o1
+ * @param o2
+ */
+function diff(o1, o2) {
+    var fo1 = flatten(o1);
+    var fo2 = flatten(o2);
+
+    var diff = [];
+    _.each(_.keys(fo1), function (k) {
+        var v1 = fo1[k];
+        if (!_.has(fo2, k)) {
+            diff.push({ property: k, type: "add", value: v1 });
+        } else {
+            var v2 = fo2[k];
+            if (v1 !== v2) {
+                diff.push({ property: k, type: "change", value: v1, oldValue: v2 });
+            }
+        }
+    });
+
+    _.each(_.keys(fo2), function (k) {
+        if (!_.has(fo1, k)) {
+            diff.push({ property: k, type: "remove", value: fo2[k] });
+        }
+    });
+
+    return diff;
+}
+
+/**
+ * Return true if object tree is different
+ * @param o1
+ * @param o2
+ */
+function isDifferent(o1, o2) {
+    var fo1 = flatten(o1);
+    var fo2 = flatten(o2);
+
+    try {
+        _.each(_.keys(fo1), function (k) {
+            var v1 = fo1[k];
+            if (!_.has(fo2, k)) {
+                throw true;
+            } else {
+                var v2 = fo2[k];
+                if (v1 !== v2) {
+                    throw true;
+                }
+            }
+        });
+
+        _.each(_.keys(fo2), function (k) {
+            if (!_.has(fo1, k)) {
+                throw true;
+            }
+        });
+    } catch (e) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Gets matchings characters positions of s1 in s2, inspired to sublime text commands palette search mode
+ */
+function stringMatches(s1, s2) {
+    var caseSensitive = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+    var matches = [];
+
+    if (!caseSensitive) {
+        s1 = s1.toLowerCase();
+        s2 = s2.toLowerCase();
+    }
+
+    if (s1 && s1.length > 0 && s2 && s2.length > 0) {
+        var i1 = 0;
+        var i2 = 0;
+
+        while (i1 < s1.length) {
+            var c1 = s1.charAt(i1++);
+            var _i = s2.indexOf(c1, _i + 1);
+            if (_i != -1) {
+                matches.push({ index: _i, char: c1 });
+            } else {
+                break;
+            }
+        }
+    }
+
+    return matches;
+}
+
+window.stringMatches = stringMatches;
 });
 define('utils/notificationCenter.js', function(module, exports) {
 "use strict";
@@ -26271,7 +26732,7 @@ var FloatingButton = exports.FloatingButton = function (_React$Component6) {
         value: function render() {
             return React.createElement(
                 "button",
-                { className: "btn btn-float btn-danger m-btn waves-effect waves-circle waves-float", onClick: this.onClick.bind(this) },
+                { type: "button", className: "btn btn-float btn-danger m-btn waves-effect waves-circle waves-float", onClick: this.onClick.bind(this) },
                 React.createElement("i", { className: this.props.icon })
             );
         }
@@ -26421,9 +26882,9 @@ var _datasource = require("../../utils/datasource");
 
 var datasource = _interopRequireWildcard(_datasource);
 
-var _stores = require("../../stores");
+var _entities = require("../../stores/entities");
 
-var _actions = require("../../actions");
+var _entities2 = require("../../actions/entities");
 
 var _ajex = require("../../../utils/ajex");
 
@@ -26465,7 +26926,7 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
         _this.query.setPage(1);
         _this.query.setRowsPerPage(20);
         _this.__queryOnChange = function () {
-            (0, _actions.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.entity, query: _this.query });
+            (0, _entities2.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.entity, query: _this.query });
         };
 
         _this.datasource = datasource.create();
@@ -26479,7 +26940,7 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
         value: function componentDidMount() {
             var _this2 = this;
 
-            _stores.LookupStore.subscribe(this, function (state) {
+            _entities.LookupStore.subscribe(this, function (state) {
                 _this2.datasource.setData((0, _ajex.discriminated)(state, _this2.discriminator).result);
             });
 
@@ -26488,11 +26949,11 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            _stores.LookupStore.unsubscribe(this);
+            _entities.LookupStore.unsubscribe(this);
 
             this.query.off("change", this.__queryOnChange);
 
-            (0, _actions.freeLookup)({ discriminator: this.discriminator });
+            (0, _entities2.freeLookup)({ discriminator: this.discriminator });
         }
     }, {
         key: "render",
@@ -26522,7 +26983,7 @@ var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2)
         }
 
         _this3.__queryOnChange = function () {
-            (0, _actions.getLookupValues)({ discriminator: _this3.discriminator, collection: _this3.props.collection, keyword: _this3.query.keyword });
+            (0, _entities2.getLookupValues)({ discriminator: _this3.discriminator, collection: _this3.props.collection, keyword: _this3.query.keyword });
         };
 
         _this3.query = query.create();
@@ -26537,7 +26998,7 @@ var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2)
         value: function componentDidMount() {
             var _this4 = this;
 
-            _stores.LookupStore.subscribe(this, function (state) {
+            _entities.LookupStore.subscribe(this, function (state) {
                 _this4.datasource.setData((0, _ajex.discriminated)(state, _this4.discriminator).values);
             });
 
@@ -26546,11 +27007,11 @@ var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2)
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            _stores.LookupStore.unsubscribe(this);
+            _entities.LookupStore.unsubscribe(this);
 
             this.query.off("change", this.__queryOnChange);
 
-            (0, _actions.freeLookup)({ discriminator: this.discriminator });
+            (0, _entities2.freeLookup)({ discriminator: this.discriminator });
         }
     }, {
         key: "render",
@@ -26587,14 +27048,14 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
     _createClass(ValuesSelectContainer, [{
         key: "reload",
         value: function reload() {
-            (0, _actions.getSelectValues)({ discriminator: this.discriminator, collection: this.props.collection, params: this.getParams() });
+            (0, _entities2.getSelectValues)({ discriminator: this.discriminator, collection: this.props.collection, params: this.getParams() });
         }
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             var _this6 = this;
 
-            _stores.SelectStore.subscribe(this, function (state) {
+            _entities.SelectStore.subscribe(this, function (state) {
                 _this6.datasource.setData((0, _ajex.discriminated)(state, _this6.discriminator).values);
             });
 
@@ -26608,9 +27069,9 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            _stores.SelectStore.unsubscribe(this);
+            _entities.SelectStore.unsubscribe(this);
 
-            (0, _actions.freeSelect)({ discriminator: this.discriminator });
+            (0, _entities2.freeSelect)({ discriminator: this.discriminator });
         }
     }, {
         key: "render",
@@ -26645,7 +27106,7 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
         value: function componentDidMount() {
             var _this8 = this;
 
-            _stores.SelectStore.subscribe(this, function (state) {
+            _entities.SelectStore.subscribe(this, function (state) {
                 _this8.datasource.setData((0, _ajex.discriminated)(state, _this8.discriminator).values);
             });
 
@@ -26662,22 +27123,22 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
 
             if (!_.isEmpty(this.query)) {
                 this.__onQueryChange = function () {
-                    (0, _actions.getSelectEntities)({ discriminator: _this8.discriminator, entity: _this8.props.entity, query: _this8.query });
+                    (0, _entities2.getSelectEntities)({ discriminator: _this8.discriminator, entity: _this8.props.entity, query: _this8.query });
                 };
 
                 this.query.on("change", this.__onQueryChange);
             }
 
-            (0, _actions.getSelectEntities)({ discriminator: this.discriminator, entity: this.props.entity, query: this.query });
+            (0, _entities2.getSelectEntities)({ discriminator: this.discriminator, entity: this.props.entity, query: this.query });
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            _stores.SelectStore.unsubscribe(this);
+            _entities.SelectStore.unsubscribe(this);
             if (this.query) {
                 this.query.off("change", this.__onQueryChange);
             }
-            (0, _actions.freeSelect)({ discriminator: this.discriminator });
+            (0, _entities2.freeSelect)({ discriminator: this.discriminator });
         }
     }, {
         key: "render",
@@ -26801,6 +27262,7 @@ var Dialog = exports.Dialog = function (_React$Component) {
                 //display: this.props.hidden ? "none" : "block"
             };
 
+            var headerHidden = (0, _lang.parseBoolean)((0, _lang.optional)(this.props.headerHidden, false));
             var bodyStyle = {
                 padding: this.props.noPadding ? "0px" : undefined
             };
@@ -26817,7 +27279,7 @@ var Dialog = exports.Dialog = function (_React$Component) {
                     React.createElement(
                         "div",
                         { className: "modal-content" },
-                        React.createElement(
+                        !headerHidden && React.createElement(
                             "div",
                             { className: "modal-header" },
                             React.createElement(
@@ -26883,12 +27345,6 @@ var datasource = _interopRequireWildcard(_datasource);
 
 var _lang2 = require("../../utils/lang");
 
-var _dialogs = require("./dialogs");
-
-var _moment = require("../../libs/moment");
-
-var _moment2 = _interopRequireDefault(_moment);
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -26910,18 +27366,18 @@ var Model = exports.Model = function (_Observable) {
         var _this = _possibleConstructorReturn(this, (Model.__proto__ || Object.getPrototypeOf(Model)).call(this));
 
         _this.descriptor = null;
+        _this.initialData = {};
         _this.data = {};
         _this.validationResult = {};
         _this.initialized = false;
         _this.form = form;
-        _this.changes = [];
         _this.changesTrackingDisabled = false;
         return _this;
     }
 
     _createClass(Model, [{
-        key: "invalidatForm",
-        value: function invalidatForm() {
+        key: "invalidateForm",
+        value: function invalidateForm() {
             if (this.form) {
                 this.form.forceUpdate();
             }
@@ -26933,6 +27389,8 @@ var Model = exports.Model = function (_Observable) {
             if (!this.initialized && data != null) {
                 this.invoke("load", this);
                 this.initialized = true;
+
+                this.initialData = _.clone(this.data);
             }
         }
     }, {
@@ -27018,7 +27476,8 @@ var Model = exports.Model = function (_Observable) {
     }, {
         key: "hasChanges",
         value: function hasChanges() {
-            return this.changes.length > 0;
+            var d = (0, _lang2.diff)(this.data, this.initialData);
+            return d.length > 0;
         }
     }, {
         key: "trackChanges",
@@ -27031,9 +27490,11 @@ var Model = exports.Model = function (_Observable) {
             this.changesTrackingDisabled = true;
         }
     }, {
-        key: "resetChanges",
-        value: function resetChanges() {
-            this.changes = [];
+        key: "reset",
+        value: function reset() {
+            this.initialized = false;
+            this.data = {};
+            this.initialData = {};
         }
     }, {
         key: "set",
@@ -27042,19 +27503,8 @@ var Model = exports.Model = function (_Observable) {
             this.data[property] = value;
 
             if (!this.changesTrackingDisabled) {
-                if (initialValue !== value) {
-                    var change = _.find(this.changes, function (c) {
-                        return c.property === property;
-                    });
-                    if (change) {
-                        change.value = value;
-                    } else {
-                        this.changes.push({ property: property, initialValue: initialValue, value: value });
-                    }
-                }
+                this.invoke("property:change", property, value);
             }
-
-            this.invoke("property:change", property, value);
         }
     }, {
         key: "assign",
@@ -27259,12 +27709,16 @@ var Area = exports.Area = function (_React$Component2) {
 
             return React.createElement(
                 _common.Card,
-                { padding: "true", title: area.title, subtitle: area.subtitle, actions: area.actions },
+                { title: area.title, subtitle: area.subtitle, actions: area.actions },
                 tabs,
                 React.createElement(
                     "div",
                     { className: "row" },
-                    fields
+                    React.createElement(
+                        "div",
+                        { className: "p-l-30 p-r-30" },
+                        fields
+                    )
                 ),
                 React.createElement("div", { className: "clearfix" }),
                 this.getExtra()
@@ -27423,7 +27877,11 @@ var Tabs = exports.Tabs = function (_React$Component4) {
                     React.createElement(
                         "div",
                         { className: "row" },
-                        fields
+                        React.createElement(
+                            "div",
+                            { className: "p-l-30 p-t-10 p-r-30" },
+                            fields
+                        )
                     ),
                     React.createElement("div", { className: "clearfix" })
                 );
@@ -27436,7 +27894,7 @@ var Tabs = exports.Tabs = function (_React$Component4) {
                 null,
                 React.createElement(
                     "ul",
-                    { className: "tab-nav", role: "tablist" },
+                    { className: "tab-nav", style: { textAlign: "center" }, role: "tablist" },
                     nav
                 ),
                 React.createElement(
@@ -27564,9 +28022,13 @@ var FormBody = exports.FormBody = function (_React$Component5) {
                 areas,
                 (tabs.length > 0 || fields.length > 0) && (showInCard ? React.createElement(
                     _common.Card,
-                    { padding: "true" },
+                    { padding: "false" },
                     tabs,
-                    fields,
+                    React.createElement(
+                        "div",
+                        { className: "p-l-30 p-r-30" },
+                        fields
+                    ),
                     React.createElement("div", { className: "clearfix" })
                 ) : React.createElement(
                     "div",
@@ -27591,6 +28053,12 @@ var Form = exports.Form = function (_React$Component6) {
         var _this14 = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
 
         _this14.model = new Model(_this14);
+        _this14.model.once("load", function () {
+            var descriptor = _this14.props.descriptor;
+            if (_.isFunction(descriptor.onModelLoad)) {
+                descriptor.onModelLoad(_this14.model);
+            }
+        });
         return _this14;
     }
 
@@ -28319,6 +28787,7 @@ var Select = exports.Select = function (_Control11) {
             }
 
             model.set(field.property, value);
+
             this.forceUpdate();
         }
     }, {
@@ -28342,17 +28811,19 @@ var Select = exports.Select = function (_Control11) {
             $(me).find("select").selectpicker({
                 liveSearch: (0, _lang.optional)(this.props.searchEnabled, false)
             }).on("loaded.bs.select", function () {
-                var value = $(this).val();
+                if (_.isEmpty(model.get(field.property))) {
+                    var value = $(this).val();
 
-                if (multiple) {
-                    if (_.isEmpty(value)) {
-                        value = [];
+                    if (multiple) {
+                        if (_.isEmpty(value)) {
+                            value = [];
+                        }
                     }
-                }
 
-                model.untrackChanges();
-                model.set(field.property, value);
-                model.trackChanges();
+                    model.untrackChanges();
+                    model.set(field.property, value);
+                    model.trackChanges();
+                }
             });
         }
     }, {
@@ -28361,6 +28832,7 @@ var Select = exports.Select = function (_Control11) {
             var model = this.props.model;
             var field = this.props.field;
             var me = ReactDOM.findDOMNode(this);
+            var multiple = (0, _lang.optional)(this.props.multiple, false);
 
             $(me).find("select").selectpicker("refresh");
         }
@@ -29009,10 +29481,11 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.EditTextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.SelectCell = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.EditTextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+exports.arrayResult = arrayResult;
 exports.resultToGridData = resultToGridData;
 exports.createCell = createCell;
 
@@ -29087,18 +29560,44 @@ function clearSelection() {
     }
 }
 
+function childrenData(children, index, childrenProp) {
+    if (_.isArray(children)) {
+        return children.map(function (r) {
+            return {
+                data: r,
+                index: index.value++,
+                children: childrenData(r[childrenProp], index, childrenProp),
+                selected: false
+            };
+        });
+    }
+
+    return null;
+}
+
+function arrayResult(arr) {
+    var narr = (0, _lang.optional)(arr, []);
+    return {
+        rows: narr,
+        totalRows: narr.length
+    };
+}
+
 function resultToGridData(result) {
+    var childrenProp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "children";
+
     if (!result || !result.rows) {
         return { rows: [], totalRows: 0 };
     }
-    var index = 0;
+
+    var index = { value: 0 };
     return {
         totalRows: result.totalRows,
         rows: result.rows.map(function (r) {
             return {
                 data: r,
-                index: index++,
-                children: null,
+                index: index.value++,
+                children: childrenData(r[childrenProp], index, childrenProp),
                 selected: false
             };
         })
@@ -29171,7 +29670,7 @@ var Selection = function (_Observable) {
                     });
                     this.lastSelected = row;
                 }
-            } else if (this.controlPressed && !this.singleF) {
+            } else if (this.controlPressed && !this.single) {
                 row.selected = !row.selected;
                 this.rangeStartRow = row;
                 this.lastSelected = row;
@@ -29322,9 +29821,12 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
             $(me).modal("hide");
         }
     }, {
-        key: "getFilterType",
-        value: function getFilterType() {
-            return (0, _lang.optional)(this.props.column.filterType, "eq");
+        key: "getFieldFilterType",
+        value: function getFieldFilterType(property) {
+            var field = this.model.findField(property);
+            if (field) {
+                return field.filterType;
+            }
         }
     }, {
         key: "filter",
@@ -29332,10 +29834,11 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
             var _this4 = this;
 
             if (this.props.query && this.props.column && this.props.column.property) {
-                var filterType = (0, _lang.optional)(this.model.get("_filterType"), this.getFilterType());
+                var manualFilterType = (0, _lang.optional)(this.model.get("_filterType"), "eq");
                 var data = this.model.sanitized();
                 _.each(_.keys(data), function (k) {
                     if (k !== "_filterType") {
+                        var filterType = (0, _lang.optional)(_this4.getFieldFilterType(k), manualFilterType);
                         _this4.props.query.filter(filterType, k, data[k]);
                     }
                 });
@@ -29952,7 +30455,7 @@ var ActionsCell = exports.ActionsCell = function (_Cell4) {
                     $(me).find(".grid-action").stop().fadeIn(250);
                 }).mouseleave(function () {
                     $(me).find(".grid-action").stop().fadeOut(250);
-                });
+                }).find(".grid-action").hide();
             }
         }
     }, {
@@ -29974,6 +30477,83 @@ var ActionsCell = exports.ActionsCell = function (_Cell4) {
     }]);
 
     return ActionsCell;
+}(Cell);
+
+var SelectCell = exports.SelectCell = function (_Cell5) {
+    _inherits(SelectCell, _Cell5);
+
+    function SelectCell(props) {
+        _classCallCheck(this, SelectCell);
+
+        var _this21 = _possibleConstructorReturn(this, (SelectCell.__proto__ || Object.getPrototypeOf(SelectCell)).call(this, props));
+
+        if (_.isEmpty(props.datasource)) {
+            throw new Error("Datasource is null");
+        }
+        return _this21;
+    }
+
+    _createClass(SelectCell, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this22 = this;
+
+            this.onDataSourceChange = this.props.datasource.on("change", function () {
+                _this22.forceUpdate();
+            });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            this.props.datasource.off("change", this.onDataSourceChange);
+        }
+    }, {
+        key: "onChange",
+        value: function onChange(e) {
+            var value = e.target.value;
+            var column = this.props.column;
+            var row = this.props.row;
+            if (_.isFunction(this.props.onChange)) {
+                this.props.onChange(column, row.data, value);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var datasource = this.props.datasource;
+            var options = (0, _lang.optional)(function () {
+                return datasource.data.rows;
+            }, []).map(function (o) {
+                return React.createElement(
+                    "option",
+                    { key: o.value, value: o.value },
+                    o.label
+                );
+            });
+            var allowNull = (0, _lang.parseBoolean)(this.props.allowNull);
+
+            return React.createElement(
+                "div",
+                { className: "form-group select-cell" },
+                React.createElement(
+                    "div",
+                    { className: "fg-line" },
+                    React.createElement(
+                        "div",
+                        { className: "select" },
+                        React.createElement(
+                            "select",
+                            { className: "form-control", value: (0, _lang.optional)(this.props.value, ""), onChange: this.onChange.bind(this) },
+                            allowNull && React.createElement("option", { value: "" }),
+                            options
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return SelectCell;
 }(Cell);
 
 var KeywordSearch = exports.KeywordSearch = function (_React$Component9) {
@@ -30041,6 +30621,8 @@ var Filter = exports.Filter = function (_React$Component10) {
                 "button",
                 { onClick: this.unfilter.bind(this), className: "btn btn-no-shadow btn-primary waves-effect m-r-10" },
                 this.props.data.property,
+                "=",
+                this.props.data.value,
                 " ",
                 React.createElement("i", { className: "zmdi zmdi-close" })
             );
@@ -30071,12 +30653,12 @@ var Filters = exports.Filters = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this24 = this;
+            var _this26 = this;
 
             var filters = [];
             if (this.props.query) {
                 filters = this.props.query.filters.map(function (f) {
-                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this24.props.query });
+                    return React.createElement(Filter, { key: f.property + f.type + f.value, data: f, query: _this26.props.query });
                 });
             }
 
@@ -30150,7 +30732,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
     }, {
         key: "render",
         value: function render() {
-            var _this26 = this;
+            var _this28 = this;
 
             if (_.isEmpty(this.props.query) || _.isEmpty(this.props.data.rows)) {
                 return null;
@@ -30190,7 +30772,7 @@ var Pagination = exports.Pagination = function (_React$Component12) {
                     { key: i, className: active },
                     React.createElement(
                         "a",
-                        { href: "javascript:;", onClick: _this26.changePage.bind(_this26, i) },
+                        { href: "javascript:;", onClick: _this28.changePage.bind(_this28, i) },
                         i
                     )
                 ));
@@ -30308,15 +30890,15 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
     function QuickSearch(props) {
         _classCallCheck(this, QuickSearch);
 
-        var _this29 = _possibleConstructorReturn(this, (QuickSearch.__proto__ || Object.getPrototypeOf(QuickSearch)).call(this, props));
+        var _this31 = _possibleConstructorReturn(this, (QuickSearch.__proto__ || Object.getPrototypeOf(QuickSearch)).call(this, props));
 
-        _this29._onChange = _.debounce(function (keyword) {
-            if (!_.isEmpty(_this29.props.query)) {
-                _this29.props.query.setKeyword(keyword);
+        _this31._onChange = _.debounce(function (keyword) {
+            if (!_.isEmpty(_this31.props.query)) {
+                _this31.props.query.setKeyword(keyword);
             }
         }, 250);
 
-        return _this29;
+        return _this31;
     }
 
     _createClass(QuickSearch, [{
@@ -30360,13 +30942,13 @@ var Grid = exports.Grid = function (_React$Component16) {
     function Grid(props) {
         _classCallCheck(this, Grid);
 
-        var _this30 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+        var _this32 = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
 
-        _this30.selection = null;
-        _this30.state = { rows: null };
+        _this32.selection = null;
+        _this32.state = { rows: null };
 
-        _this30.initSelection(props);
-        return _this30;
+        _this32.initSelection(props);
+        return _this32;
     }
 
     _createClass(Grid, [{
@@ -30381,7 +30963,10 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "onBlur",
         value: function onBlur() {
-            //if (this.selection) this.selection.clear()
+            if (this.selection) {
+                this.selection.shiftPressed = false;
+                this.selection.controlPressed = false;
+            }
         }
     }, {
         key: "onKeyDown",
@@ -30459,7 +31044,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "onRowExpand",
         value: function onRowExpand(row) {
-            var _this31 = this;
+            var _this33 = this;
 
             var expanded = !row.expanded;
 
@@ -30477,17 +31062,21 @@ var Grid = exports.Grid = function (_React$Component16) {
 
                 setTimeout(function () {
                     row.expanded = expanded;
-                    _this31.forceUpdate();
+                    _this33.forceUpdate();
                 }, EXPAND_ANIMATION_TIME);
             } else {
                 row.expanded = expanded;
                 this.forceUpdate();
             }
+
+            if (_.isFunction(this.props.onRowExpand)) {
+                this.props.onRowExpand(row.data, expanded);
+            }
         }
     }, {
         key: "initSelection",
         value: function initSelection(props) {
-            var _this32 = this;
+            var _this34 = this;
 
             var selectionEnabled = (0, _lang.optional)((0, _lang.parseBoolean)(props.selectionEnabled), true);
             if (!selectionEnabled) {
@@ -30499,9 +31088,9 @@ var Grid = exports.Grid = function (_React$Component16) {
                 this.selection = new Selection(rows);
                 this.selection.single = props.selectionMode === "single";
                 this.selection.on("change", function () {
-                    _this32.setState(_this32.state);
-                    if (_.isFunction(_this32.props.onSelectionChanged)) {
-                        _this32.props.onSelectionChanged(_this32.selection.getSelectedData());
+                    _this34.setState(_this34.state);
+                    if (_.isFunction(_this34.props.onSelectionChanged)) {
+                        _this34.props.onSelectionChanged(_this34.selection.getSelectedData());
                     }
                 });
             }
@@ -30565,7 +31154,7 @@ var Grid = exports.Grid = function (_React$Component16) {
     }, {
         key: "render",
         value: function render() {
-            var _this33 = this;
+            var _this35 = this;
 
             if (_.isEmpty(this.props.descriptor)) {
                 return null;
@@ -30591,8 +31180,8 @@ var Grid = exports.Grid = function (_React$Component16) {
                     cell: ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-edit", action: function action(row) {
-                            if (_.isFunction(_this33.props.onRowDoubleClick)) {
-                                _this33.props.onRowDoubleClick(row);
+                            if (_.isFunction(_this35.props.onRowDoubleClick)) {
+                                _this35.props.onRowDoubleClick(row);
                             }
                         } }],
                     props: {
@@ -30667,13 +31256,19 @@ define('web/components/layout.js', function(module, exports) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../stores");
+var _menu = require("../../stores/menu");
 
-var _actions = require("../../actions");
+var _session = require("../../stores/session");
 
-var _ui = require("../utils/ui");
+var _ui = require("../../stores/ui");
 
-var ui = _interopRequireWildcard(_ui);
+var _menu2 = require("../../actions/menu");
+
+var _session2 = require("../../actions/session");
+
+var _ui2 = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui2);
 
 var _loader = require("./loader");
 
@@ -30684,6 +31279,10 @@ var _lang = require("../../utils/lang");
 var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
+
+var _underscore = require("../../libs/underscore");
+
+var _underscore2 = _interopRequireDefault(_underscore);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -30824,7 +31423,7 @@ var ProfileBox = function (_React$Component2) {
 
         var _this2 = _possibleConstructorReturn(this, (ProfileBox.__proto__ || Object.getPrototypeOf(ProfileBox)).call(this, props));
 
-        (0, _aj.connect)(_this2, [_stores.SessionStore, _stores.UIStore]);
+        (0, _aj.connect)(_this2, [_session.SessionStore, _ui.UIStore]);
 
         _this2.state = {};
         return _this2;
@@ -30833,7 +31432,7 @@ var ProfileBox = function (_React$Component2) {
     _createClass(ProfileBox, [{
         key: "logout",
         value: function logout() {
-            (0, _actions.logout)();
+            (0, _session2.logout)();
             ui.navigate("/login");
         }
     }, {
@@ -30929,11 +31528,11 @@ var MenuLevel = function (_React$Component3) {
                 location.href = item.href;
             }
 
-            if (_.isFunction(this.props.onSelect)) {
+            if (_underscore2.default.isFunction(this.props.onSelect)) {
                 this.props.onSelect(item);
             }
 
-            var hasChildren = !_.isEmpty(item.children);
+            var hasChildren = !_underscore2.default.isEmpty(item.children);
             if (hasChildren) {
                 this.onExpand(item);
             }
@@ -30941,7 +31540,7 @@ var MenuLevel = function (_React$Component3) {
     }, {
         key: "onExpand",
         value: function onExpand(item) {
-            if (_.isFunction(this.props.onExpand)) {
+            if (_underscore2.default.isFunction(this.props.onExpand)) {
                 this.props.onExpand(item);
             }
         }
@@ -30959,7 +31558,7 @@ var MenuLevel = function (_React$Component3) {
                 if (i.active) {
                     className += "active";
                 }
-                var hasChildren = !_.isEmpty(i.children);
+                var hasChildren = !_underscore2.default.isEmpty(i.children);
                 if (hasChildren) {
                     className += " sub-menu";
                 }
@@ -31010,14 +31609,14 @@ var MainMenu = function (_React$Component4) {
     _createClass(MainMenu, [{
         key: "onExpand",
         value: function onExpand(item) {
-            if (_.isFunction(this.props.onExpand)) {
+            if (_underscore2.default.isFunction(this.props.onExpand)) {
                 this.props.onExpand(item);
             }
         }
     }, {
         key: "onSelect",
         value: function onSelect(item) {
-            if (_.isFunction(this.props.onSelect)) {
+            if (_underscore2.default.isFunction(this.props.onSelect)) {
                 this.props.onSelect(item);
             }
         }
@@ -31065,7 +31664,7 @@ var MainMenuContainer = function (_React$Component6) {
 
         var _this8 = _possibleConstructorReturn(this, (MainMenuContainer.__proto__ || Object.getPrototypeOf(MainMenuContainer)).call(this, props));
 
-        (0, _aj.connect)(_this8, _stores.MenuStore, { menu: [] });
+        (0, _aj.connect)(_this8, _menu.MenuStore, { menu: [] });
 
         logger.i("Menu created");
         return _this8;
@@ -31074,12 +31673,12 @@ var MainMenuContainer = function (_React$Component6) {
     _createClass(MainMenuContainer, [{
         key: "onSelect",
         value: function onSelect(item) {
-            (0, _actions.setActiveMenuItem)({ item: item });
+            (0, _menu2.setActiveMenuItem)({ item: item });
         }
     }, {
         key: "onExpand",
         value: function onExpand(item) {
-            (0, _actions.expandMenuItem)({ item: item });
+            (0, _menu2.expandMenuItem)({ item: item });
         }
     }, {
         key: "render",
@@ -31245,14 +31844,14 @@ var ScreenContainer = function (_React$Component10) {
 
             ui.addScreenChangeListener(function (screen) {
                 //showPageLoader()
-                _this13.setState(_.assign(_this13.state, { currentScreen: screen }));
+                _this13.setState(_underscore2.default.assign(_this13.state, { currentScreen: screen }));
                 //hidePageLoader()
             });
         }
     }, {
         key: "render",
         value: function render() {
-            if (_.isEmpty(this.state.currentScreen)) {
+            if (_underscore2.default.isEmpty(this.state.currentScreen)) {
                 return React.createElement("div", null);
             }
             return this.state.currentScreen;
@@ -31294,6 +31893,7 @@ var Index = function (_React$Component12) {
                 null,
                 React.createElement(_loader.PageLoader, null),
                 React.createElement(_loader.GlobalLoader, null),
+                React.createElement(_loader.UnobtrusiveLoader, null),
                 React.createElement(ScreenContainer, null)
             );
         }
@@ -31532,9 +32132,41 @@ var Preloader = function (_React$Component3) {
     return Preloader;
 }(React.Component);
 
+var UnobtrusiveLoader = function (_React$Component4) {
+    _inherits(UnobtrusiveLoader, _React$Component4);
+
+    function UnobtrusiveLoader() {
+        _classCallCheck(this, UnobtrusiveLoader);
+
+        return _possibleConstructorReturn(this, (UnobtrusiveLoader.__proto__ || Object.getPrototypeOf(UnobtrusiveLoader)).apply(this, arguments));
+    }
+
+    _createClass(UnobtrusiveLoader, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "unobtrusive-loader", style: { display: "none" } },
+                React.createElement(
+                    "div",
+                    { className: "preloader pls-white pl-sm" },
+                    React.createElement(
+                        "svg",
+                        { className: "pl-circular", viewBox: "25 25 50 50" },
+                        React.createElement("circle", { className: "plc-path", cx: "50", cy: "50", r: "20" })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return UnobtrusiveLoader;
+}(React.Component);
+
 exports.PageLoader = PageLoader;
 exports.GlobalLoader = GlobalLoader;
 exports.Preloader = Preloader;
+exports.UnobtrusiveLoader = UnobtrusiveLoader;
 });
 define('web/components/secure.js', function(module, exports) {
 "use strict";
@@ -31545,7 +32177,7 @@ var _login = require("../screens/login");
 
 var _login2 = _interopRequireDefault(_login);
 
-var _stores = require("../../stores");
+var _session = require("../../stores/session");
 
 var _aj = require("../utils/aj");
 
@@ -31565,7 +32197,7 @@ var Secure = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Secure.__proto__ || Object.getPrototypeOf(Secure)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.SessionStore);
+        (0, _aj.connect)(_this, _session.SessionStore);
         return _this;
     }
 
@@ -31765,15 +32397,21 @@ var _pluginsimpl = require("./pluginsimpl");
 
 var plugins = _interopRequireWildcard(_pluginsimpl);
 
-var _actions = require("../actions");
+var _menu = require("../actions/menu");
 
-var _stores = require("../stores");
+var _session = require("../actions/session");
+
+var _keyboard = require("./utils/keyboard");
+
+var keyboard = _interopRequireWildcard(_keyboard);
+
+var _session2 = require("../stores/session");
 
 var _entities = require("./screens/entities");
 
-var _menu = require("./menu");
+var _menu2 = require("./menu");
 
-var _menu2 = _interopRequireDefault(_menu);
+var _menu3 = _interopRequireDefault(_menu2);
 
 var _loader = require("./components/loader");
 
@@ -31817,24 +32455,27 @@ ui.addRoute("/", function (params) {
     return ui.changeScreen(React.createElement(_home2.default, null));
 });
 
+/* Attach keyboard for global key bindings */
+keyboard.attach();
+
 /* render main index page into dom */
 ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
 
 /* Setup menu voices */
-(0, _actions.setupMenu)({ menu: _menu2.default });
+(0, _menu.setupMenu)({ menu: _menu3.default });
 
 /* Avoid going in screens that require login before trying session resume */
 var owner = {};
-_stores.SessionStore.subscribe(owner, function (state) {
+_session2.SessionStore.subscribe(owner, function (state) {
     if (state.resumeComplete) {
-        _stores.SessionStore.unsubscribe(owner);
+        _session2.SessionStore.unsubscribe(owner);
         ui.startNavigation();
         (0, _loader.hidePageLoader)();
     }
 });
 
 /* automatic login, if possible */
-(0, _actions.resumeSession)();
+(0, _session.resumeSession)();
 });
 define('web/menu.js', function(module, exports) {
 "use strict";
@@ -31909,6 +32550,7 @@ exports.Alert = {
 };
 
 var loaderCount = 0;
+var unobtrusiveLoaderCount = 0;
 
 exports.Loader = {
     show: function show(data, callback) {
@@ -31920,6 +32562,18 @@ exports.Loader = {
         if (loaderCount <= 0) {
             $(".global-loader").hide();
             loaderCount = 0;
+        }
+    },
+    showUnobtrusive: function showUnobtrusive(data, callback) {
+        unobtrusiveLoaderCount++;
+        $(".unobtrusive-loader").show();
+        $(".hide-on-unobtrusive-loading").hide();
+    },
+    hideUnobtrusive: function hideUnobtrusive(data, callback) {
+        unobtrusiveLoaderCount--;
+        if (unobtrusiveLoaderCount <= 0) {
+            $(".unobtrusive-loader").hide();
+            $(".hide-on-unobtrusive-loading").show();
         }
     }
 };
@@ -31968,7 +32622,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../stores");
+var _account = require("../../stores/account");
 
 var _layout = require("../components/layout");
 
@@ -31984,7 +32638,7 @@ var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _actions = require("../../actions");
+var _account2 = require("../../actions/account");
 
 var _aj = require("../utils/aj");
 
@@ -32006,7 +32660,7 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.AccountStore, { activationCode: "" });
+        (0, _aj.connect)(_this, _account.AccountStore, { activationCode: "" });
         return _this;
     }
 
@@ -32014,7 +32668,7 @@ var Recover = function (_Screen) {
         key: "confirm",
         value: function confirm() {
             var data = forms.serialize(this.refs.confirm_form);
-            (0, _actions.confirmAccount)(data);
+            (0, _account2.confirmAccount)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -32026,7 +32680,7 @@ var Recover = function (_Screen) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            (0, _actions.setActivationCode)({ activationCode: this.props.activationCode });
+            (0, _account2.setActivationCode)({ activationCode: this.props.activationCode });
         }
     }, {
         key: "render",
@@ -32114,7 +32768,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../../stores");
+var _entities = require("../../../stores/entities");
 
 var _layout = require("../../components/layout");
 
@@ -32122,7 +32776,7 @@ var _strings = require("../../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _actions = require("../../../actions");
+var _entities2 = require("../../../actions/entities");
 
 var _aj = require("../../utils/aj");
 
@@ -32138,9 +32792,9 @@ var _lang = require("../../../utils/lang");
 
 var _keyboard = require("../../utils/keyboard");
 
-var _entities = require("../../entities");
+var _entities3 = require("../../entities");
 
-var _entities2 = _interopRequireDefault(_entities);
+var _entities4 = _interopRequireDefault(_entities3);
 
 var _ui = require("../../utils/ui");
 
@@ -32168,9 +32822,15 @@ var EntitiesGrid = function (_Screen) {
             throw new Error("Please specify entity for form");
         }
 
-        var _query = query.create();
-        _query.page = 1;
-        _query.rowsPerPage = 50;
+        var _query = _entities4.default[_this.getEntity()].grid.initialQuery;
+        if (_.isFunction(_entities4.default[_this.getEntity()].grid.initialQuery)) {
+            _query = _entities4.default[_this.getEntity()].grid.initialQuery();
+        }
+        if (!_query) {
+            _query = query.create();
+            _query.page = 1;
+            _query.rowsPerPage = 50;
+        }
 
         _this.state = { grid: null, result: null, query: _query };
 
@@ -32180,7 +32840,7 @@ var EntitiesGrid = function (_Screen) {
 
         _this.discriminator = "entity_grid_" + _this.getEntity();
 
-        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_stores.EntitiesStore]);
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_entities.EntitiesStore]);
         return _this;
     }
 
@@ -32192,17 +32852,17 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            (0, _actions.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
+            (0, _entities2.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            (0, _actions.freeEntities)({ discriminator: this.discriminator });
+            (0, _entities2.freeEntities)({ discriminator: this.discriminator });
         }
     }, {
         key: "onQueryChanged",
         value: function onQueryChanged() {
-            (0, _actions.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
+            (0, _entities2.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
         }
     }, {
         key: "editEntity",
@@ -32225,14 +32885,20 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "getCreateUrl",
         value: function getCreateUrl() {
-            var grid = _entities2.default[this.getEntity()].grid;
-            return (0, _lang.optional)(grid.createUrl, "/entities/" + this.getEntity() + "/create");
+            var grid = _entities4.default[this.getEntity()].grid;
+            var createUrl = grid.createUrl;
+            if (_.isFunction(createUrl)) {
+                createUrl = createUrl();
+            }
+            return (0, _lang.optional)(createUrl, "/entities/" + this.getEntity() + "/create");
         }
     }, {
         key: "getEditUrl",
         value: function getEditUrl(data) {
-            var grid = _entities2.default[this.getEntity()].grid;
-            if (!_.isEmpty(grid.editUrl)) {
+            var grid = _entities4.default[this.getEntity()].grid;
+            if (_.isFunction(grid.editUrl)) {
+                return (0, _lang.format)(grid.editUrl(data));
+            } else if (!_.isEmpty(grid.editUrl)) {
                 return (0, _lang.format)(grid.editUrl, data.id);
             } else {
                 return "/entities/" + this.getEntity() + "/" + data.id;
@@ -32253,7 +32919,7 @@ var EntitiesGrid = function (_Screen) {
             }
 
             swal({ title: (0, _strings2.default)("confirm"), text: (0, _lang.format)((0, _strings2.default)("entityDeleteConfirm"), selection.length), showCancelButton: true }).then(function () {
-                (0, _actions.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
+                (0, _entities2.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
                         return s.id;
                     }) });
             }).catch(function (e) {
@@ -32275,13 +32941,13 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "getTitle",
         value: function getTitle() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.title, "List");
         }
     }, {
         key: "getSubtitle",
         value: function getSubtitle() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return grid.subtitle;
         }
     }, {
@@ -32295,7 +32961,7 @@ var EntitiesGrid = function (_Screen) {
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: (0, _strings2.default)("refresh"),
                 action: function action() {
-                    (0, _actions.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.getEntity(), query: _this3.state.query });
+                    (0, _entities2.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.getEntity(), query: _this3.state.query });
                 }
             }, {
                 id: "create",
@@ -32323,14 +32989,14 @@ var EntitiesGrid = function (_Screen) {
                 }
             }];
 
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             var matcher = new _common.ActionsMatcher(defaultActions);
             return matcher.match(grid.actions);
         }
     }, {
         key: "getDescriptor",
         value: function getDescriptor() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return grid.descriptor;
         }
     }, {
@@ -32341,25 +33007,25 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "isQuickSearchEnabled",
         value: function isQuickSearchEnabled() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.quickSearchEnabled, false);
         }
     }, {
         key: "canEdit",
         value: function canEdit() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canEdit, true);
         }
     }, {
         key: "canCreate",
         value: function canCreate() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canCreate, true);
         }
     }, {
         key: "canDelete",
         value: function canDelete() {
-            var grid = _entities2.default[this.getEntity()].grid;
+            var grid = _entities4.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canDelete, true);
         }
     }, {
@@ -32403,7 +33069,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../../stores");
+var _entities = require("../../../stores/entities");
 
 var _layout = require("../../components/layout");
 
@@ -32417,11 +33083,11 @@ var _common = require("../../components/common");
 
 var _forms = require("../../components/forms");
 
-var _actions = require("../../../actions");
+var _entities2 = require("../../../actions/entities");
 
-var _entities = require("../../entities");
+var _entities3 = require("../../entities");
 
-var _entities2 = _interopRequireDefault(_entities);
+var _entities4 = _interopRequireDefault(_entities3);
 
 var _ui = require("../../utils/ui");
 
@@ -32453,8 +33119,9 @@ var EntityForm = function (_Screen) {
 
         _this.discriminator = "entity_form_" + props.entity;
         _this.initialEntity = null;
+        _this.willGoBack = true;
 
-        (0, _aj.connectDiscriminated)(_this.discriminator, _this, _stores.EntitiesStore, { data: null });
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, _entities.EntitiesStore, { data: null });
         return _this;
     }
 
@@ -32465,7 +33132,6 @@ var EntityForm = function (_Screen) {
             var model = form.model;
 
             this.onBeforeUnload = function () {
-                console.log(model.changes);
                 if (model.hasChanges()) {
                     return (0, _strings2.default)("formChangeAlert");
                 }
@@ -32474,16 +33140,16 @@ var EntityForm = function (_Screen) {
             window.onbeforeunload = this.onBeforeUnload;
             ui.addOnBeforeChangeListener(this.onBeforeUnload);
 
-            if (!_.isEmpty(this.props.entityId) && this.props.entityId != "create") {
-                (0, _actions.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
+            if (!_.isEmpty(this.props.entityId) && this.props.entityId !== "create") {
+                (0, _entities2.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
             } else {
-                (0, _actions.newEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
+                (0, _entities2.newEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
             }
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            (0, _actions.freeEntities)({ discriminator: this.discriminator });
+            (0, _entities2.freeEntities)({ discriminator: this.discriminator });
 
             window.onbeforeunload = null;
             ui.removeOnBeforeChangeListener(this.onBeforeUnload);
@@ -32500,7 +33166,7 @@ var EntityForm = function (_Screen) {
             if (_.isFunction(this.props.onSubmit)) {
                 this.props.onSubmit(data);
             } else {
-                (0, _actions.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data, reload: !this.willGoBack });
+                (0, _entities2.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data, reload: !this.willGoBack });
             }
         }
     }, {
@@ -32511,13 +33177,15 @@ var EntityForm = function (_Screen) {
     }, {
         key: "goBack",
         value: function goBack() {
-            ui.navigate(this.getGridUrl());
+            var form = this.refs.form;
+            var data = form.model.sanitized();
+            ui.navigate(this.getGridUrl(data));
         }
     }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(props, state) {
             if (state.saved) {
-                this.refs.form.model.resetChanges();
+                this.refs.form.model.reset();
             }
 
             if (state.saved && this.willGoBack) {
@@ -32543,9 +33211,13 @@ var EntityForm = function (_Screen) {
         }
     }, {
         key: "getGridUrl",
-        value: function getGridUrl() {
-            var form = _entities2.default[this.getEntity()].form;
-            return (0, _lang.optional)(form.gridUrl, "/entities/" + this.getEntity());
+        value: function getGridUrl(data) {
+            var form = _entities4.default[this.getEntity()].form;
+            var gridUrl = form.gridUrl;
+            if (_.isFunction(gridUrl)) {
+                gridUrl = gridUrl(data);
+            }
+            return (0, _lang.optional)(gridUrl, "/entities/" + this.getEntity());
         }
     }, {
         key: "getActions",
@@ -32566,44 +33238,36 @@ var EntityForm = function (_Screen) {
                 icon: "zmdi zmdi-save",
                 tooltip: (0, _strings2.default)("save"),
                 action: function action() {
-                    _this2.submit(false);
-                }
-            }, {
-                id: "save-go-back",
-                type: "button",
-                icon: "zmdi zmdi-rotate-ccw",
-                tooltip: (0, _strings2.default)("saveAndGoBack"),
-                action: function action() {
                     _this2.submit(true);
                 }
             }];
 
-            var form = _entities2.default[this.getEntity()].form;
+            var form = _entities4.default[this.getEntity()].form;
             var matcher = new _common.ActionsMatcher(defaultActions);
             return matcher.match(form.actions);
         }
     }, {
         key: "getTitle",
         value: function getTitle() {
-            var form = _entities2.default[this.getEntity()].form;
+            var form = _entities4.default[this.getEntity()].form;
             return (0, _lang.optional)(form.title, "Edit");
         }
     }, {
         key: "getSubtitle",
         value: function getSubtitle() {
-            var form = _entities2.default[this.getEntity()].form;
+            var form = _entities4.default[this.getEntity()].form;
             return form.subtitle;
         }
     }, {
         key: "getDescriptor",
         value: function getDescriptor() {
-            var form = _entities2.default[this.getEntity()].form;
+            var form = _entities4.default[this.getEntity()].form;
             return form.descriptor;
         }
     }, {
         key: "getFormComponent",
         value: function getFormComponent() {
-            var form = _entities2.default[this.getEntity()].form;
+            var form = _entities4.default[this.getEntity()].form;
             return (0, _lang.optional)(function () {
                 return form.component;
             }, function () {
@@ -32713,7 +33377,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _layout = require("../components/layout");
 
-var _actions = require("../../actions");
+var _session = require("../../actions/session");
 
 var _forms = require("../utils/forms");
 
@@ -32723,7 +33387,7 @@ var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _stores = require("../../stores");
+var _account = require("../../stores/account");
 
 var _aj = require("../utils/aj");
 
@@ -32745,7 +33409,7 @@ var Login = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.SessionStore);
+        (0, _aj.connect)(_this, _account.SessionStore);
         return _this;
     }
 
@@ -32753,7 +33417,7 @@ var Login = function (_Screen) {
         key: "login",
         value: function login() {
             var data = forms.serialize(this.refs.login_form);
-            (0, _actions.login)(data);
+            (0, _session.login)(data);
         }
     }, {
         key: "componentDidUpdate",
@@ -32879,7 +33543,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../stores");
+var _account = require("../../stores/account");
 
 var _strings = require("../../strings");
 
@@ -32893,7 +33557,7 @@ var _ui = require("../utils/ui");
 
 var ui = _interopRequireWildcard(_ui);
 
-var _actions = require("../../actions");
+var _account2 = require("../../actions/account");
 
 var _forms = require("../utils/forms");
 
@@ -32917,7 +33581,7 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.AccountStore);
+        (0, _aj.connect)(_this, _account.AccountStore);
         return _this;
     }
 
@@ -32925,7 +33589,7 @@ var Recover = function (_Screen) {
         key: "recover",
         value: function recover() {
             var data = forms.serialize(this.refs.recover_form);
-            (0, _actions.recoverAccount)(data);
+            (0, _account2.recoverAccount)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -33020,7 +33684,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../stores");
+var _account = require("../../stores/account");
 
 var _strings = require("../../strings");
 
@@ -33034,7 +33698,7 @@ var _ui = require("../utils/ui");
 
 var ui = _interopRequireWildcard(_ui);
 
-var _actions = require("../../actions");
+var _account2 = require("../../actions/account");
 
 var _forms = require("../utils/forms");
 
@@ -33058,7 +33722,7 @@ var Register = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Register.__proto__ || Object.getPrototypeOf(Register)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.AccountStore);
+        (0, _aj.connect)(_this, _account.AccountStore);
         return _this;
     }
 
@@ -33066,7 +33730,7 @@ var Register = function (_Screen) {
         key: "register",
         value: function register() {
             var data = forms.serialize(this.refs.register_form);
-            (0, _actions.register)(data);
+            (0, _account2.register)(data);
         }
     }, {
         key: "componentWillUpdate",
@@ -33188,7 +33852,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _stores = require("../../stores");
+var _account = require("../../stores/account");
 
 var _strings = require("../../strings");
 
@@ -33220,7 +33884,7 @@ var RegistrationOk = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (RegistrationOk.__proto__ || Object.getPrototypeOf(RegistrationOk)).call(this, props));
 
-        (0, _aj.connect)(_this, _stores.AccountStore);
+        (0, _aj.connect)(_this, _account.AccountStore);
         return _this;
     }
 
@@ -33598,6 +34262,24 @@ exports.isDown = isDown;
 exports.isEnter = isEnter;
 exports.isCancel = isCancel;
 exports.isEsc = isEsc;
+exports.attach = attach;
+exports.detach = detach;
+exports.isShiftPressed = isShiftPressed;
+exports.isControlPressed = isControlPressed;
+var pressedKeys = {};
+
+var onWindowKeyUp = function onWindowKeyUp(e) {
+    pressedKeys[e.which] = false;
+};
+
+var onWindowKeyDown = function onWindowKeyDown(e) {
+    pressedKeys[e.which] = true;
+};
+
+var onWindowBlur = function onWindowBlur(e) {
+    pressedKeys = {};
+};
+
 function isMac() {
     return navigator.platform.indexOf('Mac') > -1;
 }
@@ -33632,6 +34314,38 @@ function isCancel(which) {
 
 function isEsc(which) {
     return which == 27;
+}
+
+function attach() {
+    window.addEventListener("keydown", onWindowKeyDown);
+    window.addEventListener("keyup", onWindowKeyUp);
+    window.addEventListener("blur", onWindowBlur);
+
+    if (DEBUG) {
+        logger.i("Keyboard attached to global key events");
+    }
+}
+
+function detach() {
+    window.removeEventListener("keydown", onWindowKeyDown);
+    window.removeEventListener("keyup", onWindowKeyUp);
+    window.removeEventListener("blur", onWindowBlur);
+
+    if (DEBUG) {
+        logger.i("Keyboard detached from global key events");
+    }
+}
+
+function isShiftPressed() {
+    return pressedKeys[16];
+}
+
+function isControlPressed() {
+    if (isMac()) {
+        return pressedKeys[91] || pressedKeys[93];
+    } else {
+        return pressedKeys[17];
+    }
 }
 });
 define('web/utils/mobile.js', function(module, exports) {
@@ -33760,18 +34474,48 @@ String.prototype.contains = function (search) {
 define('web/utils/ui.js', function(module, exports) {
 "use strict";
 
-var M = require("../../strings").default;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.getUrlParameter = getUrlParameter;
 
-var _require = require("./events"),
-    Observable = _require.Observable;
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _events = require("./events");
+
+var _keyboard = require("./keyboard");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var router = new RouteRecognizer();
 var base = null;
 var lastFragment = null;
 var veryLastFragment = null;
-var screens = new Observable();
+var screens = new _events.Observable();
 var beforeChangeListeners = [];
 var routerDisabledNextTime = false;
+var changeScreenConfirmEnabled = true;
+
+function getUrlParameter(sParam) {
+	var queryStringIndex = window.location.href.indexOf("?");
+	if (queryStringIndex == -1) {
+		return null;
+	}
+	var sPageURL = decodeURIComponent(window.location.href.substring(queryStringIndex + 1)),
+	    sURLVariables = sPageURL.split('&'),
+	    sParameterName,
+	    i;
+
+	for (i = 0; i < sURLVariables.length; i++) {
+		sParameterName = sURLVariables[i].split('=');
+
+		if (sParameterName[0] === sParam) {
+			return sParameterName[1] === undefined ? true : sParameterName[1];
+		}
+	}
+};
 
 function _handleRoute(fragment) {
 	var route = router.recognize(fragment);
@@ -33816,7 +34560,23 @@ exports.startNavigation = function (_base) {
 };
 
 exports.navigate = function (path) {
-	history.pushState(null, null, _clearSlashes(base + path));
+	var openInNewTab = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+	if ((0, _keyboard.isShiftPressed)()) {
+		window.open(_clearSlashes(base + path)).focus();
+	} else if ((0, _keyboard.isControlPressed)() || openInNewTab) {
+		$("<a>").attr("href", _clearSlashes(base + path)).attr("target", "_blank").get(0).click();
+	} else {
+		history.pushState(null, null, _clearSlashes(base + path));
+	}
+};
+
+exports.enableChangeScreenConfirm = function () {
+	changeScreenConfirmEnabled = true;
+};
+
+exports.disableChangeScreenConfirm = function () {
+	changeScreenConfirmEnabled = false;
 };
 
 exports.changeScreen = function (screen) {
@@ -33825,17 +34585,21 @@ exports.changeScreen = function (screen) {
 		if (_.isFunction(listener)) {
 			var out = listener();
 
-			if (out) {
-				swal({ title: M("confirm"), text: M("formChangeAlert"), showCancelButton: true }).then(function () {
-					screens.invoke("screen.change", screen);
-				}).catch(function () {
-					if (!_.isEmpty(veryLastFragment)) {
-						routerDisabledNextTime = true;
-						window.location.href = "#" + veryLastFragment;
-					}
-				});
+			if (changeScreenConfirmEnabled) {
+				if (out) {
+					swal({ title: (0, _strings2.default)("confirm"), text: (0, _strings2.default)("formChangeAlert"), showCancelButton: true }).then(function () {
+						screens.invoke("screen.change", screen);
+					}).catch(function () {
+						if (!_.isEmpty(veryLastFragment)) {
+							routerDisabledNextTime = true;
+							window.location.href = "#" + veryLastFragment;
+						}
+					});
 
-				return;
+					return;
+				}
+			} else {
+				screens.invoke("screen.change", screen);
 			}
 		}
 	}

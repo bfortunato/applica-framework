@@ -269,6 +269,13 @@ html.ismobile .global-loader {
   background-color: black;
   color: white; }
 
+.grid .table {
+  border-radius: 3px 0px 0px 0px; }
+  .grid .table thead tr th:first-child {
+    border-radius: 3px 0px 0px 0px; }
+  .grid .table thead tr th:last-child {
+    border-radius: 0px 3px 0px 0px; }
+
 .grid .table > thead > tr > th:last-child {
   padding-right: 15px; }
 
@@ -406,7 +413,8 @@ tr.collapsible {
       color: #AEAEAE; }
     .lookup .lookup-header .actions {
       position: absolute;
-      right: 0px; }
+      right: 0px;
+      top: 2px; }
   .lookup .lookup-header:hover {
     background-color: #ebebeb; }
   .lookup table {
@@ -575,3 +583,18 @@ tr.collapsible {
 .cp-container input.cp-value {
   color: #000 !important;
   background: 0 0 !important; }
+
+/*************************
+** Standard select
+******************-*****/
+.select:before {
+  background-color: transparent !important; }
+
+.form-group.select-cell {
+  margin-bottom: 0px; }
+
+.edit-text-cell {
+  background-color: rgba(193, 193, 193, 0.52);
+  max-width: 100px;
+  height: 25px;
+  padding: 3px 10px; }

@@ -15,6 +15,7 @@ exports.Alert = {
 }
 
 let loaderCount = 0;
+let unobtrusiveLoaderCount = 0;
 
 exports.Loader = {
     show(data, callback) {
@@ -27,6 +28,20 @@ exports.Loader = {
         if (loaderCount <= 0) {
             $(".global-loader").hide()
             loaderCount = 0
+        }
+    },
+
+    showUnobtrusive(data, callback) {
+        unobtrusiveLoaderCount++
+        $(".unobtrusive-loader").show()
+        $(".hide-on-unobtrusive-loading").hide();
+    },
+
+    hideUnobtrusive(data, callback) {
+        unobtrusiveLoaderCount--;
+        if (unobtrusiveLoaderCount <= 0) {
+            $(".unobtrusive-loader").hide()
+            $(".hide-on-unobtrusive-loading").show();
         }
     }
 }

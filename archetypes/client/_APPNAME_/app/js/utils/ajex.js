@@ -1,7 +1,7 @@
 "use strict"
 
-import * as _ from "../libs/underscore"
-import * as aj from "../aj"
+import * as _ from "../libs/underscore";
+import * as aj from "../aj";
 
 export function completed(action) {
     return action + "_COMPLETE"
