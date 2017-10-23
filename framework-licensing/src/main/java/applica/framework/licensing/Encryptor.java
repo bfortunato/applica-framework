@@ -2,8 +2,8 @@ package applica.framework.licensing;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Objects;
 
 /**
@@ -57,10 +57,10 @@ public class Encryptor {
     }
 
     public static String toHexString(byte[] array) {
-        return DatatypeConverter.printHexBinary(array);
+        return Base64.getEncoder().encodeToString(array);
     }
 
     public static byte[] toByteArray(String s) {
-        return DatatypeConverter.parseHexBinary(s);
+        return Base64.getDecoder().decode(s);
     }
 }
