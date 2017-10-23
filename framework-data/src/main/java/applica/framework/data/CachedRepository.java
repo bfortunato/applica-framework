@@ -40,7 +40,7 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
 
     @Override
     public Result<T> find(Query request) {
-        return find(request);
+        return concreteRepository.find(request);
     }
 
     @Override
