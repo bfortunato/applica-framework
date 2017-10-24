@@ -86,6 +86,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- JAX WS -->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-spring-boot-starter-jaxws</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
     </dependencies>
 
 

@@ -53,6 +53,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/auth/**")
                 .antMatchers("/account/**")
                 .antMatchers("/images/**")
+                .antMatchers("/services/**")
                 .antMatchers("/files/**");
         super.init(web);
     }
