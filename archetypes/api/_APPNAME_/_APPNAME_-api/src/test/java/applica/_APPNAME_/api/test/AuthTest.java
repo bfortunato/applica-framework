@@ -38,9 +38,9 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.*;
  * Created by bimbobruno on 14/11/2016.
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = { Application.class })
-@WebAppConfiguration
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@SpringBootTest(classes = { Application.class })
+//@WebAppConfiguration
 public class AuthTest {
 
     private Log logger = LogFactory.getLog(getClass());
@@ -63,14 +63,14 @@ public class AuthTest {
         this.optionsManager = optionsManager;
     }
 
-    @Before
+    //@Before
     public void setup() {
         logger.info("Forcing options environment to test");
         ((PropertiesOptionManager) optionsManager).forceEnvironment("test");
         mvc = webAppContextSetup(webApplicationContext).build();
     }
 
-    @Test
+    //@Test
     public void loginTest() throws Exception {
         String mail = "bruno.fortunato@applica.guru";
 

@@ -8,6 +8,7 @@ import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
 import applica.framework.EntitiesScanner;
 import applica.framework.widgets.entities.EntitiesRegistry;
+import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
@@ -43,7 +44,8 @@ import javax.annotation.PostConstruct;
         WebMvcAutoConfiguration.class,
         ApplicationConfiguration.class,
         MongoConfiguration.class,
-        SecurityConfiguration.class
+        SecurityConfiguration.class,
+        CxfAutoConfiguration.class
 })
 public class Application {
     static {

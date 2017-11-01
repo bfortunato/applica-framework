@@ -40,8 +40,8 @@ public class ApplicationInitializer {
     private UsersRepository usersRepository;
 
     public void init() {
-        LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
-        LicenseManager.instance().mustBeValid();
+        //LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
+        //LicenseManager.instance().mustBeValid();
 
         initializeMongoEmbedded();
         initializePermissions();
