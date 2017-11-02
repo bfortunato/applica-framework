@@ -4,12 +4,12 @@ import {EntitiesStore} from "../../../stores"
 import {Layout, Screen} from "../../components/layout"
 import M from "../../../strings"
 import {connectDiscriminated} from "../../utils/aj"
-import {HeaderBlock, ActionsMatcher} from "../../components/common"
+import {ActionsMatcher, HeaderBlock} from "../../components/common"
 import {Form} from "../../components/forms"
-import {newEntity, getEntity, saveEntity, freeEntities} from "../../../actions"
+import {freeEntities, getEntity, newEntity, saveEntity} from "../../../actions"
 import entities from "../../entities"
 import * as ui from "../../utils/ui"
-import {optional} from "../../../utils/lang";
+import {optional} from "../../../utils/lang"
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -93,6 +93,7 @@ export default class EntityForm extends Screen {
                     })
                 }
             }
+            this.refs.form.model.invalidateForm()
         }
     }
 

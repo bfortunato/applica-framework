@@ -1,17 +1,15 @@
 "use strict"
 
 import M from "../../strings"
-import {Card, Actions} from "./common"
+import {Actions, Card} from "./common"
 import {format, optional} from "../../../utils/lang"
 import {Observable} from "../../../aj/events"
-import {Grid, ActionsCell, resultToGridData} from "./grids"
+import {ActionsCell, Grid, resultToGridData} from "./grids"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
-import {Dialog} from "./dialogs"
-import moment from "../../libs/moment"
 
 export const VALIDATION_ERROR = {}
 
@@ -28,7 +26,7 @@ export class Model extends Observable {
         this.changesTrackingDisabled = false
     }
 
-    invalidatForm() {
+    invalidateForm() {
         if (this.form) {
             this.form.forceUpdate()
         }

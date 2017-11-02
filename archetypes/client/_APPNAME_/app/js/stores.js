@@ -1,9 +1,7 @@
 import * as aj from "./aj"
-import { createAsyncAction, completed, failed } from "./utils/ajex"
+import {completed, discriminate, failed} from "./utils/ajex"
 import * as actions from "./actions"
 import * as _ from "./libs/underscore"
-import M from "./strings"
-import {discriminate} from "./utils/ajex"
 import {walk} from "./utils/lang"
 
 
@@ -55,6 +53,8 @@ export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
 
         case failed(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
+        case actions.LOGOUT:
+            return _.assign(state, {action: actions.LOGOUT, isLoggedIn: false });
     }
 
 });
@@ -150,7 +150,12 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
             return _.omit(state, action.discriminator)
 
         case actions.SAVE_ENTITY:
-            return discriminate(state, action.discriminator, {error: false, saved: false})
+            return discriminate(state, action.discriminator, {
+                error: false,
+                getCompleted: false,
+                validationError: false,
+                validationResult: null,
+                saved: false})
 
         case completed(actions.SAVE_ENTITY):
             return discriminate(state, action.discriminator, {
