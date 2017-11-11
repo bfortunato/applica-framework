@@ -6,6 +6,7 @@ import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.SimpleItem;
 import applica.framework.library.base64.URLData;
+import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -45,6 +47,11 @@ public class EntityMapper {
     @FunctionalInterface
     public interface Getter<T extends Entity> {
         T get();
+    }
+
+    @FunctionalInterface
+    public interface ChildrenConsumer<T1, T2> {
+        void accept(T1 source, T2 destination) throws OperationException;
     }
 
     public void property(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, Function<Object, Object> supplier) {
@@ -87,6 +94,74 @@ public class EntityMapper {
                 PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public <T> void children(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, Class<T> sourceElementType, ChildrenConsumer<T, ObjectNode> consumer) throws OperationException {
+        if (source == null || destination == null || destination.isNull()) {
+            return;
+        }
+
+        List<T> sourceList = null;
+        try {
+            sourceList = ((List<T>) PropertyUtils.getProperty(source, sourceProperty));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+        if (sourceList == null) {
+            return;
+        }
+
+        ArrayNode arrayNode = ((ArrayNode) destination.get(destinationProperty));
+        if (arrayNode == null || arrayNode.isNull()) {
+            return;
+        }
+
+        if (sourceList.size() != arrayNode.size()) {
+            throw new RuntimeException("Source list and destination array node must have same size");
+        }
+
+        int index = 0;
+        for (T element : sourceList) {
+            ObjectNode jsonElement = ((ObjectNode) arrayNode.get(index));
+            if (element != null && jsonElement != null && !jsonElement.isNull()) {
+                consumer.accept(element, jsonElement);
+            }
+        }
+    }
+
+    public <T> void children(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, Class<T> destinationElementType, ChildrenConsumer<ObjectNode, T> consumer) throws OperationException {
+        if (source == null || source.isNull() || destination == null) {
+            return;
+        }
+
+        ArrayNode arrayNode = ((ArrayNode) source.get(sourceProperty));
+        if (arrayNode == null || arrayNode.isNull()) {
+            return;
+        }
+
+        List<T> destinationList = null;
+        try {
+            destinationList = ((List<T>) PropertyUtils.getProperty(destination, destinationProperty));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+        if (destinationList == null) {
+            return;
+        }
+
+        if (destinationList.size() != arrayNode.size()) {
+            throw new RuntimeException("Source array node and destination list must have same size");
+        }
+
+        int index = 0;
+        for (T element : destinationList) {
+            ObjectNode jsonElement = ((ObjectNode) arrayNode.get(index));
+            if (element != null && jsonElement != null && !jsonElement.isNull()) {
+                consumer.accept(jsonElement, element);
             }
         }
     }

@@ -1,15 +1,15 @@
 "use strict"
 
-import M from "../../strings";
-import {Actions, Card} from "./common";
-import {format, optional} from "../../../utils/lang";
-import {Observable} from "../../../aj/events";
-import {ActionsCell, Grid, resultToGridData} from "./grids";
-import * as query from "../../api/query";
-import {isCancel} from "../utils/keyboard";
-import * as inputfile from "../utils/inputfile";
-import * as datasource from "../../utils/datasource";
-import {diff, parseBoolean} from "../../utils/lang";
+import M from "../../strings"
+import {Actions, Card} from "./common"
+import {format, optional} from "../../../utils/lang"
+import {Observable} from "../../../aj/events"
+import {ActionsCell, Grid, resultToGridData} from "./grids"
+import * as query from "../../api/query"
+import {isCancel} from "../utils/keyboard"
+import * as inputfile from "../utils/inputfile"
+import * as datasource from "../../utils/datasource"
+import {parseBoolean} from "../../utils/lang"
 
 export const VALIDATION_ERROR = {}
 
@@ -18,11 +18,11 @@ export class Model extends Observable {
         super()
 
         this.descriptor = null
-        this.initialData = {}
         this.data = {}
         this.validationResult = {}
         this.initialized = false
         this.form = form
+        this.changes = []
         this.changesTrackingDisabled = false
     }
 
@@ -37,8 +37,6 @@ export class Model extends Observable {
         if (!this.initialized && data != null) {
             this.invoke("load", this)
             this.initialized = true
-
-            this.initialData = _.clone(this.data)
         }
     }
 
@@ -122,8 +120,7 @@ export class Model extends Observable {
     }
 
     hasChanges() {
-        let d = diff(this.data, this.initialData)
-        return d.length > 0
+        return this.changes.length > 0
     }
 
     trackChanges() {
@@ -134,10 +131,8 @@ export class Model extends Observable {
         this.changesTrackingDisabled = true
     }
 
-    reset() {
-        this.initialized = false
-        this.data = {}
-        this.initialData = {}
+    resetChanges() {
+        this.changes = []
     }
 
     set(property, value) {
@@ -145,8 +140,17 @@ export class Model extends Observable {
         this.data[property] = value 
 
         if (!this.changesTrackingDisabled) {
-            this.invoke("property:change", property, value)
-        }   
+            if (initialValue !== value) {
+                let change = _.find(this.changes, c => c.property === property)
+                if (change) {
+                    change.value = value
+                } else {
+                    this.changes.push({property, initialValue, value})
+                }
+            }
+        }
+
+        this.invoke("property:change", property, value)   
     }
 
     assign(property, value) {
@@ -297,13 +301,9 @@ export class Area extends React.Component {
         let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f}))
 
         return (
-            <Card title={area.title} subtitle={area.subtitle} actions={area.actions}>
+            <Card padding="true" title={area.title} subtitle={area.subtitle} actions={area.actions}>
                 {tabs}
-                <div className="row">
-                    <div className="p-l-30 p-r-30">
-                        {fields}
-                    </div>
-                </div>
+                <div className="row">{fields}</div>
                 <div className="clearfix"></div>
 
                 {this.getExtra()}
@@ -390,11 +390,7 @@ export class Tabs extends React.Component {
             let fields = !_.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f}))
             let el = (
                 <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
-                    <div className="row">
-                        <div className="p-l-30 p-t-10 p-r-30">
-                            {fields}
-                        </div>
-                    </div>
+                    <div className="row">{fields}</div>
                     <div className="clearfix"></div>
                 </div>
             )
@@ -406,7 +402,7 @@ export class Tabs extends React.Component {
 
         return (
             <div>
-                <ul className="tab-nav" style={{textAlign: "center"}} role="tablist">
+                <ul className="tab-nav" role="tablist">
                     {nav}
                 </ul>
 
@@ -497,11 +493,9 @@ export class FormBody extends React.Component {
                 {(tabs.length > 0 || fields.length > 0) &&
                     (showInCard
                         ?
-                        <Card padding="false">
+                        <Card padding="true">
                             {tabs}
-                            <div className="p-l-30 p-r-30">
-                                {fields}
-                            </div>                            
+                            {fields}
                             <div className="clearfix"></div>
                         </Card> 
                         :
@@ -522,12 +516,6 @@ export class Form extends React.Component {
         super(props)
 
         this.model = new Model(this)
-        this.model.once("load", () => {
-            let descriptor = this.props.descriptor
-            if (_.isFunction(descriptor.onModelLoad)) {
-                descriptor.onModelLoad(this.model)
-            }
-        })
     }
 
     submit() {
@@ -1026,7 +1014,6 @@ export class Select extends Control {
         }
 
         model.set(field.property, value)
-
         this.forceUpdate()
     }
 
@@ -1053,19 +1040,17 @@ export class Select extends Control {
                 liveSearch: optional(this.props.searchEnabled, false)
             })
             .on("loaded.bs.select", function() {
-                if (_.isEmpty(model.get(field.property))) {
-                    let value = $(this).val()
+                let value = $(this).val()
 
-                    if (multiple) {
-                        if (_.isEmpty(value)) {
-                            value = []
-                        }
+                if (multiple) {
+                    if (_.isEmpty(value)) {
+                        value = []
                     }
-
-                    model.untrackChanges()
-                    model.set(field.property, value)
-                    model.trackChanges()
                 }
+
+                model.untrackChanges()
+                model.set(field.property, value)
+                model.trackChanges()
             })
     }
 
@@ -1073,7 +1058,6 @@ export class Select extends Control {
         let model = this.props.model
         let field = this.props.field
         let me = ReactDOM.findDOMNode(this)
-        let multiple = optional(this.props.multiple, false)
 
         $(me).find("select").selectpicker("refresh")
     }

@@ -1,15 +1,15 @@
 "use strict";
 
-import {EntitiesStore} from "../../../stores/entities";
-import {Layout, Screen} from "../../components/layout";
-import M from "../../../strings";
-import {connectDiscriminated} from "../../utils/aj";
-import {ActionsMatcher, HeaderBlock} from "../../components/common";
-import {Form} from "../../components/forms";
-import {freeEntities, getEntity, newEntity, saveEntity} from "../../../actions/entities";
-import entities from "../../entities";
-import * as ui from "../../utils/ui";
-import {optional} from "../../../utils/lang";
+import {EntitiesStore} from "../../../stores"
+import {Layout, Screen} from "../../components/layout"
+import M from "../../../strings"
+import {connectDiscriminated} from "../../utils/aj"
+import {ActionsMatcher, HeaderBlock} from "../../components/common"
+import {Form} from "../../components/forms"
+import {freeEntities, getEntity, newEntity, saveEntity} from "../../../actions"
+import entities from "../../entities"
+import * as ui from "../../utils/ui"
+import {optional} from "../../../utils/lang"
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -21,7 +21,6 @@ export default class EntityForm extends Screen {
 
         this.discriminator = "entity_form_" + props.entity
         this.initialEntity = null
-        this.willGoBack = true
 
         connectDiscriminated(this.discriminator, this, EntitiesStore, {data: null})
     }
@@ -31,6 +30,7 @@ export default class EntityForm extends Screen {
         let model = form.model
 
         this.onBeforeUnload = function() {
+            console.log(model.changes)
             if (model.hasChanges()) {
                 return M("formChangeAlert")
             }
@@ -39,7 +39,7 @@ export default class EntityForm extends Screen {
         window.onbeforeunload = this.onBeforeUnload
         ui.addOnBeforeChangeListener(this.onBeforeUnload)
 
-        if (!_.isEmpty(this.props.entityId) && this.props.entityId !== "create") {
+        if (!_.isEmpty(this.props.entityId) && this.props.entityId != "create") {
             getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
         } else {
             newEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId})
@@ -71,14 +71,12 @@ export default class EntityForm extends Screen {
     }
 
     goBack() {
-        const form = this.refs.form
-        const data = form.model.sanitized()
-        ui.navigate(this.getGridUrl(data))
+        ui.navigate(this.getGridUrl())
     }
 
     componentWillUpdate(props, state) {
         if (state.saved) {
-            this.refs.form.model.reset()
+            this.refs.form.model.resetChanges()
         }
 
         if (state.saved && this.willGoBack) {
@@ -89,12 +87,13 @@ export default class EntityForm extends Screen {
         if (state.validationError) {
             if (state.validationResult) {
                 let form = this.refs.form
-                if (form && form.model) { 
+                if (form && form.model) {
                     _.each(state.validationResult.errors, e => {
                         form.model.setError(e.property, M(e.message))
                     })
                 }
             }
+            this.refs.form.model.invalidateForm()
         }
     }
 
@@ -102,13 +101,9 @@ export default class EntityForm extends Screen {
         return this.props.entity
     }
 
-    getGridUrl(data) {
-        const form = entities[this.getEntity()].form
-        let gridUrl = form.gridUrl
-        if (_.isFunction(gridUrl)) {
-            gridUrl = gridUrl(data)
-        }
-        return optional(gridUrl, "/entities/" + this.getEntity())
+    getGridUrl() {
+        let form = entities[this.getEntity()].form
+        return optional(form.gridUrl, "/entities/" + this.getEntity())
     }
 
     getActions() {
@@ -125,9 +120,8 @@ export default class EntityForm extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-save",
                 tooltip: M("save"),
-                action: () => { this.submit(true) }
+                action: () => { this.submit(false) }
             },
-            /*
             {
                 id: "save-go-back",
                 type: "button",
@@ -135,7 +129,7 @@ export default class EntityForm extends Screen {
                 tooltip: M("saveAndGoBack"),
                 action: () => { this.submit(true) }
             }
-            */
+
         ]
 
         let form = entities[this.getEntity()].form
