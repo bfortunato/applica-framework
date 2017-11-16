@@ -6,6 +6,7 @@ import applica.framework.widgets.operations.ResultSerializerListener;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -42,6 +43,7 @@ public class DefaultResultSerializer implements ResultSerializer {
             mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, false);
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
             for (Entity entity : result.getRows()) {
                 JsonNode node = serializeEntity(mapper, entity);
