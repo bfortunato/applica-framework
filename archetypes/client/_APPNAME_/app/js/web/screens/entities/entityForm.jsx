@@ -1,15 +1,15 @@
 "use strict";
 
-import {EntitiesStore} from "../../../stores/entities";
-import {Layout, Screen} from "../../components/layout";
-import M from "../../../strings";
-import {connectDiscriminated} from "../../utils/aj";
-import {ActionsMatcher, HeaderBlock} from "../../components/common";
-import {Form} from "../../components/forms";
-import {freeEntities, getEntity, newEntity, saveEntity} from "../../../actions/entities";
-import entities from "../../entities";
-import * as ui from "../../utils/ui";
-import {optional} from "../../../utils/lang";
+import {EntitiesStore} from "../../../stores"
+import {Layout, Screen} from "../../components/layout"
+import M from "../../../strings"
+import {connectDiscriminated} from "../../utils/aj"
+import {ActionsMatcher, HeaderBlock} from "../../components/common"
+import {Form} from "../../components/forms"
+import {freeEntities, getEntity, newEntity, saveEntity} from "../../../actions"
+import entities from "../../entities"
+import * as ui from "../../utils/ui"
+import {optional} from "../../../utils/lang"
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -95,6 +95,7 @@ export default class EntityForm extends Screen {
                     })
                 }
             }
+            this.refs.form.model.invalidateForm()
         }
     }
 

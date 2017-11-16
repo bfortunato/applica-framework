@@ -1,15 +1,15 @@
 "use strict"
 
-import M from "../../strings";
-import {Actions, Card} from "./common";
-import {format, optional} from "../../../utils/lang";
-import {Observable} from "../../../aj/events";
-import {ActionsCell, Grid, resultToGridData} from "./grids";
-import * as query from "../../api/query";
-import {isCancel} from "../utils/keyboard";
-import * as inputfile from "../utils/inputfile";
-import * as datasource from "../../utils/datasource";
-import {diff, parseBoolean} from "../../utils/lang";
+import M from "../../strings"
+import {Actions, Card} from "./common"
+import {format, optional} from "../../../utils/lang"
+import {Observable} from "../../../aj/events"
+import {ActionsCell, Grid, resultToGridData} from "./grids"
+import * as query from "../../api/query"
+import {isCancel} from "../utils/keyboard"
+import * as inputfile from "../utils/inputfile"
+import * as datasource from "../../utils/datasource"
+import {parseBoolean} from "../../utils/lang"
 
 export const VALIDATION_ERROR = {}
 
