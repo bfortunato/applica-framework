@@ -16,7 +16,7 @@ public class BaseDynamicObject implements DynamicObject {
     private List<Property> properties = new ArrayList<>();
 
     @Override
-    public Object get(String key) {
+    public Object getProperty(String key) {
         return properties
                 .stream()
                 .filter(p -> p.key.equals(key))
@@ -26,7 +26,7 @@ public class BaseDynamicObject implements DynamicObject {
     }
 
     @Override
-    public synchronized void set(String key, Object value) {
+    public synchronized void setProperty(String key, Object value) {
         Property p = properties
                 .stream()
                 .filter(pf -> pf.key.equals(key))
@@ -42,12 +42,12 @@ public class BaseDynamicObject implements DynamicObject {
     }
 
     @Override
-    public synchronized void remove(String key) {
+    public synchronized void removeProperty(String key) {
         properties.removeIf(p -> p.key.equals(key));
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized void clearProperties() {
         properties.clear();
     }
 }

@@ -5,9 +5,9 @@ package applica.framework.library.dynaobject;
  */
 public interface DynamicObject {
 
-    Object get(String key);
-    void set(String key, Object value);
-    void remove(String key);
-    void clear();
+    Object getProperty(String key);
+    void setProperty(String key, Object value);
+    void removeProperty(String key);
+    void clearProperties();
 
 }
