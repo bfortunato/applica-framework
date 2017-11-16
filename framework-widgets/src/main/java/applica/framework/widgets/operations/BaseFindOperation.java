@@ -46,7 +46,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         try {
             return serializer.serialize(result);
         } catch (SerializationException e) {
-            throw new OperationException(Response.ERROR_SERIALIZATION);
+            throw new OperationException(Response.ERROR_SERIALIZATION, e);
         }
     }
 
