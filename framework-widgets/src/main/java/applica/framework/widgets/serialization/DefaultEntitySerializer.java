@@ -4,6 +4,7 @@ import applica.framework.Entity;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -31,6 +32,7 @@ public class DefaultEntitySerializer implements EntitySerializer {
             mapper.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, false);
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
             JsonNode node = mapper.valueToTree(entity);
             return (ObjectNode) node;
         } catch (Exception ex) {
