@@ -57,7 +57,7 @@ public class BaseGetOperation implements GetOperation {
             ObjectNode data = serializer.serialize(entity);
             return data;
         } catch (SerializationException e) {
-            throw new OperationException(Response.ERROR_SERIALIZATION);
+            throw new OperationException(Response.ERROR_SERIALIZATION, e);
         }
     }
 

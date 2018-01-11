@@ -1,109 +1,10 @@
-import * as aj from "./aj"
-import {completed, discriminate, failed} from "./utils/ajex"
-import * as actions from "./actions"
-import * as _ from "./libs/underscore"
-import {walk} from "./utils/lang"
-
 import * as aj from "../aj/index";
 import {completed, discriminate, failed} from "../utils/ajex";
 import * as actions from "../actions/types";
 import * as _ from "../libs/underscore";
-import {walk} from "../utils/lang";
 import {ENTITIES, GRIDS, LOOKUP, SELECT} from "./types";
 
-export const UI = "UI";
-export const UIStore = aj.createStore(UI, (state = {}, action) => {
 
-    switch (action.type) {
-        case actions.GET_USER_COVER_IMAGE:
-            return _.assign(state, {error: false});
-
-        case completed(actions.GET_USER_COVER_IMAGE):
-            return _.assign(state, {error: false, cover: action.data});
-
-        case failed(actions.GET_USER_COVER_IMAGE):
-            return _.assign(state, {error: true});
-
-        case actions.GET_USER_PROFILE_IMAGE:
-            return _.assign(state, {error: false});
-
-        case completed(actions.GET_USER_PROFILE_IMAGE):
-            return _.assign(state, {error: false, profileImage: action.data});
-
-        case failed(actions.GET_USER_PROFILE_IMAGE):
-            return _.assign(state, {error: true});
-    }
-
-});
-
-
-
-export const SESSION = "SESSION";
-export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
-
-    switch (action.type) {
-        case actions.LOGIN:
-            return _.assign(state, { isLoggedIn: false });
-
-        case completed(actions.LOGIN):
-            return _.assign(state, { isLoggedIn: true, user: action.user, error: false });
-
-        case failed(actions.LOGIN):
-            return _.assign(state, { isLoggedIn: false, error: true });
-
-        case actions.RESUME_SESSION:
-            return _.assign(state, { isLoggedIn: false, resumeComplete: false });
-
-        case completed(actions.RESUME_SESSION):
-            return _.assign(state, { isLoggedIn: true, user: action.user, error: false, resumeComplete: true });
-
-        case failed(actions.RESUME_SESSION):
-            return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
-        case actions.LOGOUT:
-            return _.assign(state, {action: actions.LOGOUT, isLoggedIn: false });
-    }
-
-});
-
-export const ACCOUNT = "ACCOUNT";
-export const AccountStore = aj.createStore(ACCOUNT, (state = {activationCode: ""}, action) => {
-
-    switch (action.type) {
-        case actions.REGISTER:
-            return _.assign(state, { registered: false, error: false });
-
-        case completed(actions.REGISTER):
-            return _.assign(state, { registered: true, error: false, name: action.name, mail: action.mail, message: action.message });
-
-        case failed(actions.REGISTER):
-            return _.assign(state, { registered: false, error: true, message: action.message });
-
-        case actions.SET_ACTIVATION_CODE:
-            return _.assign(state, { activationCode: action.activationCode });
-
-        case actions.CONFIRM_ACCOUNT:
-            return _.assign(state, { confirmed: false, error: false });
-
-        case completed(actions.CONFIRM_ACCOUNT):
-            return _.assign(state, { confirmed: true, error: false });
-
-        case failed(actions.CONFIRM_ACCOUNT):
-            return _.assign(state, { confirmed: false, error: true, message: action.message });
-
-        case actions.RECOVER_ACCOUNT:
-            return _.assign(state, { recovered: false, error: false });
-
-        case completed(actions.RECOVER_ACCOUNT):
-            return _.assign(state, { recovered: true, error: false });
-
-        case failed(actions.RECOVER_ACCOUNT):
-            return _.assign(state, { recovered: false, error: true });
-    }
-
-});
-
-
-export const GRIDS = "GRIDS"
 export const GridsStore = aj.createStore(GRIDS, (state = {grid: null}, action) => {
 
     switch (action.type) {
