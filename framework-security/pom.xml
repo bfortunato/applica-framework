@@ -24,7 +24,7 @@
     <dependencies>
         <dependency>
             <groupId>applica.framework</groupId>
-            <artifactId>framework-core</artifactId>
+            <artifactId>framework-library</artifactId>
             <version>${applica.framework.version}</version>
         </dependency>
 
