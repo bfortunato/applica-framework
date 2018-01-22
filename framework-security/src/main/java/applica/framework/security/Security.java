@@ -1,9 +1,13 @@
 package applica.framework.security;
 
 import applica.framework.ApplicationContextProvider;
+import applica.framework.library.cache.Cache;
+import applica.framework.library.cache.MemoryCache;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.authorization.AuthorizationService;
-import applica.framework.security.token.ByTokenAuthenticationToken;
+import applica.framework.security.token.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +27,9 @@ import org.springframework.util.Assert;
  * Don't use autowire with this class, because is needed also in non DI contexts (example: velocity)
  */
 public class Security {
+
+    private static Cache cache = new MemoryCache();
+    private static Log logger = LogFactory.getLog(Security.class);
 
     private static AuthorizationService authorizationService;
     private static AuthenticationManager authenticationManager;
@@ -132,18 +139,46 @@ public class Security {
     }
 
     public static void tokenLogin(String token) throws AuthenticationException {
-        SecurityContextHolder.getContext().setAuthentication(null);
+        if (!tryToLoginByTokenInCache(token)) {
+            SecurityContextHolder.getContext().setAuthentication(null);
 
-        Assert.hasLength(token);
+            Assert.hasLength(token);
 
-        ByTokenAuthenticationToken byTokenAuthenticationToken = new ByTokenAuthenticationToken(token);
-        Authentication authentication = getAuthenticationManager().authenticate(byTokenAuthenticationToken);
+            ByTokenAuthenticationToken byTokenAuthenticationToken = new ByTokenAuthenticationToken(token);
+            Authentication authentication = getAuthenticationManager().authenticate(byTokenAuthenticationToken);
 
-        if(authentication != null) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            throw new AuthenticationException("bad username or password");
+            if (authentication != null) {
+                cache.put(token, Cache.TIME_ONE_MINUTE, authentication);
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                logger.info("User authenticated: " + authentication.getName());
+            } else {
+                throw new AuthenticationException("bad username or password");
+            }
         }
+    }
+
+    private static boolean tryToLoginByTokenInCache(String token) {
+        AuthTokenValidator validator = new DefaultAuthTokenValidator();
+        try {
+            if (validator.isExpiring(token)) {
+                cache.invalidate(token);
+                return false;
+            }
+        } catch (Exception e) {
+            cache.invalidate(token);
+            return false;
+        }
+
+        Authentication authentication = ((Authentication) cache.get(token));
+        if (authentication != null) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            logger.info("User authenticated by cache: " + authentication.getName());
+        }
+
+        return authentication != null;
     }
 
     public static void manualLogin(String username, String password) throws AuthenticationException {

@@ -4,7 +4,7 @@ import {FullScreenLayout, Screen} from "../components/layout";
 import {login} from "../../actions/session";
 import * as forms from "../utils/forms";
 import M from "../../strings";
-import {SessionStore} from "../../stores/account";
+import {SessionStore} from "../../stores/session";
 import {connect} from "../utils/aj";
 
 export default class Login extends Screen {

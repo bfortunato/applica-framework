@@ -3,14 +3,12 @@
 import * as aj from "../aj/index";
 import {createAsyncAction} from "../utils/ajex";
 import * as SessionApi from "../api/session";
-import * as AccountApi from "../api/account";
-import * as responses from "../api/responses";
 import {alert, hideLoader, showLoader, toast} from "../plugins";
-import {format} from "../utils/lang";
 import M from "../strings";
 import * as _ from "../libs/underscore";
+import {LOGIN, LOGOUT, RESUME_SESSION} from "./types";
+import {getUserCoverImage, getUserProfileImage} from "./ui";
 
-export const LOGIN = "LOGIN";
 export const login = createAsyncAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
         alert(M("problemOccoured"), M("mailAndPasswordRequired"), "warning")
@@ -40,7 +38,6 @@ export const login = createAsyncAction(LOGIN, data => {
         })
 });
 
-export const RESUME_SESSION = "RESUME_SESSION"
 export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
     aj.dispatch({
         type: RESUME_SESSION
@@ -62,7 +59,6 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
         })
 });
 
-export const LOGOUT = "LOGOUT";
 export const logout = aj.createAction(LOGOUT, data => {
     SessionApi.destroy()
         .then(() => {

@@ -5,7 +5,9 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.SimpleItem;
+import applica.framework.library.base64.InvalidDataException;
 import applica.framework.library.base64.URLData;
+import applica.framework.library.utils.LangUtils;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -30,6 +32,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+
+import static applica.framework.library.utils.LangUtils.unchecked;
 
 /**
  * Created by bimbobruno on 14/02/2017.
@@ -302,6 +306,8 @@ public class EntityMapper {
                 URLData urlData = URLData.parse(imageData);
                 String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
                 PropertyUtils.setProperty(destination, destinationProperty, imagePath);
+            } catch (IOException e) {
+                 unchecked(() -> PropertyUtils.setProperty(destination, destinationProperty, null));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -4,9 +4,9 @@ import * as aj from "../aj/index";
 import {createAsyncAction} from "../utils/ajex";
 import * as SessionApi from "../api/session";
 import * as AccountApi from "../api/account";
+import {GET_USER_COVER_IMAGE, GET_USER_PROFILE_IMAGE} from "./types";
 
 
-export const GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE"
 export const getUserCoverImage = createAsyncAction(GET_USER_COVER_IMAGE, data => {
     let user = SessionApi.getLoggedUser()
     if (user == null) {
@@ -27,7 +27,6 @@ export const getUserCoverImage = createAsyncAction(GET_USER_COVER_IMAGE, data =>
 
 })
 
-export const GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE"
 export const getUserProfileImage = createAsyncAction(GET_USER_PROFILE_IMAGE, data => {
     let user = SessionApi.getLoggedUser()
     if (user == null) {

@@ -27,6 +27,9 @@ export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
 
         case failed(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
+
+        case actions.LOGOUT:
+            return _.assign(state, {isLoggedIn: false, user: null, error: false, resumeComplete: false})
     }
 
 });
