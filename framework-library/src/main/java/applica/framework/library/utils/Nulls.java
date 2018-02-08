@@ -50,7 +50,6 @@ public class Nulls {
         } catch(NullPointerException e) {
             return default_;
         }
-
     }
 
     public static <T> T get(Safe<T> func) {

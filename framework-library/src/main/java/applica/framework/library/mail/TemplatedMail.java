@@ -15,7 +15,11 @@ import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
 import javax.mail.internet.MimeMessage.RecipientType;
+import javax.mail.util.ByteArrayDataSource;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TemplatedMail {
@@ -32,9 +36,20 @@ public class TemplatedMail {
     private String returnReceipt;
     private List<Recipient> recipients;
     private String subject;
-    private List<String> attachments;
+    private List<String> attachments = new ArrayList<>();
+    private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
+
+    private class ByteAttachmentData {
+        byte[] bytes;
+        String type;
+
+        public ByteAttachmentData(byte[] bytes, String type) {
+            this.bytes = bytes;
+            this.type = type;
+        }
+    }
 
     public TemplatedMail() {
         context = new VelocityContext();
@@ -116,6 +131,10 @@ public class TemplatedMail {
         this.attachments = attachments;
     }
 
+    public void addAttachment(byte[] data, String type) {
+        bytesAttachments.add(new ByteAttachmentData(data, type));
+    }
+
     public void send() throws MailException, AddressException, MessagingException {
         if (options == null) throw new MailException("options not setted");
         if (!StringUtils.hasLength(from)) throw new MailException("from not setted");
@@ -154,7 +173,7 @@ public class TemplatedMail {
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
-        if(attachments != null && !attachments.isEmpty()){
+        if ((attachments != null && !attachments.isEmpty()) || !bytesAttachments.isEmpty()) {
 
             // Create the message part
             BodyPart messageBodyPart = new MimeBodyPart();
@@ -176,12 +195,14 @@ public class TemplatedMail {
                 addAttachment(multipart, attachment);
             }
 
+            for (ByteAttachmentData a : bytesAttachments) {
+                addByteAttachment(multipart, a);
+            }
+
             // Send the complete message parts
             message.setContent(multipart);
 
-
-
-        }else if(mailFormat == TEXT){
+        } else if(mailFormat == TEXT){
             message.setContent(bodyWriter.toString(),"text/plain" );
             message.setText(bodyWriter.toString(), "UTF-8");
         } else if (mailFormat == HTML){
@@ -193,6 +214,14 @@ public class TemplatedMail {
         }
 
         Transport.send(message);
+    }
+
+    private void addByteAttachment(Multipart multipart, ByteAttachmentData data) throws MessagingException {
+        DataSource source = new ByteArrayDataSource(data.bytes, data.type);
+        BodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setDataHandler(new DataHandler(source));
+        messageBodyPart.setFileName("conferma_ordine.pdf");
+        multipart.addBodyPart(messageBodyPart);
     }
 
     private static void addAttachment(Multipart multipart, String attachment) throws MessagingException {

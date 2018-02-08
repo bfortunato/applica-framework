@@ -1,5 +1,7 @@
 package applica.framework.library.responses;
 
+import applica.framework.library.utils.Nulls;
+
 /**
  * Responses are used in the framework as ajax calls results
  */
