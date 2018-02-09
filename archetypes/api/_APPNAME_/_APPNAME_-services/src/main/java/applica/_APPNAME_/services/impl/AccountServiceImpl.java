@@ -2,8 +2,10 @@ package applica._APPNAME_.services.impl;
 
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.model.Filters;
+import applica._APPNAME_.domain.model.PasswordChange;
 import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.services.AccountService;
+import applica._APPNAME_.services.MailService;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
@@ -11,10 +13,13 @@ import applica.framework.Query;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.mail.MailUtils;
+import applica.framework.library.mail.Recipient;
 import applica.framework.library.mail.TemplatedMail;
 import applica.framework.library.options.OptionsManager;
+import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.security.PasswordUtils;
+import applica.framework.security.Security;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -26,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -160,16 +166,6 @@ public class AccountServiceImpl implements AccountService {
         usersRepository.delete(id);
     }
 
-    private void sendTemplatedMail(TemplatedMail templatedMail) {
-        new Thread(() -> {
-            try {
-                templatedMail.send();
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.info(String.format("Error sending mail to %s", templatedMail.getTo()));
-            }
-        }).run();
-    }
 
     private Role getOrCreateRole(String roleName) {
         return rolesRepository.find(Query.build().filter(Filters.ROLE_NAME, roleName))
@@ -187,7 +183,7 @@ public class AccountServiceImpl implements AccountService {
     public void changePassword(String password, String passwordConfirm) throws ValidationException {
         Validation.validate(new PasswordChange(password, passwordConfirm));
         User loggedUser = (User) Security.withMe().getLoggedUser();
-        loggedUser.setFirstLogin(false);
+        ((User) loggedUser).setFirstLogin(false);
         loggedUser.setPassword(new Md5PasswordEncoder().encodePassword(password, null));
         usersRepository.save(loggedUser);
     }

@@ -1,7 +1,6 @@
 package applica.framework.security.tests;
 
 import applica.framework.ApplicationContextProvider;
-import applica.framework.EntitiesScanner;
 import applica.framework.security.Role;
 import applica.framework.security.Security;
 import applica.framework.security.User;
@@ -58,8 +57,8 @@ public class AuthTest {
 
         Assert.assertEquals(true, Security.with(testUser).isPermitted("static:permission"));
         Assert.assertEquals(true, Security.with(testUser).isPermitted("crud:create"));
-        Assert.assertEquals(false, Security.with(testUser).isPermitted("crud:update"));
-        Assert.assertEquals(false, Security.with(testUser).isPermitted("crud:delete"));
+        Assert.assertEquals(true, Security.with(testUser).isPermitted("crud:update"));
+        Assert.assertEquals(true, Security.with(testUser).isPermitted("crud:delete"));
     }
 
     class TestUser implements applica.framework.security.User {
