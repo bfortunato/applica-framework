@@ -29,6 +29,10 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
+
+    @Autowired
+    private AuthService authService;
+
     @PostMapping("/register")
     public Response register(String name, String mail, String password) {
         try {
@@ -107,4 +111,21 @@ public class AccountController {
             return new Response(Response.ERROR);
         }
     }
+
+    @RequestMapping(value = "/changePassword")
+    public @ResponseBody
+    Response resetPassword(String password, String passwordConfirm) throws TokenGenerationException, BadCredentialsException {
+        try {
+            accountService.changePassword(password, passwordConfirm);
+        } catch (ValidationException e) {
+            e.getValidationResult().getErrors();
+            return new Response(Response.ERROR, ErrorsUtils.getAllErrorMessages(e.getValidationResult().getErrors()));
+        }
+        catch (Exception e) {
+            return new Response(Response.ERROR, e.getMessage());
+        }
+        User user = Security.withMe().getLoggedUser();
+        return new ValueResponse(new UIUserWithToken(user, authService.token(((applica._APPNAME_.domain.model.User) user).getMail(), password)));
+    }
+
 }

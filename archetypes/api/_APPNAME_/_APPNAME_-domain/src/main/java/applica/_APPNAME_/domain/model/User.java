@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
  * Date: 6/12/2016
  * Time: 17:08
  */
-@EntityId("user")
+@EntityId(EntityList.USER)
 public class User extends UserBase implements applica.framework.security.User {
 
     public String getInitials() {

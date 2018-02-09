@@ -55,5 +55,5 @@ export function create() {
 }
 
 export function fromEnum(Enum) {
-	return new DataSource(_.map(_.keys(Enum), k => { return {label: k, value: Enum[k]}}))
+    return new DataSource(_.map(_.keys(Enum), k => { return {label: M(k), value: Enum[k]}}))
 }

@@ -16,8 +16,6 @@ import javax.mail.*;
 import javax.mail.internet.*;
 import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.util.ByteArrayDataSource;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +30,8 @@ public class TemplatedMail {
     private VelocityContext context;
     private String templatePath;
     private String from;
-    private String to;
     private String returnReceipt;
-    private List<Recipient> recipients;
+    private List<Recipient> recipients = new ArrayList<>();
     private String subject;
     private List<String> attachments = new ArrayList<>();
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
@@ -77,14 +74,6 @@ public class TemplatedMail {
 
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
     }
 
     public String getSubject() {
@@ -138,7 +127,7 @@ public class TemplatedMail {
     public void send() throws MailException, AddressException, MessagingException {
         if (options == null) throw new MailException("options not setted");
         if (!StringUtils.hasLength(from)) throw new MailException("from not setted");
-        if (!StringUtils.hasLength(to) && recipients.isEmpty()) throw new MailException("to or recipients not setted");
+        if (recipients.isEmpty()) throw new MailException("to or recipients not setted");
         if(mailFormat == 0){
             mailFormat = TEXT;
         }
@@ -147,9 +136,7 @@ public class TemplatedMail {
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
 
-        if(StringUtils.hasLength(to)){
-            message.addRecipient(RecipientType.TO, new InternetAddress(to));
-        }else if(!recipients.isEmpty()){
+        if(!recipients.isEmpty()){
             for(Recipient r : recipients){
                 switch (r.getRecipientType()){
                     case Recipient.TYPE_TO:
@@ -167,13 +154,11 @@ public class TemplatedMail {
 
         message.setSubject(subject);
 
-        logger.info(String.format("Sending email '%s' with template '%s' to '%s'", subject, templatePath, to));
-
         Template template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, "UTF-8");
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
-        if ((attachments != null && !attachments.isEmpty()) || !bytesAttachments.isEmpty()) {
+        if(attachments != null && !attachments.isEmpty()){
 
             // Create the message part
             BodyPart messageBodyPart = new MimeBodyPart();
@@ -195,14 +180,12 @@ public class TemplatedMail {
                 addAttachment(multipart, attachment);
             }
 
-            for (ByteAttachmentData a : bytesAttachments) {
-                addByteAttachment(multipart, a);
-            }
-
             // Send the complete message parts
             message.setContent(multipart);
 
-        } else if(mailFormat == TEXT){
+
+
+        }else if(mailFormat == TEXT){
             message.setContent(bodyWriter.toString(),"text/plain" );
             message.setText(bodyWriter.toString(), "UTF-8");
         } else if (mailFormat == HTML){
@@ -232,5 +215,9 @@ public class TemplatedMail {
         multipart.addBodyPart(messageBodyPart);
     }
 
+
+    public void setTo(String mail) {
+        this.recipients.add(new Recipient(mail, Recipient.TYPE_TO));
+    }
 
 }

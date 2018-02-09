@@ -95,3 +95,28 @@ export const confirmAccount = createAsyncAction(CONFIRM_ACCOUNT, data => {
             confirmAccount.fail()
         })
 })
+
+
+
+export const changePassword = createAsyncAction(CHANGE_PASSWORD, data => {
+
+    aj.dispatch({
+        type: CHANGE_PASSWORD
+    });
+
+    showLoader();
+    AccountApi.changePassword(data.password, data.passwordConfirm)
+        .then(response => {
+            hideLoader();
+            SessionApi.updateUserPassword(data.password)
+            SessionApi.updateLoggedUser(response.value.user);
+            SessionApi.updateSessionToken(response.value.token);
+            toast(M("passwordSuccessfulChanged"));
+            changePassword.complete({firstLogin: false, user: response.value.user})
+        })
+        .catch(e => {
+            hideLoader()
+            alert("Attenzione!", responses.msg(e));
+            changePassword.fail({firstLogin: null})
+        })
+});

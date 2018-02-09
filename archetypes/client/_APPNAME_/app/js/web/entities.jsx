@@ -45,7 +45,15 @@ const entities = {
 	                            sanitizer: (value) => sanitize(value).trim(),
 	                            validator: (value) => check(value).isEmail()
 	                        },
-	                        {
+                            {
+                                property: "password",
+                                control: PasswordText,
+                                label: M("password"),
+                                placeholder: M("password"),
+                                sanitizer: value => sanitize(value).trim()
+                            },
+
+                            {
 	                            property: "active",
 	                            control: YesNo,
 	                            label: M("active"),

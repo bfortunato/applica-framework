@@ -26,7 +26,9 @@ export const login = createAsyncAction(LOGIN, data => {
             toast(M("welcome") + " " + user.name);
 
             login.complete({user})
-
+            if (user) {
+                setupMenu({user})
+            }
             getUserProfileImage()
             getUserCoverImage()
         })
@@ -67,3 +69,4 @@ export const logout = aj.createAction(LOGOUT, data => {
             })
         })
 });
+

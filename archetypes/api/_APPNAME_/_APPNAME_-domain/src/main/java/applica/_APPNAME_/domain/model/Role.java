@@ -12,7 +12,7 @@ import java.util.List;
  * Date: 3/3/13
  * Time: 10:46 PM
  */
-@EntityId("role")
+@EntityId(EntityList.ROLE)
 public class Role extends AEntity implements applica.framework.security.Role {
 
     public static final String ADMIN = "admin";
@@ -41,5 +41,9 @@ public class Role extends AEntity implements applica.framework.security.Role {
     @Override
     public String toString() {
         return role;
+    }
+
+    public static List<String> getAllRoles() {
+        return Arrays.asList(ADMIN, USER);
     }
 }

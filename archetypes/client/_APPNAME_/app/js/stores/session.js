@@ -30,6 +30,12 @@ export const SessionStore = aj.createStore(SESSION, (state = {}, action) => {
 
         case actions.LOGOUT:
             return _.assign(state, {isLoggedIn: false, user: null, error: false, resumeComplete: false})
+        case actions.CHANGE_PASSWORD:
+            return _.assign(state, {action: actions.CHANGE_PASSWORD,  error:null });
+        case completed(actions.CHANGE_PASSWORD):
+            return _.assign(state, {action: actions.CHANGE_PASSWORD, firstLogin: action.firstLogin, user: action.user, error: false });
+        case failed(actions.CHANGE_PASSWORD):
+            return _.assign(state, {action: actions.CHANGE_PASSWORD, error:true });
     }
 
 });

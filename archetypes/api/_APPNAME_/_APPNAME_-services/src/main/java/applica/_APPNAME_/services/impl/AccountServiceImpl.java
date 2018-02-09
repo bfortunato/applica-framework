@@ -49,6 +49,9 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private FileServer fileServer;
 
+    @Autowired
+    private MailService mailService;
+
     @Override
     public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException {
         if (StringUtils.isEmpty(name) || StringUtils.isEmpty(email) || StringUtils.isEmpty(password)) {
@@ -82,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
         user.setRegistrationDate(new Date());
 
         Role role = getOrCreateRole(Role.USER);
-        user.setRoles(Arrays.asList(role));
+        user.setRoles(Collections.singletonList(role));
 
         usersRepository.save(user);
 
@@ -98,7 +101,7 @@ public class AccountServiceImpl implements AccountService {
         templatedMail.put("mail", mail);
         templatedMail.put("activationUrl", activationUrl);
 
-        sendTemplatedMail(templatedMail);
+        mailService.sendMail(templatedMail, Collections.singletonList(new Recipient(mail, Recipient.TYPE_TO)));
     }
 
     @Override
@@ -128,8 +131,7 @@ public class AccountServiceImpl implements AccountService {
         templatedMail.put("password", newPassword);
         templatedMail.put("mail", mail);
 
-        sendTemplatedMail(templatedMail);
-    }
+        mailService.sendMail(templatedMail, Collections.singletonList(new Recipient(mail, Recipient.TYPE_TO)));    }
 
     @Override
     public URLData getCoverImage(Object userId, String size) throws UserNotFoundException, IOException {
@@ -181,5 +183,13 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
+    @Override
+    public void changePassword(String password, String passwordConfirm) throws ValidationException {
+        Validation.validate(new PasswordChange(password, passwordConfirm));
+        User loggedUser = (User) Security.withMe().getLoggedUser();
+        loggedUser.setFirstLogin(false);
+        loggedUser.setPassword(new Md5PasswordEncoder().encodePassword(password, null));
+        usersRepository.save(loggedUser);
+    }
 
 }

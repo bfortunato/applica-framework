@@ -1,9 +1,11 @@
 package applica._APPNAME_.api.operations;
 
+import applica._APPNAME_.api.facade.AccountFacade;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
+import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.InvalidDataException;
 import applica.framework.library.base64.URLData;
@@ -17,10 +19,12 @@ import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Created by bimbobruno on 24/01/2017.
@@ -28,6 +32,9 @@ import java.io.IOException;
 
 @Component
 public class UserSaveOperation extends BaseSaveOperation {
+
+    @Autowired
+    private AccountFacade accountFacade;
 
     @Override
     public Class<? extends Entity> getEntityType() {
@@ -40,4 +47,30 @@ public class UserSaveOperation extends BaseSaveOperation {
         map().dataUrlToImage(node, entity, "_cover", "coverImage", "images/covers");
     }
 
+    @Override
+    protected void afterSave(ObjectNode node, Entity entity) {
+        // Ottengo tutte le info necessarie ad aggiornare/creare un utente
+        User user = (User) entity;
+
+        if (user.isActive()) {
+            boolean needToActivate = false;
+
+            // Se nuovo utente autogenero password temporanea
+            if (node.get("id") == null) {
+                needToActivate = true;
+                user.setFirstLogin(true);
+                user.setRegistrationDate(new Date());
+
+                String tempPassword = user.getSid();
+                user.setPassword(new Md5PasswordEncoder().encodePassword(tempPassword, null));
+            }
+
+            Repo.of(User.class).save(user);
+
+            if (needToActivate) {
+                new Thread(() -> accountFacade.sendRegistrationMail(user, user.getSid())).start();
+            }
+        }
+
+    }
 }

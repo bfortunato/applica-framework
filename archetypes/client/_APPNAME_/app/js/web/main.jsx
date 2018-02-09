@@ -7,12 +7,10 @@ import RegistrationOk from "./screens/registrationOk";
 import Confirm from "./screens/confirm";
 import * as ui from "./utils/ui";
 import * as plugins from "./pluginsimpl";
-import {setupMenu} from "../actions/menu";
 import {resumeSession} from "../actions/session";
 import * as keyboard from "./utils/keyboard";
 import {SessionStore} from "../stores/session";
 import {EntitiesGrid, EntityForm} from "./screens/entities";
-import menu from "./menu";
 import {hidePageLoader} from "./components/loader";
 
 /* Register plugins */
@@ -20,8 +18,8 @@ plugins.register()
 
 /* Admin routes */
 ui.addRoute("/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
-ui.addRoute("/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} />))
-ui.addRoute("/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} />))
+ui.addRoute("/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} params={params}/>))
+ui.addRoute("/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} params={params}/>))
 
 
 /* Account routes */
@@ -39,9 +37,6 @@ keyboard.attach()
 
 /* render main index page into dom */
 ReactDOM.render(<Index />, document.getElementById("entry-point"))
-
-/* Setup menu voices */
-setupMenu({menu})
 
 /* Avoid going in screens that require login before trying session resume */
 let owner = {}

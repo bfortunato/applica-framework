@@ -17,6 +17,7 @@ public class UserBase extends AEntity {
     private String mail;
     private String password;
     private boolean active;
+    private boolean firstLogin;
     private Date registrationDate;
     private String activationCode;
     private String image;

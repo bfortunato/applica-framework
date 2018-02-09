@@ -50,4 +50,6 @@ public interface AccountService {
      * @return
      */
     URLData getProfileImage(Object userId, String size) throws UserNotFoundException, IOException;
+
+    void changePassword(String password, String passwordConfirm) throws ValidationException;
 }

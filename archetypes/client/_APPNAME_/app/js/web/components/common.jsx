@@ -275,3 +275,72 @@ export class EditableText extends React.Component {
         )
     }
 }
+
+
+export class HeaderBlockWithBreadcrumps extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+
+    render() {
+
+        let title;
+        if (_.isArray(this.props.title)) {
+            title = this.props.title.map((item, i) => <BreadcrumpItem key={Math.random()} title={item.title} url={item.url} first={i == 0} last={i < this.props.title.length -1} />);
+
+        } else {
+            title = this.props.title
+        }
+
+        return (
+            <div className="block-header">
+                {(!_.isEmpty(title) || !_.isEmpty(this.props.actions)) &&
+                <h2>
+                    {title}
+                    {!_.isEmpty(this.props.subtitle) &&
+                    <small>{this.props.subtitle}</small>
+                    }
+                </h2>
+                }
+
+                <Actions actions={this.props.actions} />
+            </div>
+        )
+    }
+}
+
+class BreadcrumpItem extends React.Component {
+    constructor(props) {
+        super(props)
+        this.title = this.props.title;
+        this.url = this.props.url;
+        this.last = optional(this.props.last, false);
+        this.first = optional(this.props.first, false);
+    }
+
+    onClick() {
+        if (this.url) {
+            ui.navigate(this.url)
+        }
+    }
+
+    render() {
+
+
+        let style = { marginLeft:  !this.first? "10px" : "px"}
+        if (this.url)
+            style.cursor = "pointer";
+
+        let iconStyle= {
+            marginLeft: "10px"
+        }
+        return (
+            <span onClick={this.onClick.bind(this)} style={style}>
+                {this.title}
+                {this.last && <i style={iconStyle} className="zmdi zmdi-caret-right"/>}
+            </span>
+        )
+    }
+
+
+}

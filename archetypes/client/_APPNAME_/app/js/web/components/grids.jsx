@@ -1299,6 +1299,52 @@ export class Grid extends React.Component {
         )
     }
 }
+export class EditCheckCell extends Cell {
+
+    constructor(props){
+        super(props)
+
+        this.state = {value: "false"}
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (nextProps.value != nextState.value) {
+            this.setState({value: nextProps.value})
+        }
+    }
+
+    componentDidMount() {
+        this.setState({value: this.props.value})
+    }
+
+    onValueChange(e) {
+        let newValue = $(e.target).is(":checked")
+        this.setState({value: newValue})
+
+        if (_.isFunction(this.props.onValueChange)) {
+            let column = this.props.column
+            let property = this.props.property
+            let row = this.props.row
+            this.props.onValueChange(column, row.data, newValue)
+        }
+    }
+
+    render() {
+
+        let property = this.props.property
+        let value = optional(this.state.value, "false")
+        let checked = value === true || value === "true"
+
+        return (
+            <div className="checkbox" onClick={this.onValueChange.bind(this)}>
+                <label>
+                    <input type="checkbox" value={value} data-property={property} checked={checked}/>
+                    <i className="input-helper"/>
+                </label>
+            </div>
+        )
+    }
+}
 
 
 

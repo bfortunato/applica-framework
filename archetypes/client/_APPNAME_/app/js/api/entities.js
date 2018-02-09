@@ -57,7 +57,8 @@ export function save(entity, data) {
     })
 }
 
-export function get(entity, id) {
+
+export function get(entity, id, params) {
     let url = config.get("entities.url") + "/" + entity + "/" + id
-    return utils.get(url)
+    return utils.get(url, params)
 }
