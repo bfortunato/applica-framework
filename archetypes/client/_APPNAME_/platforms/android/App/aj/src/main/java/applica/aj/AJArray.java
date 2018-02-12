@@ -12,6 +12,8 @@ import applica.aj.runtime.Buffer;
  */
 public class AJArray {
 
+
+
     public interface Iterator {
         void iterate(Object value);
     }
@@ -29,6 +31,8 @@ public class AJArray {
     public void append(Object el) {
         internal.add(el);
     }
+
+    public void appendAtBeginning(Object el) { internal.add(0, el);}
 
     public void removeAtIndex(int index) {
         internal.remove(index);
@@ -129,5 +133,17 @@ public class AJArray {
         for (Object v : internal) {
             iterator.iterate(v);
         }
+    }
+
+    public void addAll(AJArray objects) {
+        internal.addAll(objects.getList());
+    }
+
+    public void addAll(AJArray array, int index) {
+        internal.addAll(index, array.getList());
+    }
+
+    public void clear() {
+        internal.clear();
     }
 }

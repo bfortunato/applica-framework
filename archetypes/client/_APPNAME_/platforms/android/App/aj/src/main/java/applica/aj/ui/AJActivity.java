@@ -18,15 +18,16 @@ import applica.aj.Store;
 public abstract class AJActivity extends AppCompatActivity {
 
     private StoreDefinitions mDefinitions = new StoreDefinitions();
+    private OnBackPressListener onBackPressListener;
     private Map<String, AJObject> mLastStates = new HashMap<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         defineStores(mDefinitions);
         initStores();
         onSetupView();
+        Injector.resolve(this);
         onViewLoaded();
     }
 
@@ -63,8 +64,69 @@ public abstract class AJActivity extends AppCompatActivity {
         }
     }
 
+    public void setupToolbar(Toolbar toolbar, String title, int backIcon) {
+
+        toolbar.setTitle(title);
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+        setSupportActionBar(toolbar);
+        if (backIcon > 0) {
+            //setto l'icona per tornare all'activity precedente
+            toolbar.setNavigationIcon(backIcon);
+        }
+        //setStatusBarTranslucent(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (onBackPressListener != null)
+            onBackPressListener.performAction();
+        else
+            super.onBackPressed();
+    }
+
+    public void setOnBackPressListener(OnBackPressListener onBackPressListener) {
+        this.onBackPressListener = onBackPressListener;
+    }
+
+    public OnBackPressListener getOnBackPressListener() {
+        return onBackPressListener;
+    }
+
+    public interface OnBackPressListener {
+        void performAction();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AJApp.setActivityVisible(true);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        AJApp.setActivityVisible(false);
+    }
+
+
     protected abstract void defineStores(StoreDefinitions definitions);
     protected abstract void onSetupView();
     protected abstract void onUpdateView(String store, AJObject state, AJObject lastState);
+
+    //Tutte le operazioni nella onViewLoaded possono utilizzare l'Injector di AJ
     protected abstract void onViewLoaded();
 }

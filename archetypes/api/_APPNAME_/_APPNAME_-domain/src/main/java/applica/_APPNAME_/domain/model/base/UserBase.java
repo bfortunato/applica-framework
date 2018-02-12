@@ -104,4 +104,12 @@ public class UserBase extends AEntity {
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
     }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
 }

@@ -167,7 +167,11 @@ public class AJObject {
         } else if (parser.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT) {
             return parser.getFloatValue();
         } else if (parser.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) {
-            return parser.getIntValue();
+            try {
+                return parser.getIntValue();
+            } catch (JsonParseException e) {
+                return parser.getLongValue();
+            }
         } else if (parser.getCurrentToken() == JsonToken.VALUE_STRING) {
             return parser.getValueAsString();
         } else {
