@@ -10,7 +10,9 @@ export const MenuStore = aj.createStore(MENU, (state = {}, action) => {
 
     switch (action.type) {
         case actions.SETUP_MENU:
-            return _.assign(state, {menu: action.menu})
+            return _.assign(state, {
+                menu: _.filter(action.menu, m => !_.has(m, "roles") || (action.user.roles != null && _.any(m.roles, r => _.any(action.user.roles, ur => r === ur.role))))
+            })
 
         case actions.SET_ACTIVE_MENU_ITEM:
             return _.assign(state, {menu: walk(state.menu, "children", i => { i.active = (i == action.item)})})

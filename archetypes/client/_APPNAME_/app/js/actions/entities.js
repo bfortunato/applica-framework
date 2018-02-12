@@ -12,9 +12,16 @@ import * as EntitiesApi from "../api/entities";
 import * as ValuesApi from "../api/values";
 import * as _ from "../libs/underscore";
 import {
-    DELETE_ENTITIES, FREE_ENTITIES, FREE_LOOKUP, FREE_SELECT, GET_ENTITY, GET_GRID, GET_LOOKUP_RESULT,
+    DELETE_ENTITIES,
+    FREE_ENTITIES,
+    FREE_LOOKUP,
+    FREE_SELECT,
+    GET_ENTITY,
+    GET_GRID,
+    GET_LOOKUP_RESULT,
     GET_LOOKUP_VALUES,
-    GET_SELECT_ENTITIES, GET_SELECT_VALUES,
+    GET_SELECT_ENTITIES,
+    GET_SELECT_VALUES,
     LOAD_ENTITIES,
     NEW_ENTITY,
     SAVE_ENTITY
@@ -182,6 +189,7 @@ export const newEntity = aj.createAction(NEW_ENTITY, data => {
     })
 })
 
+
 export const getEntity = createAsyncAction(GET_ENTITY, data => {
     if (_.isEmpty(data.entity)) {
         alert(M("problemOccoured"), M("pleaseSpecifyEntity"))
@@ -203,7 +211,7 @@ export const getEntity = createAsyncAction(GET_ENTITY, data => {
         discriminator: data.discriminator
     })
 
-    EntitiesApi.get(data.entity, data.id)
+    EntitiesApi.get(data.entity, data.id, data.params)
         .then(response => {
             hideLoader()
             getEntity.complete({data: response.value, discriminator: data.discriminator})

@@ -88,12 +88,15 @@ messages["it"][ERROR_CUSTOMER_NOT_FOUND]                    = "Cliente non trova
 messages["it"][ERROR_WAREHOUSE_NOT_FOUND]                   = "Magazzino non trovato"
 messages["it"][ERROR_DOCUMENT_NOT_FOUND]                    = "Documento non trovato"
 
-export function msg(code) {
-    if (_.has(messages[getLanguage()], code)) {
-        return messages[getLanguage()][code]
+export function msg(response) {
+    if (response.message)
+        return response.message;
+
+    if (_.has(messages[getLanguage()], response.responseCode )) {
+        return messages[getLanguage()][response.responseCode]
     }
 
-    return "Code: = " + code
+    return "Errore n. " + response.responseCode
 }
 
 /**

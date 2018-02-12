@@ -19,7 +19,7 @@ public class SimpleCrudGuard implements CrudGuard {
 
     @Override
     public void check(String crudPermission, String entity) throws CrudAuthorizationException {
-        if (Security.withMe().getLoggedUser().getUsername().equals("administrator")) { return; }
+        //if (Security.withMe().getLoggedUser().getUsername().equals("administrator")) { return; }
 
         String expression = CrudSecurityConfigurer.instance().getExpression(entity, crudPermission);
         if (expression == null){

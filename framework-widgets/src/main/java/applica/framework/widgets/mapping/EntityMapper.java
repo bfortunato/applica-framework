@@ -5,9 +5,7 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.SimpleItem;
-import applica.framework.library.base64.InvalidDataException;
 import applica.framework.library.base64.URLData;
-import applica.framework.library.utils.LangUtils;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static applica.framework.library.utils.LangUtils.unchecked;
@@ -483,5 +480,84 @@ public class EntityMapper {
             arrayNode.add(String.valueOf(entity.getId()));
         }
     }
+
+    public void filesToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
+
+        ArrayNode array = destination.putArray(destinationProperty);
+        List<Attachment> files = null;
+        try {
+            files = (List<Attachment>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (files != null && files.size() > 0) {
+            for (Attachment attachment : files) {
+                if (StringUtils.isNotEmpty(attachment.getPath())) {
+                    array.addPOJO(new AttachmentData(attachment.getName(), attachment.getPath(), false, attachment.getSize()));
+                }
+            }
+        }
+    }
+
+    public void dataUrlToFiles(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
+
+        List<AttachmentData> fileDatas = new ArrayList<>();
+        List<Attachment> fileUrls = new ArrayList<>();
+        List<Attachment> actualFiles = new ArrayList<>();
+        try {
+            actualFiles = (List<Attachment>) PropertyUtils.getProperty(destination, destinationProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
+            source.get(sourceProperty).forEach(n -> fileDatas.add(new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt())));
+        }
+
+        if (fileDatas.size() > 0) {
+            for (AttachmentData fileData : fileDatas) {
+                try {
+                    String filePath;
+                    if (fileData.isBase64()) {
+                        URLData urlData = URLData.parse(fileData.getData());
+                        filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+
+                    } else {
+                        filePath = fileData.getData();
+                    }
+
+                    fileUrls.add(new Attachment(fileData.getFilename(), filePath, fileData.getSize()));
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        try {
+            PropertyUtils.setProperty(destination, destinationProperty, fileUrls);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (actualFiles != null) {
+            for (Attachment actualFile : actualFiles) {
+                try {
+                    fileServer.deleteFile(actualFile.getPath());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+
 
 }

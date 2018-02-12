@@ -18,6 +18,7 @@ public class DefaultOperationsFactory implements OperationsFactory {
         FindOperation find;
         DeleteOperation delete;
         SaveOperation save;
+        CreateOperation create;
     }
 
     @Autowired
@@ -151,5 +152,38 @@ public class DefaultOperationsFactory implements OperationsFactory {
         }
 
         return saveOperation;
+    }
+
+
+    @Override
+    public CreateOperation createCreate(Class<? extends Entity> entityType) {
+        CreateOperation createOperation = null;
+
+        try {
+            createOperation = applicationContext.getBeansOfType(CreateOperation.class).values().stream()
+                    .filter(r -> !(r instanceof DefaultCreateOperation))
+                    .filter(r -> r.getEntityType().equals(entityType))
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchBeanDefinitionException("form processor " + entityType.getName()));
+        } catch (NoSuchBeanDefinitionException e) {
+            OperationDefinitions def = null;
+            if (defaultOperations.containsKey(entityType)) {
+                def = defaultOperations.get(entityType);
+                if (def.create != null) {
+                    return def.create;
+                }
+            }
+
+            if (def == null) {
+                def = new OperationDefinitions();
+                defaultOperations.put(entityType, def);
+            }
+
+            createOperation = applicationContext.getBean(DefaultCreateOperation.class);
+            ((DefaultCreateOperation) createOperation).setEntityType(entityType);
+            def.create = createOperation;
+        }
+
+        return createOperation;
     }
 }

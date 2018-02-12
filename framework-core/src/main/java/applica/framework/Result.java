@@ -34,7 +34,7 @@ public class Result<T extends Entity> {
     }
 
     public Optional<T> findFirst() {
-        return Optional.ofNullable((rows != null && rows.size() > 0) ? (T) rows.get(0) : null);
+        return Optional.ofNullable((rows != null && rows.size() > 0) ? rows.get(0) : null);
     }
 
     public void setRows(List<T> rows) {

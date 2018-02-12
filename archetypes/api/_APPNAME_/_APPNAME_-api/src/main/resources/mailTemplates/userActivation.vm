@@ -1,0 +1,11 @@
+Gentile <b>${user.name}</b>
+<br/>
+grazie per la Tua registrazione.
+<br/>
+La password temporanea che ti &egrave; stata assegnata &egrave; <b>$password</b>
+<br/>
+Ti sar&agrave; chiesto di modificarla al primo accesso nel sistema.
+<br>
+
+
+questa mail &egrave; stata generata in automatico, si prega di non rispondere.

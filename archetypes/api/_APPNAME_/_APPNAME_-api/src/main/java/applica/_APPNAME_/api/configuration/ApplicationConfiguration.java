@@ -108,6 +108,12 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
         return new DefaultFindOperation();
     }
 
+    @Bean
+    @Scope("prototype")
+    public DefaultCreateOperation defaultCreateOperation() {
+        return new DefaultCreateOperation();
+    }
+
     /* Fileserver */
 
     @Bean

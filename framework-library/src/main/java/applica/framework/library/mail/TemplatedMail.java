@@ -15,7 +15,9 @@ import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
 import javax.mail.internet.MimeMessage.RecipientType;
+import javax.mail.util.ByteArrayDataSource;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TemplatedMail {
@@ -28,13 +30,23 @@ public class TemplatedMail {
     private VelocityContext context;
     private String templatePath;
     private String from;
-    private String to;
     private String returnReceipt;
-    private List<Recipient> recipients;
+    private List<Recipient> recipients = new ArrayList<>();
     private String subject;
-    private List<String> attachments;
+    private List<String> attachments = new ArrayList<>();
+    private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
+
+    private class ByteAttachmentData {
+        byte[] bytes;
+        String type;
+
+        public ByteAttachmentData(byte[] bytes, String type) {
+            this.bytes = bytes;
+            this.type = type;
+        }
+    }
 
     public TemplatedMail() {
         context = new VelocityContext();
@@ -62,14 +74,6 @@ public class TemplatedMail {
 
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
     }
 
     public String getSubject() {
@@ -116,10 +120,14 @@ public class TemplatedMail {
         this.attachments = attachments;
     }
 
+    public void addAttachment(byte[] data, String type) {
+        bytesAttachments.add(new ByteAttachmentData(data, type));
+    }
+
     public void send() throws MailException, AddressException, MessagingException {
         if (options == null) throw new MailException("options not setted");
         if (!StringUtils.hasLength(from)) throw new MailException("from not setted");
-        if (!StringUtils.hasLength(to) && recipients.isEmpty()) throw new MailException("to or recipients not setted");
+        if (recipients.isEmpty()) throw new MailException("to or recipients not setted");
         if(mailFormat == 0){
             mailFormat = TEXT;
         }
@@ -128,9 +136,7 @@ public class TemplatedMail {
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
 
-        if(StringUtils.hasLength(to)){
-            message.addRecipient(RecipientType.TO, new InternetAddress(to));
-        }else if(!recipients.isEmpty()){
+        if(!recipients.isEmpty()){
             for(Recipient r : recipients){
                 switch (r.getRecipientType()){
                     case Recipient.TYPE_TO:
@@ -147,8 +153,6 @@ public class TemplatedMail {
         }
 
         message.setSubject(subject);
-
-        logger.info(String.format("Sending email '%s' with template '%s' to '%s'", subject, templatePath, to));
 
         Template template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, "UTF-8");
         StringWriter bodyWriter = new StringWriter();
@@ -195,6 +199,14 @@ public class TemplatedMail {
         Transport.send(message);
     }
 
+    private void addByteAttachment(Multipart multipart, ByteAttachmentData data) throws MessagingException {
+        DataSource source = new ByteArrayDataSource(data.bytes, data.type);
+        BodyPart messageBodyPart = new MimeBodyPart();
+        messageBodyPart.setDataHandler(new DataHandler(source));
+        messageBodyPart.setFileName("conferma_ordine.pdf");
+        multipart.addBodyPart(messageBodyPart);
+    }
+
     private static void addAttachment(Multipart multipart, String attachment) throws MessagingException {
         DataSource source = new FileDataSource(attachment);
         BodyPart messageBodyPart = new MimeBodyPart();
@@ -203,5 +215,9 @@ public class TemplatedMail {
         multipart.addBodyPart(messageBodyPart);
     }
 
+
+    public void setTo(String mail) {
+        this.recipients.add(new Recipient(mail, Recipient.TYPE_TO));
+    }
 
 }

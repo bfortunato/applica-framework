@@ -8211,7 +8211,7 @@ h6 small,
 }
 .sidebar-toggled #main {
   height: 100vh;
-  overflow: hidden;
+  /*overflow: hidden;*/
 }
 .container.container-alt {
   max-width: 1170px;

@@ -9,6 +9,9 @@ import applica.framework.library.responses.ValueResponse;
 import applica.framework.library.utils.ObjectUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResponse;
+import applica.framework.widgets.acl.CrudAuthorizationException;
+import applica.framework.widgets.acl.CrudGuard;
+import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
 import applica.framework.widgets.factory.OperationsFactory;
@@ -22,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,9 +41,19 @@ public class EntitiesController {
     @Autowired
     private OperationsFactory operationsFactory;
 
+    @Autowired(required = false)
+    private CrudGuard crudGuard;
+
     @GetMapping("")
     public Response getEntities(@PathVariable("entity") String entity, HttpServletRequest request) {
         try {
+            if (crudGuard != null) {
+                try {
+                    crudGuard.check(CrudPermission.LIST, entity);
+                } catch (CrudAuthorizationException e) {
+                    return new Response(Response.UNAUTHORIZED);
+                }
+            }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
             if (definition.isPresent()) {
                 FindOperation findOperation = operationsFactory.createFind(definition.get().getType());
@@ -62,6 +77,13 @@ public class EntitiesController {
     @DeleteMapping("/{id}")
     public Response deleteEntities(@PathVariable("entity") String entityName, String id) {
         try {
+            if (crudGuard != null) {
+                try {
+                    crudGuard.check(CrudPermission.DELETE, entityName);
+                } catch (CrudAuthorizationException e) {
+                    return new Response(Response.UNAUTHORIZED);
+                }
+            }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
                 DeleteOperation deleteOperation = operationsFactory.createDelete(definition.get().getType());
@@ -87,10 +109,16 @@ public class EntitiesController {
     @PostMapping("/delete")
     public Response deleteEntitiesMultiple(@PathVariable("entity") String entityName, String ids) {
         try {
+            if (crudGuard != null) {
+                try {
+                    crudGuard.check(CrudPermission.DELETE, entityName);
+                } catch (CrudAuthorizationException e) {
+                    return new Response(Response.UNAUTHORIZED);
+                }
+            }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
                 DeleteOperation deleteOperation = operationsFactory.createDelete(definition.get().getType());
-
                 deleteOperation.delete(Arrays.asList(ids.split(",")));
 
                 return new Response(Response.OK);
@@ -112,28 +140,62 @@ public class EntitiesController {
         }
     }
 
+    //get
     @GetMapping("/{id:.+}")
-    public Response getEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id) {
+    public Response getEntity(@PathVariable("entity") String entityName, @PathVariable("id") Object id, HttpServletRequest request) {
         try {
+
+            if(crudGuard != null) {
+                try {
+                    String crudPermission = !id.equals("new") ? CrudPermission.EDIT : CrudPermission.NEW;
+                    crudGuard.check(crudPermission, entityName);
+                } catch (CrudAuthorizationException e) {
+                    return new Response(Response.UNAUTHORIZED);
+                }
+            }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
-                GetOperation getOperation = operationsFactory.createGet(definition.get().getType());
-                ObjectNode node = getOperation.get(id);
+                ObjectNode node;
+
+                if (!id.toString().equals("new")) {
+                    GetOperation getOperation = operationsFactory.createGet(definition.get().getType());
+                    node = getOperation.get(id);
+                } else  {
+                    CreateOperation createOperation = operationsFactory.createCreate(definition.get().getType());
+                    Map<String, Object> map = createMapParameters(new ServletRequestParameterPropertyValues(request));
+                    node = createOperation.create(map);
+                }
 
                 return new ValueResponse(node);
             } else {
-                logger.warn("Entity definition not found: " + entityName);
                 return new Response(ResponseCode.ERROR_NOT_FOUND);
             }
         } catch (OperationException e) {
             e.printStackTrace();
             return new Response(e.getErrorCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(ResponseCode.ERROR_INVALID_DATA);
         }
+    }
+
+    private Map<String, Object> createMapParameters(ServletRequestParameterPropertyValues params) {
+        Map<String, Object> map = new HashMap<>();
+        if (params != null && params.getPropertyValueList() != null)
+            params.getPropertyValueList().forEach(p -> map.put(p.getName(), p.getValue()));
+        return map;
     }
 
     @PostMapping("")
     public Response saveEntity(@PathVariable("entity") String entity, @RequestBody ObjectNode data) {
         try {
+            if (crudGuard != null) {
+                try {
+                    crudGuard.check(CrudPermission.SAVE, entity);
+                } catch (CrudAuthorizationException e) {
+                    return new Response(Response.UNAUTHORIZED);
+                }
+            }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
             if (definition.isPresent()) {
                 SaveOperation saveOperation = operationsFactory.createSave(definition.get().getType());
