@@ -11,26 +11,37 @@ import java.util.List;
  * Created by bimbobruno on 10/01/2017.
  */
 
-public class PluginContainerActivity extends AppCompatActivity {
+public abstract class PluginContainerActivity extends AJActivity {
 
     private List<ActivityDependentPlugin> plugins = new ArrayList<>();
+
+
 
     public void addPlugin(ActivityDependentPlugin plugin) {
         plugins.add(plugin);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
 
-        setupPlugins();
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        UIUtils.registerCommonPlugins(this);
+
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
+        if (AJApp.current() == null) {
+            //prevengo il caso in cui l'app viene ripresa dal background ma l'AJApp non risulta inizializzata, che si verifica su alcuni dispositivi
+            applica.app.utils.AndroidUtils.goToActivityWithExtras(getApplicationContext(),null, SplashActivity.class);
+            finish();
+        } else {
+            super.onResume();
+            for (ActivityDependentPlugin plugin : plugins) {
+                plugin.setActivity(this);
+            }
+        }
 
-        setupPlugins();
     }
 
     @Override
@@ -39,12 +50,6 @@ public class PluginContainerActivity extends AppCompatActivity {
 
         for (ActivityDependentPlugin plugin : plugins) {
             plugin.dispose(this);
-        }
-    }
-
-    protected void setupPlugins() {
-        for (ActivityDependentPlugin plugin : plugins) {
-            plugin.setActivity(this);
         }
     }
 }

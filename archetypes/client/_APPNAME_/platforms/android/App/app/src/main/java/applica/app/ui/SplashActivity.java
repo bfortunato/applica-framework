@@ -20,58 +20,42 @@ import applica.app.plugins.ToastPlugin;
 import applica.app.ui.home.HomeActivity;
 import applica.framework.android.utils.Nulls;
 
-public class SplashActivity extends PluginContainerActivity {
-
-    private AJObject mLastState = AJObject.empty();
+public class SplashActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        //FideniaUtils.setScreenOrientation(this);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                AJApp app = new AJApp(getApplicationContext());
-                app.setDebug(false);
-                app.setSocketUrl("http://192.168.0.8:3000");
-                app.init();
+                AJApp.initApplication(getApplicationContext());
 
                 AJ.registerPlugin(new LoaderPlugin());
                 AJ.registerPlugin(new AlertPlugin());
                 AJ.registerPlugin(new ToastPlugin());
 
-                UIUtils.registerCommonPlugins(SplashActivity.this);
-                setupPlugins();
-
-                AJ.subscribe(Stores.SESSION, this, new Store.Subscription() {
+                //Elenco TUTTI i plugin in modo da poterli utilizzare in seguito
+                AJ.subscribe(Stores.SESSION, SplashActivity.this, new Store.Subscription() {
                     @Override
-                    public void handle(AJObject state) {
-                        if (state.differsAt("resumeComplete").from(mLastState)) {
-                            if (Nulls.orElse(state.get("resumeComplete").asBoolean(), false)) {
-                                if (state.differsAt("isLoggedIn").from(mLastState)) {
-                                    if (state.get("isLoggedIn").asBoolean()) {
-                                        new Handler(getMainLooper()).postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
-                                                startActivity(intent);
-                                                finish();
-                                            }
-                                        }, 1000);
-                                    }
+                    public void handle(final AJObject state) {
+                        new Handler(getMainLooper()).postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                final boolean loggedIn = Nulls.orElse(state.get("loggedIn").asBoolean(), false);
+                                Map<String, Object> params = new HashMap<>();
+                                boolean fromNotification = getIntent().getBooleanExtra("fromNotification", false);
+                                params.put("fromNotification", fromNotification);
+                                if (fromNotification) {
+                                    params.put("notificationData", getIntent().getStringExtra("notificationData"));
                                 }
-                            } else {
-                                new Handler(getMainLooper()).postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Intent intent = new Intent(SplashActivity.this, WelcomeActivity.class);
-                                        startActivity(intent);
-                                        finish();
-                                    }
-                                }, 1000);
+
+                                CustomUtils.goToActivityWithExtras(getApplicationContext(), params, (loggedIn? MainActivity.class : LoginActivity.class));
+                                finish();
                             }
-                        }
+                        }, 1000);
                     }
                 });
 
@@ -83,7 +67,7 @@ public class SplashActivity extends PluginContainerActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        AJ.unsubscribe(Stores.COMMONS, this);
+        AJ.unsubscribe(Stores.SESSION, SplashActivity.this);
     }
+
 }

@@ -68,6 +68,10 @@ public class AJValue {
         return (AJArray) this.value;
     }
 
+    public boolean asBool() {
+        return this.value != null ? this.asBoolean() : false;
+    }
+
     public AJObject asObject() {
         return (AJObject) this.value;
     }
