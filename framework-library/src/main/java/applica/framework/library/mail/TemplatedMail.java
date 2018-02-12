@@ -215,6 +215,9 @@ public class TemplatedMail {
         multipart.addBodyPart(messageBodyPart);
     }
 
+    public String getTo() {
+        return this.recipients.size() > 0? this.recipients.get(0).getRecipient() : null;
+    }
 
     public void setTo(String mail) {
         this.recipients.add(new Recipient(mail, Recipient.TYPE_TO));
