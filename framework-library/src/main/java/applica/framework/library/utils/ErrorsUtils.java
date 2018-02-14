@@ -1,7 +1,8 @@
 package applica.framework.library.utils;
 
-import applica.framework.ValidationResult;
+
 import applica.framework.library.i18n.Localization;
+import applica.framework.library.validation.ValidationResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 
