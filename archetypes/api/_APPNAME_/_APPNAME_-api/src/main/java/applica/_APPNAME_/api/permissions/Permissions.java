@@ -4,9 +4,7 @@ package applica._APPNAME_.api.permissions;
 
 import applica._APPNAME_.domain.model.Role;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Permissions {
     public static final String ADMIN = "permission:admin";
@@ -16,7 +14,7 @@ public class Permissions {
             case Role.ADMIN:
                 return Arrays.asList(getAllPermissions());
         }
-        return null;
+        return new ArrayList<>();
     }
 
     public static String[] getAllPermissions(){
