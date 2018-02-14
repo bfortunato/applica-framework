@@ -24,6 +24,7 @@ public class TemplatedMail {
 
     private Log logger = LogFactory.getLog(getClass());
 
+
     public static final int HTML = 1;
     public static final int TEXT = 2;
 

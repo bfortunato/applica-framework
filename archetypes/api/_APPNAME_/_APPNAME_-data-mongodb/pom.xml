@@ -11,7 +11,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <applica.framework.version>2.1-RELEASE</applica.framework.version>
+        <applica.framework.version>2.0-RELEASE</applica.framework.version>
         <spring.version>4.3.9.RELEASE</spring.version>
         <spring.security.version>4.2.3.RELEASE</spring.security.version>
     </properties>
