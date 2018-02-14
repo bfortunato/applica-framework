@@ -1,15 +1,20 @@
 package applica._APPNAME_.api.controllers;
 
+import applica._APPNAME_.api.viewmodels.UIUserWithToken;
+import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
+import applica.framework.library.utils.ErrorUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
+import applica.framework.security.Security;
+import applica.framework.security.User;
+import applica.framework.security.token.TokenGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
 
 import static applica.framework.library.responses.Response.ERROR;
