@@ -8,6 +8,7 @@ import M from "../strings";
 import * as _ from "../libs/underscore";
 import {LOGIN, LOGOUT, RESUME_SESSION} from "./types";
 import {getUserCoverImage, getUserProfileImage} from "./ui";
+import {setupMenu} from "./menu";
 
 export const login = createAsyncAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
