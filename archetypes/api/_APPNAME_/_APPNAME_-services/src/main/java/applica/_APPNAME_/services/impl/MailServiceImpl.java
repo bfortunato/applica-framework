@@ -11,11 +11,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jsoup.helper.StringUtil;
+import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
 public class MailServiceImpl implements MailService {
 
     private Log logger = LogFactory.getLog(getClass());
