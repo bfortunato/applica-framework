@@ -157,6 +157,8 @@ export default class EntityForm extends Screen {
             )
         }
 
+        return defaultActions;
+
     }
 
     canSave(){
