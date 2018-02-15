@@ -80,7 +80,7 @@ export default class EntitiesGrid extends Screen {
         if (_.isFunction(createUrl)) {
             createUrl = createUrl()
         }
-        return optional(createUrl, `/entities/${this.getEntity()}/create`)
+        return optional(createUrl, `/entities/${this.getEntity()}/new`)
     }
 
     getEditUrl(data) {
