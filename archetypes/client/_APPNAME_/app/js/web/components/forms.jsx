@@ -1045,7 +1045,11 @@ export class DateTime extends Control {
 
 
 export class YesNo extends Control {
+
     onValueChange(e) {
+        if(_.isFunction(this.props.onValueUpdated)){
+            this.props.onValueUpdated(this.props.model)
+        }
         let value = parseBoolean(e.target.value)
         let model = this.props.model
         let field = this.props.field
@@ -1054,6 +1058,9 @@ export class YesNo extends Control {
     }
 
     componentDidMount() {
+        if(_.isFunction(this.props.onValueUpdated) ?  this.props.onValueUpdated(this.props.model) : false){
+            this.forceUpdate()
+        }
         let model = this.props.model
         let field = this.props.field
         let fn = () => {
@@ -1072,7 +1079,7 @@ export class YesNo extends Control {
 
     render() {
         let field = this.props.field
-        let yesText = optional(this.props.yesText, "Yes")
+        let yesText = optional(this.props.yesText, "Sì")
         let noText = optional(this.props.noText, "No")
 
         return (
@@ -1089,7 +1096,6 @@ export class YesNo extends Control {
         )
     }
 }
-
 
 export class Switch extends Control {
     onValueChange(e) {
