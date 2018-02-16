@@ -54,8 +54,7 @@ public class SimpleFileServer implements FileServer {
 
         String generatedName = String.format("%s.%s", UUID.randomUUID().toString().replace("-", "_"), extension);
         NormalizedUrl normalizedUrl = normalizeUrl(path);
-        String fullPath = FilenameUtils.concat(normalizedUrl.url, generatedName);
-
+        String fullPath = String.format("%s/%s", normalizedUrl.url, generatedName);
         logger.info(String.format("Saving file on path %s", fullPath));
 
         saveToServer(fileStream, generatedName, baseUrl.concat(fullPath));
@@ -112,7 +111,6 @@ public class SimpleFileServer implements FileServer {
             if (response != null) {
                 response.close();
             }
-
             client.close();
         }
     }
@@ -172,8 +170,10 @@ public class SimpleFileServer implements FileServer {
 
     @Override
     public String saveImage(String path, String extension, InputStream imageStream) throws IOException {
-       return saveFile(path, extension,imageStream);
+        return saveFile(path, extension, imageStream);
     }
+
+
 
     private void throwExceptionByCode(int code) throws IOException {
         if (code == 404) {
@@ -188,20 +188,21 @@ public class SimpleFileServer implements FileServer {
         normalizedUrl.filename = FilenameUtils.getName(url);
         try {
             normalizedUrl.url = String.format("%s%s", FilenameUtils.getFullPath(url), URLEncoder.encode(normalizedUrl.filename, "UTF-8"));
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             normalizedUrl.url = url;
         }
 
         return normalizedUrl;
     }
 
-    private class NormalizedUrl {
-        private String url;
-        private String filename;
+    public String copyFile(String filePath, String newPath) throws IOException {
+        String extention = FilenameUtils.getExtension(filePath);
+        InputStream i = getFile(filePath);
+        return saveFile(newPath, extention, i);
     }
 
     public String unzipFile(String filePath) {
-        if (!filePath.endsWith(".zip")){
+        if (!filePath.endsWith(".zip")) {
             throw new RuntimeException("Cannot unzip the file because isn't zip");
         }
         String basePath = options.get("applica.framework.fileserver.basePath");
@@ -211,14 +212,21 @@ public class SimpleFileServer implements FileServer {
         try {
             zipFile = new ZipFile(filePathFull);
             String[] strings = filePath.split("/");
-            destinationPath = filePath.replace(strings[strings.length-1], "");
+            destinationPath = filePath.replace(strings[strings.length - 1], "");
             zipFile.extractAll(String.format("%s/%s", basePath, destinationPath));
 
             FileHeader fileHeader = (FileHeader) zipFile.getFileHeaders().get(0);
-            String path = String.format("%s%s", destinationPath, fileHeader.getFileName());;
+            String path = String.format("%s%s", destinationPath, fileHeader.getFileName());
+            ;
             return path;
         } catch (ZipException e) {
             throw new RuntimeException(e);
         }
     }
+
+    private class NormalizedUrl {
+        private String url;
+        private String filename;
+    }
 }
+

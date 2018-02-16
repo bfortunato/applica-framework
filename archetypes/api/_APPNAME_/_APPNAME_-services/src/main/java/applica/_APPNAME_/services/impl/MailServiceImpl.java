@@ -40,13 +40,13 @@ public class MailServiceImpl implements MailService {
 
 
 
-
+    //TODO:lambda
     @Override
     public void sendMail(TemplatedMail mail, List<Recipient> recipients) {
 
         if (optionsManager.get("testmode").equals("ON")) {
             for (Recipient recipient: recipients) {
-                recipient.setRecipient(optionsManager.get("test.recipient.mail"));
+                recipient.setRecipient(optionsManager.get("testmode.recipient.mail"));
             }
         }
         for (Recipient recipient: recipients) {

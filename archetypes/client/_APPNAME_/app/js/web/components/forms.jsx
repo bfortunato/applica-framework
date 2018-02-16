@@ -1831,6 +1831,7 @@ export class MultiFile extends Control {
         this.model = this.props.model;
         this.field = this.props.field;
         this.counter = 0;
+        this.filesNumber = optional(this.props.filesNumber, 1);
         this.fileTypes = this.field.fileTypes || "*";
     }
 
@@ -1839,7 +1840,7 @@ export class MultiFile extends Control {
         this.model.once("load", () => {
 
             let value = optional(this.model.get(this.field.property), []);
-            _.assign(this.state, {files: value});
+            _.assign(this.state, {files : value});
             this.forceUpdate()
         })
     }
@@ -1852,20 +1853,30 @@ export class MultiFile extends Control {
             files.push(newFile);
             _.assign(this.state, {files: files})
 
-            this.model.set(this.field.property, files)
+            this.model.set(this.field.property, this.filesNumber > 1 ? files: newFile)
+            if (_.isFunction(this.props.onValueChange)) {
+                this.props.onValueChange(newFile, this.model);
+            }
             this.forceUpdate()
             return true;
         }
 
+        if (_.isFunction(this.props.onValueChange)) {
+            this.props.onValueChange(newFile, this.model);
+        }
         return false;
     }
 
     onDelete(toRemove) {
         let files = optional(this.state.files, []);
-        files = _.filter(files, i => i.data !== toRemove.data)
+        files = _.filter(files, i => i.data  !== toRemove.data)
         _.assign(this.state, {files: files})
-        this.model.set(this.field.property, files)
+        this.model.set(this.field.property, this.filesNumber > 1 ? files: null);
         this.forceUpdate()
+
+        if (_.isFunction(this.props.onValueChange)) {
+            this.props.onValueChange(null, this.model);
+        }
 
     }
 
@@ -1888,13 +1899,13 @@ export class MultiFile extends Control {
         let title = optional(this.props.field.title, M("attachments"))
 
         if (files.length > 0) {
-            _.forEach(files, (e) => {
-                fields.push(this.createSingleFileComponent(e))
-            })
+            _.forEach(files, (e) => {fields.push(this.createSingleFileComponent(e))})
 
         }
 
-        fields.push(this.createSingleFileComponent())
+        if (files.length  < this.filesNumber) {
+            fields.push(this.createSingleFileComponent())
+        }
 
         return (
             <div>
@@ -1907,6 +1918,106 @@ export class MultiFile extends Control {
         )
     }
 }
+
+export class SingleFile extends Control {
+    constructor(props) {
+        super(props)
+
+        let filename = optional(props.file.filename, null);
+        let data = optional(props.file.data, null);
+        let base64 = optional(props.file.base64, null);
+
+        this.state = {filename: filename, data: data, base64: base64}
+    }
+
+    onFileSelected(e) {
+        let file = e.target.files[0]
+        showLoader()
+        inputfile.readDataUrl(file).then(result => {
+            if (_.isFunction(this.props.onAdd)) {
+                this.props.onAdd({data : result, filename: file.name, base64: true, size: file.size})
+            }
+            hideLoader()
+        })
+    }
+
+    remove(e) {
+        e.stopPropagation()
+        e.preventDefault()
+
+
+        if (_.isFunction(this.props.onDelete)) {
+            this.props.onDelete({data : this.state.data, filename: this.state.filename})
+        }
+    }
+
+    download(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let value = optional(this.state.data, null)
+
+        let url = config.get("service.url")+value
+        window.open(url)
+    }
+
+
+    search(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let me = ReactDOM.findDOMNode(this)
+
+        //Serve per invocare il change se si seleziona un file uguale al precedente
+        $(me).find("input[type=file]").val("")
+        $(me).find("input[type=file]").click()
+    }
+
+    render() {
+
+        let value = optional(this.state.data, null)
+        //let fileName = optional(this.state.filename, null)
+        let hasValue = !_.isEmpty(value)
+        let canDownload = hasValue && !value.includes("base64");
+        let component = null
+        let fileTypes = optional(this.props.fileTypes, "*")
+
+        if(!hasValue) {
+            component = (
+                <div>
+                    <div className="actions pull-right">
+                        <a href="javascript:;" title={M("search")} onClick={this.search.bind(this)} className="m-r-0"><i className="zmdi zmdi-search" /></a>
+                    </div>
+                    <span className="placeholder"></span>
+                </div>
+            )
+        }else {
+            component = (
+                <div>
+                    <div className="actions pull-right">
+                        <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
+                        {canDownload && <a href="javascript:;" title={M("download")} onClick={this.download.bind(this)} className="m-r-0"><i className="zmdi zmdi-download" /></a>}
+                    </div>
+                    <span className="input-file-name"><span className="zmdi zmdi-file"/> {this.state.filename} </span>
+                </div>
+            )
+        }
+
+        return (
+            <div className="col-sm-4 col-ms-6" style={{marginBottom: '5px'}}>
+                <div className="input-file fg-line" tabIndex="0">
+                    <div onClick={this.search.bind(this)}>
+                        {component}
+                    </div>
+
+                    <input type="file" accept={fileTypes} onChange={this.onFileSelected.bind(this)} />
+                </div>
+            </div>
+
+        )
+    }
+}
+
 
 export class SingleImage extends Control {
     constructor(props) {
@@ -2017,105 +2128,3 @@ export class PasswordText extends Control {
     }
 }
 
-export class SingleFile extends Control {
-    constructor(props) {
-        super(props)
-
-        let filename = optional(props.file.filename, null);
-        let data = optional(props.file.data, null);
-        let base64 = optional(props.file.base64, null);
-
-        this.state = {filename: filename, data: data, base64: base64}
-    }
-
-    onFileSelected(e) {
-        let file = e.target.files[0]
-        showLoader()
-        inputfile.readDataUrl(file).then(result => {
-            if (_.isFunction(this.props.onAdd)) {
-                this.props.onAdd({data: result, filename: file.name, base64: true})
-            }
-            hideLoader()
-        })
-    }
-
-    remove(e) {
-        e.stopPropagation()
-        e.preventDefault()
-
-
-        if (_.isFunction(this.props.onDelete)) {
-            this.props.onDelete({data: this.state.data, filename: this.state.filename})
-        }
-    }
-
-    download(e) {
-        e.preventDefault()
-        e.stopPropagation()
-
-        let value = optional(this.state.data, null)
-
-        let url = config.get("service.url") + value
-        window.open(url)
-    }
-
-
-    search(e) {
-        e.preventDefault()
-        e.stopPropagation()
-
-        let me = ReactDOM.findDOMNode(this)
-
-        //Serve per invocare il change se si seleziona un file uguale al precedente
-        $(me).find("input[type=file]").val("")
-        $(me).find("input[type=file]").click()
-    }
-
-    render() {
-
-        let value = optional(this.state.data, null)
-        //let fileName = optional(this.state.filename, null)
-        let hasValue = !_.isEmpty(value)
-        let readOnly =  optional(this.props.readOnly, false)
-        let canDownload = hasValue && !value.includes("base64");
-        let component = null
-        let fileTypes = optional(this.props.fileTypes, "*")
-
-        if (!hasValue) {
-            component = (
-                <div>
-                    <div className="actions pull-right">
-                        <a href="javascript:;" title={M("search")} onClick={this.search.bind(this)} className="m-r-0"><i
-                            className="zmdi zmdi-search"/></a>
-                    </div>
-                    <span className="placeholder"></span>
-                </div>
-            )
-        } else {
-            component = (
-                <div>
-                    <div className="actions pull-right">
-                        {readOnly && <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i
-                            className="zmdi zmdi-close"/></a>}
-                        {canDownload && <a href="javascript:;" title={M("download")} onClick={this.download.bind(this)}
-                                           className="m-r-0"><i className="zmdi zmdi-download"/></a>}
-                    </div>
-                    <span className="input-file-name"><span className="zmdi zmdi-file"/> {this.state.filename} </span>
-                </div>
-            )
-        }
-
-        return (
-            <div className="col-sm-4 col-ms-6" style={{marginBottom: '5px'}}>
-                <div className="input-file fg-line" tabIndex="0">
-                    <div onClick={this.search.bind(this)}>
-                        {component}
-                    </div>
-
-                    <input type="file" accept={fileTypes} onChange={this.onFileSelected.bind(this)}/>
-                </div>
-            </div>
-
-        )
-    }
-}
