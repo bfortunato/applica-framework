@@ -12,6 +12,7 @@ import * as datasource from "../../utils/datasource"
 import * as _ from "../../libs/underscore"
 import {showLoader} from "../../../../platforms/node/assets/js/plugins";
 import {hideLoader} from "../../plugins";
+import * as config from "../../framework/config";
 
 export const VALIDATION_ERROR = {}
 
@@ -1834,17 +1835,23 @@ export class MultiFile extends Control {
         this.filesNumber = optional(this.props.filesNumber, 1);
         this.fileTypes = this.field.fileTypes || "*";
     }
-
     componentDidMount() {
 
         this.model.once("load", () => {
 
-            let value = optional(this.model.get(this.field.property), []);
-            _.assign(this.state, {files : value});
+            //if multiple is an array else is an object
+            let value = optional(this.model.get(this.field.property), null);
+            let files = [];
+            if (this.multiple) {
+                files = value ? value : files;
+            } else {
+                if (value)
+                    files.push(value)
+            }
+            _.assign(this.state, {files : files});
             this.forceUpdate()
         })
     }
-
 
     onAdd(newFile) {
         let files = optional(this.state.files, []);
