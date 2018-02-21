@@ -1148,9 +1148,6 @@ export class Number extends Control {
 
             model.set(field.property, value)
             this.forceUpdate()
-            if (_.isFunction(this.props.performOnChange)) {
-                this.props.performOnChange(this.props.model, value);
-            }
         }
 
     }
