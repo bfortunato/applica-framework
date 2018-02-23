@@ -76,6 +76,35 @@ exports.startNavigation = function(_base) {
 	loop();
 };
 
+exports.addQueryParam = function(param, value) {
+    updateQueryStringParam(param, value)
+};
+
+function updateQueryStringParam (key, value) {
+
+    let base = 	[location.protocol, '//', location.host, location.pathname].join("");
+    if (location.href.indexOf("#") !== -1) {
+        base = base + "#/" + _clearSlashes(location.href.split("#")[1].split("?")[0]);
+
+    }
+    let urlQueryString = location.href.split("?")[1];
+
+    let newParams = key + '=' + value;
+    // If the "search" string exists, then build params from it
+    if (urlQueryString) {
+        urlQueryString.split("&").forEach(function(e, i) {
+            if (e.split("=")[0] != key) {
+                newParams = newParams + "&" + e;
+            }
+        })
+    }
+    base = base + "?" + newParams;
+
+    history.replaceState({}, "", base);
+}
+
+
+
 exports.navigate = function(path, openInNewTab = false) {
 	if (isShiftPressed()) {
 		window.open(_clearSlashes(base + path)).focus()			
@@ -87,7 +116,9 @@ exports.navigate = function(path, openInNewTab = false) {
 			.click()
 	} else {
 		history.pushState(null, null, _clearSlashes(base + path))
-	}	
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+
+    }
 };
 
 exports.enableChangeScreenConfirm = function() {

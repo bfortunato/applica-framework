@@ -13,6 +13,7 @@ import * as _ from "../../libs/underscore"
 import {showLoader} from "../../../../platforms/node/assets/js/plugins";
 import {hideLoader} from "../../plugins";
 import * as config from "../../framework/config";
+import {addQueryParam} from "../utils/ui";
 
 export const VALIDATION_ERROR = {}
 
@@ -295,8 +296,9 @@ export class Area extends React.Component {
         let area = this.props.area
         let inline = optional(descriptor.inline, false)
         inline = optional(area.inline, inline)
+        let selectedTab = this.props.selectedTab
         let defaultFieldCass = inline ? InlineField : Field
-        let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} descriptor={descriptor} />
+        let tabs = !_.isEmpty(area.tabs) && <Tabs selectedTab={selectedTab} tabs={area.tabs} model={this.props.model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={self.props.canSave} />
         let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor}))
 
         return (
@@ -353,21 +355,22 @@ export class AreaNoCard extends React.Component {
     }
 }
 
-
 export class Tabs extends React.Component {
 
     componentDidMount() {
+        let self = this;
         let me = ReactDOM.findDOMNode(this)
-        $(me).find(".tab-button").click((e) => {
+        $(me).find(".tab-button").click(function(e) {
             e.preventDefault()
-            $(this).tab("show")
+            $(self).tab("show")
+
+            addQueryParam("selectedTab", $(this).attr("data-key"));
         })
     }
 
     isFieldVisible(field) {
         let descriptor = this.props.descriptor
         let model = this.props.model
-
         if (_.isFunction(descriptor.visibility)) {
             return descriptor.visibility(field, model, descriptor)
         }
@@ -375,42 +378,55 @@ export class Tabs extends React.Component {
         return true
     }
 
+
+    getTabClass(selectedTab, key, firstTabKey) {
+        if ((selectedTab && key == selectedTab) || (!selectedTab && key == firstTabKey)) {
+            return "active"
+        }
+        return "";
+    }
+
     render() {
+
+        let self = this
+
         let descriptor = this.props.descriptor
-        let first = true
         let tabs = this.props.tabs
-        let nav = tabs.map(n => {
-            let el = (
-                <li key={"nav_" + n.key} className={first ? "active" : ""}><a className="tab-button" role="tab" data-toggle="tab" href={`#${n.key}`}>{n.title}</a></li>
+
+        let selectedTab = optional(this.props.selectedTab, null);
+
+        let firstTabId = tabs[0].id
+
+        var nav = tabs.map(n => {
+
+            let key = "nav_" + n.key;
+            return (
+                <li key={key} className={this.getTabClass(selectedTab, n.id, firstTabId )}><a className="tab-button" role="tab" data-key={n.id} data-toggle="tab"
+                                                                                              href={`#${n.key}`}>{n.title}</a></li>
             )
-            first = false
-            return el
         })
-        first = true
+
+
         let panes = tabs.map(c => {
+            let key = "pane_" + c.key;
+
             let inline = optional(descriptor.inline, false)
             inline = optional(c.inline, inline)
             let defaultFieldClass = inline ? InlineField : Field
-            let fields = !_.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor}))
-            let el = (
-                <div key={"pane_" + c.key} role="tabpanel" className={"tab-pane" + (first ? " active" : "")} id={`${c.key}`} >
-                    <div className="row">
-                        <div className="p-l-30 p-t-10 p-r-30">
-                            {fields}
-                        </div>
-                    </div>
+            let fields = !_.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f, onCancel: this.props.onCancel, canSave: self.props.canSave}))
+            return (
+                <div key={key} role="tabpanel" className={"tab-pane " + (this.getTabClass(selectedTab, c.id, firstTabId))} id={`${c.key}`}>
+                    <div className="row">{fields}</div>
                     <div className="clearfix"></div>
                 </div>
             )
-            first = false
-            return el
         })
 
 
 
         return (
             <div>
-                <ul className="tab-nav" style={{textAlign: "center"}} role="tablist">
+                <ul className="tab-nav" role="tablist">
                     {nav}
                 </ul>
 
@@ -421,6 +437,8 @@ export class Tabs extends React.Component {
         )
     }
 }
+
+
 
 let AREA_KEY = 1
 let TAB_KEY = 1
@@ -490,8 +508,9 @@ export class FormBody extends React.Component {
         let model = this.props.model
         let inline = optional(descriptor.inline, false)
         let defaultFieldCass = inline ? InlineField : Field
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
+        let selectedTab = this.props.selectedTab;
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor, selectedTab : selectedTab, canSave: self.props.canSave, onCancel: self.props.onCancel}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs selectedTab={selectedTab} tabs={descriptor.tabs} model={model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={self.props.canSave} />
         let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f, descriptor: descriptor, params : this.props.params, onCancel: this.props.onCancel}))
         let showInCard = optional(descriptor.showInCard, true)
 
@@ -525,13 +544,22 @@ export class Form extends React.Component {
     constructor(props) {
         super(props)
 
-        this.model = new Model(this)
+        this.model = new Model(this);
         this.model.once("load", () => {
+            let descriptor = this.props.descriptor;
+            if (_.isFunction(descriptor.onModelLoadFirstTime)) {
+                descriptor.onModelLoadFirstTime(this.model)
+            }
+        })
+
+        this.model.on("load", () => {
             let descriptor = this.props.descriptor
             if (_.isFunction(descriptor.onModelLoad)) {
                 descriptor.onModelLoad(this.model)
             }
         })
+
+
     }
 
     submit() {
@@ -620,15 +648,15 @@ export class Form extends React.Component {
 
         let inline = optional(descriptor.inline, false)
         let className = inline ? "form-horizontal" : ""
-        let canSave = this.props.canSave
-        let canCancel = this.props.canCancel
         let showFormFooter = this.showFormFooter();
+        let selectedTab = this.props.selectedTab
+
 
 
         return (
             <div className="form">
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
-                    <FormBody descriptor={descriptor} model={model} />
+                    <FormBody selectedTab={selectedTab} descriptor={descriptor} model={model} />
 
                     {showFormFooter &&
                     <FormFooter descriptor={descriptor}  model={model} onCancel={this.onCancel.bind(this)}/>
@@ -1536,6 +1564,8 @@ export class Lookup extends Control {
             addClassName = "zmdi zmdi-plus"
         }
 
+        let paginationEnabled = optional(this.props.paginationEnabled, false)
+
         return (
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
@@ -1583,7 +1613,7 @@ export class Lookup extends Control {
                                     quickSearchEnabled="true"
                                     footerVisible="true"
                                     summaryVisible="true"
-                                    paginationEnabled="true"
+                                    paginationEnabled={paginationEnabled}
                                     tableClassName="table table-condensed table-striped table-hover"
                                     onRowDoubleClick={this.select.bind(this)}
                                 />

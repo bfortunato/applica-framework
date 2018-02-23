@@ -277,7 +277,8 @@ export const getLookupValues = createAsyncAction(GET_LOOKUP_VALUES, data => {
         discriminator: data.discriminator
     })
 
-    ValuesApi.load(data.collection, data.keyword)
+    ValuesApi.load(data.collection, data.keyword, {page: data.page, rowsPerPage: data.rowsPerPage})
+
         .then(response => {
             getLookupValues.complete({values: response.value, discriminator: data.discriminator})
         })

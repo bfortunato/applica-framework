@@ -198,6 +198,8 @@ export default class EntityForm extends Screen {
         let actions = this.getActions()
         let descriptor = this.getDescriptor()
         let component = this.getFormComponent()
+        let selectedTab = this.props.params.selectedTab;
+
 
         return (
             <Layout>
@@ -206,6 +208,7 @@ export default class EntityForm extends Screen {
                     ref: "form",
                     descriptor: descriptor,
                     data: this.state.data,
+                    selectedTab : selectedTab,
                     onSubmit: this.onSubmit.bind(this),
                     onCancel: this.onCancel.bind(this)
                 })}
