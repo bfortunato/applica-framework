@@ -10,8 +10,7 @@ import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import * as _ from "../../libs/underscore"
-import {showLoader} from "../../../../platforms/node/assets/js/plugins";
-import {hideLoader} from "../../plugins";
+import {hideLoader, showLoader} from "../../plugins";
 import * as config from "../../framework/config";
 import {addQueryParam} from "../utils/ui";
 
@@ -298,8 +297,8 @@ export class Area extends React.Component {
         inline = optional(area.inline, inline)
         let selectedTab = this.props.selectedTab
         let defaultFieldCass = inline ? InlineField : Field
-        let tabs = !_.isEmpty(area.tabs) && <Tabs selectedTab={selectedTab} tabs={area.tabs} model={this.props.model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={self.props.canSave} />
-        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor}))
+        let tabs = !_.isEmpty(area.tabs) && <Tabs selectedTab={selectedTab} tabs={area.tabs} model={this.props.model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={this.props.canSave} />
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor, onCancel: this.props.onCancel}))
 
         return (
             <Card title={area.title} subtitle={area.subtitle} actions={area.actions}>
@@ -334,7 +333,7 @@ export class AreaNoCard extends React.Component {
         let descriptor = this.props.descriptor
         let area = this.props.area
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f,  descriptor: descriptor}))
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f,  descriptor: descriptor, onCancel: this.props.onCancel}))
         let actionKey = 1
 
         return (
@@ -413,7 +412,7 @@ export class Tabs extends React.Component {
             let inline = optional(descriptor.inline, false)
             inline = optional(c.inline, inline)
             let defaultFieldClass = inline ? InlineField : Field
-            let fields = !_.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f, onCancel: this.props.onCancel, canSave: self.props.canSave}))
+            let fields = !_.isEmpty(c.fields) && _.filter(c.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldClass), {key: f.property, model: this.props.model, field: f, onCancel: this.props.onCancel, canSave: this.props.canSave}))
             return (
                 <div key={key} role="tabpanel" className={"tab-pane " + (this.getTabClass(selectedTab, c.id, firstTabId))} id={`${c.key}`}>
                     <div className="row">{fields}</div>
@@ -509,8 +508,8 @@ export class FormBody extends React.Component {
         let inline = optional(descriptor.inline, false)
         let defaultFieldCass = inline ? InlineField : Field
         let selectedTab = this.props.selectedTab;
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor, selectedTab : selectedTab, canSave: self.props.canSave, onCancel: self.props.onCancel}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs selectedTab={selectedTab} tabs={descriptor.tabs} model={model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={self.props.canSave} />
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor, selectedTab : selectedTab, canSave: this.props.canSave, onCancel: this.props.onCancel}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs selectedTab={selectedTab} tabs={descriptor.tabs} model={model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={this.props.canSave} />
         let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f, descriptor: descriptor, params : this.props.params, onCancel: this.props.onCancel}))
         let showInCard = optional(descriptor.showInCard, true)
 
