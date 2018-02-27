@@ -656,7 +656,7 @@ export class Form extends React.Component {
         return (
             <div className="form">
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
-                    <FormBody selectedTab={selectedTab} descriptor={descriptor} model={model} />
+                    <FormBody selectedTab={selectedTab} descriptor={descriptor} model={model} onCancel={this.onCancel.bind(this)} />
 
                     {showFormFooter &&
                     <FormFooter descriptor={descriptor}  model={model} onCancel={this.onCancel.bind(this)}/>
@@ -743,7 +743,7 @@ export class Field extends React.Component {
 
             return (
 
-                <FormFooter descriptor={this.props.descriptor}  model={this.props.model} onCancel={this.onCancel.bind(this)} />
+                <FormFooter descriptor={this.props.descriptor}  model={this.props.model} onCancel={this.props.onCancel.bind(this)} />
 
             );
 
@@ -782,7 +782,7 @@ export class InlineField extends React.Component {
     render() {
         if(this.props.field.property == FORM_FOOTER) {
             return (
-                <FormFooter descriptor={this.props.descriptor} model={this.props.model}  onCancel={this.onCancel.bind(this)} />
+                <FormFooter descriptor={this.props.descriptor} model={this.props.model}  onCancel={this.props.onCancel.bind(this)} />
             );
 
         }
