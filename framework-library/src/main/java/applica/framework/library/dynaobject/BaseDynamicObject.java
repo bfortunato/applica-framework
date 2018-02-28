@@ -1,6 +1,9 @@
 package applica.framework.library.dynaobject;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,5 +59,13 @@ public class BaseDynamicObject implements DynamicObject {
 
     public void setProperties(List<Property> properties) {
         this.properties = properties;
+    }
+
+    public ObjectNode toObjectNode(ObjectMapper mapper) {
+        ObjectNode node = mapper.createObjectNode();
+
+        properties.forEach(p -> node.putPOJO(p.getKey(), p.getValue()));
+
+        return node;
     }
 }

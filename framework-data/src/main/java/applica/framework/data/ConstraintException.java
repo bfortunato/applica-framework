@@ -1,4 +1,4 @@
-package applica.framework.data.mongodb.constraints;
+package applica.framework.data;
 
 import applica.framework.Entity;
 
