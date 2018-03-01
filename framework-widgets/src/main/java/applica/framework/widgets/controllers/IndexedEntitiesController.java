@@ -30,7 +30,7 @@ import java.util.Optional;
  * Created by bimbobruno on 06/12/2016.
  */
 @RestController
-@RequestMapping("/indexed/entities/{entity}")
+@RequestMapping("/entities/indexed/{entity}")
 public class IndexedEntitiesController {
 
     private Log logger = LogFactory.getLog(getClass());
