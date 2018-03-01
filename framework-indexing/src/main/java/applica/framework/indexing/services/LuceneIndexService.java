@@ -7,11 +7,11 @@ import applica.framework.library.dynaobject.BaseDynamicObject;
 import applica.framework.library.dynaobject.DynamicObject;
 import applica.framework.library.dynaobject.Property;
 import applica.framework.library.options.OptionsManager;
+import applica.framework.library.utils.DateUtils;
+import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -63,12 +64,12 @@ public class LuceneIndexService implements IndexService {
     }
 
     @Override
-    public void index(Entity entity) {
+    public <T extends Entity> void index(T entity) {
         Objects.requireNonNull(entity, "Entity cannot be null");
 
         executorService.execute(() -> {
             IndexedObject indexedObject = indexerFactory
-                    .create((Class<Entity>) entity.getClass())
+                    .create((Class<T>) entity.getClass())
                     .map(i -> i.index(entity))
                     .orElse(null);
 
@@ -121,7 +122,21 @@ public class LuceneIndexService implements IndexService {
 
         for (Property property : indexedObject.getProperties()) {
             if (property.getValue() != null) {
-                document.add(new StringField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
+                if (Double.class.equals(property.getValue().getClass())) {
+                    document.add(new DoublePoint(property.getKey(), (Double) property.getValue()));
+                } else if (Float.class.equals(property.getValue().getClass())) {
+                    document.add(new FloatPoint(property.getKey(), (Float) property.getValue()));
+                } else if (Long.class.equals(property.getValue().getClass())) {
+                    document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
+                } else if (Integer.class.equals(property.getValue().getClass())) {
+                    document.add(new IntPoint(property.getKey(), (Integer) property.getValue()));
+                } else if (Boolean.class.equals(property.getValue().getClass())) {
+                    document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
+                } else if (Date.class.equals(property.getValue().getClass())) {
+                    document.add(new LongPoint(property.getKey(), ((Date) property.getValue()).getTime()));
+                } else {
+                    document.add(new StringField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
+                }
             }
         }
 
@@ -157,7 +172,18 @@ public class LuceneIndexService implements IndexService {
         IndexedObject dynamicObject = new IndexedObject();
 
         for (IndexableField indexableField : document.getFields()) {
-            dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
+            if (DoublePoint.class.equals(indexableField.getClass())) {
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
+            } else if (FloatPoint.class.equals(indexableField.getClass())) {
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
+            } else if (Long.class.equals(indexableField.getClass())) {
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
+            } if (IntPoint.class.equals(indexableField.getClass())) {
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
+            } else {
+                dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
+            }
+
             if (indexableField.name().equals(KEY_FIELD)) {
                 dynamicObject.setUniqueId(indexableField.stringValue());
             }

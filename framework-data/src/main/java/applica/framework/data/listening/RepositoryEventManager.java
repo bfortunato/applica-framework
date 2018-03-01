@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class RepositoryEventManager<T extends Entity> implements RepositoryListener<T> {
+public class RepositoryEventManager implements RepositoryListener {
 
     private class ListenerInfo {
 
@@ -51,32 +51,40 @@ public class RepositoryEventManager<T extends Entity> implements RepositoryListe
      * @param repositoryListener
      * @param priority
      */
-    void addListener(Class<T> entityType, RepositoryListener<T> repositoryListener, int priority) {
+    public <T extends Entity> void addListener(Class<T> entityType, RepositoryListener repositoryListener, int priority) {
         this.listeners.add(new ListenerInfo(entityType, repositoryListener, priority));
         this.listeners.sort(Comparator.comparing(p -> p.priority * -1));
     }
 
-    void addListener(Class<T> entityType, RepositoryListener<T> repositoryListener) {
+    public <T extends Entity> void addListener(Class<T> entityType, RepositoryListener repositoryListener) {
         addListener(entityType, repositoryListener, 0);
     }
 
+    public void addListener(RepositoryListener repositoryListener) {
+        addListener(null, repositoryListener, 0);
+    }
+
+    public void addListener(RepositoryListener repositoryListener, int priority) {
+        addListener(null, repositoryListener, priority);
+    }
+
     @Override
-    public void onBeforeSave(RepositoryEvent event, T entity) {
+    public <T extends Entity> void onBeforeSave(RepositoryEvent event, T entity) {
         if (entity != null) {
             listeners
                     .stream()
-                    .filter(l -> l.entityType.equals(entity.getClass()))
+                    .filter(l -> l.entityType == null || l.entityType.equals(event.getEntityType()))
                     .forEach(l -> l.repositoryListener.onBeforeSave(event, entity));
         }
     }
 
     @Override
-    public void onSave(RepositoryEvent event, T entity) {
+    public <T extends Entity> void onSave(RepositoryEvent event, T entity) {
         if (entity != null) {
             listeners
                     .stream()
-                    .filter(l -> l.entityType.equals(event.getEntityType()))
-                    .forEach(l -> l.repositoryListener.onBeforeSave(event, entity));
+                    .filter(l -> l.entityType == null || l.entityType.equals(event.getEntityType()))
+                    .forEach(l -> l.repositoryListener.onSave(event, entity));
         }
     }
 
@@ -85,7 +93,7 @@ public class RepositoryEventManager<T extends Entity> implements RepositoryListe
         if (entityId != null) {
             listeners
                     .stream()
-                    .filter(l -> l.entityType.equals(event.getEntityType()))
+                    .filter(l -> l.entityType == null || l.entityType.equals(event.getEntityType()))
                     .forEach(l -> l.repositoryListener.onBeforeDelete(event, entityId));
         }
     }
@@ -95,7 +103,7 @@ public class RepositoryEventManager<T extends Entity> implements RepositoryListe
         if (entityId != null) {
             listeners
                     .stream()
-                    .filter(l -> l.entityType.equals(event.getEntityType()))
+                    .filter(l -> l.entityType == null || l.entityType.equals(event.getEntityType()))
                     .forEach(l -> l.repositoryListener.onDelete(event, entityId));
         }
     }
