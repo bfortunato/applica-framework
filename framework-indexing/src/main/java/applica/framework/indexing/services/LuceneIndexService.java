@@ -121,16 +121,22 @@ public class LuceneIndexService implements IndexService {
             if (property.getValue() != null) {
                 if (Double.class.equals(property.getValue().getClass())) {
                     document.add(new DoublePoint(property.getKey(), (Double) property.getValue()));
+                    document.add(new StoredField(property.getKey() + "_stored_double", (Double) property.getValue()));
                 } else if (Float.class.equals(property.getValue().getClass())) {
-                    document.add(new StoredField(property.getKey(), (Float) property.getValue()));
+                    document.add(new FloatPoint(property.getKey(), (Float) property.getValue()));
+                    document.add(new StoredField(property.getKey() + "_stored_float", (Float) property.getValue()));
                 } else if (Long.class.equals(property.getValue().getClass())) {
-                    document.add(new StoredField(property.getKey(), (Long) property.getValue()));
+                    document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
+                    document.add(new StoredField(property.getKey() + "_stored_long", (Long) property.getValue()));
                 } else if (Integer.class.equals(property.getValue().getClass())) {
-                    document.add(new StoredField(property.getKey(), (Integer) property.getValue()));
+                    document.add(new IntPoint(property.getKey(), (Integer) property.getValue()));
+                    document.add(new StoredField(property.getKey() + "_stored_int", (Integer) property.getValue()));
                 } else if (Boolean.class.equals(property.getValue().getClass())) {
-                    document.add(new StoredField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
+                    document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
+                    document.add(new StoredField(property.getKey() + "_stored_boolean", ((Boolean) property.getValue()) ? 1 : 0));
                 } else if (Date.class.equals(property.getValue().getClass())) {
-                    document.add(new StoredField(property.getKey(), ((Date) property.getValue()).getTime()));
+                    document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
+                    document.add(new StoredField(property.getKey() + "_stored_date", ((Date) property.getValue()).getTime()));
                 } else {
                     document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
                 }
@@ -182,14 +188,18 @@ public class LuceneIndexService implements IndexService {
         IndexedObject dynamicObject = new IndexedObject();
 
         for (IndexableField indexableField : document.getFields()) {
-            if (DoublePoint.class.equals(indexableField.getClass())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
-            } else if (FloatPoint.class.equals(indexableField.getClass())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
-            } else if (LongPoint.class.equals(indexableField.getClass())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
-            } if (IntPoint.class.equals(indexableField.getClass())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
+            if (indexableField.name().endsWith("_stored_double")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_double", ""), indexableField.numericValue().doubleValue());
+            } else if (indexableField.name().endsWith("_stored_float")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_float", ""), indexableField.numericValue().floatValue());
+            } else if (indexableField.name().endsWith("_stored_long")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_long", ""), indexableField.numericValue().longValue());
+            } if (indexableField.name().endsWith("_stored_int")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_int", ""), indexableField.numericValue().intValue());
+            } if (indexableField.name().endsWith("_stored_boolean")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_boolean", ""), indexableField.numericValue().intValue() > 0 ? true : false);
+            } if (indexableField.name().endsWith("_stored_date")) {
+                dynamicObject.setProperty(indexableField.name().replace("_stored_date", ""), new Date(indexableField.numericValue().longValue()));
             } else {
                 dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
             }
