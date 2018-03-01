@@ -3,12 +3,9 @@ package applica.framework.indexing.services;
 import applica.framework.Entity;
 import applica.framework.Query;
 import applica.framework.indexing.core.IndexedObject;
-import applica.framework.library.dynaobject.BaseDynamicObject;
-import applica.framework.library.dynaobject.DynamicObject;
+import applica.framework.indexing.core.IndexedResult;
 import applica.framework.library.dynaobject.Property;
 import applica.framework.library.options.OptionsManager;
-import applica.framework.library.utils.DateUtils;
-import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
@@ -144,16 +141,29 @@ public class LuceneIndexService implements IndexService {
     }
 
     @Override
-    public <T extends Entity> List<IndexedObject> search(Class<T> entityType, Query query) {
+    public <T extends Entity> IndexedResult search(Class<T> entityType, Query query) {
         List<IndexedObject> result = new ArrayList<>();
+        int totalResults = 0;
 
         try {
             IndexSearcher searcher = searcherManager.acquire();
 
             org.apache.lucene.search.Query luceneQuery = buildLuceneQuery(query);
-            TopDocs luceneResult = searcher.search(luceneQuery, 50);
+            TopScoreDocCollector collector = TopScoreDocCollector.create(1000);
+            searcher.search(luceneQuery, collector);
 
-            for (ScoreDoc scoreDoc : luceneResult.scoreDocs) {
+            int startIndex = 0;
+            int numHits = 1000;
+
+            if (query.getPage() > 0 && query.getRowsPerPage() > 0) {
+                startIndex = (query.getPage() - 1) * query.getRowsPerPage();
+                numHits = query.getRowsPerPage();
+            }
+
+            TopDocs topDocs = collector.topDocs(startIndex, numHits);
+            totalResults = collector.getTotalHits();
+
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document document = searcher.doc(scoreDoc.doc);
                 result.add(createDynamicObject(document));
             }
@@ -165,7 +175,7 @@ public class LuceneIndexService implements IndexService {
             e.printStackTrace();
         }
 
-        return result;
+        return new IndexedResult(result, totalResults);
     }
 
     private IndexedObject createDynamicObject(Document document) {
