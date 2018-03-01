@@ -2,6 +2,8 @@
 
 import {optional} from "../../utils/lang";
 import {isEnter} from "../utils/keyboard";
+import * as ui from "../utils/ui";
+import * as _ from "../../libs/underscore";
 
 export class DropdownActionButton extends React.Component {
     componentDidMount() {
@@ -277,7 +279,7 @@ export class EditableText extends React.Component {
 }
 
 
-export class HeaderBlockWithBreadcrumps extends React.Component {
+export class HeaderBlockWithBreadcrumbs extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -286,7 +288,7 @@ export class HeaderBlockWithBreadcrumps extends React.Component {
 
         let title;
         if (_.isArray(this.props.title)) {
-            title = this.props.title.map((item, i) => <BreadcrumpItem key={Math.random()} title={item.title} url={item.url} first={i == 0} last={i < this.props.title.length -1} />);
+            title = this.props.title.map((item, i) => <BreadcrumbItem key={Math.random()} title={item.title} url={item.url} first={i == 0} last={i < this.props.title.length -1} />);
 
         } else {
             title = this.props.title
@@ -309,7 +311,7 @@ export class HeaderBlockWithBreadcrumps extends React.Component {
     }
 }
 
-class BreadcrumpItem extends React.Component {
+class BreadcrumbItem extends React.Component {
     constructor(props) {
         super(props)
         this.title = this.props.title;

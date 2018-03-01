@@ -8,6 +8,7 @@ import M from "../strings";
 import * as _ from "../libs/underscore";
 import {LOGIN, LOGOUT, RESUME_SESSION} from "./types";
 import {getUserCoverImage, getUserProfileImage} from "./ui";
+import {setupMenu} from "./menu";
 
 export const login = createAsyncAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
@@ -26,11 +27,8 @@ export const login = createAsyncAction(LOGIN, data => {
             toast(M("welcome") + " " + user.name);
 
             login.complete({user})
-            if (user) {
-                setupMenu({user})
-            }
-            getUserProfileImage()
-            getUserCoverImage()
+            performLoginUserAction(user)
+
         })
         .catch(e => {
             hideLoader()
@@ -39,6 +37,14 @@ export const login = createAsyncAction(LOGIN, data => {
             login.fail()
         })
 });
+
+function performLoginUserAction (user) {
+    if (user) {
+        setupMenu({user})
+    }
+    getUserProfileImage()
+    getUserCoverImage()
+}
 
 export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
     aj.dispatch({
@@ -51,8 +57,7 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
             toast(M("welcome") + " " + user.name);
 
             resumeSession.complete({user})
-            getUserProfileImage()
-            getUserCoverImage()
+            performLoginUserAction(user)
         })
         .catch(e => {
             hideLoader()

@@ -2,7 +2,7 @@
 
 import {FullScreenLayout, Screen} from "../components/layout";
 import M from "../../strings";
-import {changePassword} from "../../actions";
+import {changePassword} from "../../actions/account";
 
 export default class ChangePassword extends Screen {
 

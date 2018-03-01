@@ -304,7 +304,7 @@ public class EntityMapper {
                 String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
                 PropertyUtils.setProperty(destination, destinationProperty, imagePath);
             } catch (IOException e) {
-                 unchecked(() -> PropertyUtils.setProperty(destination, destinationProperty, null));
+                unchecked(() -> PropertyUtils.setProperty(destination, destinationProperty, null));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -481,7 +481,26 @@ public class EntityMapper {
         }
     }
 
-    public void filesToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+    public void attachmentToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
+
+        Attachment file = null;
+        try {
+            file = (Attachment) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (file != null) {
+            if (StringUtils.isNotEmpty(file.getPath())) {
+                destination.putPOJO(destinationProperty, new AttachmentData(file.getName(), file.getPath(), false, file.getSize()));
+            }
+        }
+    }
+
+    public void attachmentsToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
         Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
@@ -503,7 +522,7 @@ public class EntityMapper {
         }
     }
 
-    public void dataUrlToFiles(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+    public void dataUrlToAttachments(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
         Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
@@ -559,5 +578,57 @@ public class EntityMapper {
     }
 
 
+    public void dataUrlToAttachment(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
+
+        AttachmentData fileData = null;
+        Attachment fileUrls = null;
+        Attachment actualFiles;
+        try {
+            actualFiles = (Attachment) PropertyUtils.getProperty(destination, destinationProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
+            JsonNode n = source.get(sourceProperty);
+            fileData =new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt());
+        }
+
+        if (fileData != null) {
+            try {
+                String filePath;
+                if (fileData.isBase64()) {
+                    URLData urlData = URLData.parse(fileData.getData());
+                    filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+
+                } else {
+                    filePath = fileData.getData();
+                }
+
+                fileUrls = new Attachment(fileData.getFilename(), filePath, fileData.getSize());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+        try {
+            PropertyUtils.setProperty(destination, destinationProperty, fileUrls);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (actualFiles != null) {
+            try {
+                fileServer.deleteFile(actualFiles.getPath());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
 }
+

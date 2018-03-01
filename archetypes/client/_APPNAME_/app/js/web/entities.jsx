@@ -2,7 +2,7 @@
 
 import {CheckCell, TextCell} from "./components/grids";
 import {check, sanitize} from "../libs/validator";
-import {Image, Mail, Text, YesNo} from "./components/forms";
+import {Image, Mail, PasswordText, Text, YesNo} from "./components/forms";
 import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers";
 import M from "../strings";
 

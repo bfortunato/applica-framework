@@ -10,7 +10,7 @@ import {
     getSelectEntities,
     getSelectValues
 } from "../../actions/entities";
-import {discriminated} from "../../../utils/ajex";
+import {discriminated} from "../../utils/ajex";
 import * as query from "../../api/query";
 import {Control, Lookup, Select} from "./forms";
 import {optional} from "../../utils/lang";
@@ -62,27 +62,49 @@ export class EntitiesLookupContainer extends Control  {
     }
 }
 
-export class ValuesLookupContainer extends Control  {
+export class ValuesLookupContainer extends Control {
+
     constructor(props) {
+
         super(props)
 
         this.discriminator = props.id
+
         if (_.isEmpty(this.discriminator)) {
             throw new Error("Please specify an id for lookup")
         }
 
-        if (_.isEmpty(this.props.collection)) {
+        let collection = this.getCollection()
+        if (_.isEmpty(collection)) {
             throw new Error("Please specify a collection for lookup")
         }
 
         this.__queryOnChange = () => {
-            getLookupValues({discriminator: this.discriminator, collection: this.props.collection, keyword: this.query.keyword})
+            collection = this.getCollection()
+            getLookupValues(
+                {
+                    discriminator: this.discriminator,
+                    collection: collection,
+                    keyword: this.query.keyword,
+                    page: this.query.page,
+                    rowsPerPage: this.query.rowsPerPage,
+                })
         }
 
         this.query = query.create()
+        this.query.setPage(1)
+        this.query.setRowsPerPage(15)
         this.datasource = datasource.create()
 
         this.state = {values: {}}
+    }
+
+    getCollection() {
+        let collection = this.props.collection
+        if (_.isFunction(this.props.getCollection)) {
+            collection = this.props.getCollection(this.props.model)
+        }
+        return collection;
     }
 
     componentDidMount() {
@@ -104,7 +126,9 @@ export class ValuesLookupContainer extends Control  {
     render() {
         return React.createElement(Lookup, _.assign({}, this.props, {query: this.query, datasource: this.datasource}))
     }
+
 }
+
 
 
 export class ValuesSelectContainer extends Control {

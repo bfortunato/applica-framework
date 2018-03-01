@@ -4,6 +4,7 @@ import applica.framework.Entity;
 import applica.framework.Query;
 import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
+import applica.framework.data.ConstraintException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 

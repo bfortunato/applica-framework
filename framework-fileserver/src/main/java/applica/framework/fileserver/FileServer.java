@@ -64,4 +64,8 @@ public interface FileServer {
      * @return filePath
      */
     String unzipFile(String filePath);
+
+    String copyFile(String filePath, String newPath) throws IOException;
+
+
 }

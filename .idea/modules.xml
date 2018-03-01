@@ -9,6 +9,7 @@
       <module fileurl="file://$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" filepath="$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-security/framework-data-security.iml" filepath="$PROJECT_DIR$/framework-data-security/framework-data-security.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-fileserver/framework-fileserver.iml" filepath="$PROJECT_DIR$/framework-fileserver/framework-fileserver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-indexing/framework-indexing.iml" filepath="$PROJECT_DIR$/framework-indexing/framework-indexing.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-library/framework-library.iml" filepath="$PROJECT_DIR$/framework-library/framework-library.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-licensing/framework-licensing.iml" filepath="$PROJECT_DIR$/framework-licensing/framework-licensing.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-resources/framework-resources.iml" filepath="$PROJECT_DIR$/framework-resources/framework-resources.iml" />

@@ -19,8 +19,6 @@ plugins.register()
 /* Admin routes */
 ui.addRoute("/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
 ui.addRoute("/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} params={params}/>))
-ui.addRoute("/entities/:entity/new", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} params={params}/>))
-
 
 /* Account routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))

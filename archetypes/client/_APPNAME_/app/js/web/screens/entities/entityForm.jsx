@@ -9,6 +9,7 @@ import entities from "../../entities"
 import * as ui from "../../utils/ui"
 import {optional} from "../../../utils/lang"
 import {EntitiesStore} from "../../../stores/entities";
+import {HeaderBlockWithBreadcrumbs} from "../../components/common";
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -38,8 +39,6 @@ export default class EntityForm extends Screen {
         window.onbeforeunload = this.onBeforeUnload
         ui.addOnBeforeChangeListener(this.onBeforeUnload)
 
-
-        //TODO: differenziare la new dalla getEntity e richiamare una action ad-hoc - api ad hoc e controler ad hoc???
         this.setState({isCreation: this.props.entityId == "new"});
         getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId, params: this.props.params})
     }
@@ -158,6 +157,8 @@ export default class EntityForm extends Screen {
             )
         }
 
+        return defaultActions;
+
     }
 
     canSave(){
@@ -197,14 +198,17 @@ export default class EntityForm extends Screen {
         let actions = this.getActions()
         let descriptor = this.getDescriptor()
         let component = this.getFormComponent()
+        let selectedTab = this.props.params.selectedTab;
+
 
         return (
             <Layout>
-                <HeaderBlockWithBreadcrumps title={title} subtitle={subtitle} actions={actions}/></HeaderBlockWithBreadcrumps>
+                <HeaderBlockWithBreadcrumbs title={title} subtitle={subtitle} actions={actions}/>
                 {React.createElement(component, {
                     ref: "form",
                     descriptor: descriptor,
                     data: this.state.data,
+                    selectedTab : selectedTab,
                     onSubmit: this.onSubmit.bind(this),
                     onCancel: this.onCancel.bind(this)
                 })}

@@ -1,6 +1,7 @@
 package applica.framework.data.mongodb.constraints;
 
 import applica.framework.*;
+import applica.framework.data.ConstraintException;
 import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;

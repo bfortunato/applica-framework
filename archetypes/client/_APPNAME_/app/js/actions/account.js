@@ -9,7 +9,7 @@ import {alert, hideLoader, showLoader, toast} from "../plugins";
 import {format} from "../utils/lang";
 import M from "../strings";
 import * as _ from "../libs/underscore";
-import {CONFIRM_ACCOUNT, RECOVER_ACCOUNT, REGISTER, SET_ACTIVATION_CODE} from "./types";
+import {CHANGE_PASSWORD, CONFIRM_ACCOUNT, RECOVER_ACCOUNT, REGISTER, SET_ACTIVATION_CODE} from "./types";
 
 export const register = createAsyncAction(REGISTER, data => {
     if (_.isEmpty(data.name) || _.isEmpty(data.mail) || _.isEmpty(data.password)) {

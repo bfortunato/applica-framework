@@ -21,6 +21,16 @@
     "route-recognizer": "0.2.9",
     "animate.css": "^3.5.2",
     "bootstrap-select": "^1.12.2",
-    "farbtastic": "^2.0.0-alpha.1"
+    "farbtastic": "^2.0.0-alpha.1",
+
+    "moment" : "2.20.1",
+    "eonasdan-bootstrap-datetimepicker" : "4.17.37",
+    "install": "~1.0.4",
+    "material-design-iconic-font": "^2.2.0",
+    "Waves": "fians/Waves#^0.7.5",
+    "bootstrap": "^3.3.7",
+    "malihu-custom-scrollbar-plugin": "malihu/malihu-custom-scrollbar-plugin#^3.1.5",
+    "jquery-mask-plugin":"1.14.0"
   }
 }
+

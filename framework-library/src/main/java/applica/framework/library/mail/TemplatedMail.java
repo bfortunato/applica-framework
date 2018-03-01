@@ -134,6 +134,9 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
+        session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
+        session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
 

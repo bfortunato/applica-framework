@@ -276,11 +276,16 @@ export class SearchDialog extends React.Component {
     }
 
     getFieldFilterType(property) {
-        const field = this.model.findField(property)
-        if (field) {
-            return field.filterType
-        }
+        let filterType = this.props.column.filterType;
+        if (!filterType) {
+            const field = this.model.findField(property)
+            if (field) {
+                return field.filterType
+            }
+        } else
+            return filterType
     }
+
 
     filter() {
         if (this.props.query && this.props.column && this.props.column.property) {

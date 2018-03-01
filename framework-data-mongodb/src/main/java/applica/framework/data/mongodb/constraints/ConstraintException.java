@@ -8,6 +8,7 @@ import applica.framework.Entity;
  * Date: 30/10/14
  * Time: 11:30
  */
+@Deprecated
 public class ConstraintException extends RuntimeException {
 
     public enum Type {

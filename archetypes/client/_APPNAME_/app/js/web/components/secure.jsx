@@ -1,9 +1,9 @@
 "use strict"
 
 import Login from "../screens/login"
-import {SessionStore} from "../../stores"
 import {connect} from "../utils/aj"
 import ChangePassword from "../screens/changePassword";
+import {SessionStore} from "../../stores/session";
 
 class Secure extends React.Component {
 

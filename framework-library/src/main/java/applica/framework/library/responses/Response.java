@@ -10,6 +10,9 @@ public class Response {
     public static final int ERROR = 1;
     public static final int UNAUTHORIZED = 2;
     public static final int ERROR_SERIALIZATION = 3;
+    public static final int ERROR_NOT_FOUND = 4;
+    public static final int ERROR_CONSTRAINT_VIOLATION = 5;
+    public static final int ERROR_VALIDATION = 6;
 
     private int responseCode;
     private String message;
