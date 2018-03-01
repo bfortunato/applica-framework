@@ -135,7 +135,7 @@ public class LuceneIndexService implements IndexService {
                     document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                     document.add(new StoredField(property.getKey() + "_stored_boolean", ((Boolean) property.getValue()) ? 1 : 0));
                 } else if (Date.class.equals(property.getValue().getClass())) {
-                    document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
+                    document.add(new LongPoint(property.getKey() + "_stored_date", (Long) property.getValue()));
                     document.add(new StoredField(property.getKey() + "_stored_date", ((Date) property.getValue()).getTime()));
                 } else {
                     document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
