@@ -3,6 +3,7 @@ package applica.framework.widgets.controllers;
 import applica.framework.Entity;
 import applica.framework.Query;
 import applica.framework.data.ConstraintException;
+import applica.framework.indexing.core.IndexedResult;
 import applica.framework.indexing.services.IndexService;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
@@ -45,12 +46,12 @@ public class IndexedEntitiesController {
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
             if (definition.isPresent()) {
                 Query query = ObjectUtils.bind(new Query(), new ServletRequestParameterPropertyValues(request));
+                IndexedResult search = indexService.search(definition.get().getType(), query);
 
-                ArrayNode result = mapper.createArrayNode();
-
-                indexService
-                        .search(definition.get().getType(), query)
-                        .forEach(d -> result.add(d.toObjectNode(mapper)));
+                ObjectNode result = mapper.createObjectNode();
+                ArrayNode rows = result.putArray("rows");
+                result.put("totalRows", search.getTotalRows());
+                search.getRows().forEach(d -> rows.add(d.toObjectNode(mapper)));
 
                 return new ValueResponse(result);
             } else {
