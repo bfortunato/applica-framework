@@ -6,13 +6,13 @@ import applica.framework.data.listening.RepositoryListenerAdapter;
 import applica.framework.indexing.services.IndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class IndexingRepositoryListener<T extends Entity> extends RepositoryListenerAdapter<T> {
+public class IndexingRepositoryListener extends RepositoryListenerAdapter {
 
     @Autowired
     private IndexService indexService;
 
     @Override
-    public void onSave(RepositoryEvent event, Entity entity) {
+    public <T extends Entity> void onSave(RepositoryEvent event, T entity) {
         if (entity != null) {
             indexService.index(entity);
         }

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IndexService {
 
-    void index(Entity entity);
+    <T extends Entity> void index(T entity);
 
     void remove(String uniqueId);
 

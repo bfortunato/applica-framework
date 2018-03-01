@@ -9,32 +9,10 @@ import applica.framework.Entity;
  * Time: 11:30
  */
 @Deprecated
-public class ConstraintException extends RuntimeException {
-
-    public enum Type {
-        FOREIGN,
-        UNIQUE
-    }
-
-    private Type constraintType;
-    private Class<? extends Entity> entityType;
-    private String property;
+public class ConstraintException extends applica.framework.data.ConstraintException {
 
     public ConstraintException(Type constraintType, Class<? extends Entity> entityType, String property) {
-        this.constraintType = constraintType;
-        this.entityType = entityType;
-        this.property = property;
+        super(constraintType, entityType, property);
     }
 
-    public Type getConstraintType() {
-        return constraintType;
-    }
-
-    public Class<? extends Entity> getEntityType() {
-        return entityType;
-    }
-
-    public String getProperty() {
-        return property;
-    }
 }

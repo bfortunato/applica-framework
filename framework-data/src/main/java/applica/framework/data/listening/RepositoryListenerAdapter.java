@@ -2,14 +2,15 @@ package applica.framework.data.listening;
 
 import applica.framework.Entity;
 
-public class RepositoryListenerAdapter<T extends Entity> implements RepositoryListener {
+public class RepositoryListenerAdapter implements RepositoryListener {
+
     @Override
-    public void onBeforeSave(RepositoryEvent event, Entity entity) {
+    public <T extends Entity> void onBeforeSave(RepositoryEvent event, T entity) {
 
     }
 
     @Override
-    public void onSave(RepositoryEvent event, Entity entity) {
+    public <T extends Entity> void onSave(RepositoryEvent event, T entity) {
 
     }
 
