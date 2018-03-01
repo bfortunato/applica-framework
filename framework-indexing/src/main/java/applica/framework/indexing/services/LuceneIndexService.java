@@ -115,24 +115,24 @@ public class LuceneIndexService implements IndexService {
     private Document createDocument(IndexedObject indexedObject) {
         Document document = new Document();
 
-        document.add(new StringField(KEY_FIELD, indexedObject.getUniqueId(), Field.Store.YES));
+        document.add(new TextField(KEY_FIELD, indexedObject.getUniqueId(), Field.Store.YES));
 
         for (Property property : indexedObject.getProperties()) {
             if (property.getValue() != null) {
                 if (Double.class.equals(property.getValue().getClass())) {
                     document.add(new DoublePoint(property.getKey(), (Double) property.getValue()));
                 } else if (Float.class.equals(property.getValue().getClass())) {
-                    document.add(new FloatPoint(property.getKey(), (Float) property.getValue()));
+                    document.add(new StoredField(property.getKey(), (Float) property.getValue()));
                 } else if (Long.class.equals(property.getValue().getClass())) {
-                    document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
+                    document.add(new StoredField(property.getKey(), (Long) property.getValue()));
                 } else if (Integer.class.equals(property.getValue().getClass())) {
-                    document.add(new IntPoint(property.getKey(), (Integer) property.getValue()));
+                    document.add(new StoredField(property.getKey(), (Integer) property.getValue()));
                 } else if (Boolean.class.equals(property.getValue().getClass())) {
-                    document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
+                    document.add(new StoredField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                 } else if (Date.class.equals(property.getValue().getClass())) {
-                    document.add(new LongPoint(property.getKey(), ((Date) property.getValue()).getTime()));
+                    document.add(new StoredField(property.getKey(), ((Date) property.getValue()).getTime()));
                 } else {
-                    document.add(new StringField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
+                    document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
                 }
             }
         }
@@ -186,7 +186,7 @@ public class LuceneIndexService implements IndexService {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
             } else if (FloatPoint.class.equals(indexableField.getClass())) {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
-            } else if (Long.class.equals(indexableField.getClass())) {
+            } else if (LongPoint.class.equals(indexableField.getClass())) {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
             } if (IntPoint.class.equals(indexableField.getClass())) {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
@@ -206,13 +206,21 @@ public class LuceneIndexService implements IndexService {
         StringBuilder queryString = new StringBuilder();
 
         QueryParser parser = new QueryParser(KEY_FIELD, analyzer);
+        parser.setAllowLeadingWildcard(true);
+
         if (StringUtils.isNotEmpty(query.getKeyword())) {
             queryString.append(query.getKeyword());
         } else {
             query.getFilters().forEach(f -> queryString.append(f.getProperty()).append(":").append(f.getValue()).append(" "));
         }
 
-        return parser.parse(queryString.toString());
+        String querys = queryString.toString().trim();
+        if (StringUtils.isEmpty(querys)) {
+            querys = "*:*";
+        }
+
+        return parser.parse(querys);
     }
 
 }
+
