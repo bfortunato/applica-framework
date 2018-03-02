@@ -25,7 +25,7 @@ public class LuceneTest {
         LuceneIndexService indexService = new LuceneIndexService() {
             @Override
             protected String getPath() {
-                return "file:///indexer/test";
+                return String.format("file:///%s/lucene_test", System.getProperty("java.io.tmpdir"));
             }
 
             @Override
