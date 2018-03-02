@@ -205,7 +205,14 @@ public class LuceneIndexService implements IndexService {
 
             org.apache.lucene.search.Query luceneQuery = buildLuceneQuery(metadata, query);
             Sort luceneSort = buildLuceneSort(metadata, query);
-            TopFieldCollector collector = TopFieldCollector.create(luceneSort, 1000, null, true, true, true, true);
+            TopDocsCollector collector;
+
+            if (luceneSort.getSort().length == 0) {
+                collector = TopScoreDocCollector.create(1000);
+            } else {
+                collector = TopFieldCollector.create(luceneSort, 1000, null, true, true, true, true);
+            }
+
             searcher.search(luceneQuery, collector);
 
             int startIndex = 0;
@@ -247,9 +254,11 @@ public class LuceneIndexService implements IndexService {
             sortFields.add(createSortField(fieldMetadata, frameworkSort));
         }
 
-        SortField[] arr = new SortField[sortFields.size()];
-        sortFields.toArray(arr);
-        sort.setSort(arr);
+        if (sortFields.size() > 0) {
+            SortField[] arr = new SortField[sortFields.size()];
+            sortFields.toArray(arr);
+            sort.setSort(arr);
+        }
 
         return sort;
     }

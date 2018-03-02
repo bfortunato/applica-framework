@@ -5,15 +5,22 @@ import applica.framework.Entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class IndexedMetadata<T extends Entity> {
 
     private List<IndexedFieldMetadata> fields = new ArrayList<>();
-    private IndexedFieldMetadata default_;
     private Class<T> entityType;
+
+    private Function<String, IndexedFieldMetadata> defaultFieldMetadataSupplier = fieldName -> new IndexedFieldMetadata(fieldName, String.class, true);
 
     public IndexedMetadata(Class<T> entityType) {
         this.entityType = entityType;
+    }
+
+    private IndexedFieldMetadata createDefault(String fieldName) {
+        return defaultFieldMetadataSupplier.apply(fieldName);
     }
 
     public IndexedFieldMetadata get(String fieldName) {
@@ -21,7 +28,7 @@ public class IndexedMetadata<T extends Entity> {
                 .stream()
                 .filter(f -> Objects.equals(fieldName, f.getFieldName()))
                 .findFirst()
-                .orElse(default_);
+                .orElse(createDefault(fieldName));
 
     }
 
@@ -30,8 +37,8 @@ public class IndexedMetadata<T extends Entity> {
         return this;
     }
 
-    public IndexedMetadata<T> setDefault(IndexedFieldMetadata indexedFieldMetadata) {
-        this.default_ = indexedFieldMetadata;
+    public IndexedMetadata<T> setDefaultFieldMetadataSupplier(Function<String, IndexedFieldMetadata> supplier) {
+        this.defaultFieldMetadataSupplier = supplier;
         return this;
     }
 

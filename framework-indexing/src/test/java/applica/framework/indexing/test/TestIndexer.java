@@ -27,7 +27,7 @@ public class TestIndexer implements Indexer<TestEntity>
     @Override
     public IndexedMetadata<TestEntity> metadata(Class<TestEntity> entityType) {
         return new IndexedMetadata<>(TestEntity.class)
-                .setDefault(new IndexedFieldMetadata(null, String.class, false))
+                .setDefaultFieldMetadataSupplier(fieldName -> new IndexedFieldMetadata(fieldName, String.class, false))
                 .add(new IndexedFieldMetadata("intValue", Integer.class, true))
                 .add(new IndexedFieldMetadata("floatValue", Float.class, false))
                 .add(new IndexedFieldMetadata("longValue", Long.class, false))
