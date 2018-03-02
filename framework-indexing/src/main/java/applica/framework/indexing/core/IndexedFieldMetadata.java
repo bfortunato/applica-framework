@@ -2,12 +2,14 @@ package applica.framework.indexing.core;
 
 public class IndexedFieldMetadata {
 
+    private final boolean sortable;
     private String fieldName;
     private Class fieldType;
 
-    public IndexedFieldMetadata(String fieldName, Class fieldType) {
+    public IndexedFieldMetadata(String fieldName, Class fieldType, boolean sortable) {
         this.fieldName = fieldName;
         this.fieldType = fieldType;
+        this.sortable = sortable;
     }
 
     public String getFieldName() {
@@ -26,4 +28,7 @@ public class IndexedFieldMetadata {
         this.fieldType = fieldType;
     }
 
+    public boolean isSortable() {
+        return sortable;
+    }
 }

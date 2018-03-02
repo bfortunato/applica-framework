@@ -4,6 +4,7 @@ import applica.framework.indexing.core.IndexedFieldMetadata;
 import applica.framework.indexing.core.IndexedMetadata;
 import applica.framework.indexing.core.IndexedObject;
 import applica.framework.indexing.core.Indexer;
+import org.junit.Test;
 
 import java.util.Date;
 
@@ -24,18 +25,19 @@ public class TestIndexer implements Indexer<TestEntity>
     }
 
     @Override
-    public IndexedMetadata metadata(Class<TestEntity> entityType) {
-        return new IndexedMetadata()
-                .setDefault(new IndexedFieldMetadata(null, String.class))
-                .add(new IndexedFieldMetadata("intValue", Integer.class))
-                .add(new IndexedFieldMetadata("floatValue", Float.class))
-                .add(new IndexedFieldMetadata("longValue", Long.class))
-                .add(new IndexedFieldMetadata("doubleValue", Double.class))
-                .add(new IndexedFieldMetadata("dateValue", Date.class));
+    public IndexedMetadata<TestEntity> metadata(Class<TestEntity> entityType) {
+        return new IndexedMetadata<>(TestEntity.class)
+                .setDefault(new IndexedFieldMetadata(null, String.class, false))
+                .add(new IndexedFieldMetadata("intValue", Integer.class, true))
+                .add(new IndexedFieldMetadata("floatValue", Float.class, false))
+                .add(new IndexedFieldMetadata("longValue", Long.class, false))
+                .add(new IndexedFieldMetadata("doubleValue", Double.class, false))
+                .add(new IndexedFieldMetadata("dateValue", Date.class, false));
     }
 
+
     @Override
-    public Class getEntityType() {
+    public Class<TestEntity> getEntityType() {
         return TestEntity.class;
     }
 }

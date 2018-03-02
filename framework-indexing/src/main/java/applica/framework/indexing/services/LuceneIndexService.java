@@ -86,10 +86,11 @@ public class LuceneIndexService implements IndexService {
             }
 
             IndexedObject indexedObject = indexer.index(entity);
+            IndexedMetadata<T> metadata = indexer.metadata((Class<T>) entity.getClass());
 
             if (indexedObject != null) {
                 try {
-                    Document document = createDocument(indexedObject);
+                    Document document = createDocument(metadata, indexedObject);
 
                     if (documentExists(indexedObject.getUniqueId())) {
                         indexWriter.updateDocument(new Term(KEY_FIELD, indexedObject.getUniqueId()), document);
@@ -129,31 +130,53 @@ public class LuceneIndexService implements IndexService {
         return search.totalHits > 0;
     }
 
-    private Document createDocument(IndexedObject indexedObject) {
+    private Document createDocument(IndexedMetadata metadata, IndexedObject indexedObject) {
         Document document = new Document();
 
         document.add(new TextField(KEY_FIELD, indexedObject.getUniqueId(), Field.Store.YES));
 
         for (Property property : indexedObject.getProperties()) {
             if (property.getValue() != null) {
-                if (Double.class.equals(property.getValue().getClass())) {
+                IndexedFieldMetadata fieldMetadata = metadata.get(property.getKey());
+                
+                if (Double.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new DoublePoint(property.getKey(), (Double) property.getValue()));
-                    document.add(new StoredField(display(property.getKey()), (Double) property.getValue()));
-                } else if (Float.class.equals(property.getValue().getClass())) {
+                    document.add(new StoredField(property.getKey(), (Double) property.getValue()));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) (double) property.getValue()));
+                    }
+                } else if (Float.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new FloatPoint(property.getKey(), (Float) property.getValue()));
-                    document.add(new StoredField(display(property.getKey()), (Float) property.getValue()));
-                } else if (Long.class.equals(property.getValue().getClass())) {
+                    document.add(new StoredField(property.getKey(), (Float) property.getValue()));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) (float) property.getValue()));
+                    }
+                } else if (Long.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new LongPoint(property.getKey(), (Long) property.getValue()));
-                    document.add(new StoredField(display(property.getKey()), (Long) property.getValue()));
-                } else if (Integer.class.equals(property.getValue().getClass())) {
+                    document.add(new StoredField(property.getKey(), (Long) property.getValue()));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) property.getValue()));
+                    }
+                } else if (Integer.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new IntPoint(property.getKey(), (Integer) property.getValue()));
-                    document.add(new StoredField(display(property.getKey()), (Integer) property.getValue()));
-                } else if (Boolean.class.equals(property.getValue().getClass())) {
+                    document.add(new StoredField(property.getKey(), (Integer) property.getValue()));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) (int) property.getValue()));
+                    }
+                } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
-                    document.add(new StoredField(display(property.getKey()), ((Boolean) property.getValue()) ? 1 : 0));
-                } else if (Date.class.equals(property.getValue().getClass())) {
-                    document.add(new LongPoint(property.getKey(), ((Date) property.getValue()).getTime()));
-                    document.add(new StoredField(display(property.getKey()), ((Date) property.getValue()).getTime()));
+                    document.add(new StoredField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) (int) property.getValue()));
+                    }
+                } else if (Date.class.equals(fieldMetadata.getFieldType())) {
+                    long date = Long.parseLong(DateTools.dateToString((Date) property.getValue(), DateTools.Resolution.DAY));
+
+                    document.add(new LongPoint(property.getKey(), date));
+                    document.add(new StoredField(property.getKey(), date));
+                    if (fieldMetadata.isSortable()) {
+                        document.add(new NumericDocValuesField(property.getKey(), (long) property.getValue()));
+                    }
                 } else {
                     document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
                 }
@@ -171,10 +194,17 @@ public class LuceneIndexService implements IndexService {
         int totalResults = 0;
 
         try {
+            Indexer<T> indexer = getIndexerFactory().create(entityType).orElse(null);
+            if (indexer == null) {
+                throw new RuntimeException("Indexer not found for class: " + entityType.getName());
+            }
+
+            IndexedMetadata<T> metadata = indexer.metadata(entityType);
+
             IndexSearcher searcher = searcherManager.acquire();
 
-            org.apache.lucene.search.Query luceneQuery = buildLuceneQuery(entityType, query);
-            Sort luceneSort = new Sort(); //buildLuceneSort(entityType, query);
+            org.apache.lucene.search.Query luceneQuery = buildLuceneQuery(metadata, query);
+            Sort luceneSort = buildLuceneSort(metadata, query);
             TopFieldCollector collector = TopFieldCollector.create(luceneSort, 1000, null, true, true, true, true);
             searcher.search(luceneQuery, collector);
 
@@ -191,7 +221,7 @@ public class LuceneIndexService implements IndexService {
 
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document document = searcher.doc(scoreDoc.doc);
-                result.add(createDynamicObject(entityType, document));
+                result.add(createDynamicObject(metadata, document));
             }
 
             searcherManager.release(searcher);
@@ -201,73 +231,68 @@ public class LuceneIndexService implements IndexService {
             e.printStackTrace();
         } catch (QueryNodeException e) {
             e.printStackTrace();
+        } catch (java.text.ParseException e) {
+            e.printStackTrace();
         }
 
         return new IndexedResult(result, totalResults);
     }
 
-    private <T extends Entity> Sort buildLuceneSort(Class<T> entityType, Query query) {
-        Indexer<T> indexer = getIndexerFactory().create(entityType).orElse(null);
-        if (indexer == null) {
-            throw new RuntimeException("Indexer not found for class: " + entityType.getName());
-        }
-
-        IndexedMetadata metadata = indexer.metadata(entityType);
-
+    private <T extends Entity> Sort buildLuceneSort(IndexedMetadata<T> metadata, Query query) {
         Sort sort = new Sort();
 
+        List<SortField> sortFields = new ArrayList<>();
         for (applica.framework.Sort frameworkSort : query.getSorts()) {
             IndexedFieldMetadata fieldMetadata = metadata.get(frameworkSort.getProperty());
-            sort.setSort(new SortField(frameworkSort.getProperty(), getSortFieldType(fieldMetadata), frameworkSort.isDescending()));
+            sortFields.add(createSortField(fieldMetadata, frameworkSort));
         }
+
+        SortField[] arr = new SortField[sortFields.size()];
+        sortFields.toArray(arr);
+        sort.setSort(arr);
 
         return sort;
     }
 
-    private SortField.Type getSortFieldType(IndexedFieldMetadata fieldMetadata) {
+    private SortField createSortField(IndexedFieldMetadata fieldMetadata, applica.framework.Sort frameworkSort) {
         if (Integer.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.INT;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.INT, frameworkSort.isDescending());
         } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.DOUBLE;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.DOUBLE, frameworkSort.isDescending());
         } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.FLOAT;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.FLOAT, frameworkSort.isDescending());
         } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.LONG;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.LONG, frameworkSort.isDescending());
         } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.INT;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.INT, frameworkSort.isDescending());
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-            return SortField.Type.LONG;
+            return new SortedNumericSortField(frameworkSort.getProperty(), SortField.Type.LONG, frameworkSort.isDescending());
         } else {
-            return SortField.Type.STRING;
+            return new SortField(frameworkSort.getProperty(), SortField.Type.STRING, frameworkSort.isDescending());
         }
     }
 
-    private <T extends Entity> IndexedObject createDynamicObject(Class<T> entityType, Document document) {
-        Indexer<T> indexer = getIndexerFactory().create(entityType).orElse(null);
-        if (indexer == null) {
-            throw new RuntimeException("Indexer not found for class: " + entityType.getName());
-        }
-
-        IndexedMetadata metadata = indexer.metadata(entityType);
+    private <T extends Entity> IndexedObject createDynamicObject(IndexedMetadata<T> metadata, Document document) throws java.text.ParseException {
         IndexedObject dynamicObject = new IndexedObject();
 
         for (IndexableField indexableField : document.getFields()) {
-            IndexedFieldMetadata fieldMetadata = metadata.get(undisplay(indexableField.name()));
+            IndexedFieldMetadata fieldMetadata = metadata.get(indexableField.name());
 
             if (Integer.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.numericValue().intValue());
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
             } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.numericValue().doubleValue());
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
             } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.numericValue().floatValue());
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
             } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.numericValue().longValue());
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
             } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.numericValue().intValue() > 0);
+                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue() > 0);
             } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(undisplay(indexableField.name()), new Date(indexableField.numericValue().longValue()));
+                //dynamicObject.setProperty(indexableField.name(), new Date(indexableField.numericValue().longValue()));
+                dynamicObject.setProperty(indexableField.name(), DateTools.stringToDate(indexableField.stringValue()));
             } else {
-                dynamicObject.setProperty(undisplay(indexableField.name()), indexableField.stringValue());
+                dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
             }
 
             if (indexableField.name().equals(KEY_FIELD)) {
@@ -278,17 +303,13 @@ public class LuceneIndexService implements IndexService {
         return dynamicObject;
     }
 
-    private <T extends Entity> org.apache.lucene.search.Query buildLuceneQuery(Class<T> entityType, Query query) throws ParseException, QueryNodeException {
-        Indexer<T> indexer = getIndexerFactory().create(entityType).orElse(null);
-        if (indexer == null) {
-            throw new RuntimeException("Indexer not found for class: " + entityType.getName());
-        }
+    private <T extends Entity> org.apache.lucene.search.Query buildLuceneQuery(IndexedMetadata<T> metadata, Query query) throws ParseException, QueryNodeException {
         StringBuilder queryString = new StringBuilder();
 
         StandardQueryParser parser = new StandardQueryParser();
+        parser.setDateResolution(DateTools.Resolution.DAY);
         Map<String, PointsConfig> pointsConfig = new HashMap<>();
 
-        IndexedMetadata metadata = indexer.metadata(entityType);
         for (IndexedFieldMetadata fieldMetadata : metadata.getFields()) {
             if (Integer.class.equals(fieldMetadata.getFieldType())) {
                 pointsConfig.put(fieldMetadata.getFieldName(), new PointsConfig(NumberFormat.getNumberInstance(Locale.ROOT), Integer.class));
@@ -320,16 +341,6 @@ public class LuceneIndexService implements IndexService {
 
         org.apache.lucene.search.Query luceneQuery = parser.parse(querys, KEY_FIELD);
         return luceneQuery;
-    }
-
-    private String display(String fieldName) {
-        //return fieldName.concat("_display");
-        return fieldName;
-    }
-
-    private String undisplay(String fieldName) {
-        //return fieldName.replace("_display", "");
-        return fieldName;
     }
 
     public void await() {
