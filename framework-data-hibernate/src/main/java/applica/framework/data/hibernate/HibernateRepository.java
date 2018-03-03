@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PreDestroy;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -352,6 +349,28 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
                         addRestrictionToCriterion(criterion, Restrictions.idEq(id));
                     } else {
                         addRestrictionToCriterion(criterion, Restrictions.eq(filter.getProperty(), id));
+                    }
+                    break;
+                case Filter.RANGE:
+                    org.hibernate.criterion.Conjunction conjunction = Restrictions.conjunction();
+                    List ranges = (List) filter.getValue();
+                    boolean valid = false;
+                    if (ranges != null && ranges.size() == 2) {
+                        if (!Objects.equals(ranges.get(0), "*")) {
+                            double left = Double.parseDouble(String.valueOf(ranges.get(0)));
+                            conjunction.add(Restrictions.gt(filter.getProperty(), left));
+                            valid = true;
+                        }
+
+                        if (!Objects.equals(ranges.get(0), "*")) {
+                            double right = Double.parseDouble(String.valueOf(ranges.get(1)));
+                            conjunction.add(Restrictions.gt(filter.getProperty(), right));
+                            valid = true;
+                        }
+
+                        if (valid) {
+                            addRestrictionToCriterion(criterion, conjunction);
+                        }
                     }
                     break;
             }

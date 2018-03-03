@@ -10,5 +10,8 @@
   "license": "ISC",
   "devDependencies": {
     "aj-framework-cli": "^1.0.15"
+  },
+  "dependencies": {
+    "babel-preset-env": "^1.6.1"
   }
 }
