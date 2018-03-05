@@ -2,9 +2,7 @@ package applica.framework.indexing.services;
 
 import applica.framework.Entity;
 import applica.framework.Query;
-import applica.framework.indexing.core.IndexedObject;
-
-import java.util.List;
+import applica.framework.indexing.core.IndexedResult;
 
 public interface IndexService {
 
@@ -12,6 +10,6 @@ public interface IndexService {
 
     void remove(String uniqueId);
 
-    <T extends Entity> List<IndexedObject> search(Class<T> entityType, Query query);
+    <T extends Entity> IndexedResult search(Class<T> entityType, Query query);
 
 }
