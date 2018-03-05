@@ -9,6 +9,9 @@ export const TOKEN_KEYWORD_OR = "KEYWORD_OR";
 export const TOKEN_KEYWORD_TO = "KEYWORD_TO";
 export const TOKEN_OPERATOR_COLON = "OPERATOR_COLON";
 export const TOKEN_OPERATOR_NOT = "OPERATOR_NOT";
+export const TOKEN_EXACT_STRING_START = "EXACT_STRING_START";
+export const TOKEN_EXACT_STRING_END = "EXACT_STRING_END";
+export const TOKEN_EXACT_STRING = "EXACT_STRING";
 
 export const SYMBOL_BLOCK_START = "(";
 export const SYMBOL_BLOCK_END = ")";
@@ -20,3 +23,4 @@ export const SYMBOL_OPERATOR_COLON = ":";
 export const SYMBOL_OPERATOR_MINUS = "-";
 export const SYMBOL_EXPRESSION_START = "[";
 export const SYMBOL_EXPRESSION_END = "]";
+export const SYMBOL_EXACT_STRING = "\"";

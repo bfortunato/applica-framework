@@ -4,6 +4,9 @@ import {
 	TOKEN_BLOCK_END,
 	TOKEN_EXPRESSION_START,
 	TOKEN_EXPRESSION_END,
+	TOKEN_EXACT_STRING_START,
+	TOKEN_EXACT_STRING_END,
+	TOKEN_EXACT_STRING,
 	TOKEN_FIELD,
 	TOKEN_VALUE,
 	TOKEN_KEYWORD_AND,
@@ -21,6 +24,7 @@ import {
 	SYMBOL_OPERATOR_MINUS,
 	SYMBOL_EXPRESSION_START,
 	SYMBOL_EXPRESSION_END,
+	SYMBOL_EXACT_STRING
 } from "./tokens";
 import StringWalker from "./stringWalker";
 
@@ -37,11 +41,15 @@ function isWhiteSpace(c) {
 }
 
 function isLetter(str) {
-  return str.length === 1 && str.match(/[a-z|\*|\?|_]/i);
+  return str.length === 1 && str.match(/[^\:\(\)\]\[-]/i);
 }
 
 function isNumber(str) {
   return str.length === 1 && str.match(/[0-9]/i);
+}
+
+function isFullNumber(str) {
+	return !isNaN(parseFloat(str))
 }
 
 function isPoint(str) {
@@ -79,6 +87,38 @@ function block(tokens, walker) {
 		return true;
 	} else {
 		exec(tokens, walker)
+	}
+}
+
+function exactStringStart(tokens, walker) {
+	tokens.push(mkToken(TOKEN_EXACT_STRING_START, SYMBOL_EXACT_STRING));
+
+	const ref = {value: ""}
+
+	let closed = false;
+	
+	while (walker.next() && !closed) {
+		if (exactString(tokens, walker, ref)) {
+			closed = true;
+			break;
+		}
+	}
+
+	if (!closed) {
+		throw new SyntaxError(walker, `Syntax error: expected '${SYMBOL_EXACT_STRING}'`);
+	}
+
+	tokens.push(mkToken(TOKEN_EXACT_STRING, ref.value));
+	tokens.push(mkToken(TOKEN_EXACT_STRING_END, SYMBOL_EXACT_STRING));
+}
+
+function exactString(tokens, walker, ref) {
+	const c = walker.current();
+
+	if (c === SYMBOL_EXACT_STRING) {
+		return true;
+	} else {
+		ref.value += c;
 	}
 }
 
@@ -122,6 +162,9 @@ function string(tokens, walker, ref) {
 		isWhiteSpace(c)
 	) {
 		walker.previous();
+		return true;
+	} else if (c === SYMBOL_EXACT_STRING) {
+		exactStringStart(tokens, walker);
 		return true;
 	} else if (isLetter(c)) {
 		ref.value += c;
@@ -191,7 +234,7 @@ function expressionStart(tokens, walker) {
 
 	tokens.push(mkToken(TOKEN_EXPRESSION_END, SYMBOL_EXPRESSION_END));
 
-	walker.next();
+	//walker.next();
 }
 
 function expression(tokens, walker) {
@@ -229,8 +272,6 @@ function exec(tokens, walker) {
 		not(tokens, walker);
 	} else if (isLetter(c)) {
 		stringStart(tokens, walker);
-	} else if (isNumber(c)) {
-		numberStart(tokens, walker);
 	} else {
 		throw new SyntaxError(walker, `Syntax error: Unrecognized symbol '${c}'`);
 	}

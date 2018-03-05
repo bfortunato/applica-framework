@@ -6,23 +6,29 @@ import {
 	TOKEN_BLOCK_END,
 	TOKEN_EXPRESSION_START,
 	TOKEN_EXPRESSION_END,
+	TOKEN_EXACT_STRING_START,
+	TOKEN_EXACT_STRING_END,
+	TOKEN_EXACT_STRING,
 	TOKEN_FIELD,
 	TOKEN_VALUE,
 	TOKEN_KEYWORD_AND,
 	TOKEN_KEYWORD_OR,
 	TOKEN_KEYWORD_TO,
-	TOKEN_KEYWORD_NOT,
 	TOKEN_OPERATOR_COLON,
+	TOKEN_KEYWORD_NOT,
 	SYMBOL_BLOCK_START,
 	SYMBOL_BLOCK_END,
 	SYMBOL_KEYWORD_AND,
 	SYMBOL_KEYWORD_OR,
 	SYMBOL_KEYWORD_TO,
 	SYMBOL_OPERATOR_COLON,
-	SYMBOL_OPERATOR_NOT,
+	SYMBOL_KEYWORD_NOT,
+	SYMBOL_OPERATOR_MINUS,
 	SYMBOL_EXPRESSION_START,
-	SYMBOL_EXPRESSION_END
+	SYMBOL_EXPRESSION_END,
+	SYMBOL_EXACT_STRING
 } from "./tokens";
+
 
 export const LIKE = "like"
 export const GT = "gt"
@@ -37,6 +43,7 @@ export const ID = "id"
 export const OR = "or"
 export const AND = "and"
 export const RANGE = "range"
+export const EXACT = "exact"
 
 
 export class ParserError extends Error {
@@ -178,6 +185,10 @@ function valueStart(parent, walker) {
 
 	if (t.type === TOKEN_VALUE) {
 		parent.value = t.value;
+
+		if (t.value.indexOf("*") != -1) {
+			parent.type = LIKE;
+		}
 	} else if (t.type === TOKEN_EXPRESSION_START) {
 		const left = walker.next();
 		const to = walker.next();
@@ -190,6 +201,14 @@ function valueStart(parent, walker) {
 
 		parent.type = RANGE;
 		parent.value = [left.value, right.value];
+	} else if (t.type === TOKEN_EXACT_STRING_START) {
+		const str = walker.next();
+		const end = walker.next();
+		if (!str || !end) {
+			throw new ParserError("Unterminated exact string value found for field " + parent.property);
+		}
+		parent.type = EXACT;
+		parent.value = str.value;
 	} else {
 		exec(parent, walker);
 	}
@@ -234,8 +253,4 @@ export function parse(queryString) {
 	} else {
 		return tree.value
 	}
-}
-
-export function build(query) {
-
 }
