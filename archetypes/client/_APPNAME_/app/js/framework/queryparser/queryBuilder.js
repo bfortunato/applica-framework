@@ -21,7 +21,8 @@ import {
 	SYMBOL_OPERATOR_COLON,
 	SYMBOL_OPERATOR_NOT,
 	SYMBOL_EXPRESSION_START,
-	SYMBOL_EXPRESSION_END
+	SYMBOL_EXPRESSION_END,
+    SYMBOL_EXACT_STRING
 } from "./tokens";
 
 export const LIKE = "like"
@@ -37,6 +38,7 @@ export const ID = "id"
 export const OR = "or"
 export const AND = "and"
 export const RANGE = "range"
+export const EXACT = "exact"
 
 function writeAnd(ref, filter, first) {
 	writeBoolean(ref, filter, "AND", first);
