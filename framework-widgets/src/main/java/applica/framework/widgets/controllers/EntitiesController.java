@@ -58,6 +58,28 @@ public class EntitiesController {
         }
     }
 
+    @PostMapping("/find")
+    public Response getEntitiesPost(@PathVariable("entity") String entity, @RequestBody Query query) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            if (definition.isPresent()) {
+                FindOperation findOperation = operationsFactory.createFind(definition.get().getType());
+                ObjectNode result = findOperation.find(query);
+
+                return new ValueResponse(result);
+            } else {
+                logger.warn("Entity definition not found: " + entity);
+                return new Response(Response.ERROR_NOT_FOUND);
+            }
+        } catch (OperationException e) {
+            e.printStackTrace();
+            return new Response(e.getErrorCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
     @DeleteMapping("/{id}")
     public Response deleteEntities(@PathVariable("entity") String entityName, String id) {
         try {

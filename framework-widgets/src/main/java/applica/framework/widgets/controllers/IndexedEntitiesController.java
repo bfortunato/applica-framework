@@ -63,4 +63,27 @@ public class IndexedEntitiesController {
             return new Response(Response.ERROR);
         }
     }
+
+    @PostMapping("/find")
+    public Response findIndexedEntities(@PathVariable("entity") String entity, @RequestBody Query query) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            if (definition.isPresent()) {
+                IndexedResult search = indexService.search(definition.get().getType(), query);
+
+                ObjectNode result = mapper.createObjectNode();
+                ArrayNode rows = result.putArray("rows");
+                result.put("totalRows", search.getTotalRows());
+                search.getRows().forEach(d -> rows.add(d.toObjectNode(mapper)));
+
+                return new ValueResponse(result);
+            } else {
+                logger.warn("Entity definition not found: " + entity);
+                return new Response(Response.ERROR_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
 }

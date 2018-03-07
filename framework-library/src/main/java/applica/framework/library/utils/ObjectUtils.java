@@ -5,13 +5,18 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValues;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.validation.DataBinder;
 
+import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyEditor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by bimbobruno on 03/02/2017.
