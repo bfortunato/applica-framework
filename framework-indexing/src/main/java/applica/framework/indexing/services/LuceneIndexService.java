@@ -2,6 +2,7 @@ package applica.framework.indexing.services;
 
 import applica.framework.Entity;
 import applica.framework.Query;
+import applica.framework.Repo;
 import applica.framework.indexing.core.*;
 import applica.framework.library.dynaobject.Property;
 import applica.framework.library.options.OptionsManager;
@@ -120,6 +121,16 @@ public class LuceneIndexService implements IndexService {
                 }
             }
         });
+    }
+
+    @Override
+    public void reindexAll(Class<? extends Entity> entityType, Query dataQuery) {
+        Objects.requireNonNull(entityType, "entityType cannot be null");
+        List<? extends Entity> rows = Repo.of(entityType).find(dataQuery).getRows();
+
+        for (Entity entity : rows) {
+            index(entity);
+        }
     }
 
     private boolean documentExists(String uniqueId) throws IOException {
