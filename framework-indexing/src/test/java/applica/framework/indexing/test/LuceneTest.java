@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -36,7 +37,7 @@ public class LuceneTest {
 
         indexService.init();
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 30; i++) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, i);
             indexService.index(new TestEntity(i, i, String.valueOf(i), i, i, calendar.getTime()));
@@ -67,11 +68,93 @@ public class LuceneTest {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, 1);
         Date tomorrow = calendar.getTime();
-        query.getFilters().add(new Filter("dateValue", String.format("[\"%s\" TO \"%s\"]", dateFormat.format(new Date()), dateFormat.format(tomorrow))));
+        query.getFilters().add(new Filter("dateValue", Arrays.asList(Long.parseLong(dateFormat.format(new Date())), Long.parseLong(dateFormat.format(tomorrow))), Filter.RANGE));
 
         search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(2, search.getTotalRows());
+
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+        query.setPage(1);
+        query.setRowsPerPage(5);
+        query.getFilters().add(new Filter("longValue", Arrays.asList(0, 1), Filter.RANGE));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(2, search.getTotalRows());
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+        query.setPage(1);
+        query.setRowsPerPage(5);
+        query.getFilters().add(new Filter("longValue", 49, Filter.GT));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(1, search.getTotalRows());
+
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+        query.setPage(1);
+        query.setRowsPerPage(5);
+        query.getFilters().add(new Filter("longValue", 49, Filter.GTE));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(2, search.getTotalRows());
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+        query.setPage(1);
+        query.setRowsPerPage(5);
+        query.getFilters().add(new Filter("doubleValue", 1, Filter.LT));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(1, search.getTotalRows());
+
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+        query.setPage(1);
+        query.setRowsPerPage(5);
+        query.getFilters().add(new Filter("floatValue", 1, Filter.LTE));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(2, search.getTotalRows());
+
+
+        query = new Query();
+        query.getSorts().add(new Sort("intValue", false));
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(50, search.getTotalRows());
+
+
+
+
+        query = Query.build()
+                .disjunction()
+                    .eq("floatValue", 1)
+                    .eq("floatValue", 2)
+                    .finish();
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(2, search.getTotalRows());
+
+        query = Query.build()
+                .like("stringValue", "1*");
+                //.keyword("stringValue:1*");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(11, search.getTotalRows());
     }
 
 }
