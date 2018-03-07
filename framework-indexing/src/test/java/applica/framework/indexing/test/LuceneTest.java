@@ -50,15 +50,21 @@ public class LuceneTest {
         query.setRowsPerPage(5);
         query.setKeyword("intValue:[10 TO 39]");
 
+
+
         IndexedResult search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(30, search.getTotalRows());
         Assert.assertEquals(5, search.getRows().size());
 
+
+
         for (int i = 0; i < 5; i++) {
             int v = (int) search.getRows().get(i).getProperty("intValue");
             Assert.assertEquals(i + 15, v);
         }
+
+        /*
 
         DateFormat dateFormat = new SimpleDateFormat("YYYYMMdd");
         query = new Query();
@@ -136,17 +142,34 @@ public class LuceneTest {
         Assert.assertEquals(50, search.getTotalRows());
 
 
-
+        */
 
         query = Query.build()
-                .disjunction()
-                    .eq("floatValue", 1)
-                    .eq("floatValue", 2)
-                    .finish();
+                .keyword("(floatValue:1 AND longValue:1) OR floatValue:3");
 
         search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(2, search.getTotalRows());
+
+
+
+
+
+        query = Query.build()
+                .conjunction()
+                    .disjunction()
+                        .eq("floatValue", 1)
+                        .eq("floatValue", 2)
+                        .conjunction()
+                            .eq("doubleValue", 3)
+                            .eq("intValue", 3)
+                            .finishIntermediateFilter()
+                        .finishIntermediateFilter()
+                    .finish();
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(3, search.getTotalRows());
 
         query = Query.build()
                 .like("stringValue", "1*");
