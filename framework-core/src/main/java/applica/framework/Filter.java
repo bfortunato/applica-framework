@@ -70,6 +70,22 @@ public class Filter{
         return type;
     }
 
+    public List<Filter> getChildren() {
+        if (!OR.equals(type) && !AND.equals(type)) {
+            throw new RuntimeException("Requesting getChildren on non boolean filter");
+        }
+
+        return (List<Filter>) value;
+    }
+
+    public void setChildren(List<Filter> children) {
+        if (!OR.equals(type) && !AND.equals(type)) {
+            throw new RuntimeException("Requesting setChildren on non boolean filter");
+        }
+
+        value = children;
+    }
+
     public void setType(String type) {
         this.type = type;
     }

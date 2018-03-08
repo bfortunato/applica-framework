@@ -108,6 +108,13 @@ public class QueryBuilder extends Query {
         return this;
     }
 
+    public QueryBuilder ne(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.NE));
+        }
+        return this;
+    }
+
     public QueryBuilder in(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.IN));
