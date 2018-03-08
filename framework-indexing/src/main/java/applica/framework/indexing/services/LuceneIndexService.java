@@ -19,7 +19,6 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
-import org.apache.lucene.queryparser.flexible.standard.config.StandardQueryConfigHandler;
 import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
@@ -181,7 +180,7 @@ public class LuceneIndexService implements IndexService {
                     document.add(new IntPoint(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                     document.add(new StoredField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                     if (fieldMetadata.isSortable()) {
-                        document.add(new NumericDocValuesField(property.getKey(), (long) (int) property.getValue()));
+                        document.add(new NumericDocValuesField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                     }
                 } else if (Date.class.equals(fieldMetadata.getFieldType())) {
                     long date = Long.parseLong(DateTools.dateToString((Date) property.getValue(), DateTools.Resolution.DAY));
@@ -189,7 +188,7 @@ public class LuceneIndexService implements IndexService {
                     document.add(new LongPoint(property.getKey(), date));
                     document.add(new StoredField(property.getKey(), date));
                     if (fieldMetadata.isSortable()) {
-                        document.add(new NumericDocValuesField(property.getKey(), (long) property.getValue()));
+                        document.add(new NumericDocValuesField(property.getKey(), date));
                     }
                 } else {
                     document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
@@ -437,15 +436,15 @@ public class LuceneIndexService implements IndexService {
         if (Integer.class.equals(fieldMetadata.getFieldType())) {
             parent.add(IntPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
         } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(DoublePoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(DoublePoint.newExactQuery(filter.getProperty(), Double.parseDouble(String.valueOf(filter.getValue()))), getOccur(condition));
         } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(FloatPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(FloatPoint.newExactQuery(filter.getProperty(), Float.parseFloat(String.valueOf(filter.getValue()))), getOccur(condition));
         } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
         } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
             parent.add(IntPoint.newExactQuery(filter.getProperty(), Boolean.parseBoolean(String.valueOf(filter.getValue())) ? 1 : 0), getOccur(condition));
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
         } else {
             parent.add(new TermQuery(new Term(filter.getProperty(), String.valueOf(filter.getValue()))), getOccur(filter.getType()));
         }
