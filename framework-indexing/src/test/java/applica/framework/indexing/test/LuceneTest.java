@@ -37,10 +37,10 @@ public class LuceneTest {
 
         indexService.init();
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 50; i++) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, i);
-            indexService.index(new TestEntity(i, i, String.valueOf(i), i, i, calendar.getTime()));
+            indexService.index(new TestEntity(i, i, String.valueOf(i), i, i, calendar.getTime(), (i % 2 == 0)));
         }
         indexService.await();
 
@@ -63,8 +63,6 @@ public class LuceneTest {
             int v = (int) search.getRows().get(i).getProperty("intValue");
             Assert.assertEquals(i + 15, v);
         }
-
-        /*
 
         DateFormat dateFormat = new SimpleDateFormat("YYYYMMdd");
         query = new Query();
@@ -142,8 +140,6 @@ public class LuceneTest {
         Assert.assertEquals(50, search.getTotalRows());
 
 
-        */
-
         query = Query.build()
                 .keyword("(floatValue:1 AND longValue:1) OR floatValue:3");
 
@@ -171,6 +167,9 @@ public class LuceneTest {
 
         Assert.assertEquals(3, search.getTotalRows());
 
+
+
+
         query = Query.build()
                 .like("stringValue", "1*");
                 //.keyword("stringValue:1*");
@@ -178,6 +177,47 @@ public class LuceneTest {
         search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(11, search.getTotalRows());
+
+
+
+
+        query = Query.build()
+                .gte("intValue", 0)
+                .ne("stringValue", "1");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(49, search.getTotalRows());
+
+
+
+
+
+        query = Query.build()
+                .gte("intValue", 0)
+                .ne("stringValue", "1*");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(39, search.getTotalRows());
+
+
+
+        query = Query.build()
+                .like("stringValue", "1");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(14, search.getTotalRows());
+
+
+
+        query = Query.build()
+                .eq("booleanValue", true);
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(25, search.getTotalRows());
     }
 
 }
