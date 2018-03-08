@@ -276,6 +276,10 @@ public class MongoMapper {
 	}
 
 	private boolean firstIsId(BasicDBObject source, Field field) {
+		if (source == null) {
+			return false;
+		}
+
 		List<?> sourceList = (List<?>)source.get(field.getName());
 		if (sourceList != null && sourceList.size() > 0) {
 			Object value = sourceList.get(0);
@@ -288,6 +292,9 @@ public class MongoMapper {
 	}
 
 	private boolean isId(BasicDBObject source, Field field) {
+		if (source == null) {
+			return false;
+		}
 		Object value = source.get(field.getName());
 		if (value != null) {
 			return String.class.equals(value.getClass());
