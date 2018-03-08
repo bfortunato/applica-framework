@@ -32,7 +32,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         if(id != null) {
             BasicDBObject document = (BasicDBObject) mongoRepository.getCollection().findOne(MongoQuery.mk().id(String.valueOf(id)));
             if(document != null) {
-                entity = (T) mongoMapper.loadObject(document, repository.getEntityType());
+                entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), null);
             }
         }
 
@@ -71,7 +71,7 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         while(cur.hasNext()) {
             BasicDBObject document = (BasicDBObject)cur.next();
-            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType());
+            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), null);
             entities.add(entity);
         }
 
@@ -91,7 +91,7 @@ public class MongoCrudStrategy implements CrudStrategy {
             constraintsChecker.checkForeign(entity);
         }
 
-        BasicDBObject document = mongoMapper.loadBasicDBObject(entity);
+        BasicDBObject document = mongoMapper.loadBasicDBObject(entity, null);
         mongoRepository.getCollection().save(document);
 
         entity.setId(document.getString("_id"));
