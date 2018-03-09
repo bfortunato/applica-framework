@@ -20,6 +20,7 @@ public class TestIndexer implements Indexer<TestEntity>
         indexedObject.setProperty("doubleValue", indexable.getDoubleValue());
         indexedObject.setProperty("stringValue", indexable.getStringValue());
         indexedObject.setProperty("dateValue", indexable.getDateValue());
+        indexedObject.setProperty("booleanValue", indexable.isBooleanValue());
 
         return indexedObject;
     }
@@ -32,7 +33,8 @@ public class TestIndexer implements Indexer<TestEntity>
                 .add(new IndexedFieldMetadata("floatValue", Float.class, false))
                 .add(new IndexedFieldMetadata("longValue", Long.class, false))
                 .add(new IndexedFieldMetadata("doubleValue", Double.class, false))
-                .add(new IndexedFieldMetadata("dateValue", Date.class, false));
+                .add(new IndexedFieldMetadata("dateValue", Date.class, false))
+                .add(new IndexedFieldMetadata("booleanValue", Boolean.class, false));
     }
 
 

@@ -5,6 +5,7 @@ import applica.framework.AEntity;
 import java.util.Date;
 
 public class TestEntity extends AEntity {
+    private final boolean booleanValue;
     private int intValue;
     private float floatValue;
     private String stringValue;
@@ -13,7 +14,7 @@ public class TestEntity extends AEntity {
     private Date dateValue;
 
 
-    public TestEntity(int intValue, float floatValue, String stringValue, double doubleValue, long longValue, Date dateValue) {
+    public TestEntity(int intValue, float floatValue, String stringValue, double doubleValue, long longValue, Date dateValue, boolean booleanValue) {
         setId(intValue);
         this.intValue = intValue;
         this.floatValue = floatValue;
@@ -21,6 +22,7 @@ public class TestEntity extends AEntity {
         this.doubleValue = doubleValue;
         this.longValue = longValue;
         this.dateValue = dateValue;
+        this.booleanValue = booleanValue;
     }
 
     public int getIntValue() {
@@ -69,5 +71,9 @@ public class TestEntity extends AEntity {
 
     public void setDateValue(Date dateValue) {
         this.dateValue = dateValue;
+    }
+
+    public boolean isBooleanValue() {
+        return booleanValue;
     }
 }
