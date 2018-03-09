@@ -23,7 +23,7 @@ public class BaseCreateOperation implements CreateOperation {
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         ObjectNode node = null;
         try {
-            node = serializer.serialize(new AEntity());
+            node = serializer.serialize(createEntity(params));
         } catch (SerializationException e) {
             e.printStackTrace();
         }
@@ -31,6 +31,11 @@ public class BaseCreateOperation implements CreateOperation {
         return node;
 
     }
+
+    public Entity createEntity(Map<String, Object> params) {
+        return new AEntity();
+    }
+
     protected void finishNode(ObjectNode node, Map<String, Object> params) throws OperationException {
 
     }
