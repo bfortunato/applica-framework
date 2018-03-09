@@ -15,16 +15,12 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
-import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.NumericUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -394,6 +390,8 @@ public class LuceneIndexService implements IndexService {
         } else if (Objects.equals(Filter.LTE, filter.getType())) {
             double value = Double.parseDouble(String.valueOf(filter.getValue()));
             createRangeQuery(parent, filter, condition, fieldMetadata, null, value + 1);
+        } else if (Objects.equals(Filter.NE, filter.getType())) {
+            createPointQuery(parent, filter, condition, fieldMetadata, true, parser);
         } else if (Objects.equals(Filter.RANGE, filter.getType())) {
             List values = (List) filter.getValue();
             if (values.size() != 2) {
@@ -420,33 +418,44 @@ public class LuceneIndexService implements IndexService {
             for (Filter childFilter : filters) {
                 addFilterToParent(newParent, childFilter, filter.getType(), metadata, parser);
             }
-            parent.add(newParent.build(), getOccur(condition));
+            parent.add(newParent.build(), getOccur(condition, false));
         } else if (Filter.LIKE.equals(filter.getType())) {
-            parent.add(parser.parse(String.valueOf(filter.getValue()), filter.getProperty()), getOccur(condition));
+            if (filter.getValue() != null) {
+                String v = String.valueOf(filter.getValue());
+                if (!v.contains("*")) {
+                    v = String.format("*%s*", v);
+                }
+                filter.setValue(v);
+            }
+            createPointQuery(parent, filter, condition, fieldMetadata, false, parser);
         } else {
-            createPointQuery(parent, filter, condition, fieldMetadata);
+            createPointQuery(parent, filter, condition, fieldMetadata, false, parser);
         }
     }
 
-    private void createPointQuery(BooleanQuery.Builder parent, Filter filter, String condition, IndexedFieldMetadata fieldMetadata) {
+    private void createPointQuery(BooleanQuery.Builder parent, Filter filter, String condition, IndexedFieldMetadata fieldMetadata, boolean negate, StandardQueryParser parser) throws QueryNodeException {
         if (filter.getValue() == null) {
             return;
         }
 
         if (Integer.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(IntPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(IntPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Double.class.equals(fieldMetadata.getFieldType())) {
             parent.add(DoublePoint.newExactQuery(filter.getProperty(), Double.parseDouble(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(DoublePoint.newExactQuery(filter.getProperty(), Double.parseDouble(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Float.class.equals(fieldMetadata.getFieldType())) {
             parent.add(FloatPoint.newExactQuery(filter.getProperty(), Float.parseFloat(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(FloatPoint.newExactQuery(filter.getProperty(), Float.parseFloat(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Long.class.equals(fieldMetadata.getFieldType())) {
             parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
             parent.add(IntPoint.newExactQuery(filter.getProperty(), Boolean.parseBoolean(String.valueOf(filter.getValue())) ? 1 : 0), getOccur(condition));
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
             parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
+            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else {
-            parent.add(new TermQuery(new Term(filter.getProperty(), String.valueOf(filter.getValue()))), getOccur(filter.getType()));
+            parent.add(parser.parse(String.valueOf(filter.getValue()), filter.getProperty()), getOccur(condition, negate));
         }
     }
 
@@ -455,17 +464,17 @@ public class LuceneIndexService implements IndexService {
         double max = maxValue == null ? getMaxValue(fieldMetadata) : maxValue;
 
         if (Integer.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(IntPoint.newRangeQuery(filter.getProperty(), (int) min, (int) max), getOccur(condition));
+            parent.add(IntPoint.newRangeQuery(filter.getProperty(), (int) min, (int) max), getOccur(condition, false));
         } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(DoublePoint.newRangeQuery(filter.getProperty(), min, max), getOccur(condition));
+            parent.add(DoublePoint.newRangeQuery(filter.getProperty(), min, max), getOccur(condition, false));
         } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(FloatPoint.newRangeQuery(filter.getProperty(), (float) min, (float) max), getOccur(condition));
+            parent.add(FloatPoint.newRangeQuery(filter.getProperty(), (float) min, (float) max), getOccur(condition, false));
         } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newRangeQuery(filter.getProperty(), (long) min, (long) max), getOccur(condition));
+            parent.add(LongPoint.newRangeQuery(filter.getProperty(), (long) min, (long) max), getOccur(condition, false));
         } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(IntPoint.newRangeQuery(filter.getProperty(), (int) min, (int) max), getOccur(condition));
+            parent.add(IntPoint.newRangeQuery(filter.getProperty(), (int) min, (int) max), getOccur(condition, false));
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newRangeQuery(filter.getProperty(), (long) min, (long) max), getOccur(condition));
+            parent.add(LongPoint.newRangeQuery(filter.getProperty(), (long) min, (long) max), getOccur(condition, false));
         }
     }
 
@@ -505,7 +514,11 @@ public class LuceneIndexService implements IndexService {
         return 0;
     }
 
-    private BooleanClause.Occur getOccur(String condition) {
+    private BooleanClause.Occur getOccur(String condition, boolean negate) {
+        if (negate) {
+            return BooleanClause.Occur.MUST_NOT;
+        }
+
         if (Filter.OR.equals(condition)) {
             return BooleanClause.Occur.SHOULD;
         }
