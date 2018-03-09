@@ -441,18 +441,14 @@ public class LuceneIndexService implements IndexService {
         if (Integer.class.equals(fieldMetadata.getFieldType())) {
             parent.add(IntPoint.newExactQuery(filter.getProperty(), Integer.parseInt(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(DoublePoint.newExactQuery(filter.getProperty(), Double.parseDouble(String.valueOf(filter.getValue()))), getOccur(condition));
             parent.add(DoublePoint.newExactQuery(filter.getProperty(), Double.parseDouble(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(FloatPoint.newExactQuery(filter.getProperty(), Float.parseFloat(String.valueOf(filter.getValue()))), getOccur(condition));
             parent.add(FloatPoint.newExactQuery(filter.getProperty(), Float.parseFloat(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
             parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(IntPoint.newExactQuery(filter.getProperty(), Boolean.parseBoolean(String.valueOf(filter.getValue())) ? 1 : 0), getOccur(condition));
+            parent.add(IntPoint.newExactQuery(filter.getProperty(), Boolean.parseBoolean(String.valueOf(filter.getValue())) ? 1 : 0), getOccur(condition, negate));
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-            parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition));
             parent.add(LongPoint.newExactQuery(filter.getProperty(), Long.parseLong(String.valueOf(filter.getValue()))), getOccur(condition, negate));
         } else {
             parent.add(parser.parse(String.valueOf(filter.getValue()), filter.getProperty()), getOccur(condition, negate));
