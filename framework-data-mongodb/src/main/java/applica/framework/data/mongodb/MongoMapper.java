@@ -74,7 +74,7 @@ public class MongoMapper {
             	try {
 					document.put("_id", new ObjectId(String.valueOf(source.getId())));
 				} catch (Exception e) {
-            		logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+            		//logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
 				}
             }
             
