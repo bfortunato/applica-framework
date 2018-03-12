@@ -21,6 +21,8 @@ public class TestIndexer implements Indexer<TestEntity>
         indexedObject.setProperty("stringValue", indexable.getStringValue());
         indexedObject.setProperty("dateValue", indexable.getDateValue());
         indexedObject.setProperty("booleanValue", indexable.isBooleanValue());
+        indexedObject.setProperty("textValue", indexable.getTextValue());
+
 
         return indexedObject;
     }
@@ -34,7 +36,8 @@ public class TestIndexer implements Indexer<TestEntity>
                 .add(new IndexedFieldMetadata("longValue", Long.class, false))
                 .add(new IndexedFieldMetadata("doubleValue", Double.class, false))
                 .add(new IndexedFieldMetadata("dateValue", Date.class, false))
-                .add(new IndexedFieldMetadata("booleanValue", Boolean.class, false));
+                .add(new IndexedFieldMetadata("booleanValue", Boolean.class, false))
+                .add(IndexedFieldMetadata.textField("textValue"));
     }
 
 

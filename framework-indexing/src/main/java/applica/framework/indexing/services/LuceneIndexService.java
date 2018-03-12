@@ -142,7 +142,7 @@ public class LuceneIndexService implements IndexService {
     private Document createDocument(IndexedMetadata metadata, IndexedObject indexedObject) {
         Document document = new Document();
 
-        document.add(new TextField(KEY_FIELD, indexedObject.getUniqueId(), Field.Store.YES));
+        document.add(new StringField(KEY_FIELD, indexedObject.getUniqueId(), Field.Store.YES));
 
         for (Property property : indexedObject.getProperties()) {
             if (property.getValue() != null) {
@@ -186,8 +186,18 @@ public class LuceneIndexService implements IndexService {
                     if (fieldMetadata.isSortable()) {
                         document.add(new NumericDocValuesField(property.getKey(), date));
                     }
+                } else if (fieldMetadata.isText()) {
+                    if (property.getValue() != null) {
+                        String normalizedStringValue = normalizeString(String.valueOf(property.getValue()));
+                        document.add(new TextField(property.getKey(), normalizedStringValue, Field.Store.NO));
+                        document.add(new StoredField(property.getKey(), String.valueOf(property.getValue())));
+                    }
                 } else {
-                    document.add(new TextField(property.getKey(), String.valueOf(property.getValue()), Field.Store.YES));
+                    if (property.getValue() != null) {
+                        String normalizedStringValue = normalizeString(String.valueOf(property.getValue()));
+                        document.add(new StringField(property.getKey(), normalizedStringValue, Field.Store.NO));
+                        document.add(new StoredField(property.getKey(), String.valueOf(property.getValue())));
+                    }
                 }
 
                 //document.add(new SortedDocValuesField("title", NumericUtils.));
@@ -195,6 +205,14 @@ public class LuceneIndexService implements IndexService {
         }
 
         return document;
+    }
+
+    private String normalizeString(String value) {
+        if (value != null) {
+            return value.trim().toLowerCase();
+        }
+
+        return null;
     }
 
     @Override
@@ -322,7 +340,7 @@ public class LuceneIndexService implements IndexService {
     }
 
     private <T extends Entity> org.apache.lucene.search.Query buildLuceneQuery(IndexedMetadata<T> metadata, Query query) throws ParseException, QueryNodeException {
-        query = lowerCaseQuery(query);
+        query = normalizedQuery(query);
 
         StandardQueryParser parser = new StandardQueryParser();
         parser.setDateResolution(DateTools.Resolution.DAY);
@@ -356,13 +374,13 @@ public class LuceneIndexService implements IndexService {
                 addFilterToParent(rootBuilder, filter, Filter.AND, metadata, parser);
             }
 
+            if (query.getFilters().size() == 1 && Filter.NE.equals(query.getFilters().get(0).getType())) {
+                rootBuilder.add(parser.parse("*:*", KEY_FIELD), BooleanClause.Occur.SHOULD);
+            }
+
             BooleanQuery finalQuery = rootBuilder.build();
             if (finalQuery.clauses().size() > 0) {
-                if (finalQuery.clauses().size() == 1) {
-                    luceneQuery = finalQuery.clauses().get(0).getQuery();
-                } else {
-                    luceneQuery = finalQuery;
-                }
+                luceneQuery = finalQuery;
             }
         }
 
@@ -373,7 +391,7 @@ public class LuceneIndexService implements IndexService {
         return luceneQuery;
     }
 
-    private Query lowerCaseQuery(Query query) {
+    private Query normalizedQuery(Query query) {
         Query l = new Query();
         if (StringUtils.isNotEmpty(query.getKeyword())) {
             l.setKeyword(query.getKeyword());
@@ -382,12 +400,12 @@ public class LuceneIndexService implements IndexService {
         l.setSorts(query.getSorts());
         l.setPage(query.getPage());
         l.setRowsPerPage(query.getRowsPerPage());
-        l.setFilters(lowerCaseFilters(query.getFilters()));
+        l.setFilters(normalizedFilters(query.getFilters()));
 
         return l;
     }
 
-    private List<Filter> lowerCaseFilters(List<Filter> filters) {
+    private List<Filter> normalizedFilters(List<Filter> filters) {
         List<Filter> lwFilters = new ArrayList<>();
         if (filters!= null) {
             for (Filter filter : filters) {
@@ -395,12 +413,12 @@ public class LuceneIndexService implements IndexService {
                     if (Filter.OR.equals(filter.getType()) || Filter.AND.equals(filter.getType())) {
                         List<Filter> children = filter.getChildren();
                         if (children != null) {
-                            lwFilters.add(new Filter(null, lowerCaseFilters(children), filter.getType()));
+                            lwFilters.add(new Filter(null, normalizedFilters(children), filter.getType()));
                         }
                     } else if (String.class.equals(filter.getValue().getClass())) {
-                        String value = ((String) filter.getValue());
+                        String value = normalizeString((String) filter.getValue());
                         if (!valueIsRange(value)) {
-                            lwFilters.add(new Filter(filter.getProperty(), value.toLowerCase(), filter.getType()));
+                            lwFilters.add(new Filter(filter.getProperty(), value, filter.getType()));
                         }
                     } else {
                         lwFilters.add(new Filter(filter.getProperty(), filter.getValue(), filter.getType()));
