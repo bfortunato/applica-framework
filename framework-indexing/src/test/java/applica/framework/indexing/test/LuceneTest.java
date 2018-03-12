@@ -40,7 +40,7 @@ public class LuceneTest {
         for (int i = 0; i < 50; i++) {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, i);
-            indexService.index(new TestEntity(i, i, String.valueOf(i), i, i, calendar.getTime(), (i % 2 == 0)));
+            indexService.index(new TestEntity(i, i, "TEST." + String.valueOf(i), i, i, calendar.getTime(), (i % 2 == 0), "test " + String.valueOf(i)));
         }
         indexService.await();
 
@@ -171,7 +171,7 @@ public class LuceneTest {
 
 
         query = Query.build()
-                .like("stringValue", "1*");
+                .like("stringValue", "test.1*");
                 //.keyword("stringValue:1*");
 
         search = indexService.search(TestEntity.class, query);
@@ -179,11 +179,30 @@ public class LuceneTest {
         Assert.assertEquals(11, search.getTotalRows());
 
 
+        query = Query.build()
+                .eq("stringValue", "test.*");
+        //.keyword("stringValue:1*");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(50, search.getTotalRows());
+
+
+
+
+        query = Query.build()
+                .eq("stringValue", "test.1");
+        //.keyword("stringValue:1*");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(1, search.getTotalRows());
+
 
 
         query = Query.build()
                 .gte("intValue", 0)
-                .ne("stringValue", "1");
+                .ne("stringValue", "TEST.1");
 
         search = indexService.search(TestEntity.class, query);
 
@@ -192,10 +211,19 @@ public class LuceneTest {
 
 
 
+        query = Query.build()
+                .ne("stringValue", "TEST.1");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(49, search.getTotalRows());
+
+
+
 
         query = Query.build()
                 .gte("intValue", 0)
-                .ne("stringValue", "1*");
+                .ne("stringValue", "TEST.1*");
 
         search = indexService.search(TestEntity.class, query);
 
@@ -204,16 +232,16 @@ public class LuceneTest {
 
 
         query = Query.build()
-                .like("stringValue", "1");
+                .like("stringValue", "TEST.1");
 
         search = indexService.search(TestEntity.class, query);
 
-        Assert.assertEquals(14, search.getTotalRows());
+        Assert.assertEquals(11, search.getTotalRows());
 
 
 
         query = Query.build()
-                .exact("stringValue", "1");
+                .exact("stringValue", "TEST.1");
 
         search = indexService.search(TestEntity.class, query);
 
@@ -227,6 +255,15 @@ public class LuceneTest {
         search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(25, search.getTotalRows());
+
+
+
+        query = Query.build()
+                .eq("textValue", "test 1");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(50, search.getTotalRows());
     }
 
 }
