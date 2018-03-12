@@ -29,6 +29,7 @@ public class Filter{
     public static final String CUSTOM = "custom";
     public static final String RANGE = "range";
     public static final String GEO = "geo";
+    public static final String EXACT = "exact";
 
     private String property;
     private Object value;

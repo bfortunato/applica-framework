@@ -322,6 +322,8 @@ public class LuceneIndexService implements IndexService {
     }
 
     private <T extends Entity> org.apache.lucene.search.Query buildLuceneQuery(IndexedMetadata<T> metadata, Query query) throws ParseException, QueryNodeException {
+        query = lowerCaseQuery(query);
+
         StandardQueryParser parser = new StandardQueryParser();
         parser.setDateResolution(DateTools.Resolution.DAY);
         Map<String, PointsConfig> pointsConfig = new HashMap<>();
@@ -345,6 +347,7 @@ public class LuceneIndexService implements IndexService {
         parser.setAllowLeadingWildcard(true);
 
         org.apache.lucene.search.Query luceneQuery = null;
+
         BooleanQuery.Builder rootBuilder = new BooleanQuery.Builder();
         if (!StringUtils.isEmpty(query.getKeyword())) {
             luceneQuery = parser.parse(query.getKeyword(), KEY_FIELD);
@@ -368,6 +371,49 @@ public class LuceneIndexService implements IndexService {
         }
 
         return luceneQuery;
+    }
+
+    private Query lowerCaseQuery(Query query) {
+        Query l = new Query();
+        if (StringUtils.isNotEmpty(query.getKeyword())) {
+            l.setKeyword(query.getKeyword());
+        }
+
+        l.setSorts(query.getSorts());
+        l.setPage(query.getPage());
+        l.setRowsPerPage(query.getRowsPerPage());
+        l.setFilters(lowerCaseFilters(query.getFilters()));
+
+        return l;
+    }
+
+    private List<Filter> lowerCaseFilters(List<Filter> filters) {
+        List<Filter> lwFilters = new ArrayList<>();
+        if (filters!= null) {
+            for (Filter filter : filters) {
+                if (filter.getValue() != null) {
+                    if (Filter.OR.equals(filter.getType()) || Filter.AND.equals(filter.getType())) {
+                        List<Filter> children = filter.getChildren();
+                        if (children != null) {
+                            lwFilters.add(new Filter(null, lowerCaseFilters(children), filter.getType()));
+                        }
+                    } else if (String.class.equals(filter.getValue().getClass())) {
+                        String value = ((String) filter.getValue());
+                        if (!valueIsRange(value)) {
+                            lwFilters.add(new Filter(filter.getProperty(), value.toLowerCase(), filter.getType()));
+                        }
+                    } else {
+                        lwFilters.add(new Filter(filter.getProperty(), filter.getValue(), filter.getType()));
+                    }
+                }
+            }
+        }
+
+        return lwFilters;
+    }
+
+    private boolean valueIsRange(String value) {
+        return value.startsWith("[") && value.contains("TO") && value.endsWith("]");
     }
 
 
@@ -428,6 +474,11 @@ public class LuceneIndexService implements IndexService {
                 filter.setValue(v);
             }
             createPointQuery(parent, filter, condition, fieldMetadata, false, parser);
+        } else if (Filter.EXACT.equals(filter.getType())) {
+            if (filter.getValue() != null) {
+                String value = String.format("\"%s\"", String.valueOf(filter));
+                parent.add(parser.parse(value, filter.getProperty()), getOccur(condition, false));
+            }
         } else {
             createPointQuery(parent, filter, condition, fieldMetadata, false, parser);
         }
