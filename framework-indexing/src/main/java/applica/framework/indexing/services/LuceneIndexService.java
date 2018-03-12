@@ -476,7 +476,7 @@ public class LuceneIndexService implements IndexService {
             createPointQuery(parent, filter, condition, fieldMetadata, false, parser);
         } else if (Filter.EXACT.equals(filter.getType())) {
             if (filter.getValue() != null) {
-                String value = String.format("\"%s\"", String.valueOf(filter));
+                String value = String.format("\"%s\"", String.valueOf(filter.getValue()));
                 parent.add(parser.parse(value, filter.getProperty()), getOccur(condition, false));
             }
         } else {
