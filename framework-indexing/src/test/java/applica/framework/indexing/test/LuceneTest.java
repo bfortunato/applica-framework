@@ -213,6 +213,15 @@ public class LuceneTest {
 
 
         query = Query.build()
+                .exact("stringValue", "1");
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(1, search.getTotalRows());
+
+
+
+        query = Query.build()
                 .eq("booleanValue", true);
 
         search = indexService.search(TestEntity.class, query);

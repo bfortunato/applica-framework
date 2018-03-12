@@ -8,6 +8,8 @@ import java.util.function.Predicate;
 
 public class QueryBuilder extends Query {
 
+
+
     @FunctionalInterface
     public interface ConditionalFilterPredicate {
         boolean check();
@@ -69,6 +71,13 @@ public class QueryBuilder extends Query {
     public QueryBuilder like(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.LIKE));
+        }
+        return this;
+    }
+
+    public QueryBuilder exact(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.EXACT));
         }
         return this;
     }
