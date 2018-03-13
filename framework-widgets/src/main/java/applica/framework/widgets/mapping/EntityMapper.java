@@ -167,7 +167,7 @@ public class EntityMapper {
         }
     }
 
-    public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+    public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
 
@@ -192,7 +192,7 @@ public class EntityMapper {
         }
     }
 
-    public void idToEntity(Entity source, ObjectNode destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+    public void idToEntity(Entity source, ObjectNode destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(source, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(destination, "Cannot convert id to entity: node is null");
 
@@ -357,7 +357,6 @@ public class EntityMapper {
     }
 
 
-
     public void imagesToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, String size) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
@@ -372,7 +371,7 @@ public class EntityMapper {
         }
 
         if (imageUrls != null && imageUrls.size() > 0) {
-            for (String imageUrl: imageUrls) {
+            for (String imageUrl : imageUrls) {
                 if (StringUtils.isNotEmpty(imageUrl)) {
                     InputStream in = null;
                     try {
@@ -390,7 +389,7 @@ public class EntityMapper {
 
             if (imageDatas.size() > 0) {
                 ArrayNode array = destination.putArray(destinationProperty);
-                for (String urlData: imageDatas) {
+                for (String urlData : imageDatas) {
                     array.add(urlData);
                 }
             }
@@ -416,7 +415,7 @@ public class EntityMapper {
         }
 
         if (imageDatas.size() > 0) {
-            for (String imageData: imageDatas) {
+            for (String imageData : imageDatas) {
                 try {
 
                     URLData urlData = URLData.parse(imageData);
@@ -437,11 +436,13 @@ public class EntityMapper {
 
 
         if (actualImages != null) {
-            for (String actualImage: actualImages) {
-                try {
-                    fileServer.deleteFile(actualImage);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+            for (String actualImage : actualImages) {
+                if (!imagesUrls.contains(actualImage)) {
+                    try {
+                        fileServer.deleteFile(actualImage);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }
@@ -476,7 +477,7 @@ public class EntityMapper {
             throw new RuntimeException(e);
         }
         ArrayNode arrayNode = destination.putArray(destinationProperty);
-        for (Entity entity: relatedEntities) {
+        for (Entity entity : relatedEntities) {
             arrayNode.add(String.valueOf(entity.getId()));
         }
     }
@@ -569,7 +570,8 @@ public class EntityMapper {
         if (actualFiles != null) {
             for (Attachment actualFile : actualFiles) {
                 try {
-                    fileServer.deleteFile(actualFile.getPath());
+                    if (fileUrls.stream().noneMatch(file -> file.getPath().equals(actualFile.getPath())))
+                        fileServer.deleteFile(actualFile.getPath());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -594,7 +596,7 @@ public class EntityMapper {
 
         if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
             JsonNode n = source.get(sourceProperty);
-            fileData =new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt());
+            fileData = new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt());
         }
 
         if (fileData != null) {
@@ -621,7 +623,7 @@ public class EntityMapper {
             throw new RuntimeException(e);
         }
 
-        if (actualFiles != null) {
+        if (actualFiles != null && (fileUrls == null || !actualFiles.getPath().equals(fileUrls.getPath()))) {
             try {
                 fileServer.deleteFile(actualFiles.getPath());
             } catch (Exception e) {
