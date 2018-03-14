@@ -145,11 +145,11 @@ export class Model extends Observable {
 
     set(property, value) {
         let initialValue = this.data[property]
-        this.data[property] = value 
+        this.data[property] = value
 
         if (!this.changesTrackingDisabled) {
             this.invoke("property:change", property, value)
-        }   
+        }
     }
 
     assign(property, value) {
@@ -2063,7 +2063,7 @@ export class SingleImage extends Control {
         super(props)
 
 
-        this.state = {data: props.data}
+        this.state = {data: props.imageData}
     }
 
     onFileSelected(e) {
@@ -2071,10 +2071,9 @@ export class SingleImage extends Control {
         let file = e.target.files[0]
         inputfile.readDataUrl(file).then(result => {
             if (_.isFunction(this.props.onImageAdd)) {
-                if (this.props.onImageAdd(result)) {
-                    _.assign(this.state, {imageData: result})
-                    this.forceUpdate()
-                }
+                this.props.onImageAdd(result)
+            } else {
+                _.assign(this.state, {data: result})
             }
 
         })
@@ -2085,14 +2084,16 @@ export class SingleImage extends Control {
         e.stopPropagation()
         e.preventDefault()
 
+        debugger
         let me = ReactDOM.findDOMNode(this)
         $(me).find("input[type=file]").val(null)
 
-        let image = this.state.imageData;
-        _.assign(this.state, {imageData: null})
-        this.forceUpdate()
+        let image = this.state.data;
+
         if (_.isFunction(this.props.onImageDelete)) {
             this.props.onImageDelete(image)
+        } else {
+            _.assign(this.state, {data: null})
         }
 
     }
@@ -2123,7 +2124,7 @@ export class SingleImage extends Control {
             imgStyle.height = this.props.height
         }
 
-        let imageData = optional(this.state.imageData, null)
+        let imageData = optional(this.state.data, null)
 
         return (
             <div className="input-image col-sm-4 col-ms-6" style={{marginBottom: '5px'}}>
@@ -2135,11 +2136,11 @@ export class SingleImage extends Control {
                                     className="zmdi zmdi-close"></i></a>
                             </div>
                             <div className="input-image"
-                                 style={_.assign(imgStyle, {"backgroundImage": `url("${imageData}")`})}></div>
+                                 style={_.assign(imgStyle, {"backgroundImage": url("${imageData}")})}></div>
                         </div>
                         :
                         <div className="input-image"
-                             style={_.assign(imgStyle, {"backgroundImage": `url("resources/images/noimage.png")`})}></div>
+                             style={_.assign(imgStyle, {"backgroundImage": url("resources/images/noimage.png")})}></div>
                     }
                 </div>
                 <input type="file" accept={accept} onChange={this.onFileSelected.bind(this)}/>
