@@ -42,10 +42,12 @@ public class TemplatedMail {
     private class ByteAttachmentData {
         byte[] bytes;
         String type;
+        String name;
 
-        public ByteAttachmentData(byte[] bytes, String type) {
+        public ByteAttachmentData(byte[] bytes, String type, String name) {
             this.bytes = bytes;
             this.type = type;
+            this.name = name;
         }
     }
 
@@ -121,8 +123,8 @@ public class TemplatedMail {
         this.attachments = attachments;
     }
 
-    public void addAttachment(byte[] data, String type) {
-        bytesAttachments.add(new ByteAttachmentData(data, type));
+    public void addAttachment(byte[] data, String type, String name) {
+        bytesAttachments.add(new ByteAttachmentData(data, type, name));
     }
 
     public void send() throws MailException, AddressException, MessagingException {
@@ -162,7 +164,7 @@ public class TemplatedMail {
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
-        if(attachments != null && !attachments.isEmpty()){
+        if((attachments != null && !attachments.isEmpty()) || (bytesAttachments != null && !bytesAttachments.isEmpty())){
 
             // Create the message part
             BodyPart messageBodyPart = new MimeBodyPart();
@@ -182,6 +184,10 @@ public class TemplatedMail {
 
             for(String attachment : attachments){
                 addAttachment(multipart, attachment);
+            }
+
+            for (ByteAttachmentData byteAttachmentData: bytesAttachments) {
+                addByteAttachment(multipart, byteAttachmentData);
             }
 
             // Send the complete message parts
@@ -207,7 +213,7 @@ public class TemplatedMail {
         DataSource source = new ByteArrayDataSource(data.bytes, data.type);
         BodyPart messageBodyPart = new MimeBodyPart();
         messageBodyPart.setDataHandler(new DataHandler(source));
-        messageBodyPart.setFileName("conferma_ordine.pdf");
+        messageBodyPart.setFileName(data.name);
         multipart.addBodyPart(messageBodyPart);
     }
 
