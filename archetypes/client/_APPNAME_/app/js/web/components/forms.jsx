@@ -125,6 +125,7 @@ export class Model extends Observable {
     }
 
     hasChanges() {
+        debugger
         let d = diff(this.data, this.initialData)
         return d.length > 0
     }
@@ -1857,6 +1858,8 @@ export class Gallery extends Control {
     }
 }
 
+export const MULTI_FILE_MODE_SINGLE = "multiFileSingle";
+export const MULTI_FILE_MODE_MULTIPLE = "multiFileMultiple";
 export class MultiFile extends Control {
     constructor(props) {
         super(props)
@@ -1864,9 +1867,15 @@ export class MultiFile extends Control {
         this.model = this.props.model;
         this.field = this.props.field;
         this.counter = 0;
+        this.mode = this.props.mode || MULTI_FILE_MODE_MULTIPLE;
         this.filesNumber = optional(this.props.filesNumber, 1);
         this.fileTypes = this.field.fileTypes || "*";
     }
+
+    isMultiple() {
+        return this.mode === MULTI_FILE_MODE_MULTIPLE;
+    }
+
     componentDidMount() {
 
         this.model.once("load", () => {
@@ -1874,7 +1883,7 @@ export class MultiFile extends Control {
             //if multiple is an array else is an object
             let value = optional(this.model.get(this.field.property), null);
             let files = [];
-            if (this.multiple) {
+            if (this.isMultiple()) {
                 files = value ? value : files;
             } else {
                 if (value)
@@ -1892,7 +1901,7 @@ export class MultiFile extends Control {
             files.push(newFile);
             _.assign(this.state, {files: files})
 
-            this.model.set(this.field.property, this.filesNumber > 1 ? files: newFile)
+            this.model.set(this.field.property,(this.isMultiple())  ? files: newFile)
             if (_.isFunction(this.props.onValueChange)) {
                 this.props.onValueChange(newFile, this.model);
             }
@@ -1910,7 +1919,7 @@ export class MultiFile extends Control {
         let files = optional(this.state.files, []);
         files = _.filter(files, i => i.data  !== toRemove.data)
         _.assign(this.state, {files: files})
-        this.model.set(this.field.property, this.filesNumber > 1 ? files: null);
+        this.model.set(this.field.property, this.isMultiple() ? files: null);
         this.forceUpdate()
 
         if (_.isFunction(this.props.onValueChange)) {
@@ -2056,7 +2065,6 @@ export class SingleFile extends Control {
         )
     }
 }
-
 
 export class SingleImage extends Control {
     constructor(props) {
