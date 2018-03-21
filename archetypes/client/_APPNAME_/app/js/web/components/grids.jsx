@@ -826,8 +826,7 @@ export class Filter extends React.Component {
 
     render() {
         return (
-            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10" >{this.props.data.property}={this.props.data.value} <i className="zmdi zmdi-close"></i></button>
-        )
+            <button onClick={this.unfilter.bind(this)} className="btn btn-no-shadow btn-primary waves-effect m-r-10" >{M(this.props.data.property)}={this.props.data.value} <i className="zmdi zmdi-close"></i></button>      )
     }
 }
 
