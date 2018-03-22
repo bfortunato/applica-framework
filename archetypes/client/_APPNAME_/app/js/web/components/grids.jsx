@@ -291,12 +291,15 @@ export class SearchDialog extends React.Component {
         if (this.props.query && this.props.column && this.props.column.property) {
             const manualFilterType = optional(this.model.get("_filterType"), "eq")
             const data = this.model.sanitized()
+            this.props.query.die();
             _.each(_.keys(data), k => {
                 if (k !== "_filterType") {
                     const filterType = optional(this.getFieldFilterType(k), manualFilterType)
                     this.props.query.filter(filterType, k, data[k])
                 }
             })
+            this.props.query.live();
+            this.props.query.invokeChange();
 
             this.close()
         }

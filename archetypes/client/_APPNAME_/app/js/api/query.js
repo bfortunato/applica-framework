@@ -41,9 +41,10 @@ export class Query extends Observable {
     }
 
     filter(type, property, value) {
-        if (value === null || value === undefined) {
+
+        if ((value === null || value === undefined) && _.any(this.filters, f => f.property === property)) {
             this.unfilter(property)
-            return
+            return this
         }
 
         let current = _.find(this.filters, s => s.property == property)
