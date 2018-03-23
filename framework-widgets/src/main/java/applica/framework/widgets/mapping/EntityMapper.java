@@ -547,8 +547,7 @@ public class EntityMapper {
                     String filePath;
                     if (fileData.isBase64()) {
                         URLData urlData = URLData.parse(fileData.getData());
-                        filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
-
+                        filePath = fileServer.saveFile(path, FilenameUtils.getExtension(fileData.getFilename()), new ByteArrayInputStream(urlData.getBytes()));
                     } else {
                         filePath = fileData.getData();
                     }
