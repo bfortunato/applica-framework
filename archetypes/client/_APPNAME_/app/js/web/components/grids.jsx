@@ -338,29 +338,7 @@ export class SearchDialog extends React.Component {
     }
 }
 
-export class ButtonCell extends Cell {
-    onClick() {
-        if (_.isFunction(this.props.action)) {
-            this.props.action(this.props.column, this.props.row.data, this.props.value)
-        }
-    }
 
-    render() {
-        let formatter = _.isFunction(this.props.formatter) ? this.props.formatter : v => v
-        let className = optional(this.props.className, "btn btn-link ")
-        let value = formatter(this.getValue())
-
-        return (
-            value === "NA" ?
-                <span>{value}</span>
-                :
-
-                <a ref="button" href="javascript:;" className={className} onClick={this.onClick.bind(this)}>
-                    <span>{value}</span>
-                </a>
-        )
-    }
-}
 
 
 export class HeaderCell extends React.Component {
@@ -643,7 +621,13 @@ export class GridFooter extends React.Component {
 }
 
 export class Cell extends React.Component {
+    getValue() {
+        let column = this.props.column
+        let property = this.props.property
+        let row = this.props.row
 
+        return row.data[property]
+    }
 }
 
 export class EditTextCell extends Cell {
@@ -1386,4 +1370,28 @@ export function createCell(column, row, firstElement, onExpand, props = {}) {
 
     return React.createElement(column.cell, _.assign({key, column, property: column.property, row, value, firstElement, onExpand}, props))
     
+}
+
+export class ButtonCell extends Cell {
+    onClick() {
+        if (_.isFunction(this.props.action)) {
+            this.props.action(this.props.column, this.props.row.data, this.props.value)
+        }
+    }
+
+    render() {
+        let formatter = _.isFunction(this.props.formatter) ? this.props.formatter : v => v
+        let className = optional(this.props.className, "btn btn-link ")
+        let value = formatter(this.getValue())
+
+        return (
+            value === "NA" ?
+                <span>{value}</span>
+                :
+
+                <a ref="button" href="javascript:;" className={className} onClick={this.onClick.bind(this)}>
+                    <span>{value}</span>
+                </a>
+        )
+    }
 }
