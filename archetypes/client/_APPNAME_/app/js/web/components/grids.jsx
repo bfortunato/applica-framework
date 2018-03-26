@@ -338,6 +338,31 @@ export class SearchDialog extends React.Component {
     }
 }
 
+export class ButtonCell extends Cell {
+    onClick() {
+        if (_.isFunction(this.props.action)) {
+            this.props.action(this.props.column, this.props.row.data, this.props.value)
+        }
+    }
+
+    render() {
+        let formatter = _.isFunction(this.props.formatter) ? this.props.formatter : v => v
+        let className = optional(this.props.className, "btn btn-link ")
+        let value = formatter(this.getValue())
+
+        return (
+            value === "NA" ?
+                <span>{value}</span>
+                :
+
+                <a ref="button" href="javascript:;" className={className} onClick={this.onClick.bind(this)}>
+                    <span>{value}</span>
+                </a>
+        )
+    }
+}
+
+
 export class HeaderCell extends React.Component {
     constructor(props) {
         super(props)
