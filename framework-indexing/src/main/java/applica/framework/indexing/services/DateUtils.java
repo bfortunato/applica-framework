@@ -1,17 +1,24 @@
 package applica.framework.indexing.services;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 public class DateUtils {
-    public static Date addCurrentTimeZoneOffset(Date date) {
-        if (date == null) {
-            return null;
+
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("YYYYMMdd");
+
+    public static String dateToString(Date value) {
+        return DATE_FORMAT.format(value);
+    }
+
+    public static Object stringToDate(String stringValue) {
+        try {
+            return DATE_FORMAT.parse(stringValue);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
-
-        long delta = TimeZone.getDefault().getOffset(new Date().getTime());
-        delta += date.getTime();
-
-        return new Date(delta);
     }
 }
