@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class LuceneTest {
 
@@ -264,6 +265,21 @@ public class LuceneTest {
         search = indexService.search(TestEntity.class, query);
 
         Assert.assertEquals(50, search.getTotalRows());
+
+
+        query = Query.build()
+                .sort("stringValue", true);
+
+        search = indexService.search(TestEntity.class, query);
+
+        Assert.assertEquals(50, search.getTotalRows());
+        Assert.assertEquals("TEST.9", search.getRows().get(0).getProperty("stringValue"));
+    }
+
+
+    @Test
+    public void tzTest() {
+        System.out.println();
     }
 
 }

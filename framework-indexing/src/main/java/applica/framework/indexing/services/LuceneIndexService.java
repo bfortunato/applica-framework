@@ -10,10 +10,7 @@ import applica.framework.library.options.OptionsManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
@@ -21,6 +18,7 @@ import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -191,12 +189,18 @@ public class LuceneIndexService implements IndexService {
                         String normalizedStringValue = normalizeString(String.valueOf(property.getValue()));
                         document.add(new TextField(property.getKey(), normalizedStringValue, Field.Store.NO));
                         document.add(new StoredField(property.getKey(), String.valueOf(property.getValue())));
+                        if (fieldMetadata.isSortable()) {
+                            document.add(new SortedDocValuesField(property.getKey(), new BytesRef(normalizedStringValue)));
+                        }
                     }
                 } else {
                     if (property.getValue() != null) {
                         String normalizedStringValue = normalizeString(String.valueOf(property.getValue()));
                         document.add(new StringField(property.getKey(), normalizedStringValue, Field.Store.NO));
                         document.add(new StoredField(property.getKey(), String.valueOf(property.getValue())));
+                        if (fieldMetadata.isSortable()) {
+                            document.add(new SortedDocValuesField(property.getKey(), new BytesRef(normalizedStringValue)));
+                        }
                     }
                 }
 
@@ -326,7 +330,7 @@ public class LuceneIndexService implements IndexService {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue() > 0);
             } else if (Date.class.equals(fieldMetadata.getFieldType())) {
                 //dynamicObject.setProperty(indexableField.name(), new Date(indexableField.numericValue().longValue()));
-                dynamicObject.setProperty(indexableField.name(), DateTools.stringToDate(indexableField.stringValue()));
+                dynamicObject.setProperty(indexableField.name(), DateUtils.addCurrentTimeZoneOffset(DateTools.stringToDate(indexableField.stringValue())));
             } else {
                 dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
             }
