@@ -71,9 +71,13 @@ public class LuceneTest {
         query.setPage(1);
         query.setRowsPerPage(5);
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, 1);
+        calendar.add(Calendar.DATE, 2);
         Date tomorrow = calendar.getTime();
-        query.getFilters().add(new Filter("dateValue", Arrays.asList(Long.parseLong(dateFormat.format(new Date())), Long.parseLong(dateFormat.format(tomorrow))), Filter.RANGE));
+        query.getFilters().add(
+                new Filter("dateValue",
+                        Arrays.asList(Long.parseLong(dateFormat.format(new Date())), Long.parseLong(dateFormat.format(tomorrow))),
+                        Filter.RANGE)
+        );
 
         search = indexService.search(TestEntity.class, query);
 
@@ -276,10 +280,5 @@ public class LuceneTest {
         Assert.assertEquals("TEST.9", search.getRows().get(0).getProperty("stringValue"));
     }
 
-
-    @Test
-    public void tzTest() {
-        System.out.println();
-    }
 
 }

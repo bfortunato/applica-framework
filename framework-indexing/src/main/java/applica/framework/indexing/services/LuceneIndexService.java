@@ -177,7 +177,7 @@ public class LuceneIndexService implements IndexService {
                         document.add(new NumericDocValuesField(property.getKey(), ((Boolean) property.getValue()) ? 1 : 0));
                     }
                 } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-                    long date = Long.parseLong(DateTools.dateToString((Date) property.getValue(), DateTools.Resolution.DAY));
+                    long date = Long.parseLong(DateUtils.dateToString((Date) property.getValue()));
 
                     document.add(new LongPoint(property.getKey(), date));
                     document.add(new StoredField(property.getKey(), date));
@@ -329,8 +329,7 @@ public class LuceneIndexService implements IndexService {
             } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
                 dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue() > 0);
             } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-                //dynamicObject.setProperty(indexableField.name(), new Date(indexableField.numericValue().longValue()));
-                dynamicObject.setProperty(indexableField.name(), DateUtils.addCurrentTimeZoneOffset(DateTools.stringToDate(indexableField.stringValue())));
+                dynamicObject.setProperty(indexableField.name(), DateUtils.stringToDate(indexableField.stringValue()));
             } else {
                 dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
             }
@@ -347,7 +346,6 @@ public class LuceneIndexService implements IndexService {
         query = normalizedQuery(query);
 
         StandardQueryParser parser = new StandardQueryParser();
-        parser.setDateResolution(DateTools.Resolution.DAY);
         Map<String, PointsConfig> pointsConfig = new HashMap<>();
 
         for (IndexedFieldMetadata fieldMetadata : metadata.getFields()) {
