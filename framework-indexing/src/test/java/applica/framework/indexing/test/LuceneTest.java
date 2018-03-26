@@ -65,7 +65,7 @@ public class LuceneTest {
             Assert.assertEquals(i + 15, v);
         }
 
-        DateFormat dateFormat = new SimpleDateFormat("YYYYMMdd");
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         query = new Query();
         query.getSorts().add(new Sort("intValue", false));
         query.setPage(1);
