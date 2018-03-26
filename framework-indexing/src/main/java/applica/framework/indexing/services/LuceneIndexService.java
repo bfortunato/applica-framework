@@ -47,7 +47,7 @@ public class LuceneIndexService implements IndexService {
     private IndexWriter indexWriter;
     private SearcherManager searcherManager;
 
-    public ExecutorService executorService = Executors.newFixedThreadPool(10);
+    public ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     protected IndexerFactory getIndexerFactory() {
         return this.indexerFactory;

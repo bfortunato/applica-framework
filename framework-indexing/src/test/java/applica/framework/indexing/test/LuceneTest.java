@@ -71,7 +71,7 @@ public class LuceneTest {
         query.setPage(1);
         query.setRowsPerPage(5);
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, 2);
+        calendar.add(Calendar.DATE, 1);
         Date tomorrow = calendar.getTime();
         query.getFilters().add(
                 new Filter("dateValue",
