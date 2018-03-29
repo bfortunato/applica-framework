@@ -9,7 +9,7 @@ import entities from "../../entities"
 import * as ui from "../../utils/ui"
 import {optional} from "../../../utils/lang"
 import {EntitiesStore} from "../../../stores/entities";
-import {HeaderBlockWithBreadcrumbs} from "../../components/common";
+import {ActionsMatcher, HeaderBlockWithBreadcrumbs} from "../../components/common";
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -156,9 +156,9 @@ export default class EntityForm extends Screen {
                 }
             )
         }
-
-        return defaultActions;
-
+        let form = entities[this.getEntity()].form;
+        let matcher = new ActionsMatcher(defaultActions);
+        return matcher.match(_.isFunction(form.getActions) ? form.getActions(this.state.data)  : form.actions)
     }
 
     canSave(){
