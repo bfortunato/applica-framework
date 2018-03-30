@@ -27,6 +27,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.context.MessageSource;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 /**
  * Created by bimbobruno on 14/11/2016.
@@ -144,5 +148,21 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
                         .allowedMethods("POST", "PUT", "GET", "DELETE");
             }
         };
+    }
+
+    @Bean
+    public LocaleResolver localeResolver() {
+        SessionLocaleResolver localeResolver = new SessionLocaleResolver();
+        localeResolver.setDefaultLocale(Locale.ITALIAN);
+        return localeResolver;
+    }
+
+
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasenames("classpath:messages/messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        return messageSource;
     }
 }
