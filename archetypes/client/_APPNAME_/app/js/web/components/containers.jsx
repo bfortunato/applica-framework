@@ -12,7 +12,7 @@ import {
 } from "../../actions/entities";
 import {discriminated} from "../../utils/ajex";
 import * as query from "../../api/query";
-import {Control, Lookup, Select} from "./forms";
+import {Control, Lookup, MultiCheckbox, Select} from "./forms";
 import {optional} from "../../utils/lang";
 
 let LOOKUP_DISCRIMINATOR = 1
@@ -228,6 +228,52 @@ export class EntitiesSelectContainer extends Control {
 
     render() {
         return React.createElement(Select, _.assign({}, this.props, {datasource: this.datasource}))
+    }
+
+}
+
+export class EntitiesMultiCheckContainer extends Control {
+
+    constructor(props) {
+
+        super(props);
+
+        this.discriminator = props.id;
+        if (_.isEmpty(this.discriminator)) {
+            throw new Error("Please specify an id of this lookup")
+        }
+
+        this.query = query.create();
+
+        this.datasource = datasource.create();
+
+        this.state = {result: {}};
+
+    }
+
+    componentDidMount() {
+
+        LookupStore.subscribe(this, state => {
+            this.datasource.setData(discriminated(state, this.discriminator).result);
+        });
+
+        getLookupResult({discriminator: this.discriminator, entity: this.props.entity, query: this.query});
+
+    }
+
+    componentWillUnmount() {
+
+        LookupStore.unsubscribe(this);
+
+        this.query.off("change", this.__queryOnChange);
+
+        freeLookup({discriminator: this.discriminator});
+
+    }
+
+    render() {
+        let entityDescriptor = optional(this.props.entityDescriptor, {});
+        return React.createElement(MultiCheckbox, _.assign({}, this.props, {query: this.query, datasource: this.datasource, entityDescriptor: entityDescriptor, activeColor: this.props.activeColor}));
     }
 
 }
