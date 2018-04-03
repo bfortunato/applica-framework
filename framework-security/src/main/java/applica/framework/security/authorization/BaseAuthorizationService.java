@@ -18,6 +18,8 @@ import java.util.Optional;
  */
 public class BaseAuthorizationService implements AuthorizationService {
 
+    public static final String SUPERUSER_PERMISSION = "admin:superuser";
+
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -26,11 +28,12 @@ public class BaseAuthorizationService implements AuthorizationService {
         Assert.notNull(user, "AuthService: user must be specified");
         Assert.isTrue(StringUtils.hasLength(permission), "ItecAuthService: permission must be specified");
 
+
         Permissions.instance().check(permission);
 
         Boolean authorized = false;
         //first of all, check if user has permission
-        if ((user.getRoles() != null && user.getRoles().stream().anyMatch((r) -> r.getPermissions() != null && r.getPermissions().stream().anyMatch((p) -> p.equals(permission))))) {
+        if ((user.getRoles() != null && user.getRoles().stream().anyMatch((r) -> r.getPermissions() != null && r.getPermissions().stream().anyMatch((p) ->p.equals(SUPERUSER_PERMISSION) || p.equals(permission))))) {
             //se il permesso da controllare è statico ed è stato trovato tra quelli associati all'utente corrente, l'autorizzazione è fornita...
             authorized = true;
         }

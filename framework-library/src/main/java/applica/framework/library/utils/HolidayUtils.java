@@ -312,4 +312,20 @@ public class HolidayUtils {
 
     }
 
+    public static List<Date> generateItalianHolidays(Date start, Date end) {
+        Calendar first = Calendar.getInstance();
+        first.setTime(start);
+
+        List<Date> holidays = getItalianHolidays(first.get(Calendar.YEAR));
+
+        Calendar last = Calendar.getInstance();
+        first.setTime(end);
+        if (last.get(Calendar.YEAR) != first.get(Calendar.YEAR)) {
+            holidays.addAll(getItalianHolidays(last.get(Calendar.YEAR)));
+        }
+
+        holidays.removeIf(d -> d.before(start) || d.after(end));
+        return holidays;
+    }
+
 }

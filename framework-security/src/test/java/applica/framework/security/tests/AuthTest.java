@@ -52,6 +52,7 @@ public class AuthTest {
 
         Permissions.instance().scan(CrudAuthorizationContext.class.getPackage());
         Permissions.instance().registerStatic("static:permission");
+        Permissions.instance().registerStatic(BaseAuthorizationService.SUPERUSER_PERMISSION);
 
         TestUser testUser = new TestUser();
 
