@@ -683,12 +683,12 @@ class FormFooter extends React.Component {
 
     canSave() {
         let descriptor = this.props.descriptor;
-        return _.isFunction(descriptor.canSave) ? descriptor.canSave(this.props.model) : true
+        return _.isFunction(descriptor.canSave) ? descriptor.canSave(this.props.model.data) : true
     }
 
     canCancel() {
         let descriptor = this.props.descriptor;
-        return _.isFunction(descriptor.canCancel) ? descriptor.canCancel(this.props.model) : true
+        return _.isFunction(descriptor.canCancel) ? descriptor.canCancel(this.props.model.data) : true
     }
 
     render() {
