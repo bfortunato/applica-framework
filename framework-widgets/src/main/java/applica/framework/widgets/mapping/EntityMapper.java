@@ -351,7 +351,7 @@ public class EntityMapper {
 
                 PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
     }
@@ -441,7 +441,7 @@ public class EntityMapper {
                     try {
                         fileServer.deleteFile(actualImage);
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
                 }
             }
@@ -572,7 +572,7 @@ public class EntityMapper {
                     if (fileUrls.stream().noneMatch(file -> file.getPath().equals(actualFile.getPath())))
                         fileServer.deleteFile(actualFile.getPath());
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -626,7 +626,7 @@ public class EntityMapper {
             try {
                 fileServer.deleteFile(actualFiles.getPath());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
     }
