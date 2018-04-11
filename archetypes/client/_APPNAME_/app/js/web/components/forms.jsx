@@ -736,42 +736,69 @@ class FormFooter extends React.Component {
     Controls and Fields
  ************************/
 export const FORM_FOOTER = "actionsButtons"
+
 export class Field extends React.Component {
+
     render() {
 
         if(this.props.field.property == FORM_FOOTER) {
-
             return (
-
                 <FormFooter descriptor={this.props.descriptor}  model={this.props.model} onCancel={this.props.onCancel.bind(this)} />
-
             );
-
         }
 
         let model = this.props.model
+
         let className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12")
+
         let control = React.createElement(_.isFunction(this.props.field.getControl) ? this.props.field.getControl(model) : this.props.field.control, _.assign({
+
             field: this.props.field,
+            descriptor: this.props.descriptor,
             model: this.props.model
+
         }, this.props.field.props));
+
         let hasLabel = this.props.field.label != undefined && this.props.field.label != null
+
         let validationResult = optional(model.validationResult[this.props.field.property], {valid: true})
+
         if (!validationResult.valid) {
             className += " has-error"
         }
+
         if (!_.isEmpty(this.props.field.className)) {
             className += " " + this.props.field.className
         }
+
+        let style = {};
+
+        if(this.props.field.emptyRow) {
+            style["minHeight"] = 0;
+            style["marginBottom"] = 0;
+        } else {
+            style["minHeight"] = 58;
+        }
+
+        style["borderRight"] = this.props.field.showBorderRight ? "1px solid #dbdbdb" : "";
+
+        if(this.props.field.customWidth) {
+            style["width"] = this.props.field.customWidth;
+        }
+
+        if (this.props.field.hidden && this.props.field.hidden == true) {
+            className = "";
+            style = {};
+        }
         return (
 
-            <div className={className} style={{minHeight: 58}}>
+            <div className={className} style={style}>
                 {hasLabel &&
-                    <Label field={this.props.field}/>
+                <Label field={this.props.field}/>
                 }
                 {control}
                 {!validationResult.valid && !_.isEmpty(validationResult.message) &&
-                    <small className="help-block">{validationResult.message}</small>
+                <small className="help-block">{validationResult.message}</small>
                 }
             </div>
         )
@@ -2176,3 +2203,241 @@ export class PasswordText extends Control {
     }
 }
 
+export class ReadOnlyImage extends React.Component {
+
+    constructor(props) {
+        super(props)
+        this.center = optional(props.center, false);
+        this.centerOnXS = optional(props.centerOnXS, true);
+        this.noImageColor = optional(props.noImageColor, "#000");
+    }
+
+    render() {
+
+        let self = this;
+
+        let field = this.props.field;
+        let model = this.props.model;
+
+        let data = optional(model.get(field.property), null);
+
+        let style = {};
+
+        if(data) {
+            style["background"] = "url(" + data + ")";
+        } else {
+            style["background"] = self.noImageColor;
+        }
+
+        if(self.center) {
+            style["display"] = "block";
+            style["margin-right"] = "auto";
+            style["margin-left"] = "auto";
+        }
+
+        return (
+            <div className={(self.centerOnXS ? "img-center-max-768" : "") + " readOnlyImage"} style={style} />
+        );
+    }
+
+}
+
+export class MultiCheckbox extends React.Component {
+
+    constructor(props) {
+        super(props)
+    }
+
+    onValueChange(selectedObj) {
+
+        let self = this;
+
+        let model = self.props.model;
+        let field = self.props.field;
+
+        let values = model.get(field.property);
+
+        if(values == null) {
+            values = [];
+        }
+
+        //se è già presente lo rimuovo dalla lista, mentre se non è presente lo aggiungo
+        if(_.filter(values, function(obj) {
+                return obj.id === selectedObj.id;
+            }).length === 0) {
+
+            values.push(selectedObj);
+
+        } else {
+
+            values = _.filter(values, function(obj){
+                return obj.id !== selectedObj.id;
+            });
+
+        }
+
+        model.set(field.property, values);
+
+        model.invalidateForm();
+
+    }
+
+    render() {
+
+        let self = this;
+
+        let data = optional(this.props.datasource.data, []);
+
+        let model = this.props.model;
+        let field = this.props.field;
+
+        let values = model.get(field.property);
+
+        let entityDescriptor = this.props.entityDescriptor;
+
+        return _.map(entityDescriptor.columns, function(column, index) {
+
+            return _.map(data.rows, function(elem, i) {
+
+                if (elem[column.property]) {
+
+                    let active = _.find(values, function(obj){ return obj.id === elem.id; });
+
+                    let className = "btn buttonCheckbox btn-icon-text waves-effect";
+
+                    let style = {
+                        boxShadow: "none",
+                        fontWeight: 700
+                    };
+
+                    if(active) {
+                        className += " color-white";
+                        style["backgroundColor"] = self.props.activeColor;
+                    } else {
+                        className += " bgm-gray";
+                    }
+
+                    return (
+
+                        <div className="col-sm-2 zero-padding margin-bottom-10" key={elem[column.property] + "_" + i}>
+                            <div className="col-sm-12 zero-padding-left">
+                                <button type="button" className={className} onClick={self.onValueChange.bind(self, elem)} style={style}>
+                                    {active && <i className="zmdi zmdi-check" />}
+                                    {elem[column.property]}
+                                </button>
+                            </div>
+                        </div>
+
+                    );
+
+                }
+
+            });
+
+        });
+
+    }
+
+}
+
+export class Column extends React.Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    isFieldVisible(field) {
+
+        let descriptor = this.props.descriptor
+        let model = this.props.model
+        if (_.isFunction(descriptor.visibility)) {
+            return descriptor.visibility(field, model, descriptor)
+        }
+        return true
+
+    }
+
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this);
+        $(me).parent().css("margin-bottom", "0").css("padding-bottom", "10px");
+    }
+
+    render() {
+
+        let size = optional(this.props.size, "col-sm-12");
+
+        let defaultFieldCass = Field;
+        let fields = this.props.field.fields;
+        let descriptor = this.props.descriptor;
+
+        let fieldsComponents = !_.isEmpty(fields) && _.filter(fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor, onCancel: this.props.onCancel}));
+
+        return (
+
+            <div className={size}>
+                {fieldsComponents}
+            </div>
+
+        );
+
+    }
+
+}
+
+export class BoxInfo extends React.Component {
+
+    constructor(props) {
+        super(props)
+    }
+
+    componentDidMount() {
+        let me = ReactDOM.findDOMNode(this);
+        $(me).parent().addClass("zero-padding").css("margin-bottom", "0");
+    }
+
+    render() {
+
+        let model = this.props.model;
+        let field = this.props.field;
+
+        let obj = model.get(field.property);
+
+        if(!obj)
+            return <div />;
+
+        let labelStyle = {
+            "color": this.props.labelColor,
+            "paddingTop": "25px",
+            "marginBottom": "0px"
+        };
+
+        let valueStyle = {
+            "color": this.props.valueColor,
+            "fontWeight": "100",
+            "marginBottom": "0"
+        };
+
+        let subvalueStyle = {
+            "color": this.props.labelColor
+        };
+
+        let mainClassName = "col-sm-12 zero-padding";
+        if(this.props.borderRight) {
+            mainClassName += " border-right-lightgray-min-768";
+        }
+        if(!this.props.subvalueLabel || !obj.subvalue) {
+            mainClassName += " padding-bottom-40-min-768";
+        }
+
+        return (
+            <div className={mainClassName}>
+                <p className="text-center fs16" style={labelStyle}>{this.props.label}</p>
+                <p className="text-center fs72" style={valueStyle}>{obj.value}</p>
+                {obj.subvalue &&
+                <p className="text-center fs14" style={subvalueStyle}>{obj.subvalue} {" " + this.props.subvalueLabel}</p>
+                }
+            </div>
+        );
+    }
+
+}
