@@ -4,10 +4,13 @@ import applica._APPNAME_.api.configuration.ApplicationConfiguration;
 import applica._APPNAME_.api.configuration.ApplicationInitializer;
 import applica._APPNAME_.api.configuration.MongoConfiguration;
 import applica._APPNAME_.api.configuration.SecurityConfiguration;
+import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
 import applica.framework.EntitiesScanner;
+import applica.framework.security.authorization.Permissions;
 import applica.framework.widgets.entities.EntitiesRegistry;
+import applica.framework.widgets.entities.PermissionsRegistry;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +22,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.annotation.PostConstruct;
+
+import static applica.framework.security.authorization.BaseAuthorizationService.SUPERUSER_PERMISSION;
 
 /**
  * Applica (www.applica.guru)
@@ -64,7 +69,11 @@ public class Application {
         try {
             EntitiesScanner scanner = new EntitiesScanner();
             scanner.addHandler(EntitiesRegistry.instance());
-            scanner.scan(User.class.getPackage());
+            scanner.addHandler(PermissionsRegistry.instance());
+            scanner.scan(Filters.class.getPackage());
+
+            Permissions.instance().registerStatic(SUPERUSER_PERMISSION);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
