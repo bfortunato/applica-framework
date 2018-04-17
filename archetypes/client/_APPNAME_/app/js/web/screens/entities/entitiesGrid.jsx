@@ -12,6 +12,7 @@ import {format, optional} from "../../../utils/lang";
 import {isCancel} from "../../utils/keyboard";
 import entities from "../../entities";
 import * as ui from "../../utils/ui";
+import {Permission} from "../../../api/session";
 
 export default class EntitiesGrid extends Screen {
     constructor(props) {
@@ -138,6 +139,7 @@ export default class EntitiesGrid extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: M("refresh"),
+                permissions: [this.getEntity() + ":" + Permission.LIST],
                 action: () => { loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query}) }
             },
             {
@@ -145,6 +147,7 @@ export default class EntitiesGrid extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-plus",
                 tooltip: M("create"),
+                permissions: [this.getEntity() + ":" + Permission.NEW],
                 action: () => { this.createEntity() }
             },
             {
@@ -152,6 +155,7 @@ export default class EntitiesGrid extends Screen {
                 type: "button",
                 icon: "zmdi zmdi-delete",
                 tooltip: M("delete"),
+                permissions: [this.getEntity() + ":" + Permission.DELETE],
                 action: () => { this.deleteEntities() }
             },
             {

@@ -36,6 +36,18 @@ export function optional(val, def) {
 }
 
 /**
+ * safely get a property from object, returning default if not present)
+ */
+export function safeGet(target, prop, def = null) {
+    if (target === undefined || target === null) {
+        return null
+    } else {
+        return optional(target[prop], def)
+    }
+}
+
+
+/**
  * Gets a boolean value casting from val if is not null or undefined
  */
 export function parseBoolean(val) {

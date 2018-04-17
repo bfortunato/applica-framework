@@ -7,6 +7,7 @@ import applica._APPNAME_.domain.model.EntityList;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.domain.model.User;
+import applica._APPNAME_.domain.model.CustomPermissions;
 import applica._APPNAME_.services.authorizations.AuthorizationContexts;
 import applica.framework.Query;
 import applica.framework.data.mongodb.MongoEmbedded;
@@ -55,6 +56,7 @@ public class ApplicationInitializer {
 
         setupRoles();
         setupPermissions();
+        initializeCustomPermissions();
 
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, "admin@applica.guru")).findFirst().orElse(null);
         if (user == null) {
@@ -94,10 +96,27 @@ public class ApplicationInitializer {
             if (roleToCreate == null) {
                 roleToCreate = new Role();
                 roleToCreate.setRole(roleDescription);
+                roleToCreate.setPermissions(getPermissionByRole(roleDescription));
                 rolesRepository.save(roleToCreate);
             }
         }
     }
+
+    private void initializeCustomPermissions() {
+        for (String permission : CustomPermissions.getAll()) {
+            Permissions.instance().registerStatic(permission);
+        }
+    }
+
+    private List<String> getPermissionByRole(String roleDescription) {
+        switch (roleDescription) {
+            case Role.ADMIN:
+                return Arrays.asList(SUPERUSER_PERMISSION);
+            default:
+                return new ArrayList<>();
+        }
+    }
+
 
     private void setupPermissions() {
 
@@ -112,29 +131,6 @@ public class ApplicationInitializer {
         for (String permission : applica._APPNAME_.api.permissions.Permissions.getAllPermissions()) {
             Permissions.instance().registerStatic(permission);
         }
-
-        rolesRepository.find(null).getRows().forEach(role -> {
-
-            //elimino i permessi precedentemente assegnati al ruolo
-            role.setPermissions(new ArrayList<>());
-            rolesRepository.save(role);
-
-            role.getPermissions().addAll(applica._APPNAME_.api.permissions.Permissions.getPermissionByRole(role.getRole()));
-
-            for (String entity : EntityList.getPermittedEntitiesByRole(role.getRole())) {
-                role.getPermissions().addAll(PermissionMap.staticPermissions(entity));
-            }
-
-            //           switch (role.getRole()) {
-            //               //setta per ogni ruolo, tutte le azioni che può compiere su ogni entità
-//                case Role.USER:
-//                    role.getPermissions().addAll(PermissionMap.getPartialPermissions(applica._APPNAME_.api.permissions.Permissions.USER, Arrays.asList(PermissionMap.OPERATION_EDIT, PermissionMap.OPERATION_LIST)));
-//                    break;
-            //           }
-
-            rolesRepository.save(role);
-
-        });
 
         Permissions.instance().scan(getClass().getPackage(), AuthorizationContexts.class.getPackage());
 

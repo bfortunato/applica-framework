@@ -4,6 +4,7 @@ import {optional} from "../../utils/lang";
 import {isEnter} from "../utils/keyboard";
 import * as ui from "../utils/ui";
 import * as _ from "../../libs/underscore";
+import {hasPermission} from "../../api/session";
 
 export class DropdownActionButton extends React.Component {
     componentDidMount() {
@@ -84,17 +85,21 @@ export class ActionButton extends React.Component {
         )
     }
 }
-
 export class Actions extends React.Component {
+
+    getPermittedActions() {
+        return _.filter(this.props.actions, a => hasPermission(a.permissions) === true)
+    }
 
     render() {
         let actionKey = 1
+        let actions = this.getPermittedActions()
 
         return (
-            !_.isEmpty(this.props.actions) &&
-                <ul className="actions">
-                    {this.props.actions.map(a => <li key={actionKey++}>{React.createElement(Actions.getButtonClass(a), {action: a})}</li>)}
-                </ul>
+            !_.isEmpty(actions) &&
+            <ul className="actions">
+                {actions.map(a => <li key={actionKey++}>{React.createElement(Actions.getButtonClass(a), {action: a})}</li>)}
+            </ul>
 
         )
     }

@@ -9,24 +9,14 @@ export default [
             {
                 icon: "zmdi zmdi-accounts-alt",
                 text: M("users"),
-                href: "/#/entities/user?grid=users"
+                href: "/#/entities/user?grid=users",
+                permissions: ["user:list"]
             },
             {
                 icon: "zmdi zmdi-key",
                 text: M("roles"),
-                href: "/#/entities/role?grid=roles"
-            }
-        ]
-    },
-    {
-        icon: "zmdi zmdi-wrench",
-        text: M("setup"),
-        roles: ["admin"],
-        children: [
-            {
-                icon: "zmdi zmdi-labels",
-                text: M("categories"),
-                href: "/#/entities/category?grid=categories"
+                href: "/#/entities/role?grid=roles",
+                permissions: ["role:list"]
             }
         ]
     }
