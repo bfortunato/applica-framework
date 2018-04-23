@@ -110,6 +110,13 @@ public class CriteriaBuilder extends Filter {
         return this;
     }
 
+    public CriteriaBuilder ne(String property, Object value) {
+        if(value != null) {
+            getChildren().add(new Filter(property, value, Filter.NE));
+        }
+        return this;
+    }
+
     public CriteriaBuilder in(String property, Object value) {
         if(value != null) {
             getChildren().add(new Filter(property, value, Filter.IN));
