@@ -5,6 +5,7 @@ import * as preferences from "../framework/preferences";
 import * as config from "../framework/config";
 import * as _ from "../libs/underscore";
 import * as responses from "./responses";
+import {safeGet} from "../utils/lang";
 
 let _loggedUser
 let _sessionToken
@@ -148,3 +149,27 @@ export function getSessionToken() {
 }
 
 
+/**
+ * Check if user has permissions
+ * @param permissions --> array string ex: [document:list, document:new]
+ */
+
+
+export function isSuperuser() {
+    return _.any(safeGet(getLoggedUser(), "roles"), r => _.any(r.permissions, p => p === "admin:superuser"))
+}
+
+export function hasPermission(permissions) {
+    if (_.isEmpty(permissions) || isSuperuser())
+        return true
+
+    return _.any(safeGet(getLoggedUser(), "roles"), r => _.intersection(r.permissions, permissions).length > 0)
+}
+
+export const Permission = {
+    LIST: "list",
+    NEW: "new",
+    EDIT: "edit",
+    DELETE: "delete",
+    SAVE: "save",
+}

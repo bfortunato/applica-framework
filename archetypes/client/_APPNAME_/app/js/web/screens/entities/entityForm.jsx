@@ -10,6 +10,7 @@ import * as ui from "../../utils/ui"
 import {optional} from "../../../utils/lang"
 import {EntitiesStore} from "../../../stores/entities";
 import {ActionsMatcher, HeaderBlockWithBreadcrumbs} from "../../components/common";
+import {hasPermission, Permission} from "../../../api/session";
 
 export default class EntityForm extends Screen {
     constructor(props) {
@@ -141,6 +142,7 @@ export default class EntityForm extends Screen {
                     type: "button",
                     icon: "zmdi zmdi-save",
                     tooltip: M("save"),
+                    permissions: this.getEntitySavePermissions(),
                     action: () => {
                         this.submit(false)
                     }
@@ -150,6 +152,7 @@ export default class EntityForm extends Screen {
                     type: "button",
                     icon: "zmdi zmdi-rotate-ccw",
                     tooltip: M("saveAndGoBack"),
+                    permissions: this.getEntitySavePermissions(),
                     action: () => {
                         this.submit(true)
                     }
@@ -161,10 +164,23 @@ export default class EntityForm extends Screen {
         return matcher.match(_.isFunction(form.getActions) ? form.getActions(this.state.data)  : form.actions)
     }
 
-    canSave(){
-        let descriptor = this.getDescriptor()
-        return _.isFunction(descriptor.canSave) ? descriptor.canSave(this.state.data) : true
+    canSave() {
+        let form = entities[this.getEntity()].form
+        return optional(form.canSave, hasPermission(this.getEntitySavePermissions()))
     }
+
+    getEntitySavePermissions() {
+        return [this.getEntity() + ":" + Permission.SAVE]
+    }
+
+    getEntityListPermissions() {
+        return [this.getEntity() + ":" + Permission.LIST]
+    }
+
+    getPermittedActions() {
+        return _.filter(this.getActions(), a => hasPermission(a.permissions) === true)
+    }
+
 
     canCancel() {
         let descriptor = this.getDescriptor()
