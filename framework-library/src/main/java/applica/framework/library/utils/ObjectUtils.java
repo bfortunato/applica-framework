@@ -5,18 +5,13 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValues;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.validation.DataBinder;
 
-import java.awt.*;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyEditor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by bimbobruno on 03/02/2017.
@@ -33,13 +28,14 @@ public class ObjectUtils {
         MutablePropertyValues flat = new MutablePropertyValues();
 
         String path = "";
+
         flattenChild(path, flat, value);
 
         return flat;
     }
 
     private static void flattenChild(String parentPath, MutablePropertyValues target, Object source) {
-        if (source != null) {
+        if (source != null){
             if (TypeUtils.isList(source) || TypeUtils.isArray(source)) {
                 List iterable;
                 if (TypeUtils.isArray(source)) {

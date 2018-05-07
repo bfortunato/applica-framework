@@ -1,18 +1,16 @@
 "use strict"
 
 import M from "../../strings"
-import {Actions, Card, HeaderBlock} from "./common"
-import {diff, format, optional, parseBoolean} from "../../utils/lang"
-import {Observable} from "../../aj/events"
+import {Actions, Card} from "./common"
+import {format, optional} from "../../../utils/lang"
+import {Observable} from "../../../aj/events"
 import {ActionsCell, Grid, resultToGridData} from "./grids"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
+import {parseBoolean} from "../../utils/lang"
 import * as _ from "../../libs/underscore"
-import {hideLoader, showLoader} from "../../plugins";
-import * as config from "../../framework/config";
-import {addQueryParam} from "../utils/ui";
 
 export const VALIDATION_ERROR = {}
 
@@ -295,10 +293,9 @@ export class Area extends React.Component {
         let area = this.props.area
         let inline = optional(descriptor.inline, false)
         inline = optional(area.inline, inline)
-        let selectedTab = this.props.selectedTab
         let defaultFieldCass = inline ? InlineField : Field
-        let tabs = !_.isEmpty(area.tabs) && <Tabs selectedTab={selectedTab} tabs={area.tabs} model={this.props.model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={this.props.canSave} />
-        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor, onCancel: this.props.onCancel}))
+        let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} descriptor={descriptor} />
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: this.props.model, field: f, descriptor: descriptor}))
 
         return (
             <Card title={area.title} subtitle={area.subtitle} actions={area.actions}>
@@ -333,7 +330,7 @@ export class AreaNoCard extends React.Component {
         let descriptor = this.props.descriptor
         let area = this.props.area
         let tabs = !_.isEmpty(area.tabs) && <Tabs tabs={area.tabs} model={this.props.model} />
-        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f,  descriptor: descriptor, onCancel: this.props.onCancel}))
+        let fields = !_.isEmpty(area.fields) && _.filter(area.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => Field), {key: f.property, model: this.props.model, field: f,  descriptor: descriptor}))
         let actionKey = 1
 
         return (
@@ -354,22 +351,21 @@ export class AreaNoCard extends React.Component {
     }
 }
 
+
 export class Tabs extends React.Component {
 
     componentDidMount() {
-        let self = this;
         let me = ReactDOM.findDOMNode(this)
-        $(me).find(".tab-button").click(function(e) {
+        $(me).find(".tab-button").click((e) => {
             e.preventDefault()
-            $(self).tab("show")
-
-            addQueryParam("selectedTab", $(this).attr("data-key"));
+            $(this).tab("show")
         })
     }
 
     isFieldVisible(field) {
         let descriptor = this.props.descriptor
         let model = this.props.model
+
         if (_.isFunction(descriptor.visibility)) {
             return descriptor.visibility(field, model, descriptor)
         }
@@ -377,38 +373,19 @@ export class Tabs extends React.Component {
         return true
     }
 
-
-    getTabClass(selectedTab, key, firstTabKey) {
-        if ((selectedTab && key == selectedTab) || (!selectedTab && key == firstTabKey)) {
-            return "active"
-        }
-        return "";
-    }
-
     render() {
-
-        let self = this
-
         let descriptor = this.props.descriptor
+        let first = true
         let tabs = this.props.tabs
-
-        let selectedTab = optional(this.props.selectedTab, null);
-
-        let firstTabId = tabs[0].id
-
-        var nav = tabs.map(n => {
-
-            let key = "nav_" + n.key;
-            return (
-                <li key={key} className={this.getTabClass(selectedTab, n.id, firstTabId )}><a className="tab-button" role="tab" data-key={n.id} data-toggle="tab"
-                                                                                              href={`#${n.key}`}>{n.title}</a></li>
+        let nav = tabs.map(n => {
+            let el = (
+                <li key={"nav_" + n.key} className={first ? "active" : ""}><a className="tab-button" role="tab" data-toggle="tab" href={`#${n.key}`}>{n.title}</a></li>
             )
+            first = false
+            return el
         })
-
-
+        first = true
         let panes = tabs.map(c => {
-            let key = "pane_" + c.key;
-
             let inline = optional(descriptor.inline, false)
             inline = optional(c.inline, inline)
             let defaultFieldClass = inline ? InlineField : Field
@@ -419,13 +396,15 @@ export class Tabs extends React.Component {
                     <div className="clearfix"></div>
                 </div>
             )
+            first = false
+            return el
         })
 
 
 
         return (
             <div>
-                <ul className="tab-nav" role="tablist">
+                <ul className="tab-nav" style={{textAlign: "center"}} role="tablist">
                     {nav}
                 </ul>
 
@@ -436,8 +415,6 @@ export class Tabs extends React.Component {
         )
     }
 }
-
-
 
 let AREA_KEY = 1
 let TAB_KEY = 1
@@ -507,9 +484,8 @@ export class FormBody extends React.Component {
         let model = this.props.model
         let inline = optional(descriptor.inline, false)
         let defaultFieldCass = inline ? InlineField : Field
-        let selectedTab = this.props.selectedTab;
-        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor, selectedTab : selectedTab, canSave: this.props.canSave, onCancel: this.props.onCancel}))
-        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs selectedTab={selectedTab} tabs={descriptor.tabs} model={model} descriptor={descriptor} onCancel={this.props.onCancel} canSave={this.props.canSave} />
+        let areas = !_.isEmpty(descriptor.areas) && descriptor.areas.map(a => React.createElement(optional(() => a.component, () => Area), {key: a.key, model: model, area: a, descriptor}))
+        let tabs = !_.isEmpty(descriptor.tabs) && <Tabs tabs={descriptor.tabs} model={model} descriptor={descriptor} />
         let fields = !_.isEmpty(descriptor.fields) && _.filter(descriptor.fields, f => this.isFieldVisible(f)).map(f => React.createElement(optional(() => f.component, () => defaultFieldCass), {key: f.property, model: model, field: f, descriptor: descriptor, params : this.props.params, onCancel: this.props.onCancel}))
         let showInCard = optional(descriptor.showInCard, true)
 
@@ -647,15 +623,15 @@ export class Form extends React.Component {
 
         let inline = optional(descriptor.inline, false)
         let className = inline ? "form-horizontal" : ""
+        let canSave = this.props.canSave
+        let canCancel = this.props.canCancel
         let showFormFooter = this.showFormFooter();
-        let selectedTab = this.props.selectedTab
-
 
 
         return (
             <div className="form">
                 <form action="javascript:;" className={className} role="form" onSubmit={this.onSubmit.bind(this)}>
-                    <FormBody selectedTab={selectedTab} descriptor={descriptor} model={model} onCancel={this.onCancel.bind(this)} />
+                    <FormBody descriptor={descriptor} model={model} />
 
                     {showFormFooter &&
                     <FormFooter descriptor={descriptor}  model={model} onCancel={this.onCancel.bind(this)}/>
@@ -742,7 +718,7 @@ export class Field extends React.Component {
 
             return (
 
-                <FormFooter descriptor={this.props.descriptor}  model={this.props.model} onCancel={this.props.onCancel.bind(this)} />
+                <FormFooter descriptor={this.props.descriptor}  model={this.props.model} onCancel={this.onCancel.bind(this)} />
 
             );
 
@@ -781,7 +757,7 @@ export class InlineField extends React.Component {
     render() {
         if(this.props.field.property == FORM_FOOTER) {
             return (
-                <FormFooter descriptor={this.props.descriptor} model={this.props.model}  onCancel={this.props.onCancel.bind(this)} />
+                <FormFooter descriptor={this.props.descriptor} model={this.props.model}  onCancel={this.onCancel.bind(this)} />
             );
 
         }
@@ -1072,11 +1048,7 @@ export class DateTime extends Control {
 
 
 export class YesNo extends Control {
-
     onValueChange(e) {
-        if(_.isFunction(this.props.onValueUpdated)){
-            this.props.onValueUpdated(this.props.model)
-        }
         let value = parseBoolean(e.target.value)
         let model = this.props.model
         let field = this.props.field
@@ -1085,9 +1057,6 @@ export class YesNo extends Control {
     }
 
     componentDidMount() {
-        if(_.isFunction(this.props.onValueUpdated) ?  this.props.onValueUpdated(this.props.model) : false){
-            this.forceUpdate()
-        }
         let model = this.props.model
         let field = this.props.field
         let fn = () => {
@@ -1106,7 +1075,7 @@ export class YesNo extends Control {
 
     render() {
         let field = this.props.field
-        let yesText = optional(this.props.yesText, "Sì")
+        let yesText = optional(this.props.yesText, "Yes")
         let noText = optional(this.props.noText, "No")
 
         return (
@@ -1123,6 +1092,7 @@ export class YesNo extends Control {
         )
     }
 }
+
 
 export class Switch extends Control {
     onValueChange(e) {
@@ -1175,6 +1145,9 @@ export class Number extends Control {
 
             model.set(field.property, value)
             this.forceUpdate()
+            if (_.isFunction(this.props.performOnChange)) {
+                this.props.performOnChange(this.props.model, value);
+            }
         }
 
     }
@@ -1563,8 +1536,6 @@ export class Lookup extends Control {
             addClassName = "zmdi zmdi-plus"
         }
 
-        let paginationEnabled = optional(this.props.paginationEnabled, false)
-
         return (
             <div className="fg-line" tabIndex="0">
                 <div className="lookup">
@@ -1612,7 +1583,7 @@ export class Lookup extends Control {
                                     quickSearchEnabled="true"
                                     footerVisible="true"
                                     summaryVisible="true"
-                                    paginationEnabled={paginationEnabled}
+                                    paginationEnabled="true"
                                     tableClassName="table table-condensed table-striped table-hover"
                                     onRowDoubleClick={this.select.bind(this)}
                                 />
@@ -1864,26 +1835,19 @@ export class MultiFile extends Control {
         this.model = this.props.model;
         this.field = this.props.field;
         this.counter = 0;
-        this.filesNumber = optional(this.props.filesNumber, 1);
         this.fileTypes = this.field.fileTypes || "*";
     }
+
     componentDidMount() {
 
         this.model.once("load", () => {
 
-            //if multiple is an array else is an object
-            let value = optional(this.model.get(this.field.property), null);
-            let files = [];
-            if (this.multiple) {
-                files = value ? value : files;
-            } else {
-                if (value)
-                    files.push(value)
-            }
-            _.assign(this.state, {files : files});
+            let value = optional(this.model.get(this.field.property), []);
+            _.assign(this.state, {files: value});
             this.forceUpdate()
         })
     }
+
 
     onAdd(newFile) {
         let files = optional(this.state.files, []);
@@ -1892,30 +1856,20 @@ export class MultiFile extends Control {
             files.push(newFile);
             _.assign(this.state, {files: files})
 
-            this.model.set(this.field.property, this.filesNumber > 1 ? files: newFile)
-            if (_.isFunction(this.props.onValueChange)) {
-                this.props.onValueChange(newFile, this.model);
-            }
+            this.model.set(this.field.property, files)
             this.forceUpdate()
             return true;
         }
 
-        if (_.isFunction(this.props.onValueChange)) {
-            this.props.onValueChange(newFile, this.model);
-        }
         return false;
     }
 
     onDelete(toRemove) {
         let files = optional(this.state.files, []);
-        files = _.filter(files, i => i.data  !== toRemove.data)
+        files = _.filter(files, i => i.data !== toRemove.data)
         _.assign(this.state, {files: files})
-        this.model.set(this.field.property, this.filesNumber > 1 ? files: null);
+        this.model.set(this.field.property, files)
         this.forceUpdate()
-
-        if (_.isFunction(this.props.onValueChange)) {
-            this.props.onValueChange(null, this.model);
-        }
 
     }
 
@@ -1938,13 +1892,13 @@ export class MultiFile extends Control {
         let title = optional(this.props.field.title, M("attachments"))
 
         if (files.length > 0) {
-            _.forEach(files, (e) => {fields.push(this.createSingleFileComponent(e))})
+            _.forEach(files, (e) => {
+                fields.push(this.createSingleFileComponent(e))
+            })
 
         }
 
-        if (files.length  < this.filesNumber) {
-            fields.push(this.createSingleFileComponent())
-        }
+        fields.push(this.createSingleFileComponent())
 
         return (
             <div>
@@ -1957,106 +1911,6 @@ export class MultiFile extends Control {
         )
     }
 }
-
-export class SingleFile extends Control {
-    constructor(props) {
-        super(props)
-
-        let filename = optional(props.file.filename, null);
-        let data = optional(props.file.data, null);
-        let base64 = optional(props.file.base64, null);
-
-        this.state = {filename: filename, data: data, base64: base64}
-    }
-
-    onFileSelected(e) {
-        let file = e.target.files[0]
-        showLoader()
-        inputfile.readDataUrl(file).then(result => {
-            if (_.isFunction(this.props.onAdd)) {
-                this.props.onAdd({data : result, filename: file.name, base64: true, size: file.size})
-            }
-            hideLoader()
-        })
-    }
-
-    remove(e) {
-        e.stopPropagation()
-        e.preventDefault()
-
-
-        if (_.isFunction(this.props.onDelete)) {
-            this.props.onDelete({data : this.state.data, filename: this.state.filename})
-        }
-    }
-
-    download(e) {
-        e.preventDefault()
-        e.stopPropagation()
-
-        let value = optional(this.state.data, null)
-
-        let url = config.get("service.url")+value
-        window.open(url)
-    }
-
-
-    search(e) {
-        e.preventDefault()
-        e.stopPropagation()
-
-        let me = ReactDOM.findDOMNode(this)
-
-        //Serve per invocare il change se si seleziona un file uguale al precedente
-        $(me).find("input[type=file]").val("")
-        $(me).find("input[type=file]").click()
-    }
-
-    render() {
-
-        let value = optional(this.state.data, null)
-        //let fileName = optional(this.state.filename, null)
-        let hasValue = !_.isEmpty(value)
-        let canDownload = hasValue && !value.includes("base64");
-        let component = null
-        let fileTypes = optional(this.props.fileTypes, "*")
-
-        if(!hasValue) {
-            component = (
-                <div>
-                    <div className="actions pull-right">
-                        <a href="javascript:;" title={M("search")} onClick={this.search.bind(this)} className="m-r-0"><i className="zmdi zmdi-search" /></a>
-                    </div>
-                    <span className="placeholder"></span>
-                </div>
-            )
-        }else {
-            component = (
-                <div>
-                    <div className="actions pull-right">
-                        <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
-                        {canDownload && <a href="javascript:;" title={M("download")} onClick={this.download.bind(this)} className="m-r-0"><i className="zmdi zmdi-download" /></a>}
-                    </div>
-                    <span className="input-file-name"><span className="zmdi zmdi-file"/> {this.state.filename} </span>
-                </div>
-            )
-        }
-
-        return (
-            <div className="col-sm-4 col-ms-6" style={{marginBottom: '5px'}}>
-                <div className="input-file fg-line" tabIndex="0">
-                    <div onClick={this.search.bind(this)}>
-                        {component}
-                    </div>
-
-                    <input type="file" accept={fileTypes} onChange={this.onFileSelected.bind(this)} />
-                </div>
-            </div>
-
-        )
-    }
-}
-
 
 export class SingleImage extends Control {
     constructor(props) {
@@ -2167,3 +2021,105 @@ export class PasswordText extends Control {
     }
 }
 
+export class SingleFile extends Control {
+    constructor(props) {
+        super(props)
+
+        let filename = optional(props.file.filename, null);
+        let data = optional(props.file.data, null);
+        let base64 = optional(props.file.base64, null);
+
+        this.state = {filename: filename, data: data, base64: base64}
+    }
+
+    onFileSelected(e) {
+        let file = e.target.files[0]
+        showLoader()
+        inputfile.readDataUrl(file).then(result => {
+            if (_.isFunction(this.props.onAdd)) {
+                this.props.onAdd({data: result, filename: file.name, base64: true})
+            }
+            hideLoader()
+        })
+    }
+
+    remove(e) {
+        e.stopPropagation()
+        e.preventDefault()
+
+
+        if (_.isFunction(this.props.onDelete)) {
+            this.props.onDelete({data: this.state.data, filename: this.state.filename})
+        }
+    }
+
+    download(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let value = optional(this.state.data, null)
+
+        let url = config.get("service.url") + value
+        window.open(url)
+    }
+
+
+    search(e) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        let me = ReactDOM.findDOMNode(this)
+
+        //Serve per invocare il change se si seleziona un file uguale al precedente
+        $(me).find("input[type=file]").val("")
+        $(me).find("input[type=file]").click()
+    }
+
+    render() {
+
+        let value = optional(this.state.data, null)
+        //let fileName = optional(this.state.filename, null)
+        let hasValue = !_.isEmpty(value)
+        let readOnly =  optional(this.props.readOnly, false)
+        let canDownload = hasValue && !value.includes("base64");
+        let component = null
+        let fileTypes = optional(this.props.fileTypes, "*")
+
+        if (!hasValue) {
+            component = (
+                <div>
+                    <div className="actions pull-right">
+                        <a href="javascript:;" title={M("search")} onClick={this.search.bind(this)} className="m-r-0"><i
+                            className="zmdi zmdi-search"/></a>
+                    </div>
+                    <span className="placeholder"></span>
+                </div>
+            )
+        } else {
+            component = (
+                <div>
+                    <div className="actions pull-right">
+                        {readOnly && <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i
+                            className="zmdi zmdi-close"/></a>}
+                        {canDownload && <a href="javascript:;" title={M("download")} onClick={this.download.bind(this)}
+                                           className="m-r-0"><i className="zmdi zmdi-download"/></a>}
+                    </div>
+                    <span className="input-file-name"><span className="zmdi zmdi-file"/> {this.state.filename} </span>
+                </div>
+            )
+        }
+
+        return (
+            <div className="col-sm-4 col-ms-6" style={{marginBottom: '5px'}}>
+                <div className="input-file fg-line" tabIndex="0">
+                    <div onClick={this.search.bind(this)}>
+                        {component}
+                    </div>
+
+                    <input type="file" accept={fileTypes} onChange={this.onFileSelected.bind(this)}/>
+                </div>
+            </div>
+
+        )
+    }
+}
