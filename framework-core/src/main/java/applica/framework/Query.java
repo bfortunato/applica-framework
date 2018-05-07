@@ -6,6 +6,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 /**
@@ -168,5 +171,24 @@ public class Query {
 
     public void setKeyword(String keyword) {
         this.keyword = keyword;
+    }
+
+    public static <T> T alias(Class<T> baseClass) {
+        return (T) Proxy.newProxyInstance(baseClass.getClassLoader(), new Class[]{ baseClass }, new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if (method.getParameterCount() == 0) {
+                    if (method.getName().startsWith("get") && method.getName().length() > 0) {
+                        String name = method.getName().substring(3);
+                        StringBuilder sb = new StringBuilder(name);
+                        sb.setCharAt(0, Character.toLowerCase(sb.charAt(0)));
+
+                        return sb.toString();
+                    }
+                }
+
+                throw new RuntimeException("Cannot call this method. Alias class");
+            }
+        });
     }
 }
