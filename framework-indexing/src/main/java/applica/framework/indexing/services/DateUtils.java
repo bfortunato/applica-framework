@@ -18,7 +18,8 @@ public class DateUtils {
         try {
             return DATE_FORMAT.parse(stringValue);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            //throw new RuntimeException(e);
+            return null;
         }
     }
 }
