@@ -10,7 +10,10 @@ import applica.framework.library.options.OptionsManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
@@ -46,6 +49,7 @@ public class LuceneIndexService implements IndexService {
     private Directory directory;
     private IndexWriter indexWriter;
     private SearcherManager searcherManager;
+    private int maxHits = 1000;
 
     public ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -239,15 +243,15 @@ public class LuceneIndexService implements IndexService {
             TopDocsCollector collector;
 
             if (luceneSort.getSort().length == 0) {
-                collector = TopScoreDocCollector.create(1000);
+                collector = TopScoreDocCollector.create(this.maxHits);
             } else {
-                collector = TopFieldCollector.create(luceneSort, 1000, null, true, true, true, true);
+                collector = TopFieldCollector.create(luceneSort, this.maxHits, null, true, true, true, true);
             }
 
             searcher.search(luceneQuery, collector);
 
             int startIndex = 0;
-            int numHits = 1000;
+            int numHits = this.maxHits;
 
             if (query.getPage() > 0 && query.getRowsPerPage() > 0) {
                 startIndex = (query.getPage() - 1) * query.getRowsPerPage();
@@ -601,6 +605,11 @@ public class LuceneIndexService implements IndexService {
             e.printStackTrace();
         }
 
+    }
+
+
+    public void setMaxHits(int maxHits) {
+        this.maxHits = maxHits;
     }
 }
 

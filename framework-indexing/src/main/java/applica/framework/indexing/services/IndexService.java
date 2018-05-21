@@ -13,6 +13,7 @@ public interface IndexService {
 
     <T extends Entity> IndexedResult search(Class<T> entityType, Query query);
 
+    void setMaxHits(int maxHits);
 
 
 }
