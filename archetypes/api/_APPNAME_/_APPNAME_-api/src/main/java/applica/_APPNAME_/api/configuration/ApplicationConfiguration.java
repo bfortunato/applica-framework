@@ -31,7 +31,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.context.MessageSource;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
-
+import java.util.Locale;
 /**
  * Created by bimbobruno on 14/11/2016.
  */

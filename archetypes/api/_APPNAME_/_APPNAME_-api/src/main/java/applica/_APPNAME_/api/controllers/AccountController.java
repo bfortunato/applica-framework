@@ -5,7 +5,7 @@ import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
-import applica.framework.library.utils.ErrorUtils;
+import applica.framework.library.utils.ErrorsUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.responses.Response;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import static applica.framework.library.responses.Response.ERROR;
 import static applica.framework.library.responses.Response.OK;
 import static applica._APPNAME_.services.responses.ResponseCode.*;
+import static applica.framework.security.authorization.BaseAuthorizationService.SUPERUSER_PERMISSION;
 
 /**
  * Applica (www.applicadoit.com)

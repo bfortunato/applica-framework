@@ -1,4 +1,4 @@
-package applica.questionario_medicale.domain.model;
+package applica._APPNAME_.domain.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
