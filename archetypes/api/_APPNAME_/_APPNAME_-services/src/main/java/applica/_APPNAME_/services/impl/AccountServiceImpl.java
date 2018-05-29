@@ -127,6 +127,8 @@ public class AccountServiceImpl implements AccountService {
         String encodedPassword = encoder.encodePassword(newPassword, null);
         user.setPassword(encodedPassword);
 
+        usersRepository.save(user);
+
         TemplatedMail templatedMail = new TemplatedMail();
         templatedMail.setOptions(options);
         templatedMail.setMailFormat(TemplatedMail.HTML);
