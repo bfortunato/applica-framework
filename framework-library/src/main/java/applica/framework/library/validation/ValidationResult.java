@@ -1,5 +1,7 @@
 package applica.framework.library.validation;
 
+import applica.framework.library.i18n.LocalizationUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +10,7 @@ public class ValidationResult {
     List<Error> errors = new ArrayList<>();
 
     public void reject(String property, String message) {
-        errors.add(new Error(property, message));
+        errors.add(new Error(property, LocalizationUtils.getMessage(message)));
     }
 
     public boolean isValid() {

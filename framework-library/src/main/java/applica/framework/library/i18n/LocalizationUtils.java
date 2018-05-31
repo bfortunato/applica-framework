@@ -14,7 +14,7 @@ public class LocalizationUtils {
         try {
             return ApplicationContextProvider.provide().getMessage(code, null, locale);
         } catch (Exception e) {
-            return "";
+            return code;
         }
     }
 }
