@@ -48,6 +48,24 @@ public class UserSaveOperation extends BaseSaveOperation {
     }
 
     @Override
+    protected void beforeSave(ObjectNode data, Entity entity) {
+        String passwordToSave = null;
+        if (org.springframework.util.StringUtils.hasLength(data.get("password").asText())) {
+            //set / modifica password
+            passwordToSave = new Md5PasswordEncoder().encodePassword(data.get("password").asText(), null);
+            ((User) entity).setCurrentPasswordSetDate(new Date());
+        } else {
+            if (entity.getId() != null) {
+                User previous = Repo.of(User.class).get(((User) entity).getSid()).get();
+                passwordToSave = ((User) previous).getPassword();
+            }
+        }
+        ((User) entity).setPassword(passwordToSave);
+        ((User) entity).setMail(((User) entity).getMail());
+
+    }
+
+    @Override
     protected void afterSave(ObjectNode node, Entity entity) {
         // Ottengo tutte le info necessarie ad aggiornare/creare un utente
         User user = (User) entity;
