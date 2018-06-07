@@ -7,6 +7,10 @@ import java.util.*;
 public class HolidayUtils {
 
     public static boolean isItalianHoliday(Date date) {
+        return isItalianHoliday(date, false, false);
+    }
+
+    public static boolean isItalianHoliday(Date date, boolean saturdayHoliday, boolean sundayHoliday) {
         Calendar cal = GregorianCalendar.getInstance();
         cal.setTime(date);
         int inputDayOfMonth = cal.get(GregorianCalendar.DAY_OF_MONTH);
@@ -19,7 +23,12 @@ public class HolidayUtils {
         Calendar hol = GregorianCalendar.getInstance();
 
         //Controllo se domenica
-        if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+        if (saturdayHoliday && cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
+            return true;
+        }
+
+        //Controllo sabato
+        if (sundayHoliday && cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
             return true;
         }
 
@@ -41,6 +50,13 @@ public class HolidayUtils {
         }
 
         return false;
+    }
+
+    public static List<Date> getWorkingDaysInRange(Date startDate, Date endDate, boolean saturdayHoliday, boolean sundayHoliday) {
+
+        List<Date> dates = DateUtils.getDaysBetweenRange(startDate, endDate);
+        dates.removeIf(d -> isItalianHoliday(d, saturdayHoliday, sundayHoliday));
+        return dates;
     }
 
     public static String getFutureEasterDateString(int years) {
