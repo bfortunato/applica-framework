@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 
 public class ProcessUtils {
 
-    ProcessOutput exec(String... arguments) throws IOException, InterruptedException {
+    static ProcessOutput exec(String... arguments) throws IOException, InterruptedException {
         ProcessOutput output = new ProcessOutput();
 
         Process process = new ProcessBuilder(arguments).start();

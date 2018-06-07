@@ -4,10 +4,7 @@ import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.integrator.services.DeploymentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static applica.framework.library.responses.Response.OK;
 
@@ -22,15 +19,21 @@ public class MainController {
         return new ValueResponse(deploymentService.findDeployments());
     }
 
-    @PutMapping("/deployments")
-    Response addDeployment(String name, String gitRepositoryUrl, String branch) {
-        deploymentService.addDeployment(name, gitRepositoryUrl, branch);
+    @PostMapping("/deployments")
+    Response addDeployment(String name, String gitRepositoryUrl, String branch, String script) {
+        deploymentService.addDeployment(name, gitRepositoryUrl, branch, script);
         return new Response(OK);
     }
 
     @DeleteMapping("/deployments/{name}")
-    Response deleteDeployment(String name) {
+    Response deleteDeployment(@PathVariable String name) {
         deploymentService.deleteDeployment(name);
+        return new Response(OK);
+    }
+
+    @GetMapping("/deployments/{name}/trigger")
+    Response trigger(@PathVariable String name) {
+        deploymentService.updateDeployment(name);
         return new Response(OK);
     }
 

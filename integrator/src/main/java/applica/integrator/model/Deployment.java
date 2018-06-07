@@ -9,6 +9,7 @@ public class Deployment extends AEntity {
     private String gitRepositoryUrl;
     private String branch;
     private String lastCommit;
+    private String script;
 
     public String getName() {
         return name;
@@ -42,11 +43,19 @@ public class Deployment extends AEntity {
         this.branch = branch;
     }
 
-    public String getLastCommit() {
+    public String getRevision() {
         return lastCommit;
     }
 
     public void setLastCommit(String lastCommit) {
         this.lastCommit = lastCommit;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
+    }
+
+    public String getScript() {
+        return script;
     }
 }

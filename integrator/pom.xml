@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <modelVersion>4.0.0</modelVersion>
     <groupId>applica.framework</groupId>
     <artifactId>integrator</artifactId>
     <packaging>jar</packaging>
@@ -18,12 +19,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>applica</groupId>
-            <artifactId>_APPNAME_-services</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>applica.framework</groupId>
             <artifactId>framework-widgets</artifactId>
             <version>${applica.framework.version}</version>
@@ -31,19 +26,7 @@
 
         <dependency>
             <groupId>applica.framework</groupId>
-            <artifactId>framework-resources</artifactId>
-            <version>${applica.framework.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>applica.framework</groupId>
-            <artifactId>framework-fileserver</artifactId>
-            <version>${applica.framework.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>applica.framework</groupId>
-            <artifactId>framework-licensing</artifactId>
+            <artifactId>framework-data-mongodb</artifactId>
             <version>${applica.framework.version}</version>
         </dependency>
 
@@ -55,9 +38,27 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>1.4.2.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.4.1.1</version>
         </dependency>
 
         <!--<dependency>-->

@@ -2,16 +2,14 @@ package applica.integrator.services;
 
 import applica.framework.Result;
 import applica.integrator.model.Deployment;
+import applica.integrator.model.ProcessException;
 
 import java.util.List;
 
 public interface DeploymentService {
 
     Result<Deployment> findDeployments();
-    void addDeployment(String name, String gitRepositoryUrl, String branch);
+    void addDeployment(String name, String gitRepositoryUrl, String branch, String script);
     void deleteDeployment(String name);
-
-    void start();
-
-    void stop();
+    void updateDeployment(String name);
 }
