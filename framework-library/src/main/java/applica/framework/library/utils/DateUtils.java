@@ -187,7 +187,7 @@ public class DateUtils {
         if (date == null)
             return "";
 
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.ITALIAN);
         return formatter.format(date);
     }
 

@@ -1,6 +1,6 @@
 package applica.framework.data.mongodb;
 
-import applica.framework.*;
+import applica.framework.Filter;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
 import com.mongodb.DB;
@@ -101,6 +101,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 break;
             case Filter.RANGE:
                 mongoQuery.range(filter.getProperty(), (List)filter.getValue());
+                break;
+            case Filter.EXISTS:
+                mongoQuery.exists(filter.getProperty(), (Boolean) filter.getValue());
                 break;
             case Filter.IN:
                 mongoQuery.in(filter.getProperty(), (List)filter.getValue());

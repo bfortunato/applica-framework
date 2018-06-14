@@ -115,6 +115,8 @@ public class MongoQuery extends BasicDBObject {
 		return this;
 	}
 
+
+
     /**
      * Use in to find elements not in values list
      */
@@ -189,6 +191,14 @@ public class MongoQuery extends BasicDBObject {
             }
 			return parent;
 		}
+	}
+
+	/**
+	 * Use to check if value field "exists" into the collection item
+	 */
+	public MongoQuery exists(String key, boolean exists) {
+		this.put(key, new BasicDBObject("$exists", exists));
+		return this;
 	}
 
     public class AndExpression extends BinaryExpression {

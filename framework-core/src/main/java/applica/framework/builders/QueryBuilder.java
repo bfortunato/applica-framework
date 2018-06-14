@@ -4,8 +4,6 @@ import applica.framework.Filter;
 import applica.framework.Query;
 import applica.framework.Sort;
 
-import java.util.function.Predicate;
-
 public class QueryBuilder extends Query {
 
     @FunctionalInterface
@@ -90,6 +88,20 @@ public class QueryBuilder extends Query {
     public QueryBuilder lt(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.LT));
+        }
+        return this;
+    }
+
+    public QueryBuilder exixts(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.EXISTS));
+        }
+        return this;
+    }
+
+    public QueryBuilder range(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.RANGE));
         }
         return this;
     }
