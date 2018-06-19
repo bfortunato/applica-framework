@@ -21,6 +21,8 @@ public interface FileServer {
      */
     String saveFile(String path, String extension, InputStream fileStream) throws IOException;
 
+    long getFileSize(String path);
+
     /**
      * Get file in specified path. Path must be relative to file server url: es: /files/users/documents/filename.ext
      * @param path The full path of the file (including filename)

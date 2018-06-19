@@ -2,14 +2,14 @@ package applica.framework.widgets.mapping;
 
 //TODO: spostare in un package più appropriato
 public class AttachmentData {
-    private int size;
+    private long size;
     private String filename;
     private String data;
     private boolean base64;
 
     public AttachmentData(){}
 
-    public AttachmentData(String filename, String data, boolean base64, int size){
+    public AttachmentData(String filename, String data, boolean base64, long size){
         this.filename = filename;
         this.data = data;
         this.base64 = base64;
@@ -40,11 +40,11 @@ public class AttachmentData {
         this.base64 = base64;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 }

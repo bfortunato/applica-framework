@@ -1,6 +1,6 @@
 package applica.framework.data.mongodb;
 
-import applica.framework.Filter;
+import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
 import com.mongodb.DB;

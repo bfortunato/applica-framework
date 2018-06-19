@@ -10,12 +10,12 @@ import applica.framework.AEntity;
 public class Attachment extends AEntity {
     private String path;
     private String name;
-    private int size;
+    private long size;
 
     public Attachment(){
 
     }
-    public Attachment(String filename, String filePath, int size) {
+    public Attachment(String filename, String filePath, long size) {
         this.name = filename;
         this.path = filePath;
         this.size = size;
@@ -40,11 +40,11 @@ public class Attachment extends AEntity {
         this.path = path;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 }

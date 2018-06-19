@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -60,6 +61,14 @@ public class SimpleFileServer implements FileServer {
         saveToServer(fileStream, generatedName, baseUrl.concat(fullPath));
 
         return fullPath;
+    }
+
+    @Override
+    public long getFileSize(String path) {
+        File file = new File( baseUrl.concat(path));
+        if (file.exists())
+            return file.length();
+        return 0;
     }
 
     private void saveToServer(InputStream fileStream, String filename, String fullPath) throws IOException {
