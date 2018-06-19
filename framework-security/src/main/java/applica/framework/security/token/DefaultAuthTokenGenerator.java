@@ -2,14 +2,7 @@ package applica.framework.security.token;
 
 import applica.framework.security.User;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.jasypt.util.text.TextEncryptor;
-import org.springframework.security.crypto.codec.Base64;
 
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -21,7 +14,7 @@ import java.util.UUID;
  */
 public class DefaultAuthTokenGenerator implements AuthTokenGenerator {
 
-    private int durationSeconds = 60 * 60; //1 hour by default
+    private long durationSeconds = TokenExpirationTime.DURATION_IN_SECONDS;
     private long expiration = 0;
     private String encryptorPassword = null;
 
@@ -35,7 +28,7 @@ public class DefaultAuthTokenGenerator implements AuthTokenGenerator {
 
         try {
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, durationSeconds);
+            calendar.add(Calendar.SECOND, (int) durationSeconds);
             if (expiration == 0) {
                 expiration = calendar.getTimeInMillis();
             }
@@ -54,13 +47,6 @@ public class DefaultAuthTokenGenerator implements AuthTokenGenerator {
         return token;
     }
 
-    public int getDurationSeconds() {
-        return durationSeconds;
-    }
-
-    public void setDurationSeconds(int durationSeconds) {
-        this.durationSeconds = durationSeconds;
-    }
 
     public long getExpiration() {
         return expiration;

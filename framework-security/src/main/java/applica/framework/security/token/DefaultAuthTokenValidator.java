@@ -1,14 +1,8 @@
 package applica.framework.security.token;
 
 import applica.framework.security.User;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.util.StringUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 /**
@@ -19,7 +13,7 @@ import java.util.Date;
  */
 public class DefaultAuthTokenValidator implements AuthTokenValidator {
 
-    public static final long EXPIRING_TIME = 5 * 60 * 1000; //five minutes
+    public static final long EXPIRING_TIME = TokenExpirationTime.DURATION_IN_MILLIS;
 
     @Override
     public void validate(User expectedUser, String token) throws TokenValidationException, TokenFormatException, TokenExpiredException {
