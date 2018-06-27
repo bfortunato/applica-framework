@@ -298,6 +298,7 @@ export class SearchDialog extends React.Component {
                     this.props.query.filter(filterType, k, data[k])
                 }
             })
+            this.props.query.page = 1
             this.props.query.live();
             this.props.query.invokeChange();
 
