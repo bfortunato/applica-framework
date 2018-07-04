@@ -28,13 +28,14 @@ public class ObjectUtils {
         MutablePropertyValues flat = new MutablePropertyValues();
 
         String path = "";
+
         flattenChild(path, flat, value);
 
         return flat;
     }
 
     private static void flattenChild(String parentPath, MutablePropertyValues target, Object source) {
-        if (source != null) {
+        if (source != null){
             if (TypeUtils.isList(source) || TypeUtils.isArray(source)) {
                 List iterable;
                 if (TypeUtils.isArray(source)) {

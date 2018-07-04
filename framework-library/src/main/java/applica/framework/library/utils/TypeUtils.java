@@ -4,9 +4,11 @@ import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
+import org.apache.commons.beanutils.ConvertUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -275,6 +277,34 @@ public class TypeUtils {
 
     public static boolean isPrimitive(Object value) {
         return value != null && (value.getClass().isPrimitive() || Arrays.asList(PRIMITIVE_TYPES).contains(value.getClass()));
+    }
+
+    public static <T> T cast(Object value, Class<T> destinationType, boolean useDefaultValue) {
+        if (value == null) {
+            if (useDefaultValue) {
+                if (Double.class.equals(destinationType)) {
+                    return (T) (Double) 0d;
+                } else if (Float.class.equals(destinationType)) {
+                    return (T) (Float) 0f;
+                } else if (Long.class.equals(destinationType)) {
+                    return (T) (Long) 0l;
+                } else if (Integer.class.equals(destinationType)) {
+                    return (T) (Integer) 0;
+                } else if (Boolean.class.equals(destinationType)) {
+                    return (T) (Boolean) false;
+                } else {
+                    try {
+                        return destinationType.getConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                return null;
+            }
+        }
+
+        return (T) ConvertUtils.convert(value, destinationType);
     }
 }
 

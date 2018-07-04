@@ -4,6 +4,7 @@ import applica.framework.*;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
+import applica.framework.data.IgnoreNestedReferences;
 import applica.framework.library.utils.TypeUtils;
 import com.mongodb.BasicDBObject;
 import org.apache.commons.logging.Log;
@@ -38,8 +39,32 @@ public class MongoMapper {
 		Long.class,
 		Date.class
 	};
-	
-	public BasicDBObject loadBasicDBObject(Entity source) {
+
+	public class MappingConfig {
+		private int nestedIgnoredReferenceCounter = 0;
+
+		public void pushIgnoreNestedReferences() {
+			nestedIgnoredReferenceCounter++;
+		}
+
+		public void popIgnoreNestedReferences() {
+			if (nestedIgnoredReferenceCounter == 0) {
+				throw new RuntimeException("nested ignored references counter cannot be negative");
+			}
+
+			nestedIgnoredReferenceCounter--;
+		}
+
+		public boolean isIgnoringNestedReferences() {
+			return nestedIgnoredReferenceCounter > 0;
+		}
+	}
+
+	public BasicDBObject loadBasicDBObject(Entity source, MappingConfig mappingConfig) {
+		if (mappingConfig == null) {
+			mappingConfig = new MappingConfig();
+		}
+
 		BasicDBObject document = new BasicDBObject();
 		if (source != null && document != null) {			
 			Class<?> type = source.getClass();
@@ -49,7 +74,7 @@ public class MongoMapper {
             	try {
 					document.put("_id", new ObjectId(String.valueOf(source.getId())));
 				} catch (Exception e) {
-            		logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+            		//logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
 				}
             }
             
@@ -63,7 +88,11 @@ public class MongoMapper {
 						continue;
 					} else {
                         try {
-                            if (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null) {
+							if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
+								mappingConfig.pushIgnoreNestedReferences();
+							}
+
+                            if (!mappingConfig.isIgnoringNestedReferences() && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null && TypeUtils.isList(fieldSourceValue.getClass())) {
                                     List<?> sourceList = (List<?>) fieldSourceValue;
@@ -78,7 +107,7 @@ public class MongoMapper {
                                     }
                                     document.put(field.getName(), values);
                                 }
-                            } else if (field.getAnnotation(ManyToOne.class) != null) {
+                            } else if (!mappingConfig.isIgnoringNestedReferences() && field.getAnnotation(ManyToOne.class) != null) {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null && TypeUtils.isEntity(fieldSourceValue.getClass())) {
                                     Entity fieldSourceEntity = ((Entity) fieldSourceValue);
@@ -90,7 +119,7 @@ public class MongoMapper {
                             } else {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null) {
-                                    Object basicDBObjectValue = convertToBasicDBObjectValue(fieldSourceValue);
+                                    Object basicDBObjectValue = convertToBasicDBObjectValue(fieldSourceValue, mappingConfig);
                                     if (basicDBObjectValue != null) {
                                         document.put(field.getName(), basicDBObjectValue);
                                     }
@@ -98,7 +127,13 @@ public class MongoMapper {
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                        }
+                        } finally {
+                        	if (field != null) {
+								if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
+									mappingConfig.popIgnoreNestedReferences();
+								}
+							}
+						}
 					}
 				}
 			}
@@ -109,12 +144,12 @@ public class MongoMapper {
 	
 	
 	
-	private Object convertToBasicDBObjectValue(Object source) {
+	private Object convertToBasicDBObjectValue(Object source, MappingConfig mappingConfig) {
 		Object value = null;
 		if (TypeUtils.isEntity(source.getClass())) {
 			try {
 				//logger.warn("Field is entity");
-				value = loadBasicDBObject((Entity)source);
+				value = loadBasicDBObject((Entity)source, mappingConfig);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}	
@@ -127,7 +162,7 @@ public class MongoMapper {
 				List<?> list = (List<?>)source;
 				ArrayList<Object> values = new ArrayList<Object>();
 				for(Object el : list) {
-					Object elVal = convertToBasicDBObjectValue(el);
+					Object elVal = convertToBasicDBObjectValue(el, mappingConfig);
 					if (elVal != null) values.add(elVal);
 				}
 				value = values;
@@ -139,7 +174,11 @@ public class MongoMapper {
 		return value;
 	}
 	
-	public Object loadObject(BasicDBObject source, Class<?> destinationType) {
+	public Object loadObject(BasicDBObject source, Class<?> destinationType, MappingConfig mappingConfig) {
+		if (mappingConfig == null) {
+			mappingConfig = new MappingConfig();
+		}
+
 		Entity destination = null;
 		try {
 			destination = (Entity)destinationType.newInstance();
@@ -154,15 +193,22 @@ public class MongoMapper {
 				if (key.equals("_id")) { 
 					destination.setId(source.getString(key));
 				} else {
+					Field field = null;
+
 					try {
-						Field field = TypeUtils.getField(type, key);
+						field = TypeUtils.getField(type, key);
+
+						if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
+							mappingConfig.pushIgnoreNestedReferences();
+						}
+
 						if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
 							field.setAccessible(true);
 
 							if (key.endsWith("Id") && field.getType().equals(Object.class)) {
 								field.set(destination, source.get(field.getName()));
 							} else if (TypeUtils.isEntity(field.getType())) {
-                                if (field.getAnnotation(ManyToOne.class) != null) {
+								if ((!mappingConfig.isIgnoringNestedReferences() || isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
                                     Entity value = null;
                                     String sourceId = (String) source.get(field.getName());
                                     Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
@@ -173,7 +219,7 @@ public class MongoMapper {
                                     }
                                 } else {
                                     BasicDBObject childDocument = (BasicDBObject)source.get(key);
-                                    Object value = loadObject(childDocument, field.getType());
+                                    Object value = loadObject(childDocument, field.getType(), mappingConfig);
                                     field.set(destination, value);
                                 }
                             } else if (field.getType().equals(Key.class)) {
@@ -181,7 +227,7 @@ public class MongoMapper {
                             } else if (isAllowed(field.getType())) {
 								field.set(destination, source.get(key));
 							} else if (TypeUtils.isList(field.getType())) {
-                                if (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null) {
+                                if ((!mappingConfig.isIgnoringNestedReferences() || firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
                                     ArrayList<Object> values = new ArrayList<Object>();
                                     Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                                     Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());
@@ -198,7 +244,7 @@ public class MongoMapper {
                                     List<?> sourceList = (List<?>)source.get(field.getName());
                                     for(Object el : sourceList) {
                                         if (TypeUtils.isEntity(typeArgument)) {
-                                            values.add(loadObject((BasicDBObject)el, typeArgument));
+                                            values.add(loadObject((BasicDBObject)el, typeArgument, mappingConfig));
                                         } else if (isAllowed(typeArgument)) {
                                             values.add(el);
                                         } else if (Object.class.equals(typeArgument)) {
@@ -215,6 +261,12 @@ public class MongoMapper {
 					} catch (Exception e) {	
 						logger.warn("Error in field " + key);
 						e.printStackTrace();
+					} finally {
+						if (field != null) {
+							if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
+								mappingConfig.popIgnoreNestedReferences();
+							}
+						}
 					}
 				}
 			}
@@ -222,7 +274,35 @@ public class MongoMapper {
 		
 		return destination;
 	}
-	
+
+	private boolean firstIsId(BasicDBObject source, Field field) {
+		if (source == null) {
+			return false;
+		}
+
+		List<?> sourceList = (List<?>)source.get(field.getName());
+		if (sourceList != null && sourceList.size() > 0) {
+			Object value = sourceList.get(0);
+			if (value != null) {
+				return String.class.equals(value.getClass());
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isId(BasicDBObject source, Field field) {
+		if (source == null) {
+			return false;
+		}
+		Object value = source.get(field.getName());
+		if (value != null) {
+			return String.class.equals(value.getClass());
+		}
+
+		return false;
+	}
+
 	private static boolean isAllowed(Class<?> type) {
 		if (type.isPrimitive()) return true;
 		

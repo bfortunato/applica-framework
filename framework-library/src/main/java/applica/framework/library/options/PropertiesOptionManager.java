@@ -9,10 +9,7 @@ import org.springframework.util.Assert;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,16 +49,31 @@ public class PropertiesOptionManager implements OptionsManager {
         this.properties = properties;
     }
 
+    public Collection<String> allKeys() {
+        return properties.stringPropertyNames();
+    }
+
     @Override
     public String get(String key) {
         String environment = properties.getProperty("environment", "");
         if (StringUtils.isNotEmpty(forcedEnvironment)) {
             environment = forcedEnvironment;
         }
+
+        String systemEnvironment = System.getProperty("environment");
+        if (systemEnvironment != null) {
+            environment = systemEnvironment;
+        }
+
         String fullKey = String.format("%s.%s", environment, key);
         String value = getFromCache(fullKey);
         if (value == null) {
-            value = properties.getProperty(fullKey, properties.getProperty(key));
+            String systemProperty = System.getProperty(key);
+            if (systemProperty != null) {
+                value = systemProperty;
+            } else {
+                value = properties.getProperty(fullKey, properties.getProperty(key));
+            }
             if (StringUtils.isNotEmpty(value)) {
                 Pattern pattern = Pattern.compile("\\$\\{\\S+\\}*", Pattern.CASE_INSENSITIVE);
                 Matcher matcher = pattern.matcher(value);

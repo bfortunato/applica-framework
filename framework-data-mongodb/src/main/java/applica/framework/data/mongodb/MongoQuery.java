@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class MongoQuery extends BasicDBObject {
@@ -90,9 +91,25 @@ public class MongoQuery extends BasicDBObject {
 	/*
 		User range for "greater than to less than or equals"
 	 */
-	public MongoQuery range(String key, List<?> values){
-		if(!values.isEmpty() && values.get(0) != null && values.get(1) != null){
-			this.put(key, new BasicDBObject("$gt", values.get(0)).append("$lte", values.get(1)));
+	public MongoQuery range(String key, List<?> ranges){
+		boolean valid = false;
+		if (ranges != null && ranges.size() == 2) {
+			BasicDBObject obj = new BasicDBObject();
+			if (!Objects.equals(ranges.get(0), "*")) {
+				double left = Double.parseDouble(String.valueOf(ranges.get(0)));
+				obj.append("$gt", left);
+				valid = true;
+			}
+
+			if (!Objects.equals(ranges.get(0), "*")) {
+				double right = Double.parseDouble(String.valueOf(ranges.get(1)));
+				obj.append("$lte", right);
+				valid = true;
+			}
+
+			if (valid) {
+				this.put(key, obj);
+			}
 		}
 		return this;
 	}

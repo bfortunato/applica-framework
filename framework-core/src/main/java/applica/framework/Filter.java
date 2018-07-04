@@ -30,6 +30,7 @@ public class Filter{
     public static final String RANGE = "range";
     public static final String EXISTS = "exists";
     public static final String GEO = "geo";
+    public static final String EXACT = "exact";
 
     private String property;
     private Object value;
@@ -69,6 +70,22 @@ public class Filter{
 
     public String getType() {
         return type;
+    }
+
+    public List<Filter> getChildren() {
+        if (!OR.equals(type) && !AND.equals(type)) {
+            throw new RuntimeException("Requesting getChildren on non boolean filter");
+        }
+
+        return (List<Filter>) value;
+    }
+
+    public void setChildren(List<Filter> children) {
+        if (!OR.equals(type) && !AND.equals(type)) {
+            throw new RuntimeException("Requesting setChildren on non boolean filter");
+        }
+
+        value = children;
     }
 
     public void setType(String type) {

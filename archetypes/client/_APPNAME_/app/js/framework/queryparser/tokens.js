@@ -1,0 +1,26 @@
+export const TOKEN_BLOCK_START = "BLOCK_START";
+export const TOKEN_BLOCK_END = "BLOCK_END";
+export const TOKEN_EXPRESSION_START = "EXPRESSION_START";
+export const TOKEN_EXPRESSION_END = "EXPRESSION_END";
+export const TOKEN_FIELD = "FIELD";
+export const TOKEN_VALUE = "VALUE";
+export const TOKEN_KEYWORD_AND = "KEYWORD_AND";
+export const TOKEN_KEYWORD_OR = "KEYWORD_OR";
+export const TOKEN_KEYWORD_TO = "KEYWORD_TO";
+export const TOKEN_OPERATOR_COLON = "OPERATOR_COLON";
+export const TOKEN_OPERATOR_NOT = "OPERATOR_NOT";
+export const TOKEN_EXACT_STRING_START = "EXACT_STRING_START";
+export const TOKEN_EXACT_STRING_END = "EXACT_STRING_END";
+export const TOKEN_EXACT_STRING = "EXACT_STRING";
+
+export const SYMBOL_BLOCK_START = "(";
+export const SYMBOL_BLOCK_END = ")";
+export const SYMBOL_KEYWORD_AND = "AND";
+export const SYMBOL_KEYWORD_OR = "OR";
+export const SYMBOL_KEYWORD_TO = "TO";
+export const SYMBOL_KEYWORD_NOT = "NOT";
+export const SYMBOL_OPERATOR_COLON = ":";
+export const SYMBOL_OPERATOR_MINUS = "-";
+export const SYMBOL_EXPRESSION_START = "[";
+export const SYMBOL_EXPRESSION_END = "]";
+export const SYMBOL_EXACT_STRING = "\"";

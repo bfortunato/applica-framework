@@ -1,6 +1,7 @@
 package applica.framework.data.mongodb.constraints;
 
 import applica.framework.Entity;
+import applica.framework.data.ConstraintException;
 
 /**
  * Applica (www.applicamobile.com)

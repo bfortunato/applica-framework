@@ -6,6 +6,8 @@ import applica.framework.Sort;
 
 public class QueryBuilder extends Query {
 
+
+
     @FunctionalInterface
     public interface ConditionalFilterPredicate {
         boolean check();
@@ -71,6 +73,13 @@ public class QueryBuilder extends Query {
         return this;
     }
 
+    public QueryBuilder exact(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.EXACT));
+        }
+        return this;
+    }
+
     public QueryBuilder gt(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.GT));
@@ -116,6 +125,13 @@ public class QueryBuilder extends Query {
     public QueryBuilder eq(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.EQ));
+        }
+        return this;
+    }
+
+    public QueryBuilder ne(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.NE));
         }
         return this;
     }
