@@ -63,4 +63,12 @@ public class DefaultAuthTokenGenerator implements AuthTokenGenerator {
     public void setEncryptorPassword(String encryptorPassword) {
         this.encryptorPassword = encryptorPassword;
     }
+
+    public long getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public void setDurationSeconds(long durationSeconds) {
+        this.durationSeconds = durationSeconds;
+    }
 }
