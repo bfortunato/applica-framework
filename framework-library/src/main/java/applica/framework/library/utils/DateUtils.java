@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DateUtils {
 
@@ -179,9 +180,59 @@ public class DateUtils {
     }
 
     public static void sortDateList(List<Date> list) {
-        list.sort(new DateComparator());
+        list.sort(new DateComparator()); }
+
+
+    public static final String DAY_WITH_MONTH_DD_MMM = "dd MMM";
+    public static final String TIME_DESCRIPTION_HH_MM = "hh:mm";
+    public static final String TIME_DESCRIPTION_MM_SS = "mm:ss";
+
+    //Restituisce una stringa di tipo mm:ss a partire da  data di inizio e fine
+    public static String getTimeDifferenceDescription(Date startDate, Date endDate) {
+        if (startDate != null && endDate != null) {
+            long millis = endDate.getTime() - startDate.getTime();
+            return String.format("%02d:%02d",
+                    TimeUnit.MILLISECONDS.toMinutes(millis),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+
+        }
+        return "";
+    }
+    /* */
+
+    //Restituisce una stringa di tipo HH:mm a partire da minuti
+    public static String getMinutesDescription(long minutes) {
+        return String.format("%02d:%02d",
+                TimeUnit.MINUTES.toHours(minutes),
+                minutes - TimeUnit.HOURS.toMinutes( TimeUnit.MINUTES.toHours(minutes)));
 
     }
+
+    public static String getStringFromDate(Date date, String format, Locale locale) {
+        if (date == null)
+            return "";
+
+        SimpleDateFormat formatter = new SimpleDateFormat(format, locale);
+        return formatter.format(date);
+    }
+
+
+    public static long getDifferenceInMinutes(Date startDate, Date endDate) {
+        if (startDate != null && endDate != null) {
+            long diff = endDate.getTime() - startDate.getTime();
+            return TimeUnit.MILLISECONDS.toMinutes(diff);
+        }
+        return 0;
+    }
+
+    public static Date addMinutesToDate(Date date, int mins) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.MINUTE, mins);
+        return calendar.getTime();
+    }
+
+
 
     public static String getStringFromDate(Date date, String format) {
         if (date == null)
