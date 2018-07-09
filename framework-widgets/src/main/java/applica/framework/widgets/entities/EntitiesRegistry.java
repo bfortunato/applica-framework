@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by bimbobruno on 06/12/2016.
@@ -28,6 +29,10 @@ public class EntitiesRegistry implements EntitiesScanner.ScanHandler {
 
     private EntitiesRegistry() {
 
+    }
+
+    public List<String> getAllRevisionEnabledEntities() {
+        return definitions.stream().filter(d -> d.getType().getAnnotation(EntityId.class).allowRevision()).map(d -> d.getType().getAnnotation(EntityId.class).value()).collect(Collectors.toList());
     }
 
     private List<EntityDefinition> definitions = new ArrayList<>();
