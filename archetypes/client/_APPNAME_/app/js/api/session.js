@@ -148,6 +148,19 @@ export function getSessionToken() {
     return _sessionToken
 }
 
+export function updateLoggedUser(user) {
+    _loggedUser = user;
+}
+
+export function updateUserPassword(password) {
+    preferences.set("session.password", password)
+    preferences.save()
+}
+
+export function updateSessionToken(token) {
+    _sessionToken = token;
+}
+
 
 /**
  * Check if user has permissions
