@@ -19,11 +19,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -77,6 +79,30 @@ public class IndexedEntitiesController {
                 search.getRows().forEach(d -> rows.add(d.toObjectNode(mapper)));
 
                 return new ValueResponse(result);
+            } else {
+                logger.warn("Entity definition not found: " + entity);
+                return new Response(Response.ERROR_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+    @PostMapping("/delete")
+    public Response deleteIndexedEntities(@PathVariable("entity") String entity, @RequestBody List<String> ids) {
+        try {
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            if (definition.isPresent()) {
+
+                if (ids != null && !ids.isEmpty()) {
+                    ids.forEach(id -> indexService.remove(id));
+                }else {
+                    logger.warn("Ids entity are empty: " + entity);
+                    return new Response(Response.ERROR_NOT_FOUND);
+                }
+
+                return new Response(Response.OK);
             } else {
                 logger.warn("Entity definition not found: " + entity);
                 return new Response(Response.ERROR_NOT_FOUND);
