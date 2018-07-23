@@ -80,8 +80,9 @@ public class LuceneIndexService implements IndexService {
     public <T extends Entity> void index(T entity) {
         Objects.requireNonNull(entity, "Entity cannot be null");
 
+        Indexer<T> indexer = getIndexerFactory().create((Class<T>) entity.getClass()).orElse(null);
+
         executorService.execute(() -> {
-            Indexer<T> indexer = getIndexerFactory().create((Class<T>) entity.getClass()).orElse(null);
             if (indexer == null) {
                 throw new RuntimeException("Indexer not found for class: " + entity.getClass().getName());
             }
@@ -149,7 +150,7 @@ public class LuceneIndexService implements IndexService {
         for (Property property : indexedObject.getProperties()) {
             if (property.getValue() != null) {
                 IndexedFieldMetadata fieldMetadata = metadata.get(property.getKey());
-                
+
                 if (Double.class.equals(fieldMetadata.getFieldType())) {
                     document.add(new DoublePoint(property.getKey(), (Double) property.getValue()));
                     document.add(new StoredField(property.getKey(), (Double) property.getValue()));
@@ -563,7 +564,7 @@ public class LuceneIndexService implements IndexService {
         } else if (Date.class.equals(fieldMetadata.getFieldType())) {
             return Long.MIN_VALUE;
         }
-        
+
         return 0;
     }
 
