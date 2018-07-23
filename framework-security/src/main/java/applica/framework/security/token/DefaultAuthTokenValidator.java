@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class DefaultAuthTokenValidator implements AuthTokenValidator {
 
-    public static final long EXPIRING_TIME = 30 * 1000; //token is expiring when now is expirationDate - 30seconds
+    public static final long EXPIRING_TIME = TokenExpirationTime.DURATION_IN_MILLIS;
 
     @Override
     public void validate(User expectedUser, String token) throws TokenValidationException, TokenFormatException, TokenExpiredException {
