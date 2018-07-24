@@ -1,5 +1,6 @@
 package applica.framework;
 
+import applica.framework.revisions.AvoidRevision;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
@@ -14,8 +15,11 @@ public class AEntity implements Entity {
         Int
     }
 
+
+    @AvoidRevision
     public static IdStrategy strategy = IdStrategy.Object;
 
+    @AvoidRevision
     private Object id;
 
     @Override

@@ -36,7 +36,7 @@
         <module>framework-licensing</module>
         <module>framework-tracking</module>
         <module>framework-indexing</module>
-
+        <module>framework-revision</module>
         <module>scripts</module>
     </modules>
 

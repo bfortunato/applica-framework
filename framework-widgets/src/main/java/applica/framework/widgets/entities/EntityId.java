@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EntityId {
     String value();
+    boolean allowRevision() default false;
 }
