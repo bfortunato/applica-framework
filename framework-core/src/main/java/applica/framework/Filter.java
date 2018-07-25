@@ -29,8 +29,18 @@ public class Filter{
     public static final String CUSTOM = "custom";
     public static final String RANGE = "range";
     public static final String EXISTS = "exists";
-    public static final String GEO = "geo";
     public static final String EXACT = "exact";
+
+    //GEO-FILTERS: used to apply geometric relationships between geographical coordinates
+    public static final String GEO = "geo";
+    public static final String GEO_CONTAINS =   "geocontains";
+    public static final String GEO_EQ =         "geoequals";
+    public static final String GEO_DISJOINT =   "geodisjoint";
+    public static final String GEO_INTERSECTS = "geointersects";
+    public static final String GEO_TOUCHES =    "geotouches";
+    public static final String GEO_CROSSES =    "geocrosses";
+    public static final String GEO_WITHIN =     "geowithin";
+    public static final String GEO_OVERLAPS =   "geooverlaps";
 
     private String property;
     private Object value;

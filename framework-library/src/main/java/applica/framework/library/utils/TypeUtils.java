@@ -4,11 +4,11 @@ import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
+import com.vividsolutions.jts.geom.*;
 import org.apache.commons.beanutils.ConvertUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -25,7 +25,16 @@ public class TypeUtils {
             Byte.class,
             Short.class,
             Long.class,
-            Date.class
+            Date.class,
+
+            //Geometry section
+            Point.class,
+            MultiPoint.class,
+            Polygon.class,
+            MultiPolygon.class,
+            LineString.class,
+            MultiLineString.class,
+            Geometry.class
     };
 
     public static boolean isEntity(Class<?> type) {

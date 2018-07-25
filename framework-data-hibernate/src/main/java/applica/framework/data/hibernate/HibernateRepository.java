@@ -1,8 +1,11 @@
 package applica.framework.data.hibernate;
-
-import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.TypeUtils;
+import com.vividsolutions.jts.geom.Geometry;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Consumer;
+import javax.annotation.PreDestroy;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
@@ -10,12 +13,8 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.spatial.criterion.SpatialRestrictions;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PreDestroy;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Applica (www.applica.guru)
@@ -372,6 +371,74 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
                             addRestrictionToCriterion(criterion, conjunction);
                         }
                     }
+                    break;
+                /*
+                 * Hibernate GEO Filters: used to apply geometric relationships
+                 * between geographical coordinates.
+                 */
+
+                //CONTAINS: evaluates if the geometry (point, line or geometric figure) "value"
+                // is contained in the "filter.getProperty()" geometry, excluding edges,
+                // returning the resulting geometry.
+                case Filter.GEO_CONTAINS:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.contains(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //WITHIN: evaluates if the geometry (point, line or geometric figure) "value"
+                // is contained in the "filter.getProperty()" geometry, including edges,
+                // returning the resulting geometry.
+                case Filter.GEO_WITHIN:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.within(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //EQUALS: Returns 1 (TRUE, Integer) if "value" Geometry is spatially equal
+                // to "filter.getProperty()".
+                case Filter.GEO_EQ:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.eq(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //DISJOINT: evaluates as a function of the geometric figure, if the geometry "value"
+                // and the geometry "filter.getProperty()" have no element in common.
+                //Returns 1 (TRUE, Integer) if "value" geometry is spatially disjoint
+                // from "filter.getProperty()".
+                case Filter.GEO_DISJOINT:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.disjoint(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //INTERSECTS: geometry that contains all elements of "value" that also belong to
+                // "filter.getproperty() but no other elements
+                //Returns 1 (TRUE, Integer) if "value" geometry spatially intersects "filter.getProperty()".
+                case Filter.GEO_INTERSECTS:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.intersects(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //TOUCHES: evaluates as a function of the geometric figure, if the geometry "value"
+                // spatially touches the geometry "filter.getProperty()"
+                //Returns 1 (TRUE, Integer) if "value" geometry spatially touches "filter.getProperty()".
+                case Filter.GEO_TOUCHES:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.touches(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //CROSSES: evaluates as a function of the geometric figure, if the geometry "value"
+                // spatially touches the geometry "filter.getProperty()"
+                //Returns 1 (TRUE, Integer) if "value" geometry spatially crosses "filter.getProperty()".
+                case Filter.GEO_CROSSES:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.crosses(filter.getProperty(), (Geometry) value));
+                    break;
+
+                //OVERLAPS: evaluates if the "value" geometry overlaps, even only partially,
+                // the "filter.getProperty()" geometry
+                //Returns 1 (TRUE, Integer) if "value" geometry spatially overlaps "filter.getProperty()".
+                case Filter.GEO_OVERLAPS:
+                    addRestrictionToCriterion(criterion,
+                            SpatialRestrictions.overlaps(filter.getProperty(), (Geometry) value));
                     break;
             }
         }

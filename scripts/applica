@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FRAMEWORK_VERSION="2.1-RELEASE"
+FRAMEWORK_VERSION="2.1.1-RELEASE"
 
 if [ -z "$JAVA_HOME" ]; then
     echo "Please set JAVA_HOME"
@@ -19,5 +19,5 @@ fi
 
 JAVA="$JAVA_HOME/bin/java"
 JAR="${APPLICAFRAMEWORK_HOME}/scripts/target/scripts-$FRAMEWORK_VERSION.jar"
-$JAVA -classpath "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
+$JAVA -cp "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
 
