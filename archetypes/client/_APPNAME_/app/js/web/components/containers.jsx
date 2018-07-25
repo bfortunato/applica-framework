@@ -1,14 +1,16 @@
 "use strict"
 
 import * as datasource from "../../utils/datasource";
-import {LookupStore, SelectStore} from "../../stores/entities";
+import {LookupStore, MultiValueSettingsStore, SelectStore} from "../../stores/entities";
 import {
     freeLookup,
     freeSelect,
     getLookupResult,
     getLookupValues,
     getSelectEntities,
-    getSelectValues
+    getSelectValues,
+    setMultivalueSettings,
+    updateMultivalueSettings
 } from "../../actions/entities";
 import {discriminated} from "../../utils/ajex";
 import * as query from "../../api/query";
@@ -18,6 +20,106 @@ import {optional} from "../../utils/lang";
 let LOOKUP_DISCRIMINATOR = 1
 function nextLookupDiscriminator() {
     return "lookup_" + LOOKUP_DISCRIMINATOR++
+}
+
+export class MultiCheckboxByValue extends Control {
+    constructor(props) {
+        super(props)
+        this.state = {}
+        this.discriminator = props.field.property;
+    }
+
+    componentDidMount() {
+
+        let model = this.props.model
+        let field = this.props.field
+
+        model.once("load", () => {
+            let items = optional(model.get(field.property), [])
+            setMultivalueSettings({discriminator: this.discriminator, items})
+        })
+
+        MultiValueSettingsStore.subscribe(this,  state => {
+            this.state.items = discriminated(state, this.discriminator).items
+            this.forceUpdate()
+        })
+
+    }
+
+    componentWillUnmount() {
+
+        MultiValueSettingsStore.unsubscribe(this);
+
+
+        freeSettingValues({discriminator: this.discriminator});
+
+    }
+
+    onValueChange(elem, e) {
+        updateMultivalueSettings({
+            discriminator: this.discriminator,
+            itemType: elem.itemType,
+            enabled: e.target.checked
+        })
+    }
+
+
+    render() {
+
+
+        let model = this.props.model;
+        let field = this.props.field;
+
+        let items = optional(this.state.items, [])
+
+        model.set(field.property, items)
+
+        let checks = _.map(items, (elem, i) => {
+            let type = elem.itemType;
+            let description = _.isFunction(this.props.formatter) ? this.props.formatter(elem) : M(type);
+
+            let key = i + "_" + type;
+            let enabled = elem.enabled;
+
+            return (
+                <div key={key} className="col-xs-12 zero-padding">
+                    <div className="row">
+                        <div className="col-xs-10 zero-padding">
+                            <p className="margin-top-20 text-evaluation-description">{description}</p>
+                        </div>
+                        <div className="col-xs-2 zero-padding">
+                            <div className="toggle-switch yesno">
+
+                                <input
+                                    type="checkbox"
+                                    hidden="hidden"
+                                    onChange={this.onValueChange.bind(this, elem)}
+                                    name={key}
+                                    id={key}
+                                    data-property={key}
+                                    checked={optional(enabled, false)}/>
+
+                                <label htmlFor={key} className="ts-helper"></label>
+                                <label htmlFor={key} className="ts-label">{field.placeholder}</label>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            )
+        });
+
+        return (
+            <div className={"col-xs-12 zero-padding"}>
+
+                {checks}
+
+            </div>
+        );
+
+    }
+
 }
 
 export class EntitiesLookupContainer extends Control  {

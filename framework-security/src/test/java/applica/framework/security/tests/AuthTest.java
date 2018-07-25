@@ -88,6 +88,11 @@ public class AuthTest {
         public List<? extends Role> getRoles() {
             return Arrays.asList(new TestRole());
         }
+
+        @Override
+        public Object getId() {
+            return null;
+        }
     }
 
     class TestRole implements Role {

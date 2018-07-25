@@ -13,10 +13,11 @@ public class Revision extends AEntity {
 
     //entità di cui rappresenta la revisione
     private long code; //incrementale univoco per entity-entityId
-    private String entityId;
+    private Object entityId;
     private String entity;
-    private String type; //costante della classe RevisionType
-    private String creatorId;
+    private String type;
+    private Object creatorId;
+    private String creator;
     private Date date;
 
 
@@ -31,14 +32,6 @@ public class Revision extends AEntity {
 
     public void setCode(long code) {
         this.code = code;
-    }
-
-    public String getEntityId() {
-        return entityId;
-    }
-
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
     }
 
     public String getEntity() {
@@ -73,19 +66,35 @@ public class Revision extends AEntity {
         this.differences = differences;
     }
 
-    public String getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(String creatorId) {
-        this.creatorId = creatorId;
-    }
-
     public String getDateToString() {
         return DateUtils.getStringFromDate(date, DateUtils.FORMAT_DATE_DATEPICKER_WITH_HOURS);
     }
 
     public boolean hasDifferences() {
         return differences.size() > 0;
+    }
+
+    public Object getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(Object entityId) {
+        this.entityId = entityId;
+    }
+
+    public Object getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Object creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 }

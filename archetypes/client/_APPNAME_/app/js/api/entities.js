@@ -62,3 +62,8 @@ export function get(entity, id, params) {
     let url = config.get("entities.url") + "/" + entity + "/" + id
     return utils.get(url, params)
 }
+
+export function checkRevisionEnableStatus(entity) {
+    let url = config.get("revision.url") + "/checkStatus/" + entity
+    return utils.get(url)
+}

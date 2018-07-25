@@ -96,7 +96,6 @@ const entities = {
 		}
 	},
 
-
 	role: {
 		grid: {
 			title: M("rolesList"),
@@ -148,6 +147,74 @@ const entities = {
 			}
 		}
 	}
+
+    // ,revisionSettings: {
+    //     form: {
+    //         title: M("entityRevisionSettings"),
+    //         subtitle: null,
+    //         descriptor: {
+    //             canGoBack() {
+    //                 return false
+    //             },
+    //             fields: [
+    //                 {
+    //                     property: "items",
+    //                     control: MultiCheckboxByValue,
+    //                     size: "col-xs-12",
+    //                     props: {
+    //                         formatter: v => {
+    //                             return M(v.itemType)
+    //                         }
+    //                     }
+    //                 },
+    //             ]
+    //         }
+    //     }
+    // },
+    // revision: {
+    //     grid: {
+    //         title: M("revisions"),
+    //         descriptor: {
+    //             columns: [
+    //                 {property: "code", header: M("code"), cell: TextCell, sortable: false, searchable: false},
+    //                 {property: "type", header: M("type"), cell: TextCell, sortable: false, searchable: false},
+    //                 {
+    //                     property: "creator",
+    //                     header: M("author"),
+    //                     cell: TextCell,
+    //                     sortable: false,
+    //                     searchable: false
+    //                 },
+    //
+    //                 {
+    //                     property: "dateToString",
+    //                     header: M("date"),
+    //                     cell: TextCell,
+    //                     sortable: false,
+    //                     searchable: false
+    //                 },
+    //                 {
+    //                     property: "differences",
+    //                     header: M("differences"),
+    //                     cell: MultiTextCell,
+    //                     sortable: false,
+    //                     searchable: false,
+    //                     props: {
+    //                         singleItemFormatter(v) {
+    //                             debugger
+    //                             let previousValueString = "";
+    //                             let newValueString = "";
+    //                             previousValueString = M("previousValue") + ": " + (v.previousValueDescription? v.previousValueDescription : " null ") + ", ";
+    //                             newValueString = M("newValue") + ": " + (v.newValueDescription? v.newValueDescription : " null ");
+    //                             return M(v.name) + " -> " + previousValueString + newValueString
+    //                         }
+    //                     }
+    //                 }
+    //
+    //             ]
+    //         }
+    //     },
+    // }
 }
 
 export default entities

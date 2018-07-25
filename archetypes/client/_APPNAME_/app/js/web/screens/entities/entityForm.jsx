@@ -3,8 +3,8 @@
 import {Layout, Screen} from "../../components/layout"
 import M from "../../../strings"
 import {connectDiscriminated} from "../../utils/aj"
+import {checkRevisionEnableStatus, freeEntities, getEntity, saveEntity} from "../../../actions/entities"
 import {Form} from "../../components/forms"
-import {freeEntities, getEntity, saveEntity} from "../../../actions/entities"
 import entities from "../../entities"
 import * as ui from "../../utils/ui"
 import {optional} from "../../../utils/lang"
@@ -42,6 +42,7 @@ export default class EntityForm extends Screen {
 
         this.setState({isCreation: this.props.entityId == "new"});
         getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId, params: this.props.params})
+        checkRevisionEnableStatus({discriminator: this.discriminator, entity: this.props.entity})
     }
 
     componentWillUnmount() {

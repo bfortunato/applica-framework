@@ -10,6 +10,7 @@ public interface User {
     boolean isActive();
     Date getRegistrationDate();
     List<? extends Role> getRoles();
+    Object getId();
 
 
 }

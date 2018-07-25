@@ -19,12 +19,16 @@ plugins.register()
 /* Admin routes */
 ui.addRoute("/entities/:entity", params => ui.changeScreen(<EntitiesGrid key={params.entity} entity={params.entity} />))
 ui.addRoute("/entities/:entity/:entityId", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId={params.entityId} params={params}/>))
+ui.addRoute("/entities/single/:entity", params => ui.changeScreen(<EntityForm key={params.entity} entity={params.entity} entityId="_" params={params}/>))
+//ui.addRoute("/revision/:entity/:entityId", params => ui.changeScreen(<RevisionGrid key={params.entity} entityId={params.entityId}  entity={params.entity} params={params} />))
+
 
 /* Account routes */
 ui.addRoute("/login", params => ui.changeScreen(<Login />))
 ui.addRoute("/register", params => ui.changeScreen(<Register />))
 ui.addRoute("/recover", params => ui.changeScreen(<Recover />))
 ui.addRoute("/registrationComplete", params => ui.changeScreen(<RegistrationOk />))
+
 ui.addRoute("/confirm", params => ui.changeScreen(<Confirm activationCode={params.activationCode}/>))
 
 /* home route */

@@ -1,11 +1,9 @@
 package applica.framework.data.hibernate;
+
+import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.TypeUtils;
 import com.vividsolutions.jts.geom.Geometry;
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.function.Consumer;
-import javax.annotation.PreDestroy;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
@@ -15,6 +13,11 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.spatial.criterion.SpatialRestrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.PreDestroy;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Applica (www.applica.guru)

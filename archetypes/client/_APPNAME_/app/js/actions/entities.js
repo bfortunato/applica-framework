@@ -12,10 +12,12 @@ import * as EntitiesApi from "../api/entities";
 import * as ValuesApi from "../api/values";
 import * as _ from "../libs/underscore";
 import {
+    CHECK_REVISION_ENABLE_STATUS,
     DELETE_ENTITIES,
     FREE_ENTITIES,
     FREE_LOOKUP,
     FREE_SELECT,
+    FREE_SETTINGS_VALUES,
     GET_ENTITY,
     GET_GRID,
     GET_LOOKUP_RESULT,
@@ -24,9 +26,10 @@ import {
     GET_SELECT_VALUES,
     LOAD_ENTITIES,
     NEW_ENTITY,
-    SAVE_ENTITY
+    SAVE_ENTITY,
+    SET_MULTIVALUE_SETTINGS,
+    UPDATE_MULTIVALUE_SETTINGS
 } from "./types";
-
 
 export const getGrid = createAsyncAction(GET_GRID, data => {
     if (_.isEmpty(data.id)) {
@@ -359,3 +362,48 @@ export const freeSelect = aj.createAction(FREE_SELECT, data => {
         discriminator: data.discriminator
     })
 })
+
+
+export const setMultivalueSettings = aj.createAction(SET_MULTIVALUE_SETTINGS, data => {
+
+    aj.dispatch({
+        type: SET_MULTIVALUE_SETTINGS,
+        items: data.items,
+        discriminator: data.discriminator
+    })
+})
+
+export const updateMultivalueSettings = aj.createAction(UPDATE_MULTIVALUE_SETTINGS, data => {
+
+    aj.dispatch({
+        type: UPDATE_MULTIVALUE_SETTINGS,
+        itemType: data.itemType,
+        enabled: data.enabled,
+        discriminator: data.discriminator
+    })
+})
+
+export const freeSettingValues = aj.createAction(FREE_SETTINGS_VALUES, data => {
+    aj.dispatch({
+        type: FREE_SETTINGS_VALUES,
+        discriminator: data.discriminator
+    })
+})
+
+
+export const checkRevisionEnableStatus =  createAsyncAction(CHECK_REVISION_ENABLE_STATUS, data => {
+
+    aj.dispatch({
+        type: CHECK_REVISION_ENABLE_STATUS,
+        discriminator: data.discriminator
+    })
+
+    EntitiesApi.checkRevisionEnableStatus(data.entity)
+        .then(response => {
+            checkRevisionEnableStatus.complete({revisionEnabled: response.value, discriminator: data.discriminator})
+        })
+        .catch(e => {
+            checkRevisionEnableStatus.fail({discriminator: data.discriminator})
+        })
+});
+

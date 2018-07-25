@@ -7,6 +7,7 @@ import applica._APPNAME_.domain.model.EntityList;
 import applica._APPNAME_.domain.model.Filters;
 import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.domain.model.User;
+import applica.framework.revision.services.RevisionService;
 import applica._APPNAME_.domain.model.CustomPermissions;
 import applica._APPNAME_.services.authorizations.AuthorizationContexts;
 import applica.framework.Query;
@@ -41,6 +42,9 @@ public class ApplicationInitializer {
     @Autowired(required = false)
     private MongoEmbedded mongoEmbedded;
 
+    @Autowired(required = false)
+    private RevisionService revisionService;
+
     @Autowired
     private OptionsManager options;
 
@@ -51,6 +55,9 @@ public class ApplicationInitializer {
     private RolesRepository rolesRepository;
 
     public void init() {
+        if (revisionService != null)
+            revisionService.disableRevisionForCurrentThread();
+
         LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
         LicenseManager.instance().mustBeValid();
 
@@ -83,6 +90,9 @@ public class ApplicationInitializer {
         ConvertUtils.register(dateConverter, Date.class);
 
         logger.info("Applica Framework app started");
+        if (revisionService != null)
+            revisionService.enableRevisionForCurrentThread();
+
     }
 
 

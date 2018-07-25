@@ -22,6 +22,7 @@
         <spring.security.version>4.1.3.RELEASE</spring.security.version>
     </properties>
 
+
     <modules>
         <module>framework-core</module>
         <module>framework-widgets</module>

@@ -165,4 +165,33 @@ public class ApplicationConfiguration extends WebMvcConfigurerAdapter {
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
+
+    /*
+    //Start Revision beans
+    @Bean
+    public RevisionTrackingCrudStrategy revisionStrategy() {
+        RevisionTrackingCrudStrategy strategy = new RevisionTrackingCrudStrategy();
+        strategy.setParent(mongoCrudStrategy());
+        return strategy;
+    }
+
+    @Bean
+    public EntityRevisionSettingsGetOperation revisionSettingsGetOperation() {
+        return new EntityRevisionSettingsGetOperation();
+    }
+
+
+    @Bean
+    public RevisionController revisionController() {
+        return new RevisionController();
+    }
+
+
+    @Bean
+    public RevisionService revisionService() {
+        return new BaseRevisionService();
+    }
+
+    //end revision beans
+    */
 }
