@@ -45,6 +45,19 @@ export default class EntityForm extends Screen {
         checkRevisionEnableStatus({discriminator: this.discriminator, entity: this.props.entity})
     }
 
+    goToRevision() {
+        ui.navigate("/revision/" + this.props.entity + "/" + this.getEntityId())
+    }
+
+
+    getEntityId() {
+        let id = this.state.data != null? this.state.data.id : null
+        if (!id) {
+            if (this.props.entityId !== "new" && this.props.entityId !== "_")
+                id = this.props.entityId
+        }
+        return id;
+    }
     componentWillUnmount() {
         freeEntities({discriminator: this.discriminator})
 
@@ -160,9 +173,28 @@ export default class EntityForm extends Screen {
                 }
             )
         }
+
+        if (this.canShowRevisions()) {
+            defaultActions.push(
+                {
+                    id: "revisions",
+                    type: "button",
+                    icon: "zmdi zmdi-time-restore",
+                    tooltip: M("showRevisions"),
+                    action: () => {
+                        this.goToRevision()
+                    }
+                }
+            )
+        }
+
         let form = entities[this.getEntity()].form;
         let matcher = new ActionsMatcher(defaultActions);
         return matcher.match(_.isFunction(form.getActions) ? form.getActions(this.state.data)  : form.actions)
+    }
+
+    canShowRevisions() {
+        return this.state && this.state.revisionEnabled && this.state.revisionEnabled === true && this.getEntityId();
     }
 
     canSave() {

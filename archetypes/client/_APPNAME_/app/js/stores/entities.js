@@ -44,6 +44,14 @@ export const EntitiesStore = aj.createStore(ENTITIES, (state = {}, action) => {
         case completed(actions.GET_ENTITY):
             return discriminate(state, action.discriminator, {error: false, data: action.data})
 
+        case completed(actions.CHECK_REVISION_ENABLE_STATUS):
+            return discriminate(state, action.discriminator, {revisionEnabled: action.revisionEnabled})
+
+        case failed(actions.CHECK_REVISION_ENABLE_STATUS):
+            return discriminate(state, action.discriminator, {
+                revisionEnabled: false
+            });
+
         case failed(actions.GET_ENTITY):
             return discriminate(state, action.discriminator, {
                 error: true,

@@ -18,6 +18,12 @@ export default [
                 href: "/#/entities/role?grid=roles",
                 permissions: ["role:list"]
             }
+            // ,{
+            //     icon: "zmdi zmdi-accounts-alt",
+            //     text: M("entityRevisionSettings"),
+            //     href: "/#/entities/single/revisionSettings",
+            //     permissions: ["entityRevisionSettings:edit"]
+            // }
         ]
     }
 ]
