@@ -167,7 +167,7 @@ public class EntityMapper {
         }
     }
 
-    public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+    public void idToEntity(ObjectNode source, Entity destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
 
@@ -192,7 +192,7 @@ public class EntityMapper {
         }
     }
 
-    public void idToEntity(Entity source, ObjectNode destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty){
+    public void idToEntity(Entity source, ObjectNode destination, Class<? extends Entity> relatedType, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(source, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(destination, "Cannot convert id to entity: node is null");
 
@@ -294,6 +294,13 @@ public class EntityMapper {
 
         String imageData = null;
 
+        String actualImage = null;
+        try {
+            actualImage = (String) PropertyUtils.getProperty(destination, destinationProperty);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
         if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
             imageData = source.get(sourceProperty).asText();
         }
@@ -310,16 +317,23 @@ public class EntityMapper {
             }
         } else {
             try {
-                String actualImage = (String) PropertyUtils.getProperty(destination, destinationProperty);
-                if (actualImage != null) {
-                    fileServer.deleteFile(actualImage);
-                }
-
                 PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
+
+        String finalActualImage = actualImage;
+        new Thread(() -> {
+            if (finalActualImage != null) {
+                try {
+                    fileServer.deleteFile(finalActualImage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
     }
 
     public void dataUrlToFile(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
@@ -333,6 +347,13 @@ public class EntityMapper {
             fileData = source.get(sourceProperty).asText();
         }
 
+        String actualFile = null;
+        try {
+            actualFile = (String) PropertyUtils.getProperty(destination, destinationProperty);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
         if (StringUtils.isNotEmpty(fileData)) {
             try {
                 URLData urlData = URLData.parse(fileData);
@@ -344,18 +365,24 @@ public class EntityMapper {
             }
         } else {
             try {
-                String actualFile = (String) PropertyUtils.getProperty(destination, destinationProperty);
-                if (actualFile != null) {
-                    fileServer.deleteFile(actualFile);
-                }
-
                 PropertyUtils.setProperty(destination, destinationProperty, null);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
-    }
 
+        String finalActualImage = actualFile;
+        new Thread(() -> {
+            if (finalActualImage != null) {
+                try {
+                    fileServer.deleteFile(finalActualImage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+    }
 
 
     public void imagesToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, String size) {
@@ -372,7 +399,7 @@ public class EntityMapper {
         }
 
         if (imageUrls != null && imageUrls.size() > 0) {
-            for (String imageUrl: imageUrls) {
+            for (String imageUrl : imageUrls) {
                 if (StringUtils.isNotEmpty(imageUrl)) {
                     InputStream in = null;
                     try {
@@ -390,7 +417,7 @@ public class EntityMapper {
 
             if (imageDatas.size() > 0) {
                 ArrayNode array = destination.putArray(destinationProperty);
-                for (String urlData: imageDatas) {
+                for (String urlData : imageDatas) {
                     array.add(urlData);
                 }
             }
@@ -416,7 +443,7 @@ public class EntityMapper {
         }
 
         if (imageDatas.size() > 0) {
-            for (String imageData: imageDatas) {
+            for (String imageData : imageDatas) {
                 try {
 
                     URLData urlData = URLData.parse(imageData);
@@ -437,11 +464,13 @@ public class EntityMapper {
 
 
         if (actualImages != null) {
-            for (String actualImage: actualImages) {
-                try {
-                    fileServer.deleteFile(actualImage);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+            for (String actualImage : actualImages) {
+                if (!imagesUrls.contains(actualImage)) {
+                    try {
+                        fileServer.deleteFile(actualImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -476,7 +505,7 @@ public class EntityMapper {
             throw new RuntimeException(e);
         }
         ArrayNode arrayNode = destination.putArray(destinationProperty);
-        for (Entity entity: relatedEntities) {
+        for (Entity entity : relatedEntities) {
             arrayNode.add(String.valueOf(entity.getId()));
         }
     }
@@ -546,8 +575,7 @@ public class EntityMapper {
                     String filePath;
                     if (fileData.isBase64()) {
                         URLData urlData = URLData.parse(fileData.getData());
-                        filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
-
+                        filePath = fileServer.saveFile(path, FilenameUtils.getExtension(fileData.getFilename()), new ByteArrayInputStream(urlData.getBytes()));
                     } else {
                         filePath = fileData.getData();
                     }
@@ -569,9 +597,10 @@ public class EntityMapper {
         if (actualFiles != null) {
             for (Attachment actualFile : actualFiles) {
                 try {
-                    fileServer.deleteFile(actualFile.getPath());
+                    if (fileUrls.stream().noneMatch(file -> file.getPath().equals(actualFile.getPath())))
+                        fileServer.deleteFile(actualFile.getPath());
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -594,7 +623,7 @@ public class EntityMapper {
 
         if (source.get(sourceProperty) != null && !source.get(sourceProperty).isNull()) {
             JsonNode n = source.get(sourceProperty);
-            fileData =new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt());
+            fileData = new AttachmentData(n.get("filename").asText(), n.get("data").asText(), n.get("base64").asBoolean(), n.get("size").asInt());
         }
 
         if (fileData != null) {
@@ -602,7 +631,7 @@ public class EntityMapper {
                 String filePath;
                 if (fileData.isBase64()) {
                     URLData urlData = URLData.parse(fileData.getData());
-                    filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+                    filePath = fileServer.saveFile(path, FilenameUtils.getExtension(fileData.getFilename()), new ByteArrayInputStream(urlData.getBytes()));
 
                 } else {
                     filePath = fileData.getData();
@@ -621,11 +650,11 @@ public class EntityMapper {
             throw new RuntimeException(e);
         }
 
-        if (actualFiles != null) {
+        if (actualFiles != null && (fileUrls == null || !actualFiles.getPath().equals(fileUrls.getPath()))) {
             try {
                 fileServer.deleteFile(actualFiles.getPath());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
     }
