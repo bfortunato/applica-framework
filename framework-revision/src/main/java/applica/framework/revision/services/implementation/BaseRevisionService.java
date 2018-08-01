@@ -153,15 +153,17 @@ public class BaseRevisionService implements RevisionService {
 
                 AtomicInteger i = new AtomicInteger(0);
                 diff.getAdded().forEach(a -> {
+                    i.incrementAndGet();
                     Revision revision = createRevision((Entity) a, null);
-                    revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), i.incrementAndGet(), d.getName())));
+                    revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), i.get() , d.getName())));
                     listToReturn.addAll(revision.getDifferences());
 
                 });
                 AtomicInteger j = new AtomicInteger(0);
                 diff.getDeleted().forEach(a -> {
+                    j.incrementAndGet();
                     Revision revision = createRevision(null, ((Entity) a));
-                    revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), j.incrementAndGet(), d.getName())));
+                    revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), j.get(), d.getName())));
                     listToReturn.addAll(revision.getDifferences());
                 });
             }
