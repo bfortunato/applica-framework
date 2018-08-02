@@ -26,7 +26,10 @@ public class BaseRevisionService implements RevisionService {
 
     @Override
     public RevisionSettings getCurrentSettings() {
-        return Repo.of(RevisionSettings.class).find(Query.build().rowsPerPage(1).page(1)).findFirst().orElse(createNewSettings());
+        RevisionSettings s = Repo.of(RevisionSettings.class).find(Query.build().rowsPerPage(1).page(1)).findFirst().orElse(null);
+        if (s == null)
+            s = createNewSettings();
+        return s;
     }
 
     @Override

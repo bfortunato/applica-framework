@@ -13,6 +13,8 @@
       <module fileurl="file://$PROJECT_DIR$/framework-library/framework-library.iml" filepath="$PROJECT_DIR$/framework-library/framework-library.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-licensing/framework-licensing.iml" filepath="$PROJECT_DIR$/framework-licensing/framework-licensing.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-resources/framework-resources.iml" filepath="$PROJECT_DIR$/framework-resources/framework-resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-resources/framework-resources.iml" filepath="$PROJECT_DIR$/framework-resources/framework-resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-revision/framework-revision.iml" filepath="$PROJECT_DIR$/framework-revision/framework-revision.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-security/framework-security.iml" filepath="$PROJECT_DIR$/framework-security/framework-security.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-tracking/framework-tracking.iml" filepath="$PROJECT_DIR$/framework-tracking/framework-tracking.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-widgets/framework-widgets.iml" filepath="$PROJECT_DIR$/framework-widgets/framework-widgets.iml" />
