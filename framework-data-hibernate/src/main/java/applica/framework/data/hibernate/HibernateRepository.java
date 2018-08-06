@@ -468,7 +468,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
                 Class destinationType = TypeUtils.getNestedFieldType(getEntityType(), filter.getProperty());
                 return ConvertUtils.convert(filter.getValue(), destinationType);
             }
-        } catch (NoSuchFieldException e) { /*default value if this error */ }
+        } catch (Exception e) { /*default value if this error */ }
 
         return filter.getValue();
     }
