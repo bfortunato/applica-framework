@@ -443,6 +443,9 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
                     addRestrictionToCriterion(criterion,
                             SpatialRestrictions.overlaps(filter.getProperty(), (Geometry) value));
                     break;
+                case Filter.EXISTS:
+                    boolean exists = value != null && ((Boolean) value);
+                    addRestrictionToCriterion(criterion, exists ? Restrictions.isNotNull(filter.getProperty()) : Restrictions.isNull(filter.getProperty()));
             }
         }
     }
