@@ -7,11 +7,26 @@ import applica.framework.library.responses.CodedException;
  */
 public class OperationException extends CodedException {
 
+    private Object data;
+
     public OperationException(int errorCode, Throwable cause) {
         super(errorCode, cause);
     }
 
+    public OperationException(int errorCode, Throwable cause, Object data) {
+        super(errorCode, cause);
+        this.data = data;
+    }
+
     public OperationException(int errorCode) {
         super(errorCode);
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
     }
 }
