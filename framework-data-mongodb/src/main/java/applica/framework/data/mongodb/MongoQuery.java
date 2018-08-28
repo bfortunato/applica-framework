@@ -5,10 +5,7 @@ import applica.framework.library.utils.ProgramException;
 import com.mongodb.BasicDBObject;
 import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class MongoQuery extends BasicDBObject {
@@ -96,13 +93,13 @@ public class MongoQuery extends BasicDBObject {
 		if (ranges != null && ranges.size() == 2) {
 			BasicDBObject obj = new BasicDBObject();
 			if (!Objects.equals(ranges.get(0), "*")) {
-				double left = Double.parseDouble(String.valueOf(ranges.get(0)));
+				Object left = ranges.get(0) instanceof Date ? ranges.get(0) : Double.parseDouble(String.valueOf(ranges.get(0)));
 				obj.append("$gt", left);
 				valid = true;
 			}
 
 			if (!Objects.equals(ranges.get(0), "*")) {
-				double right = Double.parseDouble(String.valueOf(ranges.get(1)));
+				Object right = ranges.get(0) instanceof Date ? ranges.get(1) : Double.parseDouble(String.valueOf(ranges.get(1)));
 				obj.append("$lte", right);
 				valid = true;
 			}
@@ -113,6 +110,7 @@ public class MongoQuery extends BasicDBObject {
 		}
 		return this;
 	}
+
 	public MongoQuery geo(String key, GeoFilter value){
 		if ( value != null ){
 			List circle = new ArrayList();
