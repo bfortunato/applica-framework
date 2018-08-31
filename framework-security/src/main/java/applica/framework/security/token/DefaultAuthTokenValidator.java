@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class DefaultAuthTokenValidator implements AuthTokenValidator {
 
-    public static final long EXPIRING_TIME = TokenExpirationTime.DURATION_IN_MILLIS;
+    public static final long EXPIRING_TIME = TokenExpirationTime.EXPIRATION_TIME;
 
     @Override
     public void validate(User expectedUser, String token) throws TokenValidationException, TokenFormatException, TokenExpiredException {
