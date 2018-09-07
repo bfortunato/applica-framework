@@ -56,7 +56,7 @@ public class MemoryCache extends Cache {
 
     public void clean() {
         synchronized (data) {
-            data.removeIf(item -> item.getExpiringTime() <= System.currentTimeMillis());
+            data.removeIf(item -> item.getExpiringTime() != TIME_INFINITE && item.getExpiringTime() <= System.currentTimeMillis());
         }
     }
 
