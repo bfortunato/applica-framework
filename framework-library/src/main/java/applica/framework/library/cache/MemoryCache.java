@@ -34,6 +34,8 @@ public class MemoryCache extends Cache {
 
     @Override
     public Object get(final String path) {
+        clean();
+
         CacheItem item = findItemByPath(path);
 
         if (item != null) {
@@ -50,6 +52,12 @@ public class MemoryCache extends Cache {
         }
 
         return null;
+    }
+
+    public void clean() {
+        synchronized (data) {
+            data.removeIf(item -> item.getExpiringTime() <= System.currentTimeMillis());
+        }
     }
 
     private CacheItem findItemByPath(final String path) {
