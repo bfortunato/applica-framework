@@ -285,4 +285,9 @@ public class BaseRevisionService implements RevisionService {
     public void disableRevisionForCurrentThread() {
         enabled.set(false);
     }
+
+    @Override
+    public boolean executeRevisionInOtherThread() {
+        return true;
+    }
 }

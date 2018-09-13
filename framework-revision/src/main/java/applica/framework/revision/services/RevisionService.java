@@ -20,4 +20,6 @@ public interface RevisionService {
     void enableRevisionForCurrentThread();
 
     void disableRevisionForCurrentThread();
+
+    boolean executeRevisionInOtherThread();
 }

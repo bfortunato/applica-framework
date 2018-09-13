@@ -3,6 +3,7 @@ package applica.framework.revision;
 import applica.framework.ChainedCrudStrategy;
 import applica.framework.Entity;
 import applica.framework.Repository;
+import applica.framework.library.options.OptionsManager;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.widgets.entities.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
     @Autowired
     private RevisionService entityRevisionService;
+
 
 
     @Override
@@ -28,14 +30,17 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
         super.save(entity, repository);
 
-        try {
-            if (entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(entity.getClass()))) {
-                entityRevisionService.createAndSaveRevision(entity, previousEntity);
+        Runnable runnable = () -> {
+            try {
+                if (entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(entity.getClass()))) {
+                    entityRevisionService.createAndSaveRevision(entity, previousEntity);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+        };
+        executeRevisionAction(runnable);
     }
 
     @Override
@@ -43,14 +48,28 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
         Entity previousEntity = repository.get(id).get();
         super.delete(id, repository);
 
-        try {
-            String entityName = EntityUtils.getEntityIdAnnotation(previousEntity.getClass());
-            if (entityRevisionService.isRevisionEnabled(entityName)) {
-                entityRevisionService.createRevision(null, previousEntity);
+        Runnable runnable = () -> {
+            try {
+                String entityName = EntityUtils.getEntityIdAnnotation(previousEntity.getClass());
+                if (entityRevisionService.isRevisionEnabled(entityName)) {
+                    entityRevisionService.createRevision(null, previousEntity);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        };
 
+        executeRevisionAction(runnable);
+
+
+
+    }
+
+    private void executeRevisionAction(Runnable runnable) {
+        if (entityRevisionService.executeRevisionInOtherThread()) {
+            new Thread(runnable).start();
+        } else {
+            runnable.run();
+        }
     }
 }
