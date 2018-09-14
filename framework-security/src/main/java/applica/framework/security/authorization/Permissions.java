@@ -45,6 +45,7 @@ public class Permissions {
 
     }
 
+
     /**
      * Scan specified packages to configure authorization contexts automatically with annotations instead of using register method
      * @param packages
@@ -116,6 +117,10 @@ public class Permissions {
         });
 
         info.type = type;
+    }
+
+    public boolean isRegistered(String permission) {
+        return isStatic(permission) || getMethod(permission) != null;
     }
 
     public void registerStatic(String permission) {
