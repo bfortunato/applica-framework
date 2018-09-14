@@ -120,7 +120,7 @@ public class Permissions {
     }
 
     public boolean isRegistered(String permission) {
-        return isStatic(permission) || getMethod(permission) != null;
+        return getMethod(permission).isPresent();
     }
 
     public void registerStatic(String permission) {
