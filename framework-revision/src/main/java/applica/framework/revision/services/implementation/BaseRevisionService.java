@@ -11,6 +11,7 @@ import applica.framework.revision.services.RevisionService;
 import applica.framework.revisions.AvoidRevision;
 import applica.framework.revisions.RevisionId;
 import applica.framework.security.Security;
+import applica.framework.security.User;
 import applica.framework.widgets.entities.EntityUtils;
 import org.jsoup.helper.StringUtil;
 
@@ -38,8 +39,8 @@ public class BaseRevisionService implements RevisionService {
     }
 
     @Override
-    public Revision createAndSaveRevision(Entity entity, Entity previousEntity) {
-        Revision revision = createRevision(entity, previousEntity);
+    public Revision createAndSaveRevision(User user, Entity entity, Entity previousEntity) {
+        Revision revision = createRevision(user, entity, previousEntity);
         if (!revision.getType().equals(RevisionType.EDIT) || (revision.getDifferences().size() > 0))
             Repo.of(Revision.class).save(revision);
 
@@ -47,11 +48,11 @@ public class BaseRevisionService implements RevisionService {
     }
 
     @Override
-    public Revision createRevision(Entity entity, Entity previousEntity) {
+    public Revision createRevision(User user, Entity entity, Entity previousEntity) {
         String type = createRevisionType(entity, previousEntity);
         Class<? extends Entity> entityClass = generateEntityClass(entity, previousEntity);
         String entityId = String.valueOf(generateEntityId(entity, previousEntity));
-        Revision revision = createNewRevision(type, entityClass, entityId, entity, previousEntity);
+        Revision revision = createNewRevision(user, type, entityClass, entityId, entity, previousEntity);
         revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
 
@@ -73,21 +74,21 @@ public class BaseRevisionService implements RevisionService {
         return RevisionType.EDIT;
     }
 
-    private Revision createNewRevision(String type, Class<? extends Entity> entityClass, String entityId, Entity entity, Entity previousEntity) {
+    private Revision createNewRevision(User user, String type, Class<? extends Entity> entityClass, String entityId, Entity entity, Entity previousEntity) {
         Revision revision = new Revision();
         revision.setType(type);
         revision.setEntityId(entityId);
         revision.setEntity(EntityUtils.getEntityIdAnnotation(entityClass));
         revision.setDate(new Date());
 
-        if (Security.withMe().getLoggedUser() != null) {
+        if (user != null) {
             revision.setCreatorId(Security.withMe().getLoggedUser().getId());
             revision.setCreator(Security.withMe().getLoggedUser().toString());
         }
 
-        getAllFields(entity.getClass()).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(f, entity, previousEntity))).forEach(f -> {
+        getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
                     try {
-                        revision.getDifferences().addAll(createNewAttributeDifferences(f, entity, previousEntity));
+                        revision.getDifferences().addAll(createNewAttributeDifferences(user, f, entity, previousEntity));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -103,7 +104,7 @@ public class BaseRevisionService implements RevisionService {
     }
 
 
-    private List<AttributeDifference> createNewAttributeDifferences(Field f, Entity currentEntity, Entity previousEntity) {
+    private List<AttributeDifference> createNewAttributeDifferences(User user, Field f, Entity currentEntity, Entity previousEntity) {
 
         List<AttributeDifference> listToReturn = new ArrayList<>();
         f.setAccessible(true);
@@ -118,7 +119,7 @@ public class BaseRevisionService implements RevisionService {
                 listToReturn.add(new AttributeDifference(f, previousValue != null? String.valueOf(((Entity) previousValue).getId()) : null, currentValue != null? String.valueOf(((Entity) currentValue).getId()) : null, previousValue != null? previousValue.toString() : null, currentValue != null? currentValue.toString() : null));
             } else {
                 //l'oggetto è persistito localmente nel padre: devo calcolare la differenza su tutti i campi
-                Revision revision = createRevision(((Entity) currentValue), ((Entity) previousValue));
+                Revision revision = createRevision(user, ((Entity) currentValue), ((Entity) previousValue));
                 if (revision.hasDifferences()) {
                     //Aggiorno le revisioni dei sotto oggetti in modo da avere il nome del tipo oggettoFiglio.campoOggettoFiglio
                     revision.getDifferences().forEach(d -> d.setName(String.format("%s.%s", f.getName(), d.getName())));
@@ -147,13 +148,13 @@ public class BaseRevisionService implements RevisionService {
                 listToReturn.add(new AttributeDifference(f, previousListValue, currentListValue, previousListDescription, currentListDescription));
 
             } else {
-                Diff diff = Diff.compute(((List) previousValue), ((List) currentValue), (o11, o21) -> areEquals(f, o11, o21));
+                Diff diff = Diff.compute(((List) previousValue), ((List) currentValue), (o11, o21) -> areEquals(user, f, o11, o21));
                 //per ciascuna delle diff eseguo una revision (perchè qualcosa è cambiato) e memorizzo i cambi,
 
                 AtomicInteger i = new AtomicInteger(0);
                 diff.getAdded().forEach(a -> {
                     i.incrementAndGet();
-                    Revision revision = createRevision((Entity) a, null);
+                    Revision revision = createRevision(user, (Entity) a, null);
                     revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), i.get() , d.getName())));
                     listToReturn.addAll(revision.getDifferences());
 
@@ -161,7 +162,7 @@ public class BaseRevisionService implements RevisionService {
                 AtomicInteger j = new AtomicInteger(0);
                 diff.getDeleted().forEach(a -> {
                     j.incrementAndGet();
-                    Revision revision = createRevision(null, ((Entity) a));
+                    Revision revision = createRevision(user,null, ((Entity) a));
                     revision.getDifferences().forEach(d -> d.setName(String.format("%s[%s].%s", f.getName(), j.get(), d.getName())));
                     listToReturn.addAll(revision.getDifferences());
                 });
@@ -216,7 +217,7 @@ public class BaseRevisionService implements RevisionService {
      * @param o2
      * @return
      */
-    private boolean areEquals(Field f, Object o1, Object o2) {
+    private boolean areEquals(User user, Field f, Object o1, Object o2) {
 
 
         if (o1 != null && o2 != null) {
@@ -226,12 +227,12 @@ public class BaseRevisionService implements RevisionService {
                     return Objects.equals(((Entity) o1).getId(), ((Entity) o2).getId());
                 else {
                     //Se sono davanti ad entità annidate NON annotate devo verificare la differenza in profondità tra esse
-                    Revision revision = createRevision(((Entity) o1), ((Entity) o2));
+                    Revision revision = createRevision(user,((Entity) o1), ((Entity) o2));
                     return !revision.hasDifferences();
                 }
             } else if (o1 instanceof List && o2 instanceof List) {
 
-                Diff diff = Diff.compute(((List) o1), ((List) o2), (o11, o21) -> areEquals(f, o11, o21));
+                Diff diff = Diff.compute(((List) o1), ((List) o2), (o11, o21) -> areEquals(user, f, o11, o21));
                 return !diff.hasChanges();
 
 
@@ -243,7 +244,7 @@ public class BaseRevisionService implements RevisionService {
     }
 
 
-    private boolean hasChanged(Field f, Entity currentEntity, Entity previousEntity) {
+    private boolean hasChanged(User user, Field f, Entity currentEntity, Entity previousEntity) {
 
         try {
 
@@ -251,7 +252,7 @@ public class BaseRevisionService implements RevisionService {
 
             Object current = f.get(currentEntity);
             Object previous = f.get(previousEntity);
-            return !areEquals(f, current, previous);
+            return !areEquals(user, f, current, previous);
         } catch (Exception e) {
 
             return false;

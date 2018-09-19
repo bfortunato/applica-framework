@@ -4,6 +4,8 @@ import applica.framework.ChainedCrudStrategy;
 import applica.framework.Entity;
 import applica.framework.Repository;
 import applica.framework.revision.services.RevisionService;
+import applica.framework.security.Security;
+import applica.framework.security.User;
 import applica.framework.widgets.entities.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -29,7 +31,8 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
         super.save(entity, repository);
 
         if (entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(entity.getClass()))) {
-            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(entity, previousEntity);
+            User user = Security.withMe().getLoggedUser();
+            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, entity, previousEntity);
             executeRevisionAction(runnable);
         }
 
@@ -41,14 +44,10 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
         super.delete(id, repository);
         String entityName = EntityUtils.getEntityIdAnnotation(previousEntity.getClass());
         if (entityRevisionService.isRevisionEnabled(entityName)) {
-            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(null, previousEntity);
+            User user = Security.withMe().getLoggedUser();
+            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, null, previousEntity);
             executeRevisionAction(runnable);
         }
-
-
-
-
-
     }
 
     private void executeRevisionAction(Runnable runnable) {
