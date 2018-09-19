@@ -50,6 +50,7 @@ public class BaseRevisionService implements RevisionService {
     @Override
     public Revision createRevision(User user, Entity entity, Entity previousEntity) {
         String type = createRevisionType(entity, previousEntity);
+        //TODO: se entrambe le entity e previousEntity sono null il servizio andrà in nullPOinter. Questo caso si verifica solo quando faccio la revisione di sotto - oggetti che non erano valorizzati nè prima nè dopo quindi posso "permettermi" di non gestire il caso. Magari in futuro prevenirlo o gestirlo appositamente
         Class<? extends Entity> entityClass = generateEntityClass(entity, previousEntity);
         String entityId = String.valueOf(generateEntityId(entity, previousEntity));
         Revision revision = createNewRevision(user, type, entityClass, entityId, entity, previousEntity);
@@ -86,11 +87,10 @@ public class BaseRevisionService implements RevisionService {
             revision.setCreator(user.toString());
         }
 
-        getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
+        getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || entity == null  || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
                     try {
                         revision.getDifferences().addAll(createNewAttributeDifferences(user, f, entity, previousEntity));
                     } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
         );
@@ -190,7 +190,6 @@ public class BaseRevisionService implements RevisionService {
                 previousValue = f.get(previousEntity);
                 previousValue = isRevisionId && previousValue != null ? Repo.of(f.getAnnotation(RevisionId.class).value()).get(previousValue).orElse(null) : previousValue;
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
             }
         }
         return previousValue;
