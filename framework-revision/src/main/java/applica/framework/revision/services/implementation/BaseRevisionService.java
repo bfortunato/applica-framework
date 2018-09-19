@@ -82,8 +82,8 @@ public class BaseRevisionService implements RevisionService {
         revision.setDate(new Date());
 
         if (user != null) {
-            revision.setCreatorId(Security.withMe().getLoggedUser().getId());
-            revision.setCreator(Security.withMe().getLoggedUser().toString());
+            revision.setCreatorId(user.getId());
+            revision.setCreator(user.toString());
         }
 
         getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
