@@ -40,7 +40,7 @@ public class BaseRevisionService implements RevisionService {
     @Override
     public Revision createAndSaveRevision(Entity entity, Entity previousEntity) {
         Revision revision = createRevision(entity, previousEntity);
-        if (revision.getType().equals(RevisionType.DELETE) || (revision.getDifferences().size() > 0))
+        if (!revision.getType().equals(RevisionType.EDIT) || (revision.getDifferences().size() > 0))
             Repo.of(Revision.class).save(revision);
 
         return revision;
@@ -51,7 +51,7 @@ public class BaseRevisionService implements RevisionService {
         String type = createRevisionType(entity, previousEntity);
         Class<? extends Entity> entityClass = generateEntityClass(entity, previousEntity);
         String entityId = String.valueOf(generateEntityId(entity, previousEntity));
-        Revision revision = createNewRevision(type, entityClass, entityId, type.equals(RevisionType.DELETE) ? entity : previousEntity, previousEntity);
+        Revision revision = createNewRevision(type, entityClass, entityId, entity, previousEntity);
         revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
 
@@ -85,18 +85,14 @@ public class BaseRevisionService implements RevisionService {
             revision.setCreator(Security.withMe().getLoggedUser().toString());
         }
 
-
-
-        if (!type.equals(RevisionType.DELETE)) {
-            getAllFields(entity.getClass()).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(f, entity, previousEntity))).forEach(f -> {
-                        try {
-                            revision.getDifferences().addAll(createNewAttributeDifferences(f, entity, previousEntity));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+        getAllFields(entity.getClass()).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || hasChanged(f, entity, previousEntity))).forEach(f -> {
+                    try {
+                        revision.getDifferences().addAll(createNewAttributeDifferences(f, entity, previousEntity));
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-            );
-        }
+                }
+        );
 
         return revision;
     }
