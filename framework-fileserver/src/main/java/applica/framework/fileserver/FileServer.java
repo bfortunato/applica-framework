@@ -69,5 +69,5 @@ public interface FileServer {
 
     String copyFile(String filePath, String newPath) throws IOException;
 
-
+    void deleteOldFiles(String directoryPath, int days);
 }

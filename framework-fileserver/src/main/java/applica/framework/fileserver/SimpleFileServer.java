@@ -4,8 +4,11 @@ import applica.framework.library.options.OptionsManager;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -27,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
 
 /**
@@ -233,9 +238,25 @@ public class SimpleFileServer implements FileServer {
         }
     }
 
+
+    @Override
+    public void deleteOldFiles(String directoryPath, int days) {
+        Date oldestAllowedFileDate = DateUtils.addDays(new Date(), days * (-1)); //minus days from current date
+        File targetDir = new File(String.format("%s%s", baseUrl, directoryPath));
+        Iterator<File> filesToDelete = FileUtils.iterateFiles(targetDir, new AgeFileFilter(oldestAllowedFileDate), null);
+        //if deleting subdirs, replace null above with TrueFileFilter.INSTANCE
+        while (filesToDelete.hasNext()) {
+            FileUtils.deleteQuietly(filesToDelete.next());
+        }  //I don't want an exception if a file is not deleted. Otherwise use filesToDelete.next().delete() in a try/catch
+    }
+
+
+
     private class NormalizedUrl {
         private String url;
         private String filename;
     }
+
+
 }
 
