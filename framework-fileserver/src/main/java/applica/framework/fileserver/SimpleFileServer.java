@@ -238,19 +238,17 @@ public class SimpleFileServer implements FileServer {
         }
     }
 
-
     @Override
     public void deleteOldFiles(String directoryPath, int days) {
+        String basePath = options.get("applica.framework.fileserver.basePath");
         Date oldestAllowedFileDate = DateUtils.addDays(new Date(), days * (-1)); //minus days from current date
-        File targetDir = new File(String.format("%s%s", baseUrl, directoryPath));
+        File targetDir = new File(String.format("%s%s", basePath, directoryPath));
         Iterator<File> filesToDelete = FileUtils.iterateFiles(targetDir, new AgeFileFilter(oldestAllowedFileDate), null);
         //if deleting subdirs, replace null above with TrueFileFilter.INSTANCE
         while (filesToDelete.hasNext()) {
             FileUtils.deleteQuietly(filesToDelete.next());
         }  //I don't want an exception if a file is not deleted. Otherwise use filesToDelete.next().delete() in a try/catch
     }
-
-
 
     private class NormalizedUrl {
         private String url;

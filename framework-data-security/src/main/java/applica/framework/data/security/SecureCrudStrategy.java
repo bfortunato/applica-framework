@@ -10,7 +10,7 @@ import java.util.Optional;
  */
 public class SecureCrudStrategy extends ChainedCrudStrategy {
 
-    private OwnerProvider ownerProvider;
+    private static final ThreadLocal<OwnerProvider> ownerProvider = ThreadLocal.withInitial(() -> null);
 
     private String ownerPropertyName = "ownerId";
 
@@ -23,19 +23,19 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     }
 
     public OwnerProvider getOwnerProvider() {
-        return ownerProvider;
+        return ownerProvider.get();
     }
 
     public void setOwnerProvider(OwnerProvider ownerProvider) {
-        this.ownerProvider = ownerProvider;
+        this.ownerProvider.set(ownerProvider);
     }
 
     private Object getOwnerId() {
-        if (ownerProvider == null) {
-            ownerProvider = new LoggedUserIdOwnerProvider();
+        if (ownerProvider.get() == null) {
+            ownerProvider.set(new LoggedUserIdOwnerProvider());
         }
 
-        return ownerProvider.provide();
+        return ownerProvider.get().provide();
     }
 
     private void checkAttributes() {
