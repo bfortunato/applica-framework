@@ -242,7 +242,7 @@ public class SimpleFileServer implements FileServer {
     public void deleteOldFiles(String directoryPath, int days) {
         String basePath = options.get("applica.framework.fileserver.basePath");
         Date oldestAllowedFileDate = DateUtils.addDays(new Date(), days * (-1)); //minus days from current date
-        File targetDir = new File(String.format("%s%s", basePath, directoryPath));
+        File targetDir = new File(String.format("%s/%s", basePath, directoryPath));
         Iterator<File> filesToDelete = FileUtils.iterateFiles(targetDir, new AgeFileFilter(oldestAllowedFileDate), null);
         //if deleting subdirs, replace null above with TrueFileFilter.INSTANCE
         while (filesToDelete.hasNext()) {
