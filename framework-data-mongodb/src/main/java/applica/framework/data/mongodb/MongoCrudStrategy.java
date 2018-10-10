@@ -48,11 +48,12 @@ public class MongoCrudStrategy implements CrudStrategy {
         List<T> entities = new ArrayList<>();
 
         DBObject query = mongoRepository.createQuery(loadRequest);
+        DBObject projection = mongoRepository.createProjection(loadRequest);
         long count = mongoRepository.getCollection().count(query);
         int limit = loadRequest.getRowsPerPage();
         int skip = loadRequest.getRowsPerPage() * (loadRequest.getPage() - 1);
 
-        DBCursor cur = mongoRepository.getCollection().find(query);
+        DBCursor cur = mongoRepository.getCollection().find(query, projection);
         if (limit != 0) cur.limit(limit);
         if (skip != 0) cur.skip(skip);
 
@@ -60,6 +61,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         if (sorts == null) {
             sorts = ((MongoRepository<T>) repository).getDefaultSorts();
         }
+
 
         if (sorts != null) {
             BasicDBObject sortObject = new BasicDBObject();

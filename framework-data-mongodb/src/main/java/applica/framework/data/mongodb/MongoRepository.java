@@ -3,8 +3,10 @@ package applica.framework.data.mongodb;
 import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -201,5 +203,19 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         new KeywordQueryBuilder(getEntityType()).build(query);
 
         return query;
+    }
+
+    public DBObject createProjection(Query loadRequest) {
+        if (loadRequest.getProjections() != null && (loadRequest.getProjections().size() > 0)) {
+            BasicDBObject proj = new BasicDBObject();
+
+            for (Projection projection : loadRequest.getProjections()) {
+                proj.put(projection.getProperty(), projection.isVisible());
+            }
+
+            return proj;
+        }
+
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package applica.framework.builders;
 
 import applica.framework.Filter;
+import applica.framework.Projection;
 import applica.framework.Query;
 import applica.framework.Sort;
 
@@ -166,6 +167,11 @@ public class QueryBuilder extends Query {
 
     public QueryBuilder sort(String property, boolean descending) {
         getSorts().add(new Sort(property, descending));
+        return this;
+    }
+
+    public QueryBuilder project(String property, boolean visible) {
+        getProjections().add(new Projection(property, visible));
         return this;
     }
 
