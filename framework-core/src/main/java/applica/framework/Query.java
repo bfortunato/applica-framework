@@ -21,6 +21,7 @@ public class Query {
     private String keyword;
     private List<Sort> sorts = new ArrayList<>();
     private List<Filter> filters = new ArrayList<>();
+    private List<Projection> projections = new ArrayList<>();
 
     public static QueryBuilder build(Query initialQuery) {
         return new QueryBuilder(initialQuery);
@@ -190,5 +191,13 @@ public class Query {
                 throw new RuntimeException("Cannot call this method. Alias class");
             }
         });
+    }
+
+    public List<Projection> getProjections() {
+        return projections;
+    }
+
+    public void setProjections(List<Projection> projections) {
+        this.projections = projections;
     }
 }
