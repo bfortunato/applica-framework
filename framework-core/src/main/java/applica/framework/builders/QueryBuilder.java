@@ -25,6 +25,7 @@ public class QueryBuilder extends Query {
             setPage(initialQuery.getPage());
             setRowsPerPage(initialQuery.getRowsPerPage());
             setSorts(initialQuery.getSorts());
+            setProjections(initialQuery.getProjections());
         }
     }
 
@@ -38,6 +39,7 @@ public class QueryBuilder extends Query {
         query.setPage(getPage());
         query.setRowsPerPage(getRowsPerPage());
         query.setSorts(getSorts());
+        query.setProjections(getProjections());
     }
 
     public QueryBuilder filter(String property, Object value) {
