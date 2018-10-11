@@ -195,7 +195,7 @@ public class TemplatedMail {
 
 
 
-        }else if(mailFormat == TEXT){
+        } else if(mailFormat == TEXT){
             message.setContent(bodyWriter.toString(),"text/plain" );
             message.setText(bodyWriter.toString(), "UTF-8");
         } else if (mailFormat == HTML){
@@ -231,6 +231,14 @@ public class TemplatedMail {
 
     public void setTo(String mail) {
         this.recipients.add(new Recipient(mail, Recipient.TYPE_TO));
+    }
+
+    public void addCc(String mail) {
+        this.recipients.add(new Recipient(mail, Recipient.TYPE_CC));
+    }
+
+    public void addBcc(String mail) {
+        this.recipients.add(new Recipient(mail, Recipient.TYPE_CCN));
     }
 
 }
