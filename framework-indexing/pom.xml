@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     <version>2.1.3-RELEASE</version>
 
-    <name>framework-security</name>
+    <name>framework-indexing</name>
     <url>http://maven.apache.org</url>
 
     <properties>

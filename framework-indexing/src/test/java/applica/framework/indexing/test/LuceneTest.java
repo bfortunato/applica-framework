@@ -98,7 +98,7 @@ public class LuceneTest {
         query.getSorts().add(new Sort("intValue", false));
         query.setPage(1);
         query.setRowsPerPage(5);
-        query.getFilters().add(new Filter("longValue", 49, Filter.GT));
+        query.getFilters().add(new Filter("longValue", 48, Filter.GT));
 
         search = indexService.search(TestEntity.class, query);
 
@@ -109,7 +109,7 @@ public class LuceneTest {
         query.getSorts().add(new Sort("intValue", false));
         query.setPage(1);
         query.setRowsPerPage(5);
-        query.getFilters().add(new Filter("longValue", 49, Filter.GTE));
+        query.getFilters().add(new Filter("longValue", 48, Filter.GTE));
 
         search = indexService.search(TestEntity.class, query);
 
@@ -119,7 +119,7 @@ public class LuceneTest {
         query.getSorts().add(new Sort("intValue", false));
         query.setPage(1);
         query.setRowsPerPage(5);
-        query.getFilters().add(new Filter("doubleValue", 1, Filter.LT));
+        query.getFilters().add(new Filter("doubleValue", 2, Filter.LT));
 
         search = indexService.search(TestEntity.class, query);
 
@@ -130,7 +130,7 @@ public class LuceneTest {
         query.getSorts().add(new Sort("intValue", false));
         query.setPage(1);
         query.setRowsPerPage(5);
-        query.getFilters().add(new Filter("floatValue", 1, Filter.LTE));
+        query.getFilters().add(new Filter("floatValue", 2, Filter.LTE));
 
         search = indexService.search(TestEntity.class, query);
 
