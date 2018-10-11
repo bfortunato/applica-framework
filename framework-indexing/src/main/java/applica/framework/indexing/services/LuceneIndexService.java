@@ -451,16 +451,16 @@ public class LuceneIndexService implements IndexService {
 
         if (Objects.equals(Filter.GT, filter.getType())) {
             double value = Double.parseDouble(String.valueOf(filter.getValue()));
-            createRangeQuery(parent, filter, condition, fieldMetadata, value, null);
+            createRangeQuery(parent, filter, condition, fieldMetadata, value + 1, null);
         } else if (Objects.equals(Filter.GTE, filter.getType())) {
             double value = Double.parseDouble(String.valueOf(filter.getValue()));
-            createRangeQuery(parent, filter, condition, fieldMetadata, value - 1, null);
+            createRangeQuery(parent, filter, condition, fieldMetadata, value, null);
         } else if (Objects.equals(Filter.LT, filter.getType())) {
             double value = Double.parseDouble(String.valueOf(filter.getValue()));
-            createRangeQuery(parent, filter, condition, fieldMetadata, null, value);
+            createRangeQuery(parent, filter, condition, fieldMetadata, null, value -1);
         } else if (Objects.equals(Filter.LTE, filter.getType())) {
             double value = Double.parseDouble(String.valueOf(filter.getValue()));
-            createRangeQuery(parent, filter, condition, fieldMetadata, null, value + 1);
+            createRangeQuery(parent, filter, condition, fieldMetadata, null, value);
         } else if (Objects.equals(Filter.NE, filter.getType())) {
             createPointQuery(parent, filter, condition, fieldMetadata, true, parser);
         } else if (Objects.equals(Filter.RANGE, filter.getType())) {
