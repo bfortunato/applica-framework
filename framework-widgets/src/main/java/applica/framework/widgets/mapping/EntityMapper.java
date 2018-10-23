@@ -171,7 +171,8 @@ public class EntityMapper {
         Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
         Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
 
-        String id = source.get(sourceProperty).asText();
+
+        String id = source.get(sourceProperty) != null ? source.get(sourceProperty).asText() : null;
         if (!StringUtils.isEmpty(id)) {
             Optional<? extends Entity> relatedEntity = Repo.of(relatedType).get(id);
             if (!relatedEntity.isPresent()) {
