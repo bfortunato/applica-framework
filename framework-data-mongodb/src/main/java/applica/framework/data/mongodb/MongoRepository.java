@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -125,11 +126,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 break;
             case Filter.OR:
                 List<Filter> ors = (List<Filter>) filter.getValue();
-                mongoQuery.or(ors.stream().map((f) -> {
-                    MongoQuery q = query();
-                    pushFilter(q, f);
-                    return q;
-                }).collect(Collectors.toList()));
+                List<MongoQuery> allOrs = mongoQuery.get("$or") != null? (List<MongoQuery>) mongoQuery.get("$or") : new ArrayList<>();
+                allOrs.add(generateMongoQueryWithOr(ors));
+                mongoQuery.and(allOrs);
                 break;
             case Filter.GEO:
                 mongoQuery.geo(filter.getProperty(), (GeoFilter) filter.getValue());
@@ -217,5 +216,15 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
         return null;
+    }
+
+    private MongoQuery generateMongoQueryWithOr(List<Filter> ors) {
+        MongoQuery query = new MongoQuery();
+        query.or(ors.stream().map((f) -> {
+            MongoQuery q = query();
+            pushFilter(q, f);
+            return q;
+        }).collect(Collectors.toList()));
+        return query;
     }
 }
