@@ -126,7 +126,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 break;
             case Filter.OR:
                 List<Filter> ors = (List<Filter>) filter.getValue();
-                List<MongoQuery> allOrs = mongoQuery.get("$or") != null? (List<MongoQuery>) mongoQuery.get("$or") : new ArrayList<>();
+                List<MongoQuery> allOrs = mongoQuery.get("$and") != null? (List<MongoQuery>) mongoQuery.get("$and") : new ArrayList<>();
                 allOrs.add(generateMongoQueryWithOr(ors));
                 mongoQuery.and(allOrs);
                 break;
