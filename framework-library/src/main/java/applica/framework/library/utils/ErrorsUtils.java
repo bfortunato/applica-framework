@@ -20,7 +20,7 @@ public class ErrorsUtils {
         Localization localization = new Localization();
         String errorMessages = "";
         for(ObjectError error: errors.getAllErrors()) {
-            errorMessages = String.format("%s%s<br>", errorMessages, localization.getMessage(error.getDefaultMessage()));
+            errorMessages = String.format("%s%s: %s<br>",  errorMessages, localization.getMessage(error.getObjectName()), localization.getMessage(error.getDefaultMessage()));
         }
         return errorMessages;
     }
@@ -29,7 +29,7 @@ public class ErrorsUtils {
         Localization localization = new Localization();
         String errorMessages = "";
         for(ValidationResult.Error error: errors) {
-            errorMessages = String.format("%s - %s", errorMessages, localization.getMessage(error.getMessage()));
+            errorMessages = String.format("%s - %s: %s", errorMessages, localization.getMessage(error.getProperty()), localization.getMessage(error.getMessage()));
         }
         return errorMessages;
     }
