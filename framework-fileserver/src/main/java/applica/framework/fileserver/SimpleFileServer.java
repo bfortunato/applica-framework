@@ -250,6 +250,20 @@ public class SimpleFileServer implements FileServer {
         }  //I don't want an exception if a file is not deleted. Otherwise use filesToDelete.next().delete() in a try/catch
     }
 
+    @Override
+    public boolean exists(String path) {
+        NormalizedUrl normalizedUrl = normalizeUrl(path);
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet method = new HttpGet(normalizedUrl.url);
+        CloseableHttpResponse response = null;
+        try {
+            response = client.execute(method);
+            return response.getStatusLine().getStatusCode() == 200;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     private class NormalizedUrl {
         private String url;
         private String filename;
