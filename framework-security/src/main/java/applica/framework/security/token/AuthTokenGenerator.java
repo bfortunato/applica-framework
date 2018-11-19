@@ -11,4 +11,6 @@ import applica.framework.security.User;
  */
 public interface AuthTokenGenerator {
     String generate(User user) throws TokenGenerationException;
+
+    String generateTokenWithDuration(User user, long durationSeconds) throws TokenGenerationException;
 }

@@ -23,9 +23,12 @@ public class DefaultAuthTokenGenerator implements AuthTokenGenerator {
         if(user == null) {
             throw new TokenGenerationException("user is null");
         }
+        return generateTokenWithDuration(user, durationSeconds);
+    }
 
+    @Override
+    public String generateTokenWithDuration(User user, long durationSeconds) throws TokenGenerationException {
         String token;
-
         try {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.SECOND, (int) durationSeconds);
