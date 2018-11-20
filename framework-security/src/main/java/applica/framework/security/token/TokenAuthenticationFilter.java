@@ -3,14 +3,13 @@ package applica.framework.security.token;
 import applica.framework.security.AuthenticationException;
 import applica.framework.security.Security;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -25,6 +24,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String token = request.getHeader("token");
+        Boolean noCache = Boolean.parseBoolean(request.getHeader("no-cache"));
 
         if (StringUtils.isEmpty(token)) {
             token = request.getHeader("x-auth-token");
@@ -45,7 +45,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
 
         if (StringUtils.isNotEmpty(token)) {
             try {
-                Security.tokenLogin(token);
+                Security.tokenLogin(token, noCache);
             } catch (AuthenticationException e) {
                 e.printStackTrace();
             }

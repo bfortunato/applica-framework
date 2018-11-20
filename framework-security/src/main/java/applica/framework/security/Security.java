@@ -141,7 +141,12 @@ public class Security {
     }
 
     public static void tokenLogin(String token) throws AuthenticationException {
-        if (!tryToLoginByTokenInCache(token)) {
+        tokenLogin(token, null);
+    }
+
+
+    public static void tokenLogin(String token, Boolean noCache) throws AuthenticationException {
+        if (!tryToLoginByTokenInCache(token) || (noCache != null && noCache)) {
             SecurityContextHolder.getContext().setAuthentication(null);
 
             Assert.hasLength(token);
