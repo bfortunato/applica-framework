@@ -3,6 +3,15 @@ package applica.framework.library.utils;
 /**
  * Created by antoniolovicario on 04/01/16.
  */
+
+import org.springframework.util.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * HtmlEscape in Java, which is compatible with utf-8
  * @author Ulrich Jensen, http://www.htmlescape.net
@@ -18,7 +27,7 @@ package applica.framework.library.utils;
  */
 
 public class HtmlEscapeUtils {
-
+    public static final String URL_REGEX = "^((https?|ftp)://|(www|ftp)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
     private static char[] hex={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
     /**
@@ -182,4 +191,78 @@ public class HtmlEscapeUtils {
         return out.toString();
     }
 
+
+    public static String changeHTMLTagInTexualContent(String text) {
+        // tag html nel testo <tag> e sostituisce gli apici con i rispettivi simboli html in modo da non causare errori nella visualizzazione
+        if (StringUtils.hasLength(text)) {
+            if (text.contains("’")) {
+                text = text.replace("’", "'");
+            }
+            if (text.contains("<")) {
+                text = text.replaceAll("<","&#60;");
+            }
+            if (text.contains(">")) {
+                text = text.replaceAll(">","&#62;");
+            }
+        }
+        return text;
+    }
+
+    public static String getStringWithEncoding(String text) throws UnsupportedEncodingException {
+        return new String(text.getBytes(Charset.forName("UTF-8")) , "UTF-8");
+    }
+
+    public static boolean containsUrl(String s) {
+        Pattern p = Pattern.compile(URL_REGEX);
+        String[] ss = s.split(" ");
+        for (String splitted: ss) {
+            Matcher m = p.matcher(splitted);//replace with string to compare
+            if(m.find()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static ArrayList pullLinks(String text) {
+        ArrayList links = new ArrayList();
+        String regex = "\\b(((ht|f)tp(s?)\\:\\/\\/|~\\/|\\/)|www.)" +
+                "(\\w+:\\w+@)?(([-\\w]+\\.)+(com|org|net|gov" +
+                "|mil|biz|info|mobi|name|aero|jobs|museum" +
+                "|travel|[a-z]{2}))(:[\\d]{1,5})?" +
+                "(((\\/([-\\w~!$+|.,=]|%[a-f\\d]{2})+)+|\\/)+|\\?|#)?" +
+                "((\\?([-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+                "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)" +
+                "(&(?:[-\\w~!$+|.,*:]|%[a-f\\d{2}])+=?" +
+                "([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)*)*" +
+                "(#([-\\w~!$+|.,*:=]|%[a-f\\d]{2})*)?\\b";
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(text);
+        while(m.find()) {
+            String urlStr = m.group();
+            if (urlStr.startsWith("(") && urlStr.endsWith(")")) {
+                urlStr = urlStr.substring(1, urlStr.length() - 1);
+            }
+            links.add(urlStr);
+        }
+        return links;
+    }
+
+    public static String getYoutubeVideoId(String youtubeUrl) {
+        String video_id= "";
+        if (youtubeUrl != null && youtubeUrl.trim().length() > 0 && youtubeUrl.startsWith("http")) {
+            String expression = "^.*((youtu.be"+ "\\/)" + "|(v\\/)|(\\/u\\/w\\/)|(embed\\/)|(watch\\?))\\??v?=?([^#\\&\\?]*).*"; // var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+            CharSequence input = youtubeUrl;
+            Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(input);
+            if (matcher.matches())
+            {
+                String groupIndex1 = matcher.group(7);
+                if(groupIndex1!=null && groupIndex1.length()==11)
+                    video_id = groupIndex1;
+            }
+        }
+        return video_id;
+    }
 }
