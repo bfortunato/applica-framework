@@ -13,7 +13,7 @@ import java.util.Properties;
  */
 public class OptionsTest {
 
-    @org.junit.Test
+    //@Test
     public void options() {
         PropertiesOptionManager options = new PropertiesOptionManager();
         Properties properties = new Properties();

@@ -4,15 +4,13 @@ import applica.framework.Query;
 import applica.framework.library.utils.ObjectUtils;
 import applica.framework.library.utils.QueryString;
 import org.junit.Assert;
-import org.junit.Test;
-import org.omg.CORBA.Object;
 
 /**
  * Created by bimbobruno on 03/02/2017.
  */
 public class QueryStringTest {
 
-    @Test
+   //@Test
     public void queryStringText() {
         Query query = Query.build().eq("name", "bruno");
         query.setKeyword("keyword");
