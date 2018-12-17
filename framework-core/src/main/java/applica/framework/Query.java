@@ -19,6 +19,8 @@ public class Query {
     private int page;
     private int rowsPerPage;
     private String keyword;
+    //TODO: implementare il supporto a questo parametro anche su Hibernate. Spostarlo fuori da query ? trovare un sistema per gestirlo direttamente dai metodi della crudStrategy magari
+    private boolean ignoreNestedReferences;
     private List<Sort> sorts = new ArrayList<>();
     private List<Filter> filters = new ArrayList<>();
     private List<Projection> projections = new ArrayList<>();
@@ -199,5 +201,13 @@ public class Query {
 
     public void setProjections(List<Projection> projections) {
         this.projections = projections;
+    }
+
+    public boolean isIgnoreNestedReferences() {
+        return ignoreNestedReferences;
+    }
+
+    public void setIgnoreNestedReferences(boolean ignoreNestedReferences) {
+        this.ignoreNestedReferences = ignoreNestedReferences;
     }
 }

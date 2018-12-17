@@ -40,8 +40,9 @@ public class MongoMapper {
 		Date.class
 	};
 
-	public class MappingConfig {
+	public static class MappingConfig {
 		private int nestedIgnoredReferenceCounter = 0;
+		private boolean alwaysIgnoreNestedReferences;
 
 		public void pushIgnoreNestedReferences() {
 			nestedIgnoredReferenceCounter++;
@@ -56,7 +57,11 @@ public class MongoMapper {
 		}
 
 		public boolean isIgnoringNestedReferences() {
-			return nestedIgnoredReferenceCounter > 0;
+			return nestedIgnoredReferenceCounter > 0 || alwaysIgnoreNestedReferences;
+		}
+
+		public void setAlwaysIgnoreNestedReferences(boolean alwaysIgnoreNestedReferences) {
+			this.alwaysIgnoreNestedReferences = alwaysIgnoreNestedReferences;
 		}
 	}
 
@@ -208,7 +213,7 @@ public class MongoMapper {
 							if (key.endsWith("Id") && field.getType().equals(Object.class)) {
 								field.set(destination, source.get(field.getName()));
 							} else if (TypeUtils.isEntity(field.getType())) {
-								if ((!mappingConfig.isIgnoringNestedReferences() || isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
+								if ((!mappingConfig.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
                                     Entity value = null;
                                     String sourceId = (String) source.get(field.getName());
                                     Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
@@ -227,7 +232,7 @@ public class MongoMapper {
                             } else if (isAllowed(field.getType())) {
 								field.set(destination, source.get(key));
 							} else if (TypeUtils.isList(field.getType())) {
-                                if ((!mappingConfig.isIgnoringNestedReferences() || firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
+                                if ((!mappingConfig.isIgnoringNestedReferences() && firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
                                     ArrayList<Object> values = new ArrayList<Object>();
                                     Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                                     Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());

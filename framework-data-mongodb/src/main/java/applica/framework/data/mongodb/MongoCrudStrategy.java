@@ -73,7 +73,8 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         while(cur.hasNext()) {
             BasicDBObject document = (BasicDBObject)cur.next();
-            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), null);
+
+            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), generateMappingConfigFromQuery(loadRequest));
             entities.add(entity);
         }
 
@@ -81,6 +82,12 @@ public class MongoCrudStrategy implements CrudStrategy {
         response.setTotalRows(count);
 
         return response;
+    }
+
+    private MongoMapper.MappingConfig generateMappingConfigFromQuery(Query loadRequest) {
+        MongoMapper.MappingConfig config = new MongoMapper.MappingConfig();
+        config.setAlwaysIgnoreNestedReferences(loadRequest.isIgnoreNestedReferences());
+        return config;
     }
 
     @Override
