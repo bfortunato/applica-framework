@@ -8,6 +8,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by antoniolovicario on 11/05/15.
@@ -35,9 +36,9 @@ public class ErrorsUtils {
         Localization localization = new Localization();
         String errorMessages = "";
         String separator = StringUtils.hasLength(errorSeparator) ? errorSeparator : "";
-        for(ValidationResult.Error error: errors) {
-            errorMessages = String.format("%s - %s: %s%s", errorMessages, localization.getMessage(error.getProperty()), localization.getMessage(error.getMessage()), separator);
-        }
+
+        errorMessages = String.join(separator, errors.stream().map(error -> String.format("%s: %s", localization.getMessage(error.getProperty()), localization.getMessage(error.getMessage()))).collect(Collectors.toList()));
+
         return errorMessages;
     }
 }
