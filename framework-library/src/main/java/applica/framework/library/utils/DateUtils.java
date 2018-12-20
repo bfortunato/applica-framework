@@ -5,6 +5,7 @@ import org.springframework.util.StringUtils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -284,6 +285,22 @@ public class DateUtils {
         }
         return  (getYearFromDate(end) - getYearFromDate(start)) * 12 + (getMonthFromDate(end) - getMonthFromDate(start)) + 1;
     }
+
+    /**
+     * Restituisce la differenza tra due date in giorni considerando anche la differenza di anno
+     * @param start
+     * @param end
+     * @return
+     */
+    public static int getDifferencesInDays(Date start, Date end) {
+        Calendar sDate = Calendar.getInstance();
+        Calendar eDate = Calendar.getInstance();
+        sDate.setTime(start);
+        eDate.setTime(end);
+        return (int) ChronoUnit.DAYS.between(sDate.toInstant(), eDate.toInstant());
+    }
+
+
 
     private static int getMonthFromDate(Date end) {
         Calendar calendar = getCalendarInstance(end);
