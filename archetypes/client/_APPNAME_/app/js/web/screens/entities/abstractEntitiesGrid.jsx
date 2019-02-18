@@ -87,6 +87,13 @@ export default class AbstractEntitiesGrid  extends Screen {
             return `/entities/${this.getEntity()}/${data.id}`
         }
     }
+    getDeleteMessage() {
+        let message = format(M("entityDeleteConfirm"), this.refs.grid.getSelection().length)
+        let entityMessage = this.getGrid().deleteMessage
+        if (entityMessage)
+            message = format("{0}\n{1}", message, entityMessage)
+        return message;
+    }
 
     deleteEntities() {
         if (!this.canDelete()) {
@@ -98,17 +105,13 @@ export default class AbstractEntitiesGrid  extends Screen {
             return
         }
 
-        swal({ title: M("confirm"), text: format(M("entityDeleteConfirm"), selection.length), showCancelButton: true })
+        swal({ title: M("confirm"), text: this.getDeleteMessage(), showCancelButton: true })
             .then(() => {
                 deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
             })
             .catch((e) => {logger.i(e)})
     }
-
-    onGridKeyDown(e) {
-        if (isCancel(e.which)) {
-            this.deleteEntities()
-        }
+ }
     }
 
     onGridRowDoubleClick(row) {
