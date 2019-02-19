@@ -32,7 +32,7 @@ export function load(collection, keyword, params = {}) {
 
     let paramsString = ""
     _.each(_.allKeys(params), k => {
-        paramsString += k + "=" + encodeURIComponent(params[k])
+        paramsString += k + "=" + encodeURIComponent(params[k]) + "&"
     })
 
     if (!_.isEmpty(paramsString)) {
