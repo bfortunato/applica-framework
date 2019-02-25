@@ -1,5 +1,13 @@
 var serviceBase = "http://localhost:8080/";
 
+function getVersion() {
+    return "1.0";
+}
+
+function getCopyright() {
+    return "Applica SRL, 2019";
+}
+
 module.exports = {
     "service.url": `${serviceBase}`,
     "fs.url": `${serviceBase}fs`,
@@ -14,4 +22,6 @@ module.exports = {
     "entities.delete.url": `${serviceBase}entities/delete`,
     "values.url": `${serviceBase}values`,
     "values.entities.url": `${serviceBase}values/entities`,
+    "backendVersion" : getVersion(),
+    "copyrightInfos" : getCopyright()
 }

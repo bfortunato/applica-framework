@@ -11,6 +11,8 @@ import {connect} from "../utils/aj";
 import {optional, parseBoolean} from "../../utils/lang";
 import M from "../../strings";
 import _ from "../../libs/underscore"
+import {SystemStore} from "../../stores/system";
+import {systemInformation} from "../../actions/system";
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -250,23 +252,35 @@ class MainMenuContainer extends React.Component {
 
 
 class Footer extends React.Component {
+
+    constructor(props) {
+        super(props)
+        connect(this, SystemStore, {})
+    }
+
+    componentDidMount() {
+        systemInformation()
+    }
+
     render() {
+        let backendVersion = this.state.backendVersion;
+        let apiVersion = this.state.apiVersion;
+        let copyrightInfos = this.state.copyrightInfos;
+
         return (
             <footer id="footer">
-                Copyright 2017 Applica srl
-
                 <ul className="f-menu">
-                    <li><a href="">Home</a></li>
-                    <li><a href="">Dashboard</a></li>
-                    <li><a href="">Reports</a></li>
-                    <li><a href="">Support</a></li>
-                    <li><a href="">Contact</a></li>
+                    {backendVersion && <li> Web: v {backendVersion}</li> }
+                    {apiVersion && <li> API: v {apiVersion}</li>}
+                    {copyrightInfos && <li> Copyright: {copyrightInfos}</li>}
                 </ul>
+
+
+
             </footer>
         )
     }
 }
-
 
 class Layout extends React.Component {
     render() {
