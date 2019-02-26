@@ -19,10 +19,9 @@ public class ErrorsUtils {
     private ErrorsUtils() { }
 
     public static String getAllErrorMessages(Errors errors) {
-        Localization localization = new Localization();
         String errorMessages = "";
         for(ObjectError error: errors.getAllErrors()) {
-            errorMessages = String.format("%s%s: %s<br>",  errorMessages, localization.getMessage(error.getObjectName()), localization.getMessage(error.getDefaultMessage()));
+            errorMessages = String.format("%s%s: %s<br>",  errorMessages, getMessage(error.getObjectName()), getMessage(error.getDefaultMessage()));
         }
         return errorMessages;
     }
@@ -33,12 +32,18 @@ public class ErrorsUtils {
     }
 
     public static String getAllErrorMessages(List<ValidationResult.Error> errors, String errorSeparator) {
-        Localization localization = new Localization();
+
         String errorMessages = "";
         String separator = StringUtils.hasLength(errorSeparator) ? errorSeparator : "";
 
-        errorMessages = String.join(separator, errors.stream().map(error -> String.format("%s: %s", localization.getMessage(error.getProperty()), localization.getMessage(error.getMessage()))).collect(Collectors.toList()));
+        errorMessages = errors.stream().map(error -> String.format("%s: %s", getMessage(error.getProperty()), getMessage(error.getMessage()))).collect(Collectors.joining(separator));
 
         return errorMessages;
     }
-}
+
+
+    public static String getMessage(String label) {
+        Localization localization = new Localization();
+        return localization.getMessage(label);
+    }
+ }
