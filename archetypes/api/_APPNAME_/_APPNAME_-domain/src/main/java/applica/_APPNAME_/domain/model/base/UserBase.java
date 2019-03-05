@@ -30,6 +30,8 @@ public class UserBase extends AEntity {
     @ManyToMany
     private List<Role> roles;
 
+    private transient boolean needToChangePassword;
+
     public String getName() {
         return name;
     }
@@ -126,11 +128,6 @@ public class UserBase extends AEntity {
         this.currentPasswordSetDate = currentPasswordSetDate;
     }
 
-    public boolean isNeedToChangePassword() {
-        Calendar threeMonthAgo = Calendar.getInstance();
-        threeMonthAgo.add(Calendar.MONTH, -3);
-        return currentPasswordSetDate == null || currentPasswordSetDate.before(threeMonthAgo.getTime());
-    }
     public String getRoleDescription() {
         return String.join((CharSequence) roles.stream().map(Role::getLocalizedRole).collect(Collectors.toList()), ", ");
     }
@@ -142,5 +139,13 @@ public class UserBase extends AEntity {
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
+    }
+
+    public boolean isNeedToChangePassword() {
+        return needToChangePassword;
+    }
+
+    public void setNeedToChangePassword(boolean needToChangePassword) {
+        this.needToChangePassword = needToChangePassword;
     }
 }

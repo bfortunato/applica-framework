@@ -1,11 +1,13 @@
 package applica._APPNAME_.api.controllers;
 
+import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.responses.LoginResponse;
 import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.exceptions.BadCredentialsException;
 import applica.framework.library.i18n.controllers.LocalizedController;
 import applica.framework.library.responses.Response;
 import applica.framework.security.Security;
+import applica.framework.security.User;
 import applica.framework.security.token.TokenFormatException;
 import applica.framework.security.token.TokenGenerationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +31,16 @@ public class AuthController extends LocalizedController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private AccountService accountService;
+
     @PostMapping("/login")
     public Response login(String mail, String password) {
         try {
             String token = authService.token(mail, password);
-            return new LoginResponse(token, Security.withMe().getLoggedUser());
+            User user = Security.withMe().getLoggedUser();
+            ((applica._APPNAME_.domain.model.User) user).setNeedToChangePassword(accountService.needToChangePassword(user));
+            return new LoginResponse(token, user);
         } catch (BadCredentialsException e) {
             return new Response(ERROR_BAD_CREDENTIALS);
         } catch (TokenGenerationException e) {
