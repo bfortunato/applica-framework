@@ -22,6 +22,10 @@ module.exports = {
     "entities.delete.url": `${serviceBase}entities/delete`,
     "values.url": `${serviceBase}values`,
     "values.entities.url": `${serviceBase}values/entities`,
+    "account.requestRecoveryCode.url": `${serviceBase}account/sendConfirmationCode`,
+    "account.validateRecoveryCode.url": `${serviceBase}account/validateRecoveryCode`,
+    "account.resetPassword.url": `${serviceBase}account/resetUserPassword`,
+    "account.resetUserPassword.url": `${serviceBase}account/resetPassword`,
     "backendVersion" : getVersion(),
     "copyrightInfos" : getCopyright()
 }

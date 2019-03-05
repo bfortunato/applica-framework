@@ -1,5 +1,8 @@
 package applica._APPNAME_.api.configuration;
 
+import applica._APPNAME_.api.localization.LocalizationFilter;
+import applica.framework.ApplicationContextProvider;
+import applica.framework.library.options.OptionsManager;
 import applica.framework.security.Security;
 import applica.framework.security.UserDetailsRepository;
 import applica.framework.security.UserService;
@@ -17,7 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -68,7 +71,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public AuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(new Md5PasswordEncoder());
+        ShaPasswordEncoder encoder = new ShaPasswordEncoder(256);
+        provider.setSaltSource(userDetails -> ApplicationContextProvider.provide().getBean(OptionsManager.class).get("password.salt"));
+        provider.setPasswordEncoder(encoder);
         return provider;
     }
 
@@ -84,13 +89,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
+    public TokenAuthenticationFilter tokenAuthenticationFilter() {
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter();
         return filter;
     }
 
+    @Bean
+    public LocalizationFilter localizationFiler() {
+        return new LocalizationFilter();
+    }
+
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(tokenAuthenticationProvider());
         auth.authenticationProvider(daoAuthenticationProvider());
     }

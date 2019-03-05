@@ -1,10 +1,13 @@
 package applica._APPNAME_.api.controllers;
 
+import applica._APPNAME_.api.facade.AccountFacade;
 import applica._APPNAME_.api.viewmodels.UIUserWithToken;
+import applica._APPNAME_.domain.utils.CustomErrorUtils;
 import applica._APPNAME_.services.AuthService;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.services.AccountService;
+import applica.framework.library.i18n.LocalizationUtils;
 import applica.framework.library.utils.ErrorsUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.base64.URLData;
@@ -20,7 +23,6 @@ import java.io.IOException;
 import static applica.framework.library.responses.Response.ERROR;
 import static applica.framework.library.responses.Response.OK;
 import static applica._APPNAME_.services.responses.ResponseCode.*;
-import static applica.framework.security.authorization.BaseAuthorizationService.SUPERUSER_PERMISSION;
 
 /**
  * Applica (www.applicadoit.com)
@@ -34,6 +36,9 @@ public class AccountController {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private AccountFacade accountFacade;
 
 
     @Autowired
@@ -118,20 +123,90 @@ public class AccountController {
         }
     }
 
-    @RequestMapping(value = "/changePassword")
+
+
+    @RequestMapping("/changePassword")
     public @ResponseBody
     Response resetPassword(String password, String passwordConfirm) throws TokenGenerationException, BadCredentialsException {
         try {
-            accountService.changePassword(password, passwordConfirm);
+            accountService.changePassword((applica._APPNAME_.domain.model.User) Security.withMe().getLoggedUser(), password, passwordConfirm);
         } catch (ValidationException e) {
             e.getValidationResult().getErrors();
-            return new Response(Response.ERROR, ErrorsUtils.getAllErrorMessages(e.getValidationResult().getErrors()));
+            return new Response(Response.ERROR, CustomErrorUtils.getInstance().getAllErrorMessages(e.getValidationResult().getErrors()));
         }
         catch (Exception e) {
             return new Response(Response.ERROR, e.getMessage());
         }
         User user = Security.withMe().getLoggedUser();
         return new ValueResponse(new UIUserWithToken(user, authService.token(((applica._APPNAME_.domain.model.User) user).getMail(), password)));
+
     }
 
+
+
+    @PostMapping("/resetUserPassword")
+    public @ResponseBody
+    Response resetUserPassword(String id) {
+        try {
+
+            String newPassword = accountFacade.generateAndSendUserOneTimePassword(id);
+            if (Security.withMe().getLoggedUser().getId().equals(id)) {
+                //Se sto modificando la mia stessa password dovrò aggiornare l'utenza sul client
+                User user = Security.withMe().getLoggedUser();
+                return new ValueResponse(new UIUserWithToken(user, authService.token(((applica._APPNAME_.domain.model.User) user).getMail(), newPassword)));
+            }
+        } catch (BadCredentialsException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            return new Response(ERROR, e.getMessage());
+        }
+        return new Response(Response.OK);
+    }
+    @PostMapping("/resetPassword")
+    public @ResponseBody
+    Response reset(String mail, String code, String password, String passwordConfirm) {
+        try {
+
+            accountService.resetPassword(mail, code, password, passwordConfirm);
+        } catch (MailNotFoundException e) {
+            return new Response(Response.ERROR, LocalizationUtils.getInstance().getMessage("error.mail.not.found"));
+        } catch (ValidationException e) {
+            e.getValidationResult().getErrors();
+            return new Response(Response.ERROR, ErrorsUtils.getInstance().getAllErrorMessages(e.getValidationResult().getErrors()));
+        } catch (CodeNotValidException e) {
+            e.printStackTrace();
+            return new Response(ERROR, LocalizationUtils.getInstance().getMessage("error.code.not.valid"));
+        }
+        return new Response(Response.OK);
+    }
+
+    @PostMapping("/sendConfirmationCode")
+    public Response sendConfirmationCode(String mail) {
+        try {
+            accountFacade.sendConfirmationCode(mail);
+            return new Response(Response.OK);
+        } catch (MailNotFoundException e) {
+            return new Response(Response.ERROR, LocalizationUtils.getInstance().getMessage("error.mail.not.found"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
+
+    @PostMapping( "/validateRecoveryCode")
+    public @ResponseBody
+    Response validateRecoveryCode(String mail, String code) {
+
+        try {
+            accountService.validateRecoveryCode(mail, code, false);
+            return new Response(Response.OK);
+        } catch (MailNotFoundException e) {
+            e.printStackTrace();
+            return new Response(ERROR, LocalizationUtils.getInstance().getMessage("error.mail.not.found"));
+        } catch (CodeNotValidException e) {
+            e.printStackTrace();
+            return new Response(ERROR, LocalizationUtils.getInstance().getMessage("error.code.not.valid"));
+        }
+    }
 }

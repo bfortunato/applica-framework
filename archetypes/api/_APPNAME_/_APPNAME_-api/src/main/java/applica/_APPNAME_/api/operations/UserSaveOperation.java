@@ -1,29 +1,14 @@
 package applica._APPNAME_.api.operations;
 
 import applica._APPNAME_.api.facade.AccountFacade;
-import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.User;
-import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
 import applica.framework.Repo;
-import applica.framework.fileserver.FileServer;
-import applica.framework.library.base64.InvalidDataException;
-import applica.framework.library.base64.URLData;
-import applica.framework.library.responses.Response;
 import applica.framework.widgets.operations.BaseSaveOperation;
-import applica.framework.widgets.operations.OperationException;
-import applica.framework.widgets.operations.SaveOperation;
-import applica.framework.widgets.serialization.DefaultEntitySerializer;
-import applica.framework.widgets.serialization.EntitySerializer;
-import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -52,7 +37,7 @@ public class UserSaveOperation extends BaseSaveOperation {
         String passwordToSave = null;
         if (org.springframework.util.StringUtils.hasLength(data.get("password").asText())) {
             //set / modifica password
-            passwordToSave = new Md5PasswordEncoder().encodePassword(data.get("password").asText(), null);
+            passwordToSave = accountFacade.encryptAndGetPassword(data.get("password").asText());
             ((User) entity).setCurrentPasswordSetDate(new Date());
         } else {
             if (entity.getId() != null) {
@@ -80,7 +65,7 @@ public class UserSaveOperation extends BaseSaveOperation {
                 user.setRegistrationDate(new Date());
 
                 String tempPassword = user.getSid();
-                user.setPassword(new Md5PasswordEncoder().encodePassword(tempPassword, null));
+                user.setPassword(accountFacade.encryptAndGetPassword(tempPassword));
             }
 
             Repo.of(User.class).save(user);

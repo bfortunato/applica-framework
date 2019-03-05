@@ -6,6 +6,8 @@ La password che hai selezionato è <b>$password</b>
 <br/>
 
 Per confermare la tua iscrizione devi attivare il tuo account cliccando: <a href="${activationUrl}">Qui</a>
+
+Una volta attivato il tuo account potrai effettuare il login cliccando: <a href="${loginUrl}">Qui</a>
 <br/>
 <br/>
 

@@ -43,15 +43,15 @@ public class AuthServiceImpl implements AuthService {
 
         User loggedUser = ((User) Security.withMe().getLoggedUser());
 
-        //Password has MD5 encoding and is stored into DB as MD5 but token must be generated with a clear password
+        //Password has SHA1 encoding and is stored into DB as SHA1 but token must be generated with a clear password
         //to perform futures password checks so...
-        String md5Password = loggedUser.getPassword();
+        String encryptedPassword = loggedUser.getPassword();
         //set clear password to logged user to generate correct token
         loggedUser.setPassword(password);
         //generate token
         String token = generator.generate(loggedUser);
-        //reset md5 password to logged user
-        loggedUser.setPassword(md5Password);
+        //reset encrtpted password to logged user
+        loggedUser.setPassword(encryptedPassword);
         //update last login date
         loggedUser.setLastLogin(new Date());
         usersRepository.save(loggedUser);
