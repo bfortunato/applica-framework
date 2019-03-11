@@ -1,19 +1,19 @@
 package applica.framework.library.options;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PropertiesOptionManager implements OptionsManager {
+public class PropertiesOptionManager implements OptionsManager, InitializingBean {
 
     private Properties properties;
     private Map<String, String> cache = new HashMap<>();
@@ -24,10 +24,10 @@ public class PropertiesOptionManager implements OptionsManager {
     @Autowired
     private ResourceLoader resourceLoader;
 
-    @PostConstruct
-    private void init() throws IOException {
+    @Override
+    public void afterPropertiesSet() throws IOException {
         properties = new Properties();
-        Assert.notNull(path);
+        Assert.notNull(path, "Path is not setted");
 
         if(path.startsWith("env:")) {
             path = "file:///".concat(System.getenv(path.substring(4)));

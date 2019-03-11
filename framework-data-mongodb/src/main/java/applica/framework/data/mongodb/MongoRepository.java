@@ -10,15 +10,15 @@ import com.mongodb.DBObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class MongoRepository<T extends Entity> implements Repository<T> {
+public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
 	
 	@Autowired
 	private MongoHelper mongoHelper;
@@ -38,9 +38,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             }
         }
 	}
-	
-	@PreDestroy
-	protected void destroy() {
+
+	@Override
+	public void destroy() {
 		mongoHelper.close(getDataSource());
 	}
 

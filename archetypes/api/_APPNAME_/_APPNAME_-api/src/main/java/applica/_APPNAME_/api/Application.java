@@ -21,7 +21,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import javax.annotation.PostConstruct;
 
 import static applica.framework.security.authorization.BaseAuthorizationService.SUPERUSER_PERMISSION;
 
@@ -52,7 +51,7 @@ import static applica.framework.security.authorization.BaseAuthorizationService.
         SecurityConfiguration.class,
         CxfAutoConfiguration.class
 })
-public class Application {
+public class Application implements InitializingBean {
     static {
         AEntity.strategy = AEntity.IdStrategy.String;
     }

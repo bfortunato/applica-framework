@@ -12,9 +12,9 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.spatial.criterion.SpatialRestrictions;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PreDestroy;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
@@ -25,13 +25,13 @@ import java.util.function.Consumer;
  * Date: 09/10/14
  * Time: 11:31
  */
-public abstract class HibernateRepository<T extends Entity> implements Repository<T> {
+public abstract class HibernateRepository<T extends Entity> implements Repository<T>, DisposableBean {
 
     @Autowired
     private HibernateSessionFactory hibernateSessionFactory;
 
-    @PreDestroy
-    protected void destroy() {
+    @Override
+    public void destroy() {
         hibernateSessionFactory.dispose(getDataSource());
     }
 

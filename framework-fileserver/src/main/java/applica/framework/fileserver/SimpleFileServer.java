@@ -20,11 +20,11 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import java.util.UUID;
  * Date: 4/23/13
  * Time: 12:20 PM
  */
-public class SimpleFileServer implements FileServer {
+public class SimpleFileServer implements FileServer, InitializingBean {
 
     private Log logger = LogFactory.getLog(getClass());
 
@@ -49,8 +49,7 @@ public class SimpleFileServer implements FileServer {
 
     private String baseUrl;
 
-    @PostConstruct
-    protected void init() {
+    public void afterPropertiesSet() {
         baseUrl = options.get("fileserver.base.internal");
     }
 

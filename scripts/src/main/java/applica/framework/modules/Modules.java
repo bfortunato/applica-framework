@@ -85,7 +85,7 @@ public class Modules {
         if (moduleInfo.isPresent()) {
             Module instance = null;
             try {
-                instance = moduleInfo.get().getType().newInstance();
+                instance = moduleInfo.get().getType().getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 e.printStackTrace();
             }
