@@ -5,7 +5,7 @@ import applica._APPNAME_.domain.model.PasswordChange;
 import applica.framework.Entity;
 import applica.framework.library.validation.ValidationResult;
 import applica.framework.security.Security;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -22,8 +22,18 @@ public class PasswordChangeValidator implements applica.framework.library.valida
             validationResult.reject("password", "Password obbligatoria");
         } else {
             //l'utente non può inserire la stessa password che già possiede
-            Md5PasswordEncoder encoder = new Md5PasswordEncoder();
-            String md5Secret = encoder.encodePassword(passwordChange.getPassword(), null);
+            PasswordEncoder encoder = new PasswordEncoder() {
+                @Override
+                public String encode(CharSequence charSequence) {
+                    return null;
+                }
+
+                @Override
+                public boolean matches(CharSequence charSequence, String s) {
+                    return false;
+                }
+            }
+            String md5Secret = PasswordEncoder.encodePassword(passwordChange.getPassword(), null);
             if (Security.withMe().getLoggedUser().getPassword().equals(md5Secret)) {
                 validationResult.reject("password", "Inserire una password diversa dalla precedente");
             }

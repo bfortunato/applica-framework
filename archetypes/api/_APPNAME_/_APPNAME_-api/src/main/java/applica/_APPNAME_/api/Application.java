@@ -12,6 +12,7 @@ import applica.framework.security.authorization.Permissions;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.PermissionsRegistry;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
@@ -59,8 +60,8 @@ public class Application implements InitializingBean {
     @Autowired
     private ApplicationInitializer applicationInitializer;
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         applicationInitializer.init();
     }
 

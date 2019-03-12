@@ -10,6 +10,11 @@
     <name>_APPNAME_</name>
     <url>http://www.applica.guru</url>
 
+    <properties>
+        <applica.framework.version>2.2.0-RELEASE</applica.framework.version>
+    </properties>
+
+
     <modules>
         <module>_APPNAME_-domain</module>
         <module>_APPNAME_-data-mongodb</module>
