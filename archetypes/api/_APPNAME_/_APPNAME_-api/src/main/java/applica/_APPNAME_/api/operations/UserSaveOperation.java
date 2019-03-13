@@ -19,7 +19,8 @@ import applica.framework.widgets.serialization.SerializationException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -52,7 +53,7 @@ public class UserSaveOperation extends BaseSaveOperation {
         String passwordToSave = null;
         if (org.springframework.util.StringUtils.hasLength(data.get("password").asText())) {
             //set / modifica password
-            passwordToSave = new Md5PasswordEncoder().encodePassword(data.get("password").asText(), null);
+            passwordToSave = new BCryptPasswordEncoder().encode(data.get("password").asText());
             ((User) entity).setCurrentPasswordSetDate(new Date());
         } else {
             if (entity.getId() != null) {
@@ -80,7 +81,7 @@ public class UserSaveOperation extends BaseSaveOperation {
                 user.setRegistrationDate(new Date());
 
                 String tempPassword = user.getSid();
-                user.setPassword(new Md5PasswordEncoder().encodePassword(tempPassword, null));
+                user.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
             }
 
             Repo.of(User.class).save(user);

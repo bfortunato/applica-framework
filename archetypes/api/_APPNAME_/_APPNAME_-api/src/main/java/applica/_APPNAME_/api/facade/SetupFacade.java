@@ -6,7 +6,7 @@ import applica._APPNAME_.domain.model.User;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.security.authorization.Permissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class SetupFacade {
             }
         }
 
-        String encodedPassword = new Md5PasswordEncoder().encodePassword("applica", null);
+        String encodedPassword = new BCryptPasswordEncoder().encode("applica");
 
         User user = new User();
         user.setMail("admin@applica.guru");

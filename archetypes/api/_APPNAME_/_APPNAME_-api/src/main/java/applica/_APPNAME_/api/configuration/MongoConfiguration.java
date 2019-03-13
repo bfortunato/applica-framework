@@ -41,6 +41,4 @@ public class MongoConfiguration {
         return new DefaultMongoRepository();
     }
 
-    @Bean
-    public MongoEmbedded mongoEmbedded() { return new MongoEmbedded(); }
 }

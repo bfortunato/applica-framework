@@ -11,7 +11,6 @@ import applica.framework.revision.services.RevisionService;
 import applica._APPNAME_.domain.model.CustomPermissions;
 import applica._APPNAME_.services.authorizations.AuthorizationContexts;
 import applica.framework.Query;
-import applica.framework.data.mongodb.MongoEmbedded;
 import applica.framework.data.mongodb.MongoHelper;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.utils.NullableDateConverter;
@@ -25,7 +24,7 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -38,9 +37,6 @@ import java.util.*;
 public class ApplicationInitializer {
 
     private Log logger = LogFactory.getLog(getClass());
-
-    @Autowired(required = false)
-    private MongoEmbedded mongoEmbedded;
 
     @Autowired(required = false)
     private RevisionService revisionService;
@@ -68,7 +64,7 @@ public class ApplicationInitializer {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, "admin@applica.guru")).findFirst().orElse(null);
         if (user == null) {
             user = new User();
-            String encodedPassword = new Md5PasswordEncoder().encodePassword("applica", null);
+            String encodedPassword = new BCryptPasswordEncoder().encode("applica");
             user.setMail("admin@applica.guru");
             user.setPassword(encodedPassword);
             user.setName("admin");
@@ -160,22 +156,6 @@ public class ApplicationInitializer {
         CrudSecurityConfigurer.instance().configure(crudEntityName, CrudPermission.EDIT, crudPermissions.stream().filter(c -> c.endsWith("edit")).findFirst().get());
         CrudSecurityConfigurer.instance().configure(crudEntityName, CrudPermission.DELETE, crudPermissions.stream().filter(c -> c.endsWith("delete")).findFirst().get());
 
-    }
-
-    public void initializeMongoEmbedded() {
-        List<String> dataSources = MongoHelper.getDataSources(options);
-
-        for (String dataSource : dataSources) {
-            Boolean embedded = Boolean.parseBoolean(options.get(String.format("applica.framework.data.mongodb.%s.embedded", dataSource)));
-
-            if (embedded != null && embedded) {
-                if (mongoEmbedded == null) {
-                    throw new ProgramException("MongoEmbedded bean not configured");
-                }
-
-                mongoEmbedded.start(dataSource);
-            }
-        }
     }
 
 }

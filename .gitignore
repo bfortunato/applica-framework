@@ -8,3 +8,4 @@ archetypes/.DS_Store
 archetypes/client/platforms/web/assets/js/app.js
 archetypes/client/platforms/web/resources/css/
 
+.idea/

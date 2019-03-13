@@ -25,7 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -80,7 +81,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         String activationCode = UUID.randomUUID().toString();
-        String encodedPassword = new Md5PasswordEncoder().encodePassword(password, null);
+        String encodedPassword = new BCryptPasswordEncoder().encode(password);
 
         User user = new User();
         user.setName(name);
@@ -123,8 +124,8 @@ public class AccountServiceImpl implements AccountService {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
 
         String newPassword = PasswordUtils.generateRandom();
-        Md5PasswordEncoder encoder = new Md5PasswordEncoder();
-        String encodedPassword = encoder.encodePassword(newPassword, null);
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        String encodedPassword = encoder.encode(newPassword);
         user.setPassword(encodedPassword);
 
         usersRepository.save(user);
@@ -186,7 +187,7 @@ public class AccountServiceImpl implements AccountService {
         Validation.validate(new PasswordChange(password, passwordConfirm));
         User loggedUser = (User) Security.withMe().getLoggedUser();
         ((User) loggedUser).setFirstLogin(false);
-        loggedUser.setPassword(new Md5PasswordEncoder().encodePassword(password, null));
+        loggedUser.setPassword(new BCryptPasswordEncoder().encode(password));
         usersRepository.save(loggedUser);
     }
 
