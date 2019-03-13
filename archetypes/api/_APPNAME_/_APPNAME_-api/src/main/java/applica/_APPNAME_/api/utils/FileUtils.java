@@ -148,7 +148,7 @@ public class FileUtils {
         response.setHeader("Content-disposition", String.format("attachment; filename=\"%s\"", fileName.replaceAll("\\s+", "_")));
         response.setStatus(200);
         IOUtils.copy(fileInputStream, response.getOutputStream());
-        IOUtils.closeQuietly(fileInputStream);
+        fileInputStream.close();
     }
 
     public static String getAttachmentFullUrl(String path) {

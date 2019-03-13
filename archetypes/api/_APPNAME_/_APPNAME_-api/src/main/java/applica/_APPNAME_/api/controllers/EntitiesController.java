@@ -3,7 +3,7 @@ package applica._APPNAME_.api.controllers;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
 import applica.framework.Query;
-import applica.framework.data.mongodb.constraints.ConstraintException;
+import applica.framework.data.ConstraintException;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.library.utils.ObjectUtils;

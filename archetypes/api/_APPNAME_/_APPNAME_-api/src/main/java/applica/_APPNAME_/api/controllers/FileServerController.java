@@ -29,9 +29,7 @@ public class FileServerController {
 
     @RequestMapping("image")
     public void image(String path, String size, HttpServletResponse response) {
-        InputStream inputStream = null;
-        try {
-            inputStream = fileServer.getImage(path, size);
+        try (InputStream inputStream = fileServer.getImage(path, size)) {
             if(inputStream == null) {
                 response.setStatus(404);
             } else {
@@ -46,18 +44,12 @@ public class FileServerController {
         } catch (IOException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             e.printStackTrace();
-        } finally {
-            if(inputStream != null) {
-                IOUtils.closeQuietly(inputStream);
-            }
         }
     }
 
     @RequestMapping("file")
     public void file(String path, String size, HttpServletResponse response) {
-        InputStream inputStream = null;
-        try {
-            inputStream = fileServer.getFile(path);
+        try (InputStream inputStream = fileServer.getImage(path, size)) {
             if(inputStream == null) {
                 response.setStatus(404);
             } else {
@@ -72,10 +64,6 @@ public class FileServerController {
         } catch (IOException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             e.printStackTrace();
-        } finally {
-            if(inputStream != null) {
-                IOUtils.closeQuietly(inputStream);
-            }
         }
     }
 

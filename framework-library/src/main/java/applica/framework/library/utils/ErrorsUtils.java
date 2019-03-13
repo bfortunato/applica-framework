@@ -1,6 +1,7 @@
 package applica.framework.library.utils;
 
 
+import applica.framework.ApplicationContextProvider;
 import applica.framework.library.i18n.Localization;
 import applica.framework.library.validation.ValidationResult;
 import org.springframework.util.StringUtils;
@@ -21,6 +22,10 @@ public class ErrorsUtils {
             errorMessages = String.format("%s%s: %s<br>",  errorMessages, getMessage(error.getObjectName()), getMessage(error.getDefaultMessage()));
         }
         return errorMessages;
+    }
+
+    public static ErrorsUtils getInstance() {
+        return (ErrorsUtils) ApplicationContextProvider.provide().getBean(ErrorsUtils.class);
     }
 
     public String getAllErrorMessages(List<ValidationResult.Error> errors) {

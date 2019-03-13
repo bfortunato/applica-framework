@@ -31,7 +31,7 @@ public class GridsController {
             return new Response(ResponseCode.ERROR_NOT_FOUND);
         } else {
             try {
-                String content = IOUtils.toString(resource.getInputStream());
+                String content = IOUtils.toString(resource.getInputStream(), "UTF8");
                 return new ValueResponse(content);
             } catch (IOException e) {
                 return new Response(Response.ERROR);
