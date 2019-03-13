@@ -1,15 +1,14 @@
 package applica._APPNAME_.services.impl;
 
 import applica._APPNAME_.domain.data.RolesRepository;
-import applica._APPNAME_.domain.model.Filters;
-import applica._APPNAME_.domain.model.PasswordChange;
-import applica._APPNAME_.domain.model.Role;
+import applica._APPNAME_.domain.model.*;
 import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.MailService;
+import applica._APPNAME_.services.UserService;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.domain.data.UsersRepository;
-import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
+import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.mail.MailUtils;
@@ -19,7 +18,7 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.security.PasswordUtils;
-import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -31,10 +30,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by bimbobruno on 15/11/2016.
@@ -58,6 +55,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException {

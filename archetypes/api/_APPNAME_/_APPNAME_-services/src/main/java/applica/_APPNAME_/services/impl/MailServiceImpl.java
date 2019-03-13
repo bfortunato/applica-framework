@@ -25,7 +25,8 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private OptionsManager optionsManager;
 
-    private TemplatedMail createMail(String templatePath, int mailType, String subject, Map<String, Object> data) {
+    @Override
+    public TemplatedMail createMail(String templatePath, int mailType, String subject, Map<String, Object> data) {
         TemplatedMail mail = new TemplatedMail();
         mail.setOptions(optionsManager);
         mail.setMailFormat(mailType);
@@ -64,16 +65,25 @@ public class MailServiceImpl implements MailService {
     }
 
 
+
     @Override
-    public void sendActivactionMail(User user, String defaultPassword) {
+    public void sendActivationMail(User user, String defaultPassword) {
         Map<String, Object> data = new HashMap<>();
 
+        String loginUrl = String.format("%s/#//login", optionsManager.get("frontend.public.url"));
+        data.put("loginUrl", loginUrl);
         data.put("password", defaultPassword);
         data.put("user", user);
 
         Recipient recipient = new Recipient();
         recipient.setRecipient(user.getMail());
         sendMail(createMail("mailTemplates/userActivation.vm", TemplatedMail.HTML, optionsManager.get("registration.mail.subject"), data), Collections.singletonList(recipient));
+    }
+
+    @Override
+    public void createAndSendMail(String template, int mailType, String subject, List<Recipient> recipients, Map<String, Object> data) {
+
+        sendMail(createMail(template, mailType, subject, data), recipients);
     }
 
     private String getAllRecipientsToString(TemplatedMail mail) {

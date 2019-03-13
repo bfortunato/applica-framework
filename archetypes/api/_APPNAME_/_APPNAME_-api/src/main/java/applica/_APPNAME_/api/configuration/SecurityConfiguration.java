@@ -1,5 +1,8 @@
 package applica._APPNAME_.api.configuration;
 
+import applica._APPNAME_.api.localization.LocalizationFilter;
+import applica.framework.ApplicationContextProvider;
+import applica.framework.library.options.OptionsManager;
 import applica.framework.security.Security;
 import applica.framework.security.UserDetailsRepository;
 import applica.framework.security.UserService;
@@ -84,13 +87,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public TokenAuthenticationFilter tokenAuthenticationFilter() throws Exception {
+    public TokenAuthenticationFilter tokenAuthenticationFilter() {
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter();
         return filter;
     }
 
+    @Bean
+    public LocalizationFilter localizationFiler() {
+        return new LocalizationFilter();
+    }
+
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(tokenAuthenticationProvider());
         auth.authenticationProvider(daoAuthenticationProvider());
     }

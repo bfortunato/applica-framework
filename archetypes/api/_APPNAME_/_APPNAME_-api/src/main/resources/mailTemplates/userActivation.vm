@@ -4,8 +4,14 @@ grazie per la Tua registrazione.
 <br/>
 La password temporanea che ti &egrave; stata assegnata &egrave; <b>$password</b>
 <br/>
-Ti sar&agrave; chiesto di modificarla al primo accesso nel sistema.
+Ti sar&agrave; chiesto di modificarla al primo accesso nel sistema, che potrai effettuare cliccando qui: <a href="${loginUrl}">Qui</a>
 <br>
+<br/>
 
-
+P.s.:
+Se non riesci ad accedere cliccando sul pulsante, copia ed incolla il seguente link nella barra degli indirizzi del tuo browser:
+<br/>
+${loginUrl}
+<br/>
+<br/>
 questa mail &egrave; stata generata in automatico, si prega di non rispondere.

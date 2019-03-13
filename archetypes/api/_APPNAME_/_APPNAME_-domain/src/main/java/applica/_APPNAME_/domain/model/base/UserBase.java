@@ -8,12 +8,15 @@ import applica._APPNAME_.domain.model.Role;
 import applica.framework.AEntity;
 import applica.framework.annotations.ManyToMany;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserBase extends AEntity {
 
     private String name;
+    private String lastname;
     private String mail;
     private String password;
     private boolean active;
@@ -23,7 +26,11 @@ public class UserBase extends AEntity {
     private String image;
     private String coverImage;
     private Date lastLogin;
-    @ManyToMany private List<Role> roles;
+    private Date currentPasswordSetDate;
+    @ManyToMany
+    private List<Role> roles;
+
+    private transient boolean needToChangePassword;
 
     public String getName() {
         return name;
@@ -111,5 +118,34 @@ public class UserBase extends AEntity {
 
     public boolean isFirstLogin() {
         return firstLogin;
+    }
+
+    public Date getCurrentPasswordSetDate() {
+        return currentPasswordSetDate;
+    }
+
+    public void setCurrentPasswordSetDate(Date currentPasswordSetDate) {
+        this.currentPasswordSetDate = currentPasswordSetDate;
+    }
+
+    public String getRoleDescription() {
+        return String.join((CharSequence) roles.stream().map(Role::getLocalizedRole).collect(Collectors.toList()), ", ");
+    }
+
+
+    public String getFullName() {
+        return String.format("%s %s", lastname, name);
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
+
+    public boolean isNeedToChangePassword() {
+        return needToChangePassword;
+    }
+
+    public void setNeedToChangePassword(boolean needToChangePassword) {
+        this.needToChangePassword = needToChangePassword;
     }
 }
