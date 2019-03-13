@@ -18,15 +18,11 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.security.PasswordUtils;
-import applica.framework.security.Security;
-import applica.framework.security.authorization.AuthorizationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -82,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         String activationCode = UUID.randomUUID().toString();
-        String encodedPassword = new BCryptPasswordEncoder().encode(password);
+        String encodedPassword = encryptAndGetPassword(password);
 
         User user = new User();
         user.setName(name);
@@ -125,8 +121,7 @@ public class AccountServiceImpl implements AccountService {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
 
         String newPassword = PasswordUtils.generateRandom();
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(newPassword);
+        String encodedPassword = encryptAndGetPassword(newPassword);
         user.setPassword(encodedPassword);
 
         usersRepository.save(user);
@@ -184,12 +179,111 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public void changePassword(String password, String passwordConfirm) throws ValidationException {
-        Validation.validate(new PasswordChange(password, passwordConfirm));
-        User loggedUser = (User) Security.withMe().getLoggedUser();
-        ((User) loggedUser).setFirstLogin(false);
-        loggedUser.setPassword(new BCryptPasswordEncoder().encode(password));
-        usersRepository.save(loggedUser);
+    public void changePassword(User user, String password, String passwordConfirm) throws ValidationException, MailNotFoundException {
+        if (user == null)
+            throw new MailNotFoundException();
+        Validation.validate(new PasswordChange(user, password, passwordConfirm));
+
+        //Salvo la vecchia password (criptata) nello storico di quelle modificate dall'utente
+        String previousPassword = user.getPassword();
+
+        user.setCurrentPasswordSetDate(new Date());
+        user.setPassword(encryptAndGetPassword(password));
+        usersRepository.save(user);
+
+        new Thread(()-> {
+            Repo.of(UserPassword.class).save(new UserPassword(previousPassword, user.getSid()));
+        }).start();
+    }
+
+    @Override
+    public String encryptAndGetPassword(String password) {
+        password = password + "{" + options.get("password.salt") + "}";
+
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] array = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte anArray : array) {
+                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100), 1, 3);
+            }
+
+            return sb.toString();
+
+        } catch (java.security.NoSuchAlgorithmException ignored) {
+
+        }
+        return "";
+    }
+
+    @Override
+    public boolean needToChangePassword(applica.framework.security.User user) {
+        Calendar threeMonthAgo = Calendar.getInstance();
+        threeMonthAgo.add(Calendar.MONTH, -1 * getPasswordDuration());
+        return ((User) user).getCurrentPasswordSetDate() == null || ((User) user).getCurrentPasswordSetDate().before(threeMonthAgo.getTime());
+    }
+
+    @Override
+    public void deactivateInactiveUsers() {
+        Calendar sixMonthAgo = Calendar.getInstance();
+        //TODO: parametrizzare questo valore?
+        sixMonthAgo.add(Calendar.MONTH, -6);
+        Repo.of(User.class).find(Query.build().lte(Filters.LAST_LOGIN, sixMonthAgo.getTime())).getRows().forEach(u -> {
+            u.setActive(false);
+            Repo.of(User.class).save(u);
+        });
+    }
+
+
+    private int getPasswordDuration() {
+        return Integer.parseInt(options.get("password.duration"));
+    }
+
+    @Override
+    public boolean hasPasswordSetBefore(Object userId, String encryptedPassword, Integer changesToConsider) {
+        Query query = Query.build().eq(Filters.USER_ID, userId).sort(Filters.CREATION_DATE, true);
+        if (changesToConsider != null) {
+            query.setPage(1);
+            query.setRowsPerPage(changesToConsider);
+        }
+
+        return Repo.of(UserPassword.class).find(query).getRows().stream().filter(p -> Objects.equals(encryptedPassword, p.getPassword())).collect(Collectors.toList()).size() > 0;
+    }
+    @Override
+    public PasswordRecoveryCode getPasswordRecoverForUser(String userId) {
+        return Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.USER_ID, userId)).findFirst().orElse(null);
+    }
+
+    @Override
+    public PasswordRecoveryCode getPasswordRecoveryCode(String code) {
+        return Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.CODE, code)).findFirst().orElse(null);
+    }
+
+    @Override
+    public void deletePasswordRecoveryCode(PasswordRecoveryCode code) {
+        Repo.of(PasswordRecoveryCode.class).delete(code.getSid());
+    }
+
+    @Override
+    public void savePasswordRecoveryCode(PasswordRecoveryCode passwordRecoveryCode) {
+        Repo.of(PasswordRecoveryCode.class).save(passwordRecoveryCode);
+    }
+
+    @Override
+    public void validateRecoveryCode(String mail, String code, boolean deleteRecord) throws MailNotFoundException, CodeNotValidException {
+        User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
+        PasswordRecoveryCode passwordRecoveryCode = Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.USER_ID, user.getSid()).eq(Filters.CODE, code.toUpperCase())).findFirst().orElseThrow(CodeNotValidException::new);
+        if (deleteRecord)
+            Repo.of(PasswordRecoveryCode.class).delete(passwordRecoveryCode.getId());
+    }
+
+    @Override
+    public void resetPassword(String mail, String code, String password, String passwordConfirm) throws MailNotFoundException, CodeNotValidException, ValidationException {
+        validateRecoveryCode(mail, code, false);
+        User user = userService.getUserByMails(Arrays.asList(mail)).get(0);
+        changePassword(user, password, passwordConfirm);
+        PasswordRecoveryCode passwordRecoveryCode = getPasswordRecoveryCode(code);
+        deletePasswordRecoveryCode(passwordRecoveryCode);
     }
 
 }
