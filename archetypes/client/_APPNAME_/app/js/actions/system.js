@@ -9,8 +9,6 @@ export const systemInformation = createAsyncAction(SYSTEM_INFORMATIONS, data => 
 
     SystemApi.getSystemInfos()
         .then(response => {
-
-            debugger
             let systemInfos = {}
             systemInfos.backendVersion = config.backendVersion
             systemInfos.apiVersion = response.value.apiVersion

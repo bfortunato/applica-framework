@@ -24,10 +24,11 @@ import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.operations.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.*;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.config.TaskManagementConfigUtils;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -39,6 +40,7 @@ import java.util.Locale;
  * Created by bimbobruno on 14/11/2016.
  */
 @Configuration
+@Primary
 public class ApplicationConfiguration implements WebMvcConfigurer {
 
     private Log logger = LogFactory.getLog(getClass());
@@ -180,6 +182,15 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
+
+    /*
+    @Conditional(SchedulerCondition.class)
+    @Bean(name = TaskManagementConfigUtils.SCHEDULED_ANNOTATION_PROCESSOR_BEAN_NAME)
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    public ScheduledAnnotationBeanPostProcessor scheduledAnnotationProcessor() {
+        return new ScheduledAnnotationBeanPostProcessor();
+    }
+    */
 
     /*
     //Start Revision beans

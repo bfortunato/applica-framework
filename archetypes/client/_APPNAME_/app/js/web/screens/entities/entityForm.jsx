@@ -42,7 +42,7 @@ export default class EntityForm extends Screen {
 
         this.setState({isCreation: this.props.entityId == "new"});
         getEntity({discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId, params: this.props.params})
-        checkRevisionEnableStatus({discriminator: this.discriminator, entity: this.props.entity})
+        //checkRevisionEnableStatus({discriminator: this.discriminator, entity: this.props.entity})
     }
 
     goToRevision() {

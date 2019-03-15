@@ -128,11 +128,6 @@ public class UserBase extends AEntity {
         this.currentPasswordSetDate = currentPasswordSetDate;
     }
 
-    public String getRoleDescription() {
-        return String.join((CharSequence) roles.stream().map(Role::getLocalizedRole).collect(Collectors.toList()), ", ");
-    }
-
-
     public String getFullName() {
         return String.format("%s %s", lastname, name);
     }

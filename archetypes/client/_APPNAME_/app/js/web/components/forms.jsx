@@ -2,7 +2,7 @@
 
 import M from "../../strings"
 import {Actions, Card} from "./common"
-import {format, optional} from "../../../utils/lang"
+import {format, optional, diff} from "../../../utils/lang"
 import {Observable} from "../../../aj/events"
 import {ActionsCell, Grid, resultToGridData} from "./grids"
 import * as query from "../../api/query"

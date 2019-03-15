@@ -22,7 +22,6 @@
     "animate.css": "^3.5.2",
     "bootstrap-select": "^1.12.2",
     "farbtastic": "^2.0.0-alpha.1",
-
     "moment" : "2.20.1",
     "eonasdan-bootstrap-datetimepicker" : "4.17.37",
     "install": "~1.0.4",

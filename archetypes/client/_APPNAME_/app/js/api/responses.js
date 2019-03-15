@@ -89,14 +89,22 @@ messages["it"][ERROR_WAREHOUSE_NOT_FOUND]                   = "Magazzino non tro
 messages["it"][ERROR_DOCUMENT_NOT_FOUND]                    = "Documento non trovato"
 
 export function msg(response) {
-    if (response.message)
-        return response.message;
+	let responseCode = null;
 
-    if (_.has(messages[getLanguage()], response.responseCode )) {
-        return messages[getLanguage()][response.responseCode]
+	if (typeof(response) === "object") {
+	    if (response.message)
+	        return response.message;
+
+	    responseCode = response.responseCode;
+	} else {
+		responseCode = response;
+	}
+
+ 	if (_.has(messages[getLanguage()], responseCode )) {
+        return messages[getLanguage()][responseCode]
     }
 
-    return "Errore n. " + response.responseCode
+    return "Errore n. " + responseCode
 }
 
 /**

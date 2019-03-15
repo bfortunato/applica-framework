@@ -40,7 +40,7 @@ gulp.task("server", function () {
         var host = server.address().address;
         var port = server.address().port;
 
-        console.log("commodo web server listening at http://%s:%s", host, port)
+        console.log("Applica web server listening at http://%s:%s", host, port)
 
     })
 });

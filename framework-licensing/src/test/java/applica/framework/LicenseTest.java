@@ -7,6 +7,7 @@ import applica.framework.licensing.LicenseGenerationException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -15,11 +16,11 @@ public class LicenseTest {
     @Test
     public void testCrypo() throws Exception {
         Encryptor e = new Encryptor("bruno");
-        String enc = e.encrypt("bruno");
+        byte[] enc = e.encrypt("bruno".getBytes(StandardCharsets.UTF_8));
 
-        System.out.println(enc);
+        System.out.println(enc.toString());
 
-        Assert.assertEquals("bruno", e.decrypt(enc));
+        Assert.assertEquals("bruno", new String(e.decrypt(enc), StandardCharsets.UTF_8));
     }
 
     @Test

@@ -13,7 +13,7 @@ import entities from "../../entities";
 import * as ui from "../../utils/ui";
 import {Permission} from "../../../api/session";
 
-export default class AbstractEntitiesGrid  extends Screen {
+export default class AbstractEntitiesGrid extends Screen {
     constructor(props) {
         super(props)
 
@@ -39,7 +39,6 @@ export default class AbstractEntitiesGrid  extends Screen {
     }
 
     componentDidMount() {
-        debugger
         loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query})
     }
 
@@ -48,7 +47,6 @@ export default class AbstractEntitiesGrid  extends Screen {
     }
 
     onQueryChanged() {
-        debugger
         loadEntities({discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query})
     }
 
@@ -110,8 +108,6 @@ export default class AbstractEntitiesGrid  extends Screen {
                 deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
             })
             .catch((e) => {logger.i(e)})
-    }
- }
     }
 
     onGridRowDoubleClick(row) {
@@ -226,7 +222,7 @@ export default class AbstractEntitiesGrid  extends Screen {
                     data={data}
                     hideFilters={this.hideFilters()}
                     query={this.state.query}
-                    onKeyDown={this.onGridKeyDown.bind(this)}
+                    //onKeyDown={this.onGridKeyDown.bind(this)}
                     onRowDoubleClick={this.onGridRowDoubleClick.bind(this)}
                     quickSearchEnabled={this.isQuickSearchEnabled()}
                 />

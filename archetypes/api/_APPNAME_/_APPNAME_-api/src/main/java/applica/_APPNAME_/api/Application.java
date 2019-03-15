@@ -1,12 +1,9 @@
 package applica._APPNAME_.api;
 
-import applica._APPNAME_.api.configuration.ApplicationConfiguration;
-import applica._APPNAME_.api.configuration.ApplicationInitializer;
-import applica._APPNAME_.api.configuration.MongoConfiguration;
-import applica._APPNAME_.api.configuration.SecurityConfiguration;
+import applica._APPNAME_.api.configuration.*;
 import applica._APPNAME_.domain.model.Filters;
-import applica._APPNAME_.domain.model.User;
 import applica.framework.AEntity;
+import applica.framework.ApplicationContextProvider;
 import applica.framework.EntitiesScanner;
 import applica.framework.security.authorization.Permissions;
 import applica.framework.widgets.entities.EntitiesRegistry;
@@ -15,9 +12,11 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.*;
+import org.springframework.boot.autoconfigure.web.servlet.*;
+import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -39,13 +38,12 @@ import static applica.framework.security.authorization.BaseAuthorizationService.
 @ComponentScan("applica._APPNAME_.api")
 @Import({
         DispatcherServletAutoConfiguration.class,
-        EmbeddedServletContainerAutoConfiguration.class,
         ErrorMvcAutoConfiguration.class,
         HttpEncodingAutoConfiguration.class,
         HttpMessageConvertersAutoConfiguration.class,
         JacksonAutoConfiguration.class,
-        ServerPropertiesAutoConfiguration.class,
         PropertyPlaceholderAutoConfiguration.class,
+        ServletWebServerFactoryAutoConfiguration.class,
         WebMvcAutoConfiguration.class,
         ApplicationConfiguration.class,
         MongoConfiguration.class,
@@ -56,6 +54,9 @@ public class Application implements InitializingBean {
     static {
         AEntity.strategy = AEntity.IdStrategy.String;
     }
+
+    @Autowired
+    private ApplicationContextProvider applicationContextProvider;
 
     @Autowired
     private ApplicationInitializer applicationInitializer;

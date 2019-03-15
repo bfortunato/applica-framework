@@ -6,6 +6,7 @@ import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.data.UsersRepository;
 import applica._APPNAME_.domain.model.*;
 import applica._APPNAME_.services.authorizations.AuthorizationContexts;
+import applica.framework.ApplicationContextProvider;
 import applica.framework.Query;
 import applica.framework.data.mongodb.MongoHelper;
 import applica.framework.library.options.OptionsManager;
@@ -60,8 +61,8 @@ public class ApplicationInitializer {
         if (revisionService != null)
             revisionService.disableRevisionForCurrentThread();
 
-        LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
-        LicenseManager.instance().mustBeValid();
+        //LicenseManager.instance().setUser(options.get("applica.framework.licensing.user"));
+        //LicenseManager.instance().mustBeValid();
 
         setupRoles();
         setupPermissions();
