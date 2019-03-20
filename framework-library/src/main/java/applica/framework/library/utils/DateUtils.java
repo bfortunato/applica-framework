@@ -870,10 +870,12 @@ public class DateUtils {
     //Condizione 1: la data iniziale dell'entità da cercare è compresa nell'intervallo startDate-endDate
     //Condizione 2: la data finale dell'entità è compresa nell'intervallo startDate-endDate
     //Condizione 3: data iniziale e finale dell'entità includono interamente l'intervallo startDate-endDate
+    //Condizione 4: data iniziale e finale dell'entità sono incluse interamente interamente l'intervallo startDate-endDate
     public static boolean areRangesOverlapped(Date start1, Date end1, Date start2, Date end2) {
         return (start1.compareTo(start2) >= 0 && (start1.compareTo(end2) <= 0) ||
                 (end1.compareTo(start2) >= 0 && end1.compareTo(end2) <= 0) ||
-                (start1.compareTo(start2) <= 0 && end1.compareTo(end2) >= 0));
+                (start1.compareTo(start2) <= 0 && end1.compareTo(end2) >= 0) ||
+                (start2.compareTo(start1) <= 0 && end2.compareTo(end1) >= 0));
     }
 }
 
