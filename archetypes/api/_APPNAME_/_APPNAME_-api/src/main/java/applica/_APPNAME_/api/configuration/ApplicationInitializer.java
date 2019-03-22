@@ -71,7 +71,7 @@ public class ApplicationInitializer {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, DEFAULT_ADMIN_USERNAME)).findFirst().orElse(null);
         if (user == null) {
             user = new User();
-            String encodedPassword = new BCryptPasswordEncoder().encode("applica");
+            String encodedPassword =  accountFacade.encryptAndGetPassword("applica");
             user.setMail("admin@applica.guru");
             user.setPassword(encodedPassword);
             user.setName("admin");
