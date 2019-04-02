@@ -6,7 +6,7 @@ package applica._APPNAME_.domain.model.base;
 
 import applica._APPNAME_.domain.model.Role;
 import applica.framework.AEntity;
-import applica.framework.annotations.ManyToMany;
+import applica.framework.cli.annotations.ManyToMany;
 
 import java.util.Calendar;
 import java.util.Date;

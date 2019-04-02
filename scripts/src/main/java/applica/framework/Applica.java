@@ -1,7 +1,7 @@
 package applica.framework;
 
-import applica.framework.modules.CommandLineParser;
-import applica.framework.modules.Modules;
+import applica.framework.cli.CommandLineParser;
+import applica.framework.cli.Modules;
 import org.springframework.util.StringUtils;
 
 public class Applica {
@@ -34,7 +34,7 @@ public class Applica {
             return;
         }
 
-        Modules.instance().scan();
+        Modules.instance().scan(Applica.class.getPackage());
 
         CommandLineParser parser = new CommandLineParser();
         try {

@@ -4,7 +4,7 @@ define('actions/account.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.confirmAccount = exports.setActivationCode = exports.recoverAccount = exports.register = undefined;
+exports.changePassword = exports.resetUserPassword = exports.resetPassword = exports.validateRecoveryCode = exports.requestRecoveryCode = exports.confirmAccount = exports.setActivationCode = exports.recoverAccount = exports.register = undefined;
 
 var _index = require("../aj/index");
 
@@ -120,6 +120,132 @@ var confirmAccount = exports.confirmAccount = (0, _ajex.createAsyncAction)(_type
         confirmAccount.fail();
     });
 });
+
+var requestRecoveryCode = exports.requestRecoveryCode = (0, _ajex.createAsyncAction)(_types.REQUEST_RECOVERY_CODE, function (data) {
+    if (_.isEmpty(data.mail)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
+        return;
+    }
+    (0, _plugins.showLoader)();
+    AccountApi.requestRecoveryCode(data.mail).then(function (resp) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("congratulations"), (0, _lang.format)((0, _strings2.default)("recoveryCodeSent"), data.mail));
+
+        requestRecoveryCode.complete({
+            mail: data.mail
+        });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        requestRecoveryCode.fail();
+    });
+});
+
+var validateRecoveryCode = exports.validateRecoveryCode = (0, _ajex.createAsyncAction)(_types.VALIDATE_RECOVERY_CODE, function (data) {
+    if (_.isEmpty(data.mail)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
+        return;
+    }
+    if (_.isNull(data.code) || _.isUndefined(data.code) || data.code.length === 0) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("validationCodeRequired"), "warning");
+        return;
+    }
+    var codeSize = 5;
+    if (data.code.length !== codeSize) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _lang.format)((0, _strings2.default)("validationCodeLengthMismatch"), codeSize), "warning");
+        return;
+    }
+    (0, _plugins.showLoader)();
+    AccountApi.validateRecoveryCode(data.mail, data.code).then(function (resp) {
+        (0, _plugins.hideLoader)();
+        validateRecoveryCode.complete({
+            mail: data.mail,
+            code: data.code
+        });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
+
+        validateRecoveryCode.fail();
+    });
+});
+
+var resetPassword = exports.resetPassword = (0, _ajex.createAsyncAction)(_types.RESET_PASSWORD, function (data) {
+    if (_.isEmpty(data.mail)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailRequired"), "warning");
+        return;
+    }
+    if (_.isNull(data.code) || _.isUndefined(data.code) || data.code.length === 0) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("validationCodeRequired"), "warning");
+        return;
+    }
+    var codeSize = 5;
+    if (data.code.length !== codeSize) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _lang.format)((0, _strings2.default)("validationCodeLengthMismatch"), codeSize), "warning");
+        return;
+    }
+    if (_.isEmpty(data.password) | _.isUndefined(data.password) | _.isNull(data.password)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("passwordRequired"), "warning");
+        return;
+    }
+    if (_.isEmpty(data.passwordConfirm) | _.isUndefined(data.passwordConfirm) | _.isNull(data.passwordConfirm)) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("passwordConfirmRequired"), "warning");
+        return;
+    }
+    if (data.password !== data.passwordConfirm) {
+        (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("passwordConfirmMismatch"), "warning");
+        return;
+    }
+    (0, _plugins.showLoader)();
+    AccountApi.resetPassword(data.mail, data.code, data.password, data.passwordConfirm).then(function (resp) {
+        (0, _plugins.hideLoader)();
+        resetPassword.complete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)("Attenzione!", responses.msg(e));
+        resetPassword.fail();
+    });
+});
+
+var resetUserPassword = exports.resetUserPassword = (0, _ajex.createAsyncAction)(_types.RESET_USER_PASSWORD, function (data) {
+
+    aj.dispatch({
+        type: _types.RESET_USER_PASSWORD
+    });
+
+    (0, _plugins.showLoader)();
+    AccountApi.resetUserPassword(data.id).then(function (response) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.toast)((0, _strings2.default)("passwordSuccessfulChanged"));
+        resetUserPassword.complete();
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)("Attenzione!", responses.msg(e));
+        resetUserPassword.fail();
+    });
+});
+
+var changePassword = exports.changePassword = (0, _ajex.createAsyncAction)(_types.CHANGE_PASSWORD, function (data) {
+
+    aj.dispatch({
+        type: _types.CHANGE_PASSWORD
+    });
+
+    (0, _plugins.showLoader)();
+    AccountApi.changePassword(data.password, data.passwordConfirm).then(function (response) {
+        (0, _plugins.hideLoader)();
+        SessionApi.updateUserPassword(data.password);
+        SessionApi.updateLoggedUser(response.value.user);
+        SessionApi.updateSessionToken(response.value.token);
+        (0, _plugins.toast)((0, _strings2.default)("passwordSuccessfulChanged"));
+        changePassword.complete({ firstLogin: false, user: response.value.user });
+    }).catch(function (e) {
+        (0, _plugins.hideLoader)();
+        (0, _plugins.alert)("Attenzione!", responses.msg(e));
+        changePassword.fail({ firstLogin: null });
+    });
+});
 });
 define('actions/entities.js', function(module, exports) {
 /** Entities **/
@@ -128,7 +254,7 @@ define('actions/entities.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.freeSelect = exports.getSelectValues = exports.getSelectEntities = exports.freeLookup = exports.getLookupValues = exports.getLookupResult = exports.freeEntities = exports.getEntity = exports.newEntity = exports.saveEntity = exports.deleteEntities = exports.loadEntities = exports.getGrid = undefined;
+exports.checkRevisionEnableStatus = exports.freeSettingValues = exports.updateMultivalueSettings = exports.setMultivalueSettings = exports.freeSelect = exports.getSelectValues = exports.getSelectEntities = exports.freeLookup = exports.getLookupValues = exports.getLookupResult = exports.freeEntities = exports.getEntity = exports.newEntity = exports.saveEntity = exports.deleteEntities = exports.loadEntities = exports.getGrid = undefined;
 
 var _index = require("../aj/index");
 
@@ -165,6 +291,8 @@ var ValuesApi = _interopRequireWildcard(_values);
 var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
+
+var _ui = require("./ui");
 
 var _types = require("./types");
 
@@ -296,8 +424,8 @@ var saveEntity = exports.saveEntity = (0, _ajex.createAsyncAction)(_types.SAVE_E
 
         if (data.entity == "user") {
             if (SessionApi.getLoggedUser() != null && SessionApi.getLoggedUser().id == data.data.id) {
-                getUserProfileImage();
-                getUserCoverImage();
+                (0, _ui.getUserProfileImage)();
+                (0, _ui.getUserCoverImage)();
             }
         }
     }).catch(function (r) {
@@ -345,7 +473,7 @@ var getEntity = exports.getEntity = (0, _ajex.createAsyncAction)(_types.GET_ENTI
         discriminator: data.discriminator
     });
 
-    EntitiesApi.get(data.entity, data.id).then(function (response) {
+    EntitiesApi.get(data.entity, data.id, data.params).then(function (response) {
         (0, _plugins.hideLoader)();
         getEntity.complete({ data: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
@@ -406,7 +534,7 @@ var getLookupValues = exports.getLookupValues = (0, _ajex.createAsyncAction)(_ty
         discriminator: data.discriminator
     });
 
-    ValuesApi.load(data.collection, data.keyword).then(function (response) {
+    ValuesApi.load(data.collection, data.keyword, { page: data.page, rowsPerPage: data.rowsPerPage }).then(function (response) {
         getLookupValues.complete({ values: response.value, discriminator: data.discriminator });
     }).catch(function (e) {
         (0, _plugins.alert)((0, _strings2.default)("ooops"), responses.msg(e), "error");
@@ -480,6 +608,46 @@ var freeSelect = exports.freeSelect = aj.createAction(_types.FREE_SELECT, functi
         discriminator: data.discriminator
     });
 });
+
+var setMultivalueSettings = exports.setMultivalueSettings = aj.createAction(_types.SET_MULTIVALUE_SETTINGS, function (data) {
+
+    aj.dispatch({
+        type: _types.SET_MULTIVALUE_SETTINGS,
+        items: data.items,
+        discriminator: data.discriminator
+    });
+});
+
+var updateMultivalueSettings = exports.updateMultivalueSettings = aj.createAction(_types.UPDATE_MULTIVALUE_SETTINGS, function (data) {
+
+    aj.dispatch({
+        type: _types.UPDATE_MULTIVALUE_SETTINGS,
+        itemType: data.itemType,
+        enabled: data.enabled,
+        discriminator: data.discriminator
+    });
+});
+
+var freeSettingValues = exports.freeSettingValues = aj.createAction(_types.FREE_SETTINGS_VALUES, function (data) {
+    aj.dispatch({
+        type: _types.FREE_SETTINGS_VALUES,
+        discriminator: data.discriminator
+    });
+});
+
+var checkRevisionEnableStatus = exports.checkRevisionEnableStatus = (0, _ajex.createAsyncAction)(_types.CHECK_REVISION_ENABLE_STATUS, function (data) {
+
+    aj.dispatch({
+        type: _types.CHECK_REVISION_ENABLE_STATUS,
+        discriminator: data.discriminator
+    });
+
+    EntitiesApi.checkRevisionEnableStatus(data.entity).then(function (response) {
+        checkRevisionEnableStatus.complete({ revisionEnabled: response.value, discriminator: data.discriminator });
+    }).catch(function (e) {
+        checkRevisionEnableStatus.fail({ discriminator: data.discriminator });
+    });
+});
 });
 define('actions/menu.js', function(module, exports) {
 "use strict";
@@ -487,11 +655,19 @@ define('actions/menu.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.expandMenuItem = exports.EXPAND_MENU_ITEM = exports.setActiveMenuItem = exports.SET_ACTIVE_MENU_ITEM = exports.setupMenu = exports.SETUP_MENU = undefined;
+exports.expandMenuItem = exports.setActiveMenuItem = exports.setupMenu = exports.SETUP_MENU = undefined;
 
 var _index = require("../aj/index");
 
 var aj = _interopRequireWildcard(_index);
+
+var _types = require("./types");
+
+var _menu = require("../model/menu");
+
+var _menu2 = _interopRequireDefault(_menu);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -499,22 +675,21 @@ var SETUP_MENU = exports.SETUP_MENU = "SETUP_MENU";
 var setupMenu = exports.setupMenu = aj.createAction(SETUP_MENU, function (data) {
     aj.dispatch({
         type: SETUP_MENU,
-        menu: data.menu
+        user: data.user,
+        menu: _menu2.default
     });
 });
 
-var SET_ACTIVE_MENU_ITEM = exports.SET_ACTIVE_MENU_ITEM = "SET_ACTIVE_MENU_ITEM";
-var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(SET_ACTIVE_MENU_ITEM, function (data) {
+var setActiveMenuItem = exports.setActiveMenuItem = aj.createAction(_types.SET_ACTIVE_MENU_ITEM, function (data) {
     aj.dispatch({
-        type: SET_ACTIVE_MENU_ITEM,
+        type: _types.SET_ACTIVE_MENU_ITEM,
         item: data.item
     });
 });
 
-var EXPAND_MENU_ITEM = exports.EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM";
-var expandMenuItem = exports.expandMenuItem = aj.createAction(EXPAND_MENU_ITEM, function (data) {
+var expandMenuItem = exports.expandMenuItem = aj.createAction(_types.EXPAND_MENU_ITEM, function (data) {
     aj.dispatch({
-        type: EXPAND_MENU_ITEM,
+        type: _types.EXPAND_MENU_ITEM,
         item: data.item
     });
 });
@@ -525,7 +700,7 @@ define('actions/session.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.logout = exports.LOGOUT = exports.resumeSession = exports.RESUME_SESSION = exports.login = exports.LOGIN = undefined;
+exports.logout = exports.resumeSession = exports.login = undefined;
 
 var _index = require("../aj/index");
 
@@ -537,17 +712,7 @@ var _session = require("../api/session");
 
 var SessionApi = _interopRequireWildcard(_session);
 
-var _account = require("../api/account");
-
-var AccountApi = _interopRequireWildcard(_account);
-
-var _responses = require("../api/responses");
-
-var responses = _interopRequireWildcard(_responses);
-
 var _plugins = require("../plugins");
-
-var _lang = require("../utils/lang");
 
 var _strings = require("../strings");
 
@@ -557,19 +722,24 @@ var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
+var _types = require("./types");
+
+var _ui = require("./ui");
+
+var _menu = require("./menu");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var LOGIN = exports.LOGIN = "LOGIN";
-var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) {
+var login = exports.login = (0, _ajex.createAsyncAction)(_types.LOGIN, function (data) {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
         (0, _plugins.alert)((0, _strings2.default)("problemOccoured"), (0, _strings2.default)("mailAndPasswordRequired"), "warning");
         return;
     }
 
     aj.dispatch({
-        type: LOGIN
+        type: _types.LOGIN
     });
 
     (0, _plugins.showLoader)();
@@ -578,9 +748,7 @@ var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) 
         (0, _plugins.toast)((0, _strings2.default)("welcome") + " " + user.name);
 
         login.complete({ user: user });
-
-        getUserProfileImage();
-        getUserCoverImage();
+        performLoginUserAction(user);
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
         (0, _plugins.alert)((0, _strings2.default)("ooops"), (0, _strings2.default)("badLogin"), "error");
@@ -589,10 +757,17 @@ var login = exports.login = (0, _ajex.createAsyncAction)(LOGIN, function (data) 
     });
 });
 
-var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
-var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_SESSION, function (data) {
+function performLoginUserAction(user) {
+    if (user) {
+        (0, _menu.setupMenu)({ user: user });
+    }
+    (0, _ui.getUserProfileImage)();
+    (0, _ui.getUserCoverImage)();
+}
+
+var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(_types.RESUME_SESSION, function (data) {
     aj.dispatch({
-        type: RESUME_SESSION
+        type: _types.RESUME_SESSION
     });
 
     SessionApi.resume().then(function (user) {
@@ -600,8 +775,7 @@ var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_
         (0, _plugins.toast)((0, _strings2.default)("welcome") + " " + user.name);
 
         resumeSession.complete({ user: user });
-        getUserProfileImage();
-        getUserCoverImage();
+        performLoginUserAction(user);
     }).catch(function (e) {
         (0, _plugins.hideLoader)();
 
@@ -609,13 +783,45 @@ var resumeSession = exports.resumeSession = (0, _ajex.createAsyncAction)(RESUME_
     });
 });
 
-var LOGOUT = exports.LOGOUT = "LOGOUT";
-var logout = exports.logout = aj.createAction(LOGOUT, function (data) {
+var logout = exports.logout = aj.createAction(_types.LOGOUT, function (data) {
     SessionApi.destroy().then(function () {
         aj.dispatch({
-            type: LOGOUT
+            type: _types.LOGOUT
         });
     });
+});
+});
+define('actions/system.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.systemInformation = undefined;
+
+var _types = require("./types");
+
+var _ajex = require("../utils/ajex");
+
+var _system = require("../api/system");
+
+var SystemApi = _interopRequireWildcard(_system);
+
+var _config = require("../config");
+
+var config = _interopRequireWildcard(_config);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var systemInformation = exports.systemInformation = (0, _ajex.createAsyncAction)(_types.SYSTEM_INFORMATIONS, function (data) {
+
+    SystemApi.getSystemInfos().then(function (response) {
+        var systemInfos = {};
+        systemInfos.backendVersion = config.backendVersion;
+        systemInfos.apiVersion = response.value.apiVersion;
+        systemInfos.copyrightInfos = config.copyrightInfos;
+        systemInformation.complete(systemInfos);
+    }).catch(function (e) {});
 });
 });
 define('actions/types.js', function(module, exports) {
@@ -629,6 +835,9 @@ var RESUME_SESSION = exports.RESUME_SESSION = "RESUME_SESSION";
 var LOGOUT = exports.LOGOUT = "LOGOUT";
 var REGISTER = exports.REGISTER = "REGISTER";
 var RECOVER_ACCOUNT = exports.RECOVER_ACCOUNT = "RECOVER_ACCOUNT";
+var REQUEST_RECOVERY_CODE = exports.REQUEST_RECOVERY_CODE = "REQUEST_RECOVERY_CODE";
+var RESET_PASSWORD = exports.RESET_PASSWORD = "RESET_PASSWORD";
+var VALIDATE_RECOVERY_CODE = exports.VALIDATE_RECOVERY_CODE = "VALIDATE_RECOVERY_CODE";
 var SET_ACTIVATION_CODE = exports.SET_ACTIVATION_CODE = "SET_ACTIVATION_CODE";
 var CONFIRM_ACCOUNT = exports.CONFIRM_ACCOUNT = "CONFIRM_ACCOUNT";
 
@@ -652,6 +861,15 @@ var EXPAND_MENU_ITEM = exports.EXPAND_MENU_ITEM = "EXPAND_MENU_ITEM";
 
 var GET_USER_COVER_IMAGE = exports.GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE";
 var GET_USER_PROFILE_IMAGE = exports.GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE";
+
+var RESET_USER_PASSWORD = exports.RESET_USER_PASSWORD = "RESET_USER_PASSWORD";
+var CHANGE_PASSWORD = exports.CHANGE_PASSWORD = "CHANGE_PASSWORD";
+var FREE_SETTINGS_VALUES = exports.FREE_SETTINGS_VALUES = "FREE_SETTINGS_VALUES";
+var UPDATE_MULTIVALUE_SETTINGS = exports.UPDATE_MULTIVALUE_SETTINGS = "UPDATE_MULTIVALUE_SETTINGS";
+var SET_MULTIVALUE_SETTINGS = exports.SET_MULTIVALUE_SETTINGS = "SET_MULTIVALUE_SETTINGS";
+var CHECK_REVISION_ENABLE_STATUS = exports.CHECK_REVISION_ENABLE_STATUS = "CHECK_REVISION_ENABLE_STATUS";
+
+var SYSTEM_INFORMATIONS = exports.SYSTEM_INFORMATIONS = "SYSTEM_INFORMATIONS";
 });
 define('actions/ui.js', function(module, exports) {
 "use strict";
@@ -659,7 +877,7 @@ define('actions/ui.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.getUserProfileImage = exports.GET_USER_PROFILE_IMAGE = exports.getUserCoverImage = exports.GET_USER_COVER_IMAGE = undefined;
+exports.getUserProfileImage = exports.getUserCoverImage = undefined;
 
 var _index = require("../aj/index");
 
@@ -675,17 +893,18 @@ var _account = require("../api/account");
 
 var AccountApi = _interopRequireWildcard(_account);
 
+var _types = require("./types");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var GET_USER_COVER_IMAGE = exports.GET_USER_COVER_IMAGE = "GET_USER_COVER_IMAGE";
-var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)(GET_USER_COVER_IMAGE, function (data) {
+var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)(_types.GET_USER_COVER_IMAGE, function (data) {
     var user = SessionApi.getLoggedUser();
     if (user == null) {
         return;
     }
 
     aj.dispatch({
-        type: GET_USER_COVER_IMAGE
+        type: _types.GET_USER_COVER_IMAGE
     });
 
     AccountApi.getCoverImage(user.id).then(function (data) {
@@ -695,15 +914,14 @@ var getUserCoverImage = exports.getUserCoverImage = (0, _ajex.createAsyncAction)
     });
 });
 
-var GET_USER_PROFILE_IMAGE = exports.GET_USER_PROFILE_IMAGE = "GET_USER_PROFILE_IMAGE";
-var getUserProfileImage = exports.getUserProfileImage = (0, _ajex.createAsyncAction)(GET_USER_PROFILE_IMAGE, function (data) {
+var getUserProfileImage = exports.getUserProfileImage = (0, _ajex.createAsyncAction)(_types.GET_USER_PROFILE_IMAGE, function (data) {
     var user = SessionApi.getLoggedUser();
     if (user == null) {
         return;
     }
 
     aj.dispatch({
-        type: GET_USER_PROFILE_IMAGE
+        type: _types.GET_USER_PROFILE_IMAGE
     });
 
     AccountApi.getProfileImage(user.id).then(function (data) {
@@ -2312,6 +2530,11 @@ exports.recover = recover;
 exports.confirm = confirm;
 exports.getCoverImage = getCoverImage;
 exports.getProfileImage = getProfileImage;
+exports.changePassword = changePassword;
+exports.resetUserPassword = resetUserPassword;
+exports.requestRecoveryCode = requestRecoveryCode;
+exports.validateRecoveryCode = validateRecoveryCode;
+exports.resetPassword = resetPassword;
 
 var _config = require("../framework/config");
 
@@ -2340,6 +2563,26 @@ function getCoverImage(userId) {
 function getProfileImage(userId) {
     return (0, _utils.get)(config.get("account.url") + "/" + userId + "/profile/image");
 }
+
+function changePassword(password, passwordConfirm) {
+    return (0, _utils.post)(config.get("account.url") + "/changePassword", { password: password ? password : "", passwordConfirm: passwordConfirm ? passwordConfirm : "" });
+}
+
+function resetUserPassword(id) {
+    return (0, _utils.post)(config.get("account.resetUserPassword.url"), { id: id });
+}
+
+function requestRecoveryCode(mail) {
+    return (0, _utils.post)(config.get("account.requestRecoveryCode.url"), { mail: mail });
+}
+
+function validateRecoveryCode(mail, code) {
+    return (0, _utils.post)(config.get("account.validateRecoveryCode.url"), { mail: mail, code: code });
+}
+
+function resetPassword(mail, code, password, passwordConfirm) {
+    return (0, _utils.post)(config.get("account.resetPassword.url"), { mail: mail, code: code, password: password, passwordConfirm: passwordConfirm });
+}
 });
 define('api/entities.js', function(module, exports) {
 "use strict";
@@ -2352,6 +2595,7 @@ exports.load = load;
 exports.delete_ = delete_;
 exports.save = save;
 exports.get = get;
+exports.checkRevisionEnableStatus = checkRevisionEnableStatus;
 
 var _config = require("../framework/config");
 
@@ -2424,8 +2668,13 @@ function save(entity, data) {
     });
 }
 
-function get(entity, id) {
+function get(entity, id, params) {
     var url = config.get("entities.url") + "/" + entity + "/" + id;
+    return utils.get(url, params);
+}
+
+function checkRevisionEnableStatus(entity) {
+    var url = config.get("revision.url") + "/checkStatus/" + entity;
     return utils.get(url);
 }
 });
@@ -2451,6 +2700,1014 @@ function getGrid(id) {
 }
 });
 define('api/query.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Query = exports.RANGE = exports.AND = exports.OR = exports.ID = exports.NIN = exports.IN = exports.EQ = exports.LTE = exports.LT = exports.GTE = exports.NE = exports.GT = exports.LIKE = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.create = create;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _events = require("../aj/events");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var LIKE = exports.LIKE = "like";
+var GT = exports.GT = "gt";
+var NE = exports.NE = "ne";
+var GTE = exports.GTE = "gte";
+var LT = exports.LT = "lt";
+var LTE = exports.LTE = "lte";
+var EQ = exports.EQ = "eq";
+var IN = exports.IN = "in";
+var NIN = exports.NIN = "nin";
+var ID = exports.ID = "id";
+var OR = exports.OR = "or";
+var AND = exports.AND = "and";
+var RANGE = exports.RANGE = "range";
+
+var Query = exports.Query = function (_Observable) {
+    _inherits(Query, _Observable);
+
+    function Query(init) {
+        _classCallCheck(this, Query);
+
+        var _this = _possibleConstructorReturn(this, (Query.__proto__ || Object.getPrototypeOf(Query)).call(this));
+
+        _this.page = 0;
+        _this.rowsPerPage = 0;
+        _this.sorts = [];
+        _this.filters = [];
+        _this.keyword = null;
+
+        _this.invokationEnabled = true;
+
+        _.assign(_this, init);
+        return _this;
+    }
+
+    _createClass(Query, [{
+        key: "live",
+        value: function live() {
+            this.invokationEnabled = true;
+        }
+    }, {
+        key: "die",
+        value: function die() {
+            this.invokationEnabled = false;
+        }
+    }, {
+        key: "filter",
+        value: function filter(type, property, value) {
+
+            if ((value === null || value === undefined) && _.any(this.filters, function (f) {
+                return f.property === property;
+            })) {
+                this.unfilter(property);
+                return this;
+            }
+
+            var current = _.find(this.filters, function (s) {
+                return s.property == property;
+            });
+            if (current) {
+                current.value = value;
+                current.type = type;
+            } else {
+                this.filters.push({ property: property, type: type, value: value });
+            }
+
+            this.invokeChange();
+
+            return this;
+        }
+    }, {
+        key: "unfilter",
+        value: function unfilter(property) {
+            this.filters = _.filter(this.filters, function (f) {
+                return f.property != property;
+            });
+
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "like",
+        value: function like(prop, value) {
+            this.filter(LIKE, prop, value);
+            return this;
+        }
+    }, {
+        key: "gt",
+        value: function gt(prop, value) {
+            this.filter(GT, prop, value);
+            return this;
+        }
+    }, {
+        key: "ne",
+        value: function ne(prop, value) {
+            this.filter(NE, prop, value);
+            return this;
+        }
+    }, {
+        key: "gte",
+        value: function gte(prop, value) {
+            this.filter(GTE, prop, value);
+            return this;
+        }
+    }, {
+        key: "lt",
+        value: function lt(prop, value) {
+            this.filter(LT, prop, value);
+            return this;
+        }
+    }, {
+        key: "lte",
+        value: function lte(prop, value) {
+            this.filter(LTE, prop, value);
+            return this;
+        }
+    }, {
+        key: "eq",
+        value: function eq(prop, value) {
+            this.filter(EQ, prop, value);
+            return this;
+        }
+    }, {
+        key: "in",
+        value: function _in(prop, value) {
+            this.filter(IN, prop, value);
+            return this;
+        }
+    }, {
+        key: "nin",
+        value: function nin(prop, value) {
+            this.filter(NE, prop, value);
+            return this;
+        }
+    }, {
+        key: "id",
+        value: function id(prop, value) {
+            this.filter(ID, prop, value);
+            return this;
+        }
+    }, {
+        key: "or",
+        value: function or(prop, value) {
+            this.filter(OR, prop, value);
+            return this;
+        }
+    }, {
+        key: "and",
+        value: function and(prop, value) {
+            this.filter(AND, prop, value);
+            return this;
+        }
+    }, {
+        key: "range",
+        value: function range(prop, value) {
+            this.filter(RANGE, prop, value);
+            return this;
+        }
+    }, {
+        key: "gt",
+        value: function gt(prop, value) {
+            this.filter(GT, prop, value);
+            return this;
+        }
+    }, {
+        key: "ne",
+        value: function ne(prop, value) {
+            this.filter(NE, prop, value);
+            return this;
+        }
+    }, {
+        key: "sort",
+        value: function sort(prop, descending) {
+            var current = _.find(this.sorts, function (s) {
+                return s.property == prop;
+            });
+            if (current) {
+                current.descending = descending;
+            } else {
+                this.sorts.push({ property: prop, descending: descending });
+            }
+
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "unsort",
+        value: function unsort(prop) {
+            this.sorts = _.filter(this.sorts, function (s) {
+                return s.property != prop;
+            });
+
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "clearFilters",
+        value: function clearFilters() {
+            this.filters = [];
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "setPage",
+        value: function setPage(page) {
+            this.page = page;
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "setRowsPerPage",
+        value: function setRowsPerPage(rowsPerPage) {
+            this.rowsPerPage = rowsPerPage;
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "setKeyword",
+        value: function setKeyword(newValue) {
+            this.keyword = newValue;
+            this.invokeChange();
+            return this;
+        }
+    }, {
+        key: "invokeChange",
+        value: function invokeChange() {
+            if (this.invokationEnabled) {
+                this.invoke("change");
+            }
+        }
+    }, {
+        key: "cleaned",
+        value: function cleaned() {
+            return {
+                page: this.page,
+                rowsPerPage: this.rowsPerPage,
+                sorts: this.sorts,
+                filters: this.filters,
+                keyword: this.keyword
+            };
+        }
+    }]);
+
+    return Query;
+}(_events.Observable);
+
+function create(init) {
+    var query = new Query(init);
+    return query;
+}
+});
+define('api/responses.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_ARTICLE_NOT_FOUND = exports.ERROR_INVALID_DATA = exports.ERROR_IO = exports.ERROR_ROLE_NOT_FOUND = exports.ERROR_CONNECTOR = exports.ERROR_CONSTRAINT_VIOLATION = exports.ERROR_USER_NOT_FOUND = exports.ERROR_NOT_FOUND = exports.ERROR_VALIDATION = exports.ERROR_PASSWORD_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = exports.ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_GENERATION = exports.ERROR_BAD_CREDENTIALS = exports.ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_ALREADY_EXISTS = exports.UNAUTHORIZED = exports.ERROR = exports.OK = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.msg = msg;
+exports.value = value;
+
+var _strings = require("../strings");
+
+var OK = exports.OK = 0;
+var ERROR = exports.ERROR = 1;
+var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
+
+var ERROR_MAIL_ALREADY_EXISTS = exports.ERROR_MAIL_ALREADY_EXISTS = 1001;
+var ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_NOT_FOUND = 1002;
+var ERROR_BAD_CREDENTIALS = exports.ERROR_BAD_CREDENTIALS = 1003;
+var ERROR_TOKEN_GENERATION = exports.ERROR_TOKEN_GENERATION = 1004;
+var ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_FORMAT = 1005;
+var ERROR_MAIL_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = 1006;
+var ERROR_PASSWORD_NOT_VALID = exports.ERROR_PASSWORD_NOT_VALID = 1007;
+var ERROR_VALIDATION = exports.ERROR_VALIDATION = 1008;
+var ERROR_NOT_FOUND = exports.ERROR_NOT_FOUND = 1009;
+var ERROR_USER_NOT_FOUND = exports.ERROR_USER_NOT_FOUND = 1010;
+var ERROR_CONSTRAINT_VIOLATION = exports.ERROR_CONSTRAINT_VIOLATION = 1011;
+var ERROR_CONNECTOR = exports.ERROR_CONNECTOR = 1012;
+var ERROR_ROLE_NOT_FOUND = exports.ERROR_ROLE_NOT_FOUND = 1013;
+var ERROR_IO = exports.ERROR_IO = 1014;
+var ERROR_INVALID_DATA = exports.ERROR_INVALID_DATA = 1015;
+var ERROR_ARTICLE_NOT_FOUND = exports.ERROR_ARTICLE_NOT_FOUND = 2001;
+var ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_INVALID_DEFAULT_ARTICLE = 2002;
+var ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_USER_COMPANY_NOT_SETTED = 2003;
+var ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = 2004;
+var ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = 2005;
+var ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = 3001;
+var ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = 4001;
+var ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_DOCUMENT_NOT_FOUND = 5001;
+
+var messages = {
+	en: {},
+
+	it: {}
+};
+
+messages["en"][OK] = "OK";
+messages["en"][ERROR] = "Generic error";
+messages["en"][ERROR_MAIL_ALREADY_EXISTS] = "Cannot register: mail already exists";
+messages["en"][ERROR_MAIL_NOT_FOUND] = "Mail not found";
+messages["en"][ERROR_BAD_CREDENTIALS] = "Cannot login: bad username or password";
+messages["en"][ERROR_TOKEN_GENERATION] = "Error generating token";
+messages["en"][ERROR_TOKEN_FORMAT] = "Bat token format";
+messages["en"][ERROR_MAIL_NOT_VALID] = "Invalid email";
+messages["en"][ERROR_PASSWORD_NOT_VALID] = "Password not valid";
+messages["en"][ERROR_VALIDATION] = "Validation error. Please control inserted data and retry";
+messages["en"][ERROR_NOT_FOUND] = "Not found";
+messages["en"][ERROR_USER_NOT_FOUND] = "User not found";
+messages["en"][ERROR_CONSTRAINT_VIOLATION] = "Constraint violation";
+messages["en"][ERROR_CONNECTOR] = "There is a problem retrieving data from Gamma";
+messages["en"][ERROR_ROLE_NOT_FOUND] = "Role not found";
+messages["en"][ERROR_IO] = "IO error";
+messages["en"][ERROR_INVALID_DATA] = "Invalid data";
+messages["en"][ERROR_ARTICLE_NOT_FOUND] = "Article not found";
+messages["en"][ERROR_INVALID_DEFAULT_ARTICLE] = "Invalid default article";
+messages["en"][ERROR_USER_COMPANY_NOT_SETTED] = "User company not setted";
+messages["en"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Cover component already exists";
+messages["en"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Cover component not configured";
+messages["en"][ERROR_CUSTOMER_NOT_FOUND] = "Customer not found";
+messages["en"][ERROR_WAREHOUSE_NOT_FOUND] = "Warehouse not found";
+messages["en"][ERROR_DOCUMENT_NOT_FOUND] = "Document not found";
+
+messages["it"][OK] = "OK";
+messages["it"][ERROR] = "Si è verificato un errore";
+messages["it"][ERROR_MAIL_ALREADY_EXISTS] = "Impossibile registrarsi: indirizzo email già presente";
+messages["it"][ERROR_MAIL_NOT_FOUND] = "Mail non trovata";
+messages["it"][ERROR_BAD_CREDENTIALS] = "Impossibile accedere: email o password errati";
+messages["it"][ERROR_TOKEN_GENERATION] = "Errore durante la generazione del token";
+messages["it"][ERROR_TOKEN_FORMAT] = "Formato del token non valido";
+messages["it"][ERROR_MAIL_NOT_VALID] = "Email non valida";
+messages["it"][ERROR_PASSWORD_NOT_VALID] = "Password non valida";
+messages["it"][ERROR_VALIDATION] = "Errore di validazione: ricontrollare i dati inseriti e riprovare";
+messages["it"][ERROR_NOT_FOUND] = "Non trovato";
+messages["it"][ERROR_USER_NOT_FOUND] = "Utente non trovato";
+messages["it"][ERROR_CONSTRAINT_VIOLATION] = "Impossibile proseguire. Esistono entità collegate che dipendono da questa entità";
+messages["it"][ERROR_CONNECTOR] = "Problema durante la comunicazione con Gamma";
+messages["it"][ERROR_ROLE_NOT_FOUND] = "Ruolo non trovato";
+messages["it"][ERROR_IO] = "IO error";
+messages["it"][ERROR_INVALID_DATA] = "Dati non validi";
+messages["it"][ERROR_ARTICLE_NOT_FOUND] = "Articolo non trovato";
+messages["it"][ERROR_INVALID_DEFAULT_ARTICLE] = "Articolo predefinito non trovato";
+messages["it"][ERROR_USER_COMPANY_NOT_SETTED] = "Azienda non configurata per l'utente corrente";
+messages["it"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Componente di tipo rivestimento già presente";
+messages["it"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Componente di tipo rivestimento non trovato";
+messages["it"][ERROR_CUSTOMER_NOT_FOUND] = "Cliente non trovato";
+messages["it"][ERROR_WAREHOUSE_NOT_FOUND] = "Magazzino non trovato";
+messages["it"][ERROR_DOCUMENT_NOT_FOUND] = "Documento non trovato";
+
+function msg(response) {
+	var responseCode = null;
+
+	if ((typeof response === "undefined" ? "undefined" : _typeof(response)) === "object") {
+		if (response.message) return response.message;
+
+		responseCode = response.responseCode;
+	} else {
+		responseCode = response;
+	}
+
+	if (_.has(messages[(0, _strings.getLanguage)()], responseCode)) {
+		return messages[(0, _strings.getLanguage)()][responseCode];
+	}
+
+	return "Errore n. " + responseCode;
+}
+
+/**
+ * Returns value of value responses. If o is a promise, a wrapped promise thar returns value will be returned
+ */
+function value(o) {
+	if (o instanceof Promise) {
+		return new Promise(function (resolve, reject) {
+			o.then(function (result) {
+				resolve(result.value);
+			}).catch(function (e) {
+				return reject(e);
+			});
+		});
+	} else {
+		if (_.isObject(o)) {
+			return o.value;
+		}
+	}
+
+	logger.w(o, "is not a value response");
+
+	return null;
+}
+});
+define('api/session.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Permission = exports.TYPE_FACEBOOK = exports.TYPE_MAIL = undefined;
+exports.login = login;
+exports.start = start;
+exports.resume = resume;
+exports.destroy = destroy;
+exports.getLoggedUser = getLoggedUser;
+exports.isLoggedIn = isLoggedIn;
+exports.getSessionToken = getSessionToken;
+exports.updateLoggedUser = updateLoggedUser;
+exports.updateUserPassword = updateUserPassword;
+exports.updateSessionToken = updateSessionToken;
+exports.isSuperuser = isSuperuser;
+exports.hasPermission = hasPermission;
+
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _preferences = require("../framework/preferences");
+
+var preferences = _interopRequireWildcard(_preferences);
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _lang = require("../utils/lang");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var _loggedUser = void 0;
+var _sessionToken = void 0;
+
+var TYPE_MAIL = exports.TYPE_MAIL = "MAIL";
+var TYPE_FACEBOOK = exports.TYPE_FACEBOOK = "FACEBOOK";
+
+var STOP_OBJ = {};
+
+function stop() {
+    return STOP_OBJ;
+}
+
+function wrap(r, fn) {
+    if (r == STOP_OBJ) {
+        return STOP_OBJ;
+    } else {
+        return fn(r);
+    }
+}
+
+function login(mail, password) {
+    return new Promise(function (resolve, reject) {
+        http.post(config.get("login.url"), { mail: mail, password: password }).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response.responseCode);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error logging in:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function start(mail, password) {
+    return new Promise(function (resolve, reject) {
+        _loggedUser = null;
+        _sessionToken = null;
+
+        var data = {};
+
+        preferences.load().then(function () {
+            return login(mail, password);
+        }).then(function (response) {
+            preferences.set("session.type", TYPE_MAIL);
+            preferences.set("session.mail", mail);
+            preferences.set("session.password", password);
+
+            _sessionToken = response.token;
+            console.log(_sessionToken);
+            _loggedUser = response.user;
+
+            return preferences.save();
+        }).then(function (r) {
+            resolve(_loggedUser);
+        }).catch(function (e) {
+            _loggedUser = null;
+            _sessionToken = null;
+
+            preferences.load().then(function () {
+                preferences.set("session.type", null);
+                preferences.set("session.mail", null);
+                preferences.set("session.password", null);
+                return preferences.save();
+            }).catch(function (e) {
+                logger.e(e);
+            });
+
+            reject(e);
+        });
+    });
+}
+
+function resume() {
+    return new Promise(function (resolve, reject) {
+        _loggedUser = null;
+        _sessionToken = null;
+
+        preferences.load().then(function () {
+            var type = preferences.get("session.type");
+            var mail = preferences.get("session.mail");
+            var password = preferences.get("session.password");
+
+            if (type == TYPE_MAIL && mail && password) {
+                return start(mail, password);
+            } else {
+                reject(responses.ERROR);
+                return stop();
+            }
+        }).then(function (r) {
+            return wrap(r, function () {
+                resolve(r);
+            });
+        }).catch(function (e) {
+            reject(e);
+        });
+    });
+}
+
+function destroy() {
+    _loggedUser = null;
+    _sessionToken = null;
+
+    return preferences.load().then(function () {
+        preferences.set("session.type", null);
+        preferences.set("session.mail", null);
+        preferences.set("session.password", null);
+        return preferences.save();
+    }).catch(function (e) {
+        logger.e(e);
+    });
+}
+
+function getLoggedUser() {
+    return _loggedUser;
+}
+
+function isLoggedIn() {
+    return _loggedUser != null;
+}
+
+function getSessionToken() {
+    return _sessionToken;
+}
+
+function updateLoggedUser(user) {
+    _loggedUser = user;
+}
+
+function updateUserPassword(password) {
+    preferences.set("session.password", password);
+    preferences.save();
+}
+
+function updateSessionToken(token) {
+    _sessionToken = token;
+}
+
+/**
+ * Check if user has permissions
+ * @param permissions --> array string ex: [document:list, document:new]
+ */
+
+function isSuperuser() {
+    return _.any((0, _lang.safeGet)(getLoggedUser(), "roles"), function (r) {
+        return _.any(r.permissions, function (p) {
+            return p === "admin:superuser";
+        });
+    });
+}
+
+function hasPermission(permissions) {
+    if (_.isEmpty(permissions) || isSuperuser()) return true;
+
+    return _.any((0, _lang.safeGet)(getLoggedUser(), "roles"), function (r) {
+        return _.intersection(r.permissions, permissions).length > 0;
+    });
+}
+
+var Permission = exports.Permission = {
+    LIST: "list",
+    NEW: "new",
+    EDIT: "edit",
+    DELETE: "delete",
+    SAVE: "save"
+};
+});
+define('api/system.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.getSystemInfos = getSystemInfos;
+
+var _config = require("../framework/config");
+
+var config = _interopRequireWildcard(_config);
+
+var _utils = require("./utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function getSystemInfos() {
+    return (0, _utils.get)(config.get("system.url") + "/version");
+}
+});
+define('api/utils.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.addToken = addToken;
+exports.post = post;
+exports.postJson = postJson;
+exports.get = get;
+exports.delete_ = delete_;
+
+var _http = require("../aj/http");
+
+var http = _interopRequireWildcard(_http);
+
+var _responses = require("./responses");
+
+var responses = _interopRequireWildcard(_responses);
+
+var _session = require("./session");
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function addToken(headers) {
+    if (!_.isEmpty((0, _session.getSessionToken)())) {
+        return _.assign(headers || {}, { "x-auth-token": (0, _session.getSessionToken)() });
+    } else {
+        return headers;
+    }
+}
+
+function post(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return new Promise(function (resolve, reject) {
+        http.post(url, data, addToken(headers)).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function postJson(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return new Promise(function (resolve, reject) {
+        var json = typeof data == "string" ? data : JSON.stringify(data);
+        headers = _.assign(headers, { "Content-Type": "application/json" });
+        http.post(url, json, addToken(headers)).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function get(url, data) {
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return new Promise(function (resolve, reject) {
+        http.get(url, data, addToken(headers)).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+
+function delete_(url, data, headers) {
+    return new Promise(function (resolve, reject) {
+        http.delete(url, data, addToken(headers)).then(function (json) {
+            if (_.isEmpty(json)) {
+                reject(responses.ERROR);
+            } else {
+                var response = JSON.parse(json);
+
+                if (responses.OK != response.responseCode) {
+                    reject(response);
+                } else {
+                    resolve(response);
+                }
+            }
+        }).catch(function (e) {
+            logger.e("Error in request:", e);
+            reject(responses.ERROR);
+        });
+    });
+}
+});
+define('api/values.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.loadEntities = loadEntities;
+exports.load = load;
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _lang = require("../utils/lang");
+
+var _query2 = require("../api/query");
+
+var query = _interopRequireWildcard(_query2);
+
+var _utils = require("./utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var aj = require("../aj");
+var http = require("../aj/http");
+
+var preferences = require("../framework/preferences");
+var config = require("../framework/config");
+
+function loadEntities(entity, _query) {
+    if (_.isEmpty(_query)) {
+        _query = query.create();
+    }
+    var url = config.get("values.entities.url") + "/" + entity;
+    return (0, _utils.get)(url, (0, _lang.flatten)(_query.cleaned()));
+}
+
+function load(collection, keyword) {
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    var url = config.get("values.url") + "/" + collection;
+    if (!_.isEmpty(keyword)) {
+        url += "?keyword=" + keyword;
+    }
+
+    var separator = "&";
+    if (url.indexOf("?") == -1) {
+        separator = "?";
+    }
+
+    var paramsString = "";
+    _.each(_.allKeys(params), function (k) {
+        paramsString += k + "=" + encodeURIComponent(params[k]) + "&";
+    });
+
+    if (!_.isEmpty(paramsString)) {
+        url += separator + paramsString;
+    }
+
+    return (0, _utils.get)(url);
+}
+});
+define('config.js', function(module, exports) {
+"use strict";
+
+var serviceBase = "http://localhost:8080/";
+
+function getVersion() {
+    return "1.0";
+}
+
+function getCopyright() {
+    return "Applica SRL, 2019";
+}
+
+module.exports = {
+    "service.url": "" + serviceBase,
+    "fs.url": serviceBase + "fs",
+    "login.url": serviceBase + "auth/login",
+    "account.url": serviceBase + "account",
+    "account.register.url": serviceBase + "account/register",
+    "account.recover.url": serviceBase + "account/recover",
+    "account.reset.url": serviceBase + "account/reset",
+    "account.confirm.url": serviceBase + "account/confirm",
+    "grids.url": serviceBase + "grids",
+    "entities.url": serviceBase + "entities",
+    "entities.delete.url": serviceBase + "entities/delete",
+    "values.url": serviceBase + "values",
+    "values.entities.url": serviceBase + "values/entities",
+    "account.requestRecoveryCode.url": serviceBase + "account/sendConfirmationCode",
+    "account.validateRecoveryCode.url": serviceBase + "account/validateRecoveryCode",
+    "account.resetPassword.url": serviceBase + "account/resetUserPassword",
+    "account.resetUserPassword.url": serviceBase + "account/resetPassword",
+    "system.url": serviceBase + "system",
+    "backendVersion": getVersion(),
+    "copyrightInfos": getCopyright()
+};
+});
+define('framework/config.js', function(module, exports) {
+"use strict";
+
+var config = require("../config");
+
+var _ = require("./../libs/underscore");
+
+exports.get = function (key) {
+    if (_.has(config, key)) {
+        return config[key];
+    } else {
+        throw "Config not found: " + key;
+    }
+};
+});
+define('framework/preferences.js', function(module, exports) {
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var storage = require("../aj/storage");
+
+var Preferences = function () {
+    _createClass(Preferences, null, [{
+        key: "instance",
+        value: function instance() {
+            if (!Preferences._instance) {
+                Preferences._instance = new Preferences();
+            }
+
+            return Preferences._instance;
+        }
+    }]);
+
+    function Preferences() {
+        _classCallCheck(this, Preferences);
+
+        this.path = "preferences.json";
+        this.data = {};
+    }
+
+    _createClass(Preferences, [{
+        key: "load",
+        value: function load() {
+            var _this = this;
+
+            logger.i("Loading preferences...");
+
+            this.data = {};
+
+            return new Promise(function (resolve, reject) {
+                storage.exists(_this.path).then(function (exists) {
+                    if (exists) {
+                        return storage.readText(_this.path).then(function (content) {
+                            logger.i("Preferences:", content);
+                            try {
+                                _this.data = JSON.parse(content);
+                            } catch (e) {}
+                            resolve(_this);
+                        });
+                    } else {
+                        resolve(_this);
+                    }
+                }).catch(function (e) {
+                    return reject(e);
+                });
+            });
+        }
+    }, {
+        key: "get",
+        value: function get(key) {
+            return this.data[key];
+        }
+    }, {
+        key: "set",
+        value: function set(key, value) {
+            this.data[key] = value;
+        }
+    }, {
+        key: "save",
+        value: function save() {
+            var _this2 = this;
+
+            logger.i("Saving preferences", JSON.stringify(this.data));
+            return new Promise(function (resolve, reject) {
+                storage.writeText(_this2.path, JSON.stringify(_this2.data)).then(function () {
+                    resolve();
+                }).catch(function (e) {
+                    return reject(e);
+                });
+            });
+        }
+    }, {
+        key: "clear",
+        value: function clear() {
+            this.data = {};
+        }
+    }]);
+
+    return Preferences;
+}();
+
+exports.Preferences = Preferences;
+
+exports.load = function () {
+    return Preferences.instance().load();
+};
+
+exports.get = function (key) {
+    return Preferences.instance().get(key);
+};
+
+exports.set = function (key, value) {
+    return Preferences.instance().set(key, value);
+};
+
+exports.save = function () {
+    return Preferences.instance().save();
+};
+
+exports.clear = function () {
+    return Preferences.instance().clear();
+};
+});
+define('framework/query.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2723,640 +3980,1039 @@ function create(init) {
     return query;
 }
 });
-define('api/responses.js', function(module, exports) {
+define('framework/queryparser/queryBuilder.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_ARTICLE_NOT_FOUND = exports.ERROR_INVALID_DATA = exports.ERROR_IO = exports.ERROR_ROLE_NOT_FOUND = exports.ERROR_CONNECTOR = exports.ERROR_CONSTRAINT_VIOLATION = exports.ERROR_USER_NOT_FOUND = exports.ERROR_NOT_FOUND = exports.ERROR_VALIDATION = exports.ERROR_PASSWORD_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = exports.ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_GENERATION = exports.ERROR_BAD_CREDENTIALS = exports.ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_ALREADY_EXISTS = exports.UNAUTHORIZED = exports.ERROR = exports.OK = undefined;
-exports.msg = msg;
-exports.value = value;
+exports.EXACT = exports.RANGE = exports.AND = exports.OR = exports.ID = exports.NIN = exports.IN = exports.EQ = exports.LTE = exports.LT = exports.GTE = exports.NE = exports.GT = exports.LIKE = undefined;
+exports.build = build;
 
-var _strings = require("../strings");
+var _underscore = require("../../libs/underscore");
 
-var OK = exports.OK = 0;
-var ERROR = exports.ERROR = 1;
-var UNAUTHORIZED = exports.UNAUTHORIZED = 2;
+var _ = _interopRequireWildcard(_underscore);
 
-var ERROR_MAIL_ALREADY_EXISTS = exports.ERROR_MAIL_ALREADY_EXISTS = 1001;
-var ERROR_MAIL_NOT_FOUND = exports.ERROR_MAIL_NOT_FOUND = 1002;
-var ERROR_BAD_CREDENTIALS = exports.ERROR_BAD_CREDENTIALS = 1003;
-var ERROR_TOKEN_GENERATION = exports.ERROR_TOKEN_GENERATION = 1004;
-var ERROR_TOKEN_FORMAT = exports.ERROR_TOKEN_FORMAT = 1005;
-var ERROR_MAIL_NOT_VALID = exports.ERROR_MAIL_NOT_VALID = 1006;
-var ERROR_PASSWORD_NOT_VALID = exports.ERROR_PASSWORD_NOT_VALID = 1007;
-var ERROR_VALIDATION = exports.ERROR_VALIDATION = 1008;
-var ERROR_NOT_FOUND = exports.ERROR_NOT_FOUND = 1009;
-var ERROR_USER_NOT_FOUND = exports.ERROR_USER_NOT_FOUND = 1010;
-var ERROR_CONSTRAINT_VIOLATION = exports.ERROR_CONSTRAINT_VIOLATION = 1011;
-var ERROR_CONNECTOR = exports.ERROR_CONNECTOR = 1012;
-var ERROR_ROLE_NOT_FOUND = exports.ERROR_ROLE_NOT_FOUND = 1013;
-var ERROR_IO = exports.ERROR_IO = 1014;
-var ERROR_INVALID_DATA = exports.ERROR_INVALID_DATA = 1015;
-var ERROR_ARTICLE_NOT_FOUND = exports.ERROR_ARTICLE_NOT_FOUND = 2001;
-var ERROR_INVALID_DEFAULT_ARTICLE = exports.ERROR_INVALID_DEFAULT_ARTICLE = 2002;
-var ERROR_USER_COMPANY_NOT_SETTED = exports.ERROR_USER_COMPANY_NOT_SETTED = 2003;
-var ERROR_COVER_COMPONENT_ALREADY_EXISTS = exports.ERROR_COVER_COMPONENT_ALREADY_EXISTS = 2004;
-var ERROR_COVER_COMPONENT_NOT_CONFIGURED = exports.ERROR_COVER_COMPONENT_NOT_CONFIGURED = 2005;
-var ERROR_CUSTOMER_NOT_FOUND = exports.ERROR_CUSTOMER_NOT_FOUND = 3001;
-var ERROR_WAREHOUSE_NOT_FOUND = exports.ERROR_WAREHOUSE_NOT_FOUND = 4001;
-var ERROR_DOCUMENT_NOT_FOUND = exports.ERROR_DOCUMENT_NOT_FOUND = 5001;
+var _tokenizer = require("./tokenizer");
 
-var messages = {
-	en: {},
+var tokenizer = _interopRequireWildcard(_tokenizer);
 
-	it: {}
-};
+var _tokensWalker = require("./tokensWalker");
 
-messages["en"][OK] = "OK";
-messages["en"][ERROR] = "Generic error";
-messages["en"][ERROR_MAIL_ALREADY_EXISTS] = "Cannot register: mail already exists";
-messages["en"][ERROR_MAIL_NOT_FOUND] = "Mail not found";
-messages["en"][ERROR_BAD_CREDENTIALS] = "Cannot login: bad username or password";
-messages["en"][ERROR_TOKEN_GENERATION] = "Error generating token";
-messages["en"][ERROR_TOKEN_FORMAT] = "Bat token format";
-messages["en"][ERROR_MAIL_NOT_VALID] = "Invalid email";
-messages["en"][ERROR_PASSWORD_NOT_VALID] = "Password not valid";
-messages["en"][ERROR_VALIDATION] = "Validation error. Please control inserted data and retry";
-messages["en"][ERROR_NOT_FOUND] = "Not found";
-messages["en"][ERROR_USER_NOT_FOUND] = "User not found";
-messages["en"][ERROR_CONSTRAINT_VIOLATION] = "Constraint violation";
-messages["en"][ERROR_CONNECTOR] = "There is a problem retrieving data from Gamma";
-messages["en"][ERROR_ROLE_NOT_FOUND] = "Role not found";
-messages["en"][ERROR_IO] = "IO error";
-messages["en"][ERROR_INVALID_DATA] = "Invalid data";
-messages["en"][ERROR_ARTICLE_NOT_FOUND] = "Article not found";
-messages["en"][ERROR_INVALID_DEFAULT_ARTICLE] = "Invalid default article";
-messages["en"][ERROR_USER_COMPANY_NOT_SETTED] = "User company not setted";
-messages["en"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Cover component already exists";
-messages["en"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Cover component not configured";
-messages["en"][ERROR_CUSTOMER_NOT_FOUND] = "Customer not found";
-messages["en"][ERROR_WAREHOUSE_NOT_FOUND] = "Warehouse not found";
-messages["en"][ERROR_DOCUMENT_NOT_FOUND] = "Document not found";
+var _tokensWalker2 = _interopRequireDefault(_tokensWalker);
 
-messages["it"][OK] = "OK";
-messages["it"][ERROR] = "Si è verificato un errore";
-messages["it"][ERROR_MAIL_ALREADY_EXISTS] = "Impossibile registrarsi: indirizzo email già presente";
-messages["it"][ERROR_MAIL_NOT_FOUND] = "Mail non trovata";
-messages["it"][ERROR_BAD_CREDENTIALS] = "Impossibile accedere: email o password errati";
-messages["it"][ERROR_TOKEN_GENERATION] = "Errore durante la generazione del token";
-messages["it"][ERROR_TOKEN_FORMAT] = "Formato del token non valido";
-messages["it"][ERROR_MAIL_NOT_VALID] = "Email non valida";
-messages["it"][ERROR_PASSWORD_NOT_VALID] = "Password non valida";
-messages["it"][ERROR_VALIDATION] = "Errore di validazione: ricontrollare i dati inseriti e riprovare";
-messages["it"][ERROR_NOT_FOUND] = "Non trovato";
-messages["it"][ERROR_USER_NOT_FOUND] = "Utente non trovato";
-messages["it"][ERROR_CONSTRAINT_VIOLATION] = "Impossibile proseguire. Esistono entità collegate che dipendono da questa entità";
-messages["it"][ERROR_CONNECTOR] = "Problema durante la comunicazione con Gamma";
-messages["it"][ERROR_ROLE_NOT_FOUND] = "Ruolo non trovato";
-messages["it"][ERROR_IO] = "IO error";
-messages["it"][ERROR_INVALID_DATA] = "Dati non validi";
-messages["it"][ERROR_ARTICLE_NOT_FOUND] = "Articolo non trovato";
-messages["it"][ERROR_INVALID_DEFAULT_ARTICLE] = "Articolo predefinito non trovato";
-messages["it"][ERROR_USER_COMPANY_NOT_SETTED] = "Azienda non configurata per l'utente corrente";
-messages["it"][ERROR_COVER_COMPONENT_ALREADY_EXISTS] = "Componente di tipo rivestimento già presente";
-messages["it"][ERROR_COVER_COMPONENT_NOT_CONFIGURED] = "Componente di tipo rivestimento non trovato";
-messages["it"][ERROR_CUSTOMER_NOT_FOUND] = "Cliente non trovato";
-messages["it"][ERROR_WAREHOUSE_NOT_FOUND] = "Magazzino non trovato";
-messages["it"][ERROR_DOCUMENT_NOT_FOUND] = "Documento non trovato";
+var _tokens = require("./tokens");
 
-function msg(code) {
-	if (_.has(messages[(0, _strings.getLanguage)()], code)) {
-		return messages[(0, _strings.getLanguage)()][code];
-	}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	return "Code: = " + code;
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var LIKE = exports.LIKE = "like";
+var GT = exports.GT = "gt";
+var NE = exports.NE = "ne";
+var GTE = exports.GTE = "gte";
+var LT = exports.LT = "lt";
+var LTE = exports.LTE = "lte";
+var EQ = exports.EQ = "eq";
+var IN = exports.IN = "in";
+var NIN = exports.NIN = "nin";
+var ID = exports.ID = "id";
+var OR = exports.OR = "or";
+var AND = exports.AND = "and";
+var RANGE = exports.RANGE = "range";
+var EXACT = exports.EXACT = "exact";
+
+function writeAnd(ref, filter, first) {
+	writeBoolean(ref, filter, "AND", first);
 }
 
-/**
- * Returns value of value responses. If o is a promise, a wrapped promise thar returns value will be returned
- */
-function value(o) {
-	if (o instanceof Promise) {
-		return new Promise(function (resolve, reject) {
-			o.then(function (result) {
-				resolve(result.value);
-			}).catch(function (e) {
-				return reject(e);
-			});
-		});
-	} else {
-		if (_.isObject(o)) {
-			return o.value;
+function writeOr(ref, filter) {
+	writeBoolean(ref, filter, "OR");
+}
+
+function writeBoolean(ref, filter, token) {
+	var first = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+	if (_.isEmpty(filter.value)) {
+		return;
+	}
+
+	if (!_.isArray(filter.value)) {
+		return;
+	}
+
+	if (!first) {
+		ref.query += "(";
+	}
+	var i = 0;
+	var _iteratorNormalCompletion = true;
+	var _didIteratorError = false;
+	var _iteratorError = undefined;
+
+	try {
+		for (var _iterator = filter.value[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+			var f = _step.value;
+
+			write(ref, f);
+
+			if (i < filter.value.length - 1) {
+				ref.query += " " + token + " ";
+			}
+
+			i++;
+		}
+	} catch (err) {
+		_didIteratorError = true;
+		_iteratorError = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion && _iterator.return) {
+				_iterator.return();
+			}
+		} finally {
+			if (_didIteratorError) {
+				throw _iteratorError;
+			}
 		}
 	}
 
-	logger.w(o, "is not a value response");
+	if (!first) {
+		ref.query += ")";
+	}
+}
 
-	return null;
+function writeNe(ref, filter) {
+	if (_.isEmpty(filter.value)) {
+		return;
+	}
+
+	ref.query += "NOT " + filter.property + ":" + filter.value;
+}
+
+function writeRange(ref, filter) {
+	if (_.isEmpty(filter.value)) {
+		return;
+	}
+
+	if (!_.isArray(filter.value)) {
+		return;
+	}
+
+	var left = filter.value[0] ? filter.value[0] : "*";
+	var right = filter.value[1] ? filter.value[1] : "*";
+
+	ref.query += filter.property + ":[" + left + " TO " + right + "]";
+}
+
+function writeSimple(ref, filter) {
+	if (_.isEmpty(filter.value)) {
+		return;
+	}
+
+	ref.query += filter.property + ":" + filter.value;
+}
+
+function write(ref, filter) {
+	switch (filter.type) {
+		case AND:
+			writeAnd(ref, filter);
+			break;
+		case OR:
+			writeOr(ref, filter);
+			break;
+		case NE:
+			writeNe(ref, filter);
+			break;
+		case RANGE:
+			writeRange(ref, filter);
+			break;
+		default:
+			writeSimple(ref, filter);
+	}
+}
+
+function build(filters) {
+	if (!_.isArray(filters)) {
+		throw new Error("Filters must be an array of filters");
+	}
+
+	var ref = { query: "" };
+
+	writeAnd(ref, { value: filters }, true);
+
+	return ref.query;
 }
 });
-define('api/session.js', function(module, exports) {
+define('framework/queryparser/queryParser-test.js', function(module, exports) {
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.TYPE_FACEBOOK = exports.TYPE_MAIL = undefined;
-exports.login = login;
-exports.start = start;
-exports.resume = resume;
-exports.destroy = destroy;
-exports.getLoggedUser = getLoggedUser;
-exports.isLoggedIn = isLoggedIn;
-exports.getSessionToken = getSessionToken;
+var _tokenizer = require("./tokenizer");
 
-var _http = require("../aj/http");
+var tokenizer = _interopRequireWildcard(_tokenizer);
 
-var http = _interopRequireWildcard(_http);
+var _queryParser = require("./queryParser");
 
-var _preferences = require("../framework/preferences");
+var parser = _interopRequireWildcard(_queryParser);
 
-var preferences = _interopRequireWildcard(_preferences);
+var _queryBuilder = require("./queryBuilder");
 
-var _config = require("../framework/config");
-
-var config = _interopRequireWildcard(_config);
-
-var _underscore = require("../libs/underscore");
-
-var _ = _interopRequireWildcard(_underscore);
-
-var _responses = require("./responses");
-
-var responses = _interopRequireWildcard(_responses);
+var builder = _interopRequireWildcard(_queryBuilder);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var _loggedUser = void 0;
-var _sessionToken = void 0;
+//console.log(parser.parse("(nome:bruno OR (nome daniela AND -nome:ma*ssi_mo)) AND (eta:[10 TO 20] OR altezza:1.97)"));
+//console.log(parser.parse("(nome:bruno)"));
+var query = "(nome:bruno OR cognome:fortunato AND (bruno:fortunato AND massimo:galangte)) AND eta:[7 TO 40] OR -fidanzata:daniela AND (azienda:applica OR NOT azienda:digimat)";
+var filters = parser.parse(query);
+var built = builder.build(filters);
+console.log(built);
 
-var TYPE_MAIL = exports.TYPE_MAIL = "MAIL";
-var TYPE_FACEBOOK = exports.TYPE_FACEBOOK = "FACEBOOK";
+filters = parser.parse(built);
+built = builder.build(filters);
+console.log(built);
 
-var STOP_OBJ = {};
+query = "nome:bruno";
+filters = parser.parse(query);
+built = builder.build(filters);
+console.log(built);
 
-function stop() {
-    return STOP_OBJ;
-}
+filters = parser.parse(built);
+built = builder.build(filters);
+console.log(built);
 
-function wrap(r, fn) {
-    if (r == STOP_OBJ) {
-        return STOP_OBJ;
-    } else {
-        return fn(r);
-    }
-}
+query = "eta:[1 TO 20]";
+filters = parser.parse(query);
+built = builder.build(filters);
+console.log(built);
 
-function login(mail, password) {
-    return new Promise(function (resolve, reject) {
-        http.post(config.get("login.url"), { mail: mail, password: password }).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
+filters = parser.parse(built);
+built = builder.build(filters);
+console.log(built);
 
-                if (responses.OK != response.responseCode) {
-                    reject(response.responseCode);
-                } else {
-                    resolve(response);
-                }
-            }
-        }).catch(function (e) {
-            logger.e("Error logging in:", e);
-            reject(responses.ERROR);
-        });
-    });
-}
+query = "(nome:bruno OR cognome:fortunato) AND eta:[* TO 20]";
+filters = parser.parse(query);
+console.log(JSON.stringify(filters, null, 4));
+built = builder.build(filters);
+console.log(built);
 
-function start(mail, password) {
-    return new Promise(function (resolve, reject) {
-        _loggedUser = null;
-        _sessionToken = null;
+filters = parser.parse(built);
+built = builder.build(filters);
+console.log(built);
 
-        var data = {};
+query = 'modello:berg2.*';
+console.log(JSON.stringify(tokenizer.tokenize(query), null, 4));
+filters = parser.parse(query);
+console.log(filters);
+console.log(JSON.stringify(filters, null, 4));
+built = builder.build(filters);
+console.log(built);
 
-        preferences.load().then(function () {
-            return login(mail, password);
-        }).then(function (response) {
-            preferences.set("session.type", TYPE_MAIL);
-            preferences.set("session.mail", mail);
-            preferences.set("session.password", password);
-
-            _sessionToken = response.token;
-            console.log(_sessionToken);
-            _loggedUser = response.user;
-
-            return preferences.save();
-        }).then(function (r) {
-            resolve(_loggedUser);
-        }).catch(function (e) {
-            _loggedUser = null;
-            _sessionToken = null;
-
-            preferences.load().then(function () {
-                preferences.set("session.type", null);
-                preferences.set("session.mail", null);
-                preferences.set("session.password", null);
-                return preferences.save();
-            }).catch(function (e) {
-                logger.e(e);
-            });
-
-            reject(e);
-        });
-    });
-}
-
-function resume() {
-    return new Promise(function (resolve, reject) {
-        _loggedUser = null;
-        _sessionToken = null;
-
-        preferences.load().then(function () {
-            var type = preferences.get("session.type");
-            var mail = preferences.get("session.mail");
-            var password = preferences.get("session.password");
-
-            if (type == TYPE_MAIL && mail && password) {
-                return start(mail, password);
-            } else {
-                reject(responses.ERROR);
-                return stop();
-            }
-        }).then(function (r) {
-            return wrap(r, function () {
-                resolve(r);
-            });
-        }).catch(function (e) {
-            reject(e);
-        });
-    });
-}
-
-function destroy() {
-    _loggedUser = null;
-    _sessionToken = null;
-
-    return preferences.load().then(function () {
-        preferences.set("session.type", null);
-        preferences.set("session.mail", null);
-        preferences.set("session.password", null);
-        return preferences.save();
-    }).catch(function (e) {
-        logger.e(e);
-    });
-}
-
-function getLoggedUser() {
-    return _loggedUser;
-}
-
-function isLoggedIn() {
-    return _loggedUser != null;
-}
-
-function getSessionToken() {
-    return _sessionToken;
-}
+filters = parser.parse(built);
+built = builder.build(filters);
+console.log(built);
 });
-define('api/utils.js', function(module, exports) {
+define('framework/queryparser/queryParser.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
-exports.addToken = addToken;
-exports.post = post;
-exports.postJson = postJson;
-exports.get = get;
-exports.delete_ = delete_;
+exports.ParserError = exports.EXACT = exports.RANGE = exports.AND = exports.OR = exports.ID = exports.NIN = exports.IN = exports.EQ = exports.LTE = exports.LT = exports.GTE = exports.NE = exports.GT = exports.LIKE = undefined;
+exports.parse = parse;
 
-var _http = require("../aj/http");
-
-var http = _interopRequireWildcard(_http);
-
-var _responses = require("./responses");
-
-var responses = _interopRequireWildcard(_responses);
-
-var _session = require("./session");
-
-var _underscore = require("../libs/underscore");
+var _underscore = require("../../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+var _tokenizer = require("./tokenizer");
 
-function addToken(headers) {
-    if (!_.isEmpty((0, _session.getSessionToken)())) {
-        return _.assign(headers || {}, { "x-auth-token": (0, _session.getSessionToken)() });
-    } else {
-        return headers;
-    }
-}
+var tokenizer = _interopRequireWildcard(_tokenizer);
 
-function post(url, data) {
-    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+var _tokensWalker = require("./tokensWalker");
 
-    return new Promise(function (resolve, reject) {
-        http.post(url, data, addToken(headers)).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
+var _tokensWalker2 = _interopRequireDefault(_tokensWalker);
 
-                if (responses.OK != response.responseCode) {
-                    reject(response.responseCode, response);
-                } else {
-                    resolve(response);
-                }
-            }
-        }).catch(function (e) {
-            logger.e("Error in request:", e);
-            reject(responses.ERROR);
-        });
-    });
-}
+var _tokens = require("./tokens");
 
-function postJson(url, data) {
-    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    return new Promise(function (resolve, reject) {
-        var json = typeof data == "string" ? data : JSON.stringify(data);
-        headers = _.assign(headers, { "Content-Type": "application/json" });
-        http.post(url, json, addToken(headers)).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
-
-                if (responses.OK != response.responseCode) {
-                    reject(response.responseCode);
-                } else {
-                    resolve(response);
-                }
-            }
-        }).catch(function (e) {
-            logger.e("Error in request:", e);
-            reject(responses.ERROR);
-        });
-    });
-}
-
-function get(url, data) {
-    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    return new Promise(function (resolve, reject) {
-        http.get(url, data, addToken(headers)).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
-
-                if (responses.OK != response.responseCode) {
-                    reject(response.responseCode, response);
-                } else {
-                    resolve(response);
-                }
-            }
-        }).catch(function (e) {
-            logger.e("Error in request:", e);
-            reject(responses.ERROR);
-        });
-    });
-}
-
-function delete_(url, data, headers) {
-    return new Promise(function (resolve, reject) {
-        http.delete(url, data, addToken(headers)).then(function (json) {
-            if (_.isEmpty(json)) {
-                reject(responses.ERROR);
-            } else {
-                var response = JSON.parse(json);
-
-                if (responses.OK != response.responseCode) {
-                    reject(response.responseCode, response);
-                } else {
-                    resolve(response);
-                }
-            }
-        }).catch(function (e) {
-            logger.e("Error in request:", e);
-            reject(responses.ERROR);
-        });
-    });
-}
-});
-define('api/values.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.loadEntities = loadEntities;
-exports.load = load;
-
-var _underscore = require("../libs/underscore");
-
-var _ = _interopRequireWildcard(_underscore);
-
-var _lang = require("../utils/lang");
-
-var _query2 = require("../api/query");
-
-var query = _interopRequireWildcard(_query2);
-
-var _utils = require("./utils");
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var aj = require("../aj");
-var http = require("../aj/http");
-
-var preferences = require("../framework/preferences");
-var config = require("../framework/config");
-
-function loadEntities(entity, _query) {
-    if (_.isEmpty(_query)) {
-        _query = query.create();
-    }
-    var url = config.get("values.entities.url") + "/" + entity;
-    return (0, _utils.get)(url, (0, _lang.flatten)(_query.cleaned()));
-}
-
-function load(collection, keyword) {
-    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    var url = config.get("values.url") + "/" + collection;
-    if (!_.isEmpty(keyword)) {
-        url += "?keyword=" + keyword;
-    }
-
-    var separator = "&";
-    if (url.indexOf("?") == -1) {
-        separator = "?";
-    }
-
-    var paramsString = "";
-    _.each(_.allKeys(params), function (k) {
-        paramsString += k + "=" + encodeURIComponent(params[k]);
-    });
-
-    if (!_.isEmpty(paramsString)) {
-        url += separator + paramsString;
-    }
-
-    return (0, _utils.get)(url);
-}
-});
-define('config.js', function(module, exports) {
-"use strict";
-
-var serviceBase = "http://localhost:8080/";
-
-module.exports = {
-    "service.url": "" + serviceBase,
-    "fs.url": serviceBase + "fs",
-    "login.url": serviceBase + "auth/login",
-    "account.url": serviceBase + "account",
-    "account.register.url": serviceBase + "account/register",
-    "account.recover.url": serviceBase + "account/recover",
-    "account.reset.url": serviceBase + "account/reset",
-    "account.confirm.url": serviceBase + "account/confirm",
-    "grids.url": serviceBase + "grids",
-    "entities.url": serviceBase + "entities",
-    "entities.delete.url": serviceBase + "entities/delete",
-    "values.url": serviceBase + "values",
-    "values.entities.url": serviceBase + "values/entities"
-};
-});
-define('framework/config.js', function(module, exports) {
-"use strict";
-
-var config = require("../config");
-
-var _ = require("./../libs/underscore");
-
-exports.get = function (key) {
-    if (_.has(config, key)) {
-        return config[key];
-    } else {
-        throw "Config not found: " + key;
-    }
-};
-});
-define('framework/preferences.js', function(module, exports) {
-"use strict";
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var storage = require("../aj/storage");
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-var Preferences = function () {
-    _createClass(Preferences, null, [{
-        key: "instance",
-        value: function instance() {
-            if (!Preferences._instance) {
-                Preferences._instance = new Preferences();
-            }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-            return Preferences._instance;
-        }
-    }]);
+var LIKE = exports.LIKE = "like";
+var GT = exports.GT = "gt";
+var NE = exports.NE = "ne";
+var GTE = exports.GTE = "gte";
+var LT = exports.LT = "lt";
+var LTE = exports.LTE = "lte";
+var EQ = exports.EQ = "eq";
+var IN = exports.IN = "in";
+var NIN = exports.NIN = "nin";
+var ID = exports.ID = "id";
+var OR = exports.OR = "or";
+var AND = exports.AND = "and";
+var RANGE = exports.RANGE = "range";
+var EXACT = exports.EXACT = "exact";
 
-    function Preferences() {
-        _classCallCheck(this, Preferences);
+var ParserError = exports.ParserError = function (_Error) {
+	_inherits(ParserError, _Error);
 
-        this.path = "preferences.json";
-        this.data = {};
-    }
+	function ParserError(walker, message) {
+		_classCallCheck(this, ParserError);
 
-    _createClass(Preferences, [{
-        key: "load",
-        value: function load() {
-            var _this = this;
+		return _possibleConstructorReturn(this, (ParserError.__proto__ || Object.getPrototypeOf(ParserError)).call(this, "At index " + walker.index + "\n" + message));
+	}
 
-            logger.i("Loading preferences...");
+	return ParserError;
+}(Error);
 
-            this.data = {};
+var current = null;
+var previous = null;
+var negate = false;
 
-            return new Promise(function (resolve, reject) {
-                storage.exists(_this.path).then(function (exists) {
-                    if (exists) {
-                        return storage.readText(_this.path).then(function (content) {
-                            logger.i("Preferences:", content);
-                            try {
-                                _this.data = JSON.parse(content);
-                            } catch (e) {}
-                            resolve(_this);
-                        });
-                    } else {
-                        resolve(_this);
-                    }
-                }).catch(function (e) {
-                    return reject(e);
-                });
-            });
-        }
-    }, {
-        key: "get",
-        value: function get(key) {
-            return this.data[key];
-        }
-    }, {
-        key: "set",
-        value: function set(key, value) {
-            this.data[key] = value;
-        }
-    }, {
-        key: "save",
-        value: function save() {
-            var _this2 = this;
+function setCurrent(value) {
+	if (value !== current) {
+		previous = current;
+		current = value;
+	}
+}
 
-            logger.i("Saving preferences", JSON.stringify(this.data));
-            return new Promise(function (resolve, reject) {
-                storage.writeText(_this2.path, JSON.stringify(_this2.data)).then(function () {
-                    resolve();
-                }).catch(function (e) {
-                    return reject(e);
-                });
-            });
-        }
-    }, {
-        key: "clear",
-        value: function clear() {
-            this.data = {};
-        }
-    }]);
+function attachToParent(parent, child) {
+	if (parent.property == null && parent.type == null) {
+		parent.property = child.property;
+		parent.type = child.type;
+		parent.value = child.value;
+	} else if (parent.type === OR || parent.type === AND) {
+		if (parent.value == null) {
+			parent.value = [];
+		}
 
-    return Preferences;
+		parent.value.push(child);
+	}
+}
+
+function blockStart(parent, walker) {
+	setCurrent(parent);
+
+	var t = walker.current();
+	var filter = { property: null, type: OR, value: [] };
+
+	var closed = false;
+
+	while (walker.next() && !closed) {
+		if (block(filter, walker)) {
+			closed = true;
+			break;
+		}
+	}
+
+	if (!closed) {
+		throw new ParserError(walker, "Parser error: expected '" + _tokens.SYMBOL_BLOCK_END + "'");
+	}
+
+	attachToParent(parent, filter);
+
+	if (filter.value.length === 1) {
+		var unique = filter.value[0];
+		filter.property = unique.property;
+		filter.type = unique.type;
+		filter.value = unique.value;
+	}
+
+	setCurrent(filter);
+}
+
+function block(parent, walker) {
+	setCurrent(parent);
+
+	var t = walker.current();
+
+	if (t.type === _tokens.TOKEN_BLOCK_END) {
+		return true;
+	} else {
+		exec(parent, walker);
+	}
+}
+
+function booleanStart(parent, walker, keyword) {
+	setCurrent(parent);
+
+	var t = walker.current();
+
+	var left = previous;
+	if (!left) {
+		throw new ParserError(walker, "Parser error: Expected filter before conditions: " + keyword);
+	}
+
+	if (left.type !== keyword) {
+		var filter = {
+			type: keyword,
+			property: null,
+			value: [_.assign({}, left)]
+		};
+
+		_.assign(left, filter);
+	}
+
+	walker.next();
+
+	setCurrent(left);
+	exec(left, walker);
+
+	if (left.value.length === 1) {
+		var unique = left.value[0];
+		left.property = unique.property;
+		left.type = unique.type;
+		left.value = unique.value;
+	}
+
+	setCurrent(parent);
+}
+
+function fieldStart(parent, walker) {
+	var negate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	setCurrent(parent);
+
+	var t = walker.current();
+
+	var possibleColon = walker.next();
+	if (!possibleColon || possibleColon.type !== _tokens.TOKEN_OPERATOR_COLON) {
+		throw new ParserError(walker, "Parser error: Expected ':' after field declaration: " + t.value);
+	}
+
+	if (walker.finished()) {
+		throw new ParserError(walker, "Parser error: Expected value for field: " + t.value);
+	}
+	walker.next();
+
+	var filter = { type: negate ? NE : EQ, property: t.value };
+
+	valueStart(filter, walker);
+	attachToParent(parent, filter);
+
+	setCurrent(parent);
+}
+
+function valueStart(parent, walker) {
+	setCurrent(parent);
+
+	var t = walker.current();
+
+	if (t.type === _tokens.TOKEN_VALUE) {
+		parent.value = t.value;
+
+		if (t.value.indexOf("*") != -1) {
+			parent.type = LIKE;
+		}
+	} else if (t.type === _tokens.TOKEN_EXPRESSION_START) {
+		var left = walker.next();
+		var to = walker.next();
+		var right = walker.next();
+		var close = walker.next();
+
+		if (!left || !to || !right || !close) {
+			throw new ParserError("Bad expression. Use [{start TO end}] for field " + parent.property);
+		}
+
+		parent.type = RANGE;
+		parent.value = [left.value, right.value];
+	} else if (t.type === _tokens.TOKEN_EXACT_STRING_START) {
+		var str = walker.next();
+		var end = walker.next();
+		if (!str || !end) {
+			throw new ParserError("Unterminated exact string value found for field " + parent.property);
+		}
+		parent.type = EXACT;
+		parent.value = str.value;
+	} else {
+		exec(parent, walker);
+	}
+}
+
+function not(parent, walker) {
+	walker.next();
+	fieldStart(parent, walker, true);
+}
+
+function exec(parent, walker) {
+	var t = walker.current();
+
+	if (t.type === _tokens.TOKEN_BLOCK_START) {
+		blockStart(parent, walker);
+	} else if (t.type === _tokens.TOKEN_KEYWORD_AND) {
+		booleanStart(parent, walker, AND);
+	} else if (t.type === _tokens.TOKEN_KEYWORD_OR) {
+		booleanStart(parent, walker, OR);
+	} else if (t.type === _tokens.TOKEN_KEYWORD_NOT) {
+		not(parent, walker);
+	} else if (t.type === _tokens.TOKEN_FIELD) {
+		fieldStart(parent, walker);
+	} else {
+		throw new ParserError(walker, "Parser error: Unespected token " + t.value);
+	}
+}
+
+function parse(queryString) {
+	var tree = { type: OR, value: null };
+	var query = null;
+
+	var tokens = tokenizer.tokenize(queryString);
+	var walker = new _tokensWalker2.default(tokens);
+
+	while (walker.next()) {
+		exec(tree, walker);
+	}
+
+	if (tree.value.length === 1 && tree.value[0].type === AND) {
+		return tree.value[0].value;
+	} else {
+		return tree.value;
+	}
+}
+});
+define('framework/queryparser/stringWalker.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var StringWalker = function () {
+	function StringWalker(string) {
+		_classCallCheck(this, StringWalker);
+
+		this.string = string;
+		this.index = -1;
+	}
+
+	_createClass(StringWalker, [{
+		key: "hasMore",
+		value: function hasMore() {
+			if (_.isEmpty(this.string)) {
+				return false;
+			}
+
+			if (this.index >= this.string.length - 1) {
+				return false;
+			}
+
+			return true;
+		}
+	}, {
+		key: "finished",
+		value: function finished() {
+			if (_.isEmpty(this.string)) {
+				return true;
+			}
+
+			if (this.index >= this.string.length) {
+				return true;
+			}
+
+			return false;
+		}
+	}, {
+		key: "next",
+		value: function next() {
+			if (this.finished()) {
+				return false;
+			}
+
+			this.index++;
+
+			return this.string.charAt(this.index);
+		}
+	}, {
+		key: "previous",
+		value: function previous() {
+			if (!this.index === 0) {
+				return false;
+			}
+
+			this.index--;
+
+			return this.string.charAt(this.index);
+		}
+	}, {
+		key: "current",
+		value: function current() {
+			if (_.isEmpty(this.string)) {
+				throw new Error("index out of bounds");
+			}
+
+			if (this.index >= this.string.length) {
+				throw new Error("index out of bounds");
+			}
+
+			return this.string.charAt(this.index);
+		}
+	}, {
+		key: "until",
+		value: function until(delimiter) {
+			var str = "";
+
+			var c = this.next();
+			while (c && c !== delimiter) {
+				str += c;
+			}
+
+			return str;
+		}
+	}]);
+
+	return StringWalker;
 }();
 
-exports.Preferences = Preferences;
+exports.default = StringWalker;
+});
+define('framework/queryparser/tokenizer-test.js', function(module, exports) {
+"use strict";
 
-exports.load = function () {
-    return Preferences.instance().load();
-};
+var _tokenizer = require("./tokenizer");
 
-exports.get = function (key) {
-    return Preferences.instance().get(key);
-};
+var tokenizer = _interopRequireWildcard(_tokenizer);
 
-exports.set = function (key, value) {
-    return Preferences.instance().set(key, value);
-};
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-exports.save = function () {
-    return Preferences.instance().save();
-};
+console.log(tokenizer.tokenize("(nome:bruno OR (nome daniela AND -nome:ma*ssi_mo)) AND (eta:[10 TO 20] OR altezza:1.97)"));
+});
+define('framework/queryparser/tokenizer.js', function(module, exports) {
+"use strict";
 
-exports.clear = function () {
-    return Preferences.instance().clear();
-};
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.SyntaxError = undefined;
+exports.tokenize = tokenize;
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _tokens = require("./tokens");
+
+var _stringWalker = require("./stringWalker");
+
+var _stringWalker2 = _interopRequireDefault(_stringWalker);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var SyntaxError = exports.SyntaxError = function (_Error) {
+	_inherits(SyntaxError, _Error);
+
+	function SyntaxError(walker, message) {
+		_classCallCheck(this, SyntaxError);
+
+		return _possibleConstructorReturn(this, (SyntaxError.__proto__ || Object.getPrototypeOf(SyntaxError)).call(this, "At column " + (walker.index + 1) + "\n" + message));
+	}
+
+	return SyntaxError;
+}(Error);
+
+function isWhiteSpace(c) {
+	return c === " ";
+}
+
+function isLetter(str) {
+	return str.length === 1 && str.match(/[^\:\(\)\]\[-]/i);
+}
+
+function isNumber(str) {
+	return str.length === 1 && str.match(/[0-9]/i);
+}
+
+function isFullNumber(str) {
+	return !isNaN(parseFloat(str));
+}
+
+function isPoint(str) {
+	return str === ".";
+}
+
+function mkToken(type, value) {
+	return { type: type, value: value };
+}
+
+function blockStart(tokens, walker) {
+	tokens.push(mkToken(_tokens.TOKEN_BLOCK_START, _tokens.SYMBOL_BLOCK_START));
+
+	var closed = false;
+
+	while (walker.next() && !closed) {
+		if (block(tokens, walker)) {
+			closed = true;
+			break;
+		}
+	}
+
+	if (!closed) {
+		throw new SyntaxError(walker, "Syntax error: expected '" + _tokens.SYMBOL_BLOCK_END + "'");
+	}
+
+	tokens.push(mkToken(_tokens.TOKEN_BLOCK_END, _tokens.SYMBOL_BLOCK_END));
+}
+
+function block(tokens, walker) {
+	var c = walker.current();
+
+	if (c === _tokens.SYMBOL_BLOCK_END) {
+		return true;
+	} else {
+		exec(tokens, walker);
+	}
+}
+
+function exactStringStart(tokens, walker) {
+	tokens.push(mkToken(_tokens.TOKEN_EXACT_STRING_START, _tokens.SYMBOL_EXACT_STRING));
+
+	var ref = { value: "" };
+
+	var closed = false;
+
+	while (walker.next() && !closed) {
+		if (exactString(tokens, walker, ref)) {
+			closed = true;
+			break;
+		}
+	}
+
+	if (!closed) {
+		throw new SyntaxError(walker, "Syntax error: expected '" + _tokens.SYMBOL_EXACT_STRING + "'");
+	}
+
+	tokens.push(mkToken(_tokens.TOKEN_EXACT_STRING, ref.value));
+	tokens.push(mkToken(_tokens.TOKEN_EXACT_STRING_END, _tokens.SYMBOL_EXACT_STRING));
+}
+
+function exactString(tokens, walker, ref) {
+	var c = walker.current();
+
+	if (c === _tokens.SYMBOL_EXACT_STRING) {
+		return true;
+	} else {
+		ref.value += c;
+	}
+}
+
+function stringStart(tokens, walker) {
+	var ref = { value: "" };
+
+	var closed = false;
+
+	while (!walker.finished() && !closed) {
+		if (string(tokens, walker, ref)) {
+			closed = true;
+			break;
+		} else {
+			walker.next();
+		}
+	}
+
+	if (ref.value === _tokens.SYMBOL_KEYWORD_AND) {
+		tokens.push(mkToken(_tokens.TOKEN_KEYWORD_AND, ref.value));
+	} else if (ref.value === _tokens.SYMBOL_KEYWORD_OR) {
+		tokens.push(mkToken(_tokens.TOKEN_KEYWORD_OR, ref.value));
+	} else if (ref.value === _tokens.SYMBOL_KEYWORD_TO) {
+		tokens.push(mkToken(_tokens.TOKEN_KEYWORD_TO, ref.value));
+	} else if (ref.value === _tokens.SYMBOL_KEYWORD_NOT) {
+		tokens.push(mkToken(_tokens.TOKEN_KEYWORD_NOT, ref.value));
+	} else if (ref.value !== "") {
+		tokens.push(mkToken(_tokens.TOKEN_VALUE, ref.value));
+	}
+
+	return ref.value;
+}
+
+function string(tokens, walker, ref) {
+	var c = walker.current();
+
+	if (c === _tokens.SYMBOL_BLOCK_START || c === _tokens.SYMBOL_BLOCK_END || c === _tokens.SYMBOL_EXPRESSION_START || c === _tokens.SYMBOL_EXPRESSION_END || isWhiteSpace(c)) {
+		walker.previous();
+		return true;
+	} else if (c === _tokens.SYMBOL_EXACT_STRING) {
+		exactStringStart(tokens, walker);
+		return true;
+	} else if (isLetter(c)) {
+		ref.value += c;
+	} else if (c === _tokens.SYMBOL_OPERATOR_COLON) {
+		tokens.push(mkToken(_tokens.TOKEN_FIELD, ref.value));
+		tokens.push(mkToken(_tokens.TOKEN_OPERATOR_COLON, _tokens.SYMBOL_OPERATOR_COLON));
+		ref.value = "";
+	} else {
+		exec(tokens, walker);
+	}
+}
+
+function numberStart(tokens, walker) {
+	var ref = { value: "" };
+
+	var closed = false;
+
+	while (!walker.finished() && !closed) {
+		if (number(tokens, walker, ref)) {
+			closed = true;
+		} else {
+			walker.next();
+		}
+	}
+
+	tokens.push(mkToken(_tokens.TOKEN_VALUE, ref.value));
+
+	return ref.value;
+}
+
+function number(tokens, walker, ref) {
+	var c = walker.current();
+
+	if (c === _tokens.SYMBOL_BLOCK_START || c === _tokens.SYMBOL_BLOCK_END || c === _tokens.SYMBOL_EXPRESSION_START || c === _tokens.SYMBOL_EXPRESSION_END || c === _tokens.SYMBOL_OPERATOR_COLON || isLetter(c) || isWhiteSpace(c)) {
+		walker.previous();
+		return true;
+	} else if (isNumber(c) || isPoint(c) || c === _tokens.SYMBOL_KEYWORD_NOT) {
+		ref.value += c;
+	} else {
+		exec(tokens, walker);
+	}
+}
+
+function expressionStart(tokens, walker) {
+	tokens.push(mkToken(_tokens.TOKEN_EXPRESSION_START, _tokens.SYMBOL_EXPRESSION_START));
+
+	var closed = false;
+
+	while (walker.next() && !closed) {
+		if (expression(tokens, walker)) {
+			closed = true;
+			break;
+		}
+	}
+
+	if (!closed) {
+		throw new SyntaxError(walker, "Query error: expected '" + _tokens.SYMBOL_EXPRESSION_END + "'");
+	}
+
+	tokens.push(mkToken(_tokens.TOKEN_EXPRESSION_END, _tokens.SYMBOL_EXPRESSION_END));
+
+	//walker.next();
+}
+
+function expression(tokens, walker) {
+	var c = walker.current();
+
+	if (c === _tokens.SYMBOL_BLOCK_START || c === _tokens.SYMBOL_BLOCK_END || c === _tokens.SYMBOL_EXPRESSION_START || c === _tokens.SYMBOL_OPERATOR_COLON) {
+		throw new SyntaxError(walker, "Syntax error: unexpected token '" + c + "'");
+	} else if (c === _tokens.SYMBOL_EXPRESSION_END) {
+		return true;
+	} else {
+		exec(tokens, walker);
+	}
+}
+
+function not(tokens, walker) {
+	tokens.push(mkToken(_tokens.TOKEN_KEYWORD_NOT, _tokens.SYMBOL_KEYWORD_NOT));
+}
+
+function exec(tokens, walker) {
+	var c = walker.current();
+
+	if (isWhiteSpace(c)) {
+		return;
+	} else if (c === _tokens.SYMBOL_BLOCK_START) {
+		blockStart(tokens, walker);
+	} else if (c === _tokens.SYMBOL_EXPRESSION_START) {
+		expressionStart(tokens, walker);
+	} else if (c === _tokens.SYMBOL_OPERATOR_MINUS) {
+		not(tokens, walker);
+	} else if (isLetter(c)) {
+		stringStart(tokens, walker);
+	} else {
+		throw new SyntaxError(walker, "Syntax error: Unrecognized symbol '" + c + "'");
+	}
+}
+
+function tokenize(queryString) {
+	if (typeof queryString !== "string") {
+		return [];
+	}
+
+	if (!_.isEmpty(queryString)) {
+		queryString = queryString.trim();
+	}
+
+	if (_.isEmpty(queryString)) {
+		return [];
+	}
+
+	var tokens = [];
+	var walker = new _stringWalker2.default(queryString);
+
+	while (walker.next()) {
+		exec(tokens, walker);
+	}
+
+	return tokens;
+}
+});
+define('framework/queryparser/tokens.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var TOKEN_BLOCK_START = exports.TOKEN_BLOCK_START = "BLOCK_START";
+var TOKEN_BLOCK_END = exports.TOKEN_BLOCK_END = "BLOCK_END";
+var TOKEN_EXPRESSION_START = exports.TOKEN_EXPRESSION_START = "EXPRESSION_START";
+var TOKEN_EXPRESSION_END = exports.TOKEN_EXPRESSION_END = "EXPRESSION_END";
+var TOKEN_FIELD = exports.TOKEN_FIELD = "FIELD";
+var TOKEN_VALUE = exports.TOKEN_VALUE = "VALUE";
+var TOKEN_KEYWORD_AND = exports.TOKEN_KEYWORD_AND = "KEYWORD_AND";
+var TOKEN_KEYWORD_OR = exports.TOKEN_KEYWORD_OR = "KEYWORD_OR";
+var TOKEN_KEYWORD_TO = exports.TOKEN_KEYWORD_TO = "KEYWORD_TO";
+var TOKEN_OPERATOR_COLON = exports.TOKEN_OPERATOR_COLON = "OPERATOR_COLON";
+var TOKEN_OPERATOR_NOT = exports.TOKEN_OPERATOR_NOT = "OPERATOR_NOT";
+var TOKEN_EXACT_STRING_START = exports.TOKEN_EXACT_STRING_START = "EXACT_STRING_START";
+var TOKEN_EXACT_STRING_END = exports.TOKEN_EXACT_STRING_END = "EXACT_STRING_END";
+var TOKEN_EXACT_STRING = exports.TOKEN_EXACT_STRING = "EXACT_STRING";
+
+var SYMBOL_BLOCK_START = exports.SYMBOL_BLOCK_START = "(";
+var SYMBOL_BLOCK_END = exports.SYMBOL_BLOCK_END = ")";
+var SYMBOL_KEYWORD_AND = exports.SYMBOL_KEYWORD_AND = "AND";
+var SYMBOL_KEYWORD_OR = exports.SYMBOL_KEYWORD_OR = "OR";
+var SYMBOL_KEYWORD_TO = exports.SYMBOL_KEYWORD_TO = "TO";
+var SYMBOL_KEYWORD_NOT = exports.SYMBOL_KEYWORD_NOT = "NOT";
+var SYMBOL_OPERATOR_COLON = exports.SYMBOL_OPERATOR_COLON = ":";
+var SYMBOL_OPERATOR_MINUS = exports.SYMBOL_OPERATOR_MINUS = "-";
+var SYMBOL_EXPRESSION_START = exports.SYMBOL_EXPRESSION_START = "[";
+var SYMBOL_EXPRESSION_END = exports.SYMBOL_EXPRESSION_END = "]";
+var SYMBOL_EXACT_STRING = exports.SYMBOL_EXACT_STRING = "\"";
+});
+define('framework/queryparser/tokensWalker.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var TokensWalker = function () {
+	function TokensWalker(tokens) {
+		_classCallCheck(this, TokensWalker);
+
+		this.tokens = tokens;
+		this.index = -1;
+	}
+
+	_createClass(TokensWalker, [{
+		key: "hasMore",
+		value: function hasMore() {
+			if (_.isEmpty(this.tokens)) {
+				return false;
+			}
+
+			if (this.index >= this.tokens.length - 1) {
+				return false;
+			}
+
+			return true;
+		}
+	}, {
+		key: "finished",
+		value: function finished() {
+			if (_.isEmpty(this.tokens)) {
+				return true;
+			}
+
+			if (this.index >= this.tokens.length) {
+				return true;
+			}
+
+			return false;
+		}
+	}, {
+		key: "next",
+		value: function next() {
+			if (this.finished()) {
+				return false;
+			}
+
+			this.index++;
+
+			return this.tokens[this.index];
+		}
+	}, {
+		key: "previous",
+		value: function previous() {
+			if (!this.index === 0) {
+				return false;
+			}
+
+			this.index--;
+
+			return this.tokens[this.index];
+		}
+	}, {
+		key: "current",
+		value: function current() {
+			if (_.isEmpty(this.tokens)) {
+				throw new Error("index out of bounds");
+			}
+
+			if (this.index >= this.tokens.length) {
+				throw new Error("index out of bounds");
+			}
+
+			return this.tokens[this.index];
+		}
+	}, {
+		key: "until",
+		value: function until(delimiter) {
+			var str = "";
+
+			var c = this.next();
+			while (c && c !== delimiter) {
+				str += c;
+			}
+
+			return str;
+		}
+	}]);
+
+	return TokensWalker;
+}();
+
+exports.default = TokensWalker;
 });
 define('framework/services.js', function(module, exports) {
 "use strict";
@@ -24952,6 +26608,42 @@ var main = exports.main = function main() {
     //application entry point
 };
 });
+define('model/menu.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _strings = require("../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = [{
+    icon: "zmdi zmdi-shield-security",
+    text: (0, _strings2.default)("security"),
+    roles: ["admin"],
+    children: [{
+        icon: "zmdi zmdi-accounts-alt",
+        text: (0, _strings2.default)("users"),
+        href: "/#/entities/user?grid=users",
+        permissions: ["user:list"]
+    }, {
+        icon: "zmdi zmdi-key",
+        text: (0, _strings2.default)("roles"),
+        href: "/#/entities/role?grid=roles",
+        permissions: ["role:list"]
+        // ,{
+        //     icon: "zmdi zmdi-accounts-alt",
+        //     text: M("entityRevisionSettings"),
+        //     href: "/#/entities/single/revisionSettings",
+        //     permissions: ["entityRevisionSettings:edit"]
+        // }
+    }]
+}];
+});
 define('plugins.js', function(module, exports) {
 "use strict";
 
@@ -25105,7 +26797,7 @@ define('stores/entities.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.SelectStore = exports.LookupStore = exports.EntitiesStore = exports.GridsStore = undefined;
+exports.MultiValueSettingsStore = exports.SelectStore = exports.LookupStore = exports.EntitiesStore = exports.GridsStore = undefined;
 
 var _index = require("../aj/index");
 
@@ -25120,8 +26812,6 @@ var actions = _interopRequireWildcard(_types);
 var _underscore = require("../libs/underscore");
 
 var _ = _interopRequireWildcard(_underscore);
-
-var _lang = require("../utils/lang");
 
 var _types2 = require("./types");
 
@@ -25171,6 +26861,14 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(_types2.ENTITIES, fun
         case (0, _ajex.completed)(actions.GET_ENTITY):
             return (0, _ajex.discriminate)(state, action.discriminator, { error: false, data: action.data });
 
+        case (0, _ajex.completed)(actions.CHECK_REVISION_ENABLE_STATUS):
+            return (0, _ajex.discriminate)(state, action.discriminator, { revisionEnabled: action.revisionEnabled });
+
+        case (0, _ajex.failed)(actions.CHECK_REVISION_ENABLE_STATUS):
+            return (0, _ajex.discriminate)(state, action.discriminator, {
+                revisionEnabled: false
+            });
+
         case (0, _ajex.failed)(actions.GET_ENTITY):
             return (0, _ajex.discriminate)(state, action.discriminator, {
                 error: true,
@@ -25183,7 +26881,12 @@ var EntitiesStore = exports.EntitiesStore = aj.createStore(_types2.ENTITIES, fun
             return _.omit(state, action.discriminator);
 
         case actions.SAVE_ENTITY:
-            return (0, _ajex.discriminate)(state, action.discriminator, { error: false, saved: false });
+            return (0, _ajex.discriminate)(state, action.discriminator, {
+                error: false,
+                getCompleted: false,
+                validationError: false,
+                validationResult: null,
+                saved: false });
 
         case (0, _ajex.completed)(actions.SAVE_ENTITY):
             return (0, _ajex.discriminate)(state, action.discriminator, {
@@ -25260,6 +26963,30 @@ var SelectStore = exports.SelectStore = aj.createStore(_types2.SELECT, function 
 
     }
 });
+
+var MultiValueSettingsStore = exports.MultiValueSettingsStore = aj.createStore(_types2.MULTIVALUE_SETTINGS, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    var list = [];
+    switch (action.type) {
+
+        case actions.SET_MULTIVALUE_SETTINGS:
+            debugger;
+            return (0, _ajex.discriminate)(state, action.discriminator, { items: action.items });
+        case actions.UPDATE_MULTIVALUE_SETTINGS:
+            list = updatedList(discriminated(state, action.discriminator).items, function (r) {
+                return r.itemType === action.itemType;
+            }, function (r) {
+                return _.assign({}, r, { enabled: action.enabled });
+            }, true);
+            return (0, _ajex.discriminate)(state, action.discriminator, { items: list });
+
+        case actions.FREE_SETTINGS_VALUES:
+            return _.omit(state, action.discriminator);
+    }
+});
 });
 define('stores/menu.js', function(module, exports) {
 "use strict";
@@ -25285,6 +27012,8 @@ var _lang = require("../utils/lang");
 
 var _types2 = require("./types");
 
+var _session = require("../api/session");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var MenuStore = exports.MenuStore = aj.createStore(_types2.MENU, function () {
@@ -25294,19 +27023,95 @@ var MenuStore = exports.MenuStore = aj.createStore(_types2.MENU, function () {
 
     switch (action.type) {
         case actions.SETUP_MENU:
-            return _.assign(state, { menu: action.menu });
+            var menu = JSON.parse(JSON.stringify(action.menu));
+
+            //Clear childrens menu if user hasn't permission
+            _.each(menu, function (m) {
+                m.children = _.filter(m.children, function (c) {
+                    return _.isEmpty(c.permissions) || (0, _session.hasPermission)(c.permissions);
+                });
+            });
+
+            //Clear item menu if are empty
+            return _.assign(state, {
+                menu: _.filter(menu, function (m) {
+                    return !_.isEmpty(m.children) && m.href === undefined || _.isEmpty(m.children) && m.href !== undefined && (0, _session.hasPermission)(m.permissions);
+                })
+            });
 
         case actions.SET_ACTIVE_MENU_ITEM:
             return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
                     i.active = i == action.item;
-                }) });
+                })
+            });
 
         case actions.EXPAND_MENU_ITEM:
-            return _.assign(state, { menu: (0, _lang.walk)(state.menu, "children", function (i) {
+            return _.assign(state, {
+                menu: (0, _lang.walk)(state.menu, "children", function (i) {
                     if (i == action.item) {
                         i.expanded = !(action.item.expanded || false);
                     }
-                }) });
+                })
+            });
+    }
+});
+});
+define('stores/passwordRecovery.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.PasswordRecoveryStore = undefined;
+exports.passwordRecoveryDefaultState = passwordRecoveryDefaultState;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _ajex = require("../utils/ajex");
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types2 = require("./types");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function passwordRecoveryDefaultState() {
+    return {
+        recoveryStep: 1,
+        mail: undefined,
+        code: undefined
+    };
+}
+
+var PasswordRecoveryStore = exports.PasswordRecoveryStore = aj.createStore(_types2.PASSWORD_RECOVERY, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : passwordRecoveryDefaultState();
+    var action = arguments[1];
+
+
+    switch (action.type) {
+
+        case (0, _ajex.completed)(actions.REQUEST_RECOVERY_CODE):
+            return _.assign(state, { error: false, mail: action.mail, recoveryStep: 2 });
+        case (0, _ajex.failed)(actions.REQUEST_RECOVERY_CODE):
+            return _.assign(state, { error: true });
+
+        case (0, _ajex.completed)(actions.VALIDATE_RECOVERY_CODE):
+            return _.assign(state, { error: false, mail: action.mail, code: action.code, recoveryStep: 3 });
+        case (0, _ajex.failed)(actions.VALIDATE_RECOVERY_CODE):
+            return _.assign(state, { error: true });
+
+        case (0, _ajex.completed)(actions.RESET_PASSWORD):
+            return _.assign(state, { error: false, recoveryStep: 4 });
+        case (0, _ajex.failed)(actions.RESET_PASSWORD):
+            return _.assign(state, { error: true });
     }
 });
 });
@@ -25359,6 +27164,53 @@ var SessionStore = exports.SessionStore = aj.createStore(_types2.SESSION, functi
 
         case (0, _ajex.failed)(actions.RESUME_SESSION):
             return _.assign(state, { isLoggedIn: false, error: true, resumeComplete: true });
+
+        case actions.LOGOUT:
+            return _.assign(state, { isLoggedIn: false, user: null, error: false, resumeComplete: false });
+        case actions.CHANGE_PASSWORD:
+            return _.assign(state, { action: actions.CHANGE_PASSWORD, error: null });
+        case (0, _ajex.completed)(actions.CHANGE_PASSWORD):
+            return _.assign(state, { action: actions.CHANGE_PASSWORD, firstLogin: action.firstLogin, user: action.user, error: false });
+        case (0, _ajex.failed)(actions.CHANGE_PASSWORD):
+            return _.assign(state, { action: actions.CHANGE_PASSWORD, error: true });
+    }
+});
+});
+define('stores/system.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.SystemStore = undefined;
+
+var _index = require("../aj/index");
+
+var aj = _interopRequireWildcard(_index);
+
+var _types = require("../actions/types");
+
+var actions = _interopRequireWildcard(_types);
+
+var _underscore = require("../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _types2 = require("./types");
+
+var _ajex = require("../utils/ajex");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var SystemStore = exports.SystemStore = aj.createStore(_types2.SYSTEM, function () {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var action = arguments[1];
+
+
+    switch (action.type) {
+        case (0, _ajex.completed)(actions.SYSTEM_INFORMATIONS):
+            return _.assign(state, { apiVersion: action.apiVersion, backendVersion: action.backendVersion, copyrightInfos: action.copyrightInfos });
+
     }
 });
 });
@@ -25376,6 +27228,8 @@ var ENTITIES = exports.ENTITIES = "ENTITIES";
 var LOOKUP = exports.LOOKUP = "LOOKUP";
 var MENU = exports.MENU = "MENU";
 var SELECT = exports.SELECT = "SELECT";
+var MULTIVALUE_SETTINGS = exports.MULTIVALUE_SETTINGS = "MULTIVALUE_SETTINGS";
+var SYSTEM = exports.SYSTEM = "SYSTEM";
 });
 define('stores/ui.js', function(module, exports) {
 "use strict";
@@ -26050,7 +27904,7 @@ function create() {
 
 function fromEnum(Enum) {
 	return new DataSource(_.map(_.keys(Enum), function (k) {
-		return { label: k, value: Enum[k] };
+		return { label: M(k), value: Enum[k] };
 	}));
 }
 });
@@ -26065,6 +27919,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 exports.format = format;
 exports.optional = optional;
+exports.safeGet = safeGet;
 exports.parseBoolean = parseBoolean;
 exports.forceBoolean = forceBoolean;
 exports.walk = walk;
@@ -26119,6 +27974,19 @@ function optional(val, def) {
     }
 
     return v;
+}
+
+/**
+ * safely get a property from object, returning default if not present)
+ */
+function safeGet(target, prop) {
+    var def = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+    if (target === undefined || target === null) {
+        return null;
+    } else {
+        return optional(target[prop], def);
+    }
 }
 
 /**
@@ -26435,7 +28303,8 @@ var instance = new _events.Observable();
 
 function addObserver(evt, handler) {
     logger.i("Added observer for event:", evt);
-    return instance.on(evt, handler);
+    instance.on(evt, handler);
+    return handler;
 }
 
 function removeObserver(evt, handler) {
@@ -26456,13 +28325,25 @@ define('web/components/common.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.EditableText = exports.ActionsMatcher = exports.FloatingButton = exports.Card = exports.HeaderBlock = exports.Actions = exports.ActionButton = exports.DropdownActionButton = undefined;
+exports.HeaderBlockWithBreadcrumbs = exports.EditableText = exports.ActionsMatcher = exports.FloatingButton = exports.Card = exports.HeaderBlock = exports.Actions = exports.ActionButton = exports.DropdownActionButton = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _lang = require("../../utils/lang");
 
 var _keyboard = require("../utils/keyboard");
+
+var _ui = require("../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _session = require("../../api/session");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -26596,14 +28477,22 @@ var Actions = exports.Actions = function (_React$Component3) {
     }
 
     _createClass(Actions, [{
+        key: "getPermittedActions",
+        value: function getPermittedActions() {
+            return _.filter(this.props.actions, function (a) {
+                return (0, _session.hasPermission)(a.permissions) === true;
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
             var actionKey = 1;
+            var actions = this.getPermittedActions();
 
-            return !_.isEmpty(this.props.actions) && React.createElement(
+            return !_.isEmpty(actions) && React.createElement(
                 "ul",
                 { className: "actions" },
-                this.props.actions.map(function (a) {
+                actions.map(function (a) {
                     return React.createElement(
                         "li",
                         { key: actionKey++ },
@@ -26867,6 +28756,94 @@ var EditableText = exports.EditableText = function (_React$Component7) {
 
     return EditableText;
 }(React.Component);
+
+var HeaderBlockWithBreadcrumbs = exports.HeaderBlockWithBreadcrumbs = function (_React$Component8) {
+    _inherits(HeaderBlockWithBreadcrumbs, _React$Component8);
+
+    function HeaderBlockWithBreadcrumbs(props) {
+        _classCallCheck(this, HeaderBlockWithBreadcrumbs);
+
+        return _possibleConstructorReturn(this, (HeaderBlockWithBreadcrumbs.__proto__ || Object.getPrototypeOf(HeaderBlockWithBreadcrumbs)).call(this, props));
+    }
+
+    _createClass(HeaderBlockWithBreadcrumbs, [{
+        key: "render",
+        value: function render() {
+            var _this11 = this;
+
+            var title = void 0;
+            if (_.isArray(this.props.title)) {
+                title = this.props.title.map(function (item, i) {
+                    return React.createElement(BreadcrumbItem, { key: Math.random(), title: item.title, url: item.url, first: i == 0, last: i < _this11.props.title.length - 1 });
+                });
+            } else {
+                title = this.props.title;
+            }
+
+            return React.createElement(
+                "div",
+                { className: "block-header" },
+                (!_.isEmpty(title) || !_.isEmpty(this.props.actions)) && React.createElement(
+                    "h2",
+                    null,
+                    title,
+                    !_.isEmpty(this.props.subtitle) && React.createElement(
+                        "small",
+                        null,
+                        this.props.subtitle
+                    )
+                ),
+                React.createElement(Actions, { actions: this.props.actions })
+            );
+        }
+    }]);
+
+    return HeaderBlockWithBreadcrumbs;
+}(React.Component);
+
+var BreadcrumbItem = function (_React$Component9) {
+    _inherits(BreadcrumbItem, _React$Component9);
+
+    function BreadcrumbItem(props) {
+        _classCallCheck(this, BreadcrumbItem);
+
+        var _this12 = _possibleConstructorReturn(this, (BreadcrumbItem.__proto__ || Object.getPrototypeOf(BreadcrumbItem)).call(this, props));
+
+        _this12.title = _this12.props.title;
+        _this12.url = _this12.props.url;
+        _this12.last = (0, _lang.optional)(_this12.props.last, false);
+        _this12.first = (0, _lang.optional)(_this12.props.first, false);
+        return _this12;
+    }
+
+    _createClass(BreadcrumbItem, [{
+        key: "onClick",
+        value: function onClick() {
+            if (this.url) {
+                ui.navigate(this.url);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+
+            var style = { marginLeft: !this.first ? "10px" : "px" };
+            if (this.url) style.cursor = "pointer";
+
+            var iconStyle = {
+                marginLeft: "10px"
+            };
+            return React.createElement(
+                "span",
+                { onClick: this.onClick.bind(this), style: style },
+                this.title,
+                this.last && React.createElement("i", { style: iconStyle, className: "zmdi zmdi-caret-right" })
+            );
+        }
+    }]);
+
+    return BreadcrumbItem;
+}(React.Component);
 });
 define('web/components/containers.js', function(module, exports) {
 "use strict";
@@ -26874,7 +28851,7 @@ define('web/components/containers.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.EntitiesSelectContainer = exports.ValuesSelectContainer = exports.ValuesLookupContainer = exports.EntitiesLookupContainer = undefined;
+exports.EntitiesMultiCheckContainer = exports.EntitiesSelectContainer = exports.ValuesSelectContainer = exports.ValuesLookupContainer = exports.EntitiesLookupContainer = exports.MultiCheckboxByValue = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -26886,7 +28863,7 @@ var _entities = require("../../stores/entities");
 
 var _entities2 = require("../../actions/entities");
 
-var _ajex = require("../../../utils/ajex");
+var _ajex = require("../../utils/ajex");
 
 var _query = require("../../api/query");
 
@@ -26909,39 +28886,158 @@ function nextLookupDiscriminator() {
     return "lookup_" + LOOKUP_DISCRIMINATOR++;
 }
 
-var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control) {
-    _inherits(EntitiesLookupContainer, _Control);
+var MultiCheckboxByValue = exports.MultiCheckboxByValue = function (_Control) {
+    _inherits(MultiCheckboxByValue, _Control);
+
+    function MultiCheckboxByValue(props) {
+        _classCallCheck(this, MultiCheckboxByValue);
+
+        var _this = _possibleConstructorReturn(this, (MultiCheckboxByValue.__proto__ || Object.getPrototypeOf(MultiCheckboxByValue)).call(this, props));
+
+        _this.state = {};
+        _this.discriminator = props.field.property;
+        return _this;
+    }
+
+    _createClass(MultiCheckboxByValue, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            var model = this.props.model;
+            var field = this.props.field;
+
+            model.once("load", function () {
+                var items = (0, _lang.optional)(model.get(field.property), []);
+                (0, _entities2.setMultivalueSettings)({ discriminator: _this2.discriminator, items: items });
+            });
+
+            _entities.MultiValueSettingsStore.subscribe(this, function (state) {
+                _this2.state.items = (0, _ajex.discriminated)(state, _this2.discriminator).items;
+                _this2.forceUpdate();
+            });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+
+            _entities.MultiValueSettingsStore.unsubscribe(this);
+
+            freeSettingValues({ discriminator: this.discriminator });
+        }
+    }, {
+        key: "onValueChange",
+        value: function onValueChange(elem, e) {
+            (0, _entities2.updateMultivalueSettings)({
+                discriminator: this.discriminator,
+                itemType: elem.itemType,
+                enabled: e.target.checked
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this3 = this;
+
+            var model = this.props.model;
+            var field = this.props.field;
+
+            var items = (0, _lang.optional)(this.state.items, []);
+
+            model.set(field.property, items);
+
+            var checks = _.map(items, function (elem, i) {
+                var type = elem.itemType;
+                var description = _.isFunction(_this3.props.formatter) ? _this3.props.formatter(elem) : M(type);
+
+                var key = i + "_" + type;
+                var enabled = elem.enabled;
+
+                return React.createElement(
+                    "div",
+                    { key: key, className: "col-xs-12 zero-padding" },
+                    React.createElement(
+                        "div",
+                        { className: "row" },
+                        React.createElement(
+                            "div",
+                            { className: "col-xs-10 zero-padding" },
+                            React.createElement(
+                                "p",
+                                { className: "margin-top-20 text-evaluation-description" },
+                                description
+                            )
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "col-xs-2 zero-padding" },
+                            React.createElement(
+                                "div",
+                                { className: "toggle-switch yesno" },
+                                React.createElement("input", {
+                                    type: "checkbox",
+                                    hidden: "hidden",
+                                    onChange: _this3.onValueChange.bind(_this3, elem),
+                                    name: key,
+                                    id: key,
+                                    "data-property": key,
+                                    checked: (0, _lang.optional)(enabled, false) }),
+                                React.createElement("label", { htmlFor: key, className: "ts-helper" }),
+                                React.createElement(
+                                    "label",
+                                    { htmlFor: key, className: "ts-label" },
+                                    field.placeholder
+                                )
+                            )
+                        )
+                    )
+                );
+            });
+
+            return React.createElement(
+                "div",
+                { className: "col-xs-12 zero-padding" },
+                checks
+            );
+        }
+    }]);
+
+    return MultiCheckboxByValue;
+}(_forms.Control);
+
+var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Control2) {
+    _inherits(EntitiesLookupContainer, _Control2);
 
     function EntitiesLookupContainer(props) {
         _classCallCheck(this, EntitiesLookupContainer);
 
-        var _this = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (EntitiesLookupContainer.__proto__ || Object.getPrototypeOf(EntitiesLookupContainer)).call(this, props));
 
-        _this.discriminator = props.id;
-        if (_.isEmpty(_this.discriminator)) {
+        _this4.discriminator = props.id;
+        if (_.isEmpty(_this4.discriminator)) {
             throw new Error("Please specify an id of this lookup");
         }
 
-        _this.query = query.create();
-        _this.query.setPage(1);
-        _this.query.setRowsPerPage(20);
-        _this.__queryOnChange = function () {
-            (0, _entities2.getLookupResult)({ discriminator: _this.discriminator, entity: _this.props.entity, query: _this.query });
+        _this4.query = query.create();
+        _this4.query.setPage(1);
+        _this4.query.setRowsPerPage(20);
+        _this4.__queryOnChange = function () {
+            (0, _entities2.getLookupResult)({ discriminator: _this4.discriminator, entity: _this4.props.entity, query: _this4.query });
         };
 
-        _this.datasource = datasource.create();
+        _this4.datasource = datasource.create();
 
-        _this.state = { result: {} };
-        return _this;
+        _this4.state = { result: {} };
+        return _this4;
     }
 
     _createClass(EntitiesLookupContainer, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this2 = this;
+            var _this5 = this;
 
             _entities.LookupStore.subscribe(this, function (state) {
-                _this2.datasource.setData((0, _ajex.discriminated)(state, _this2.discriminator).result);
+                _this5.datasource.setData((0, _ajex.discriminated)(state, _this5.discriminator).result);
             });
 
             this.query.on("change", this.__queryOnChange);
@@ -26965,41 +29061,61 @@ var EntitiesLookupContainer = exports.EntitiesLookupContainer = function (_Contr
     return EntitiesLookupContainer;
 }(_forms.Control);
 
-var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2) {
-    _inherits(ValuesLookupContainer, _Control2);
+var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control3) {
+    _inherits(ValuesLookupContainer, _Control3);
 
     function ValuesLookupContainer(props) {
         _classCallCheck(this, ValuesLookupContainer);
 
-        var _this3 = _possibleConstructorReturn(this, (ValuesLookupContainer.__proto__ || Object.getPrototypeOf(ValuesLookupContainer)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (ValuesLookupContainer.__proto__ || Object.getPrototypeOf(ValuesLookupContainer)).call(this, props));
 
-        _this3.discriminator = props.id;
-        if (_.isEmpty(_this3.discriminator)) {
+        _this6.discriminator = props.id;
+
+        if (_.isEmpty(_this6.discriminator)) {
             throw new Error("Please specify an id for lookup");
         }
 
-        if (_.isEmpty(_this3.props.collection)) {
+        var collection = _this6.getCollection();
+        if (_.isEmpty(collection)) {
             throw new Error("Please specify a collection for lookup");
         }
 
-        _this3.__queryOnChange = function () {
-            (0, _entities2.getLookupValues)({ discriminator: _this3.discriminator, collection: _this3.props.collection, keyword: _this3.query.keyword });
+        _this6.__queryOnChange = function () {
+            collection = _this6.getCollection();
+            (0, _entities2.getLookupValues)({
+                discriminator: _this6.discriminator,
+                collection: collection,
+                keyword: _this6.query.keyword,
+                page: _this6.query.page,
+                rowsPerPage: _this6.query.rowsPerPage
+            });
         };
 
-        _this3.query = query.create();
-        _this3.datasource = datasource.create();
+        _this6.query = query.create();
+        _this6.query.setPage(1);
+        _this6.query.setRowsPerPage(15);
+        _this6.datasource = datasource.create();
 
-        _this3.state = { values: {} };
-        return _this3;
+        _this6.state = { values: {} };
+        return _this6;
     }
 
     _createClass(ValuesLookupContainer, [{
+        key: "getCollection",
+        value: function getCollection() {
+            var collection = this.props.collection;
+            if (_.isFunction(this.props.getCollection)) {
+                collection = this.props.getCollection(this.props.model);
+            }
+            return collection;
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this4 = this;
+            var _this7 = this;
 
             _entities.LookupStore.subscribe(this, function (state) {
-                _this4.datasource.setData((0, _ajex.discriminated)(state, _this4.discriminator).values);
+                _this7.datasource.setData((0, _ajex.discriminated)(state, _this7.discriminator).values);
             });
 
             this.query.on("change", this.__queryOnChange);
@@ -27023,26 +29139,26 @@ var ValuesLookupContainer = exports.ValuesLookupContainer = function (_Control2)
     return ValuesLookupContainer;
 }(_forms.Control);
 
-var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3) {
-    _inherits(ValuesSelectContainer, _Control3);
+var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control4) {
+    _inherits(ValuesSelectContainer, _Control4);
 
     function ValuesSelectContainer(props) {
         _classCallCheck(this, ValuesSelectContainer);
 
-        var _this5 = _possibleConstructorReturn(this, (ValuesSelectContainer.__proto__ || Object.getPrototypeOf(ValuesSelectContainer)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (ValuesSelectContainer.__proto__ || Object.getPrototypeOf(ValuesSelectContainer)).call(this, props));
 
-        _this5.discriminator = props.id;
+        _this8.discriminator = props.id;
 
-        if (_.isEmpty(_this5.discriminator)) {
+        if (_.isEmpty(_this8.discriminator)) {
             throw new Error("Please specify an id for select");
         }
 
-        if (_.isEmpty(_this5.props.collection)) {
+        if (_.isEmpty(_this8.props.collection)) {
             throw new Error("Please specify a collection for select");
         }
 
-        _this5.datasource = datasource.create();
-        return _this5;
+        _this8.datasource = datasource.create();
+        return _this8;
     }
 
     _createClass(ValuesSelectContainer, [{
@@ -27053,10 +29169,10 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this6 = this;
+            var _this9 = this;
 
             _entities.SelectStore.subscribe(this, function (state) {
-                _this6.datasource.setData((0, _ajex.discriminated)(state, _this6.discriminator).values);
+                _this9.datasource.setData((0, _ajex.discriminated)(state, _this9.discriminator).values);
             });
 
             this.reload();
@@ -27083,31 +29199,31 @@ var ValuesSelectContainer = exports.ValuesSelectContainer = function (_Control3)
     return ValuesSelectContainer;
 }(_forms.Control);
 
-var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Control4) {
-    _inherits(EntitiesSelectContainer, _Control4);
+var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Control5) {
+    _inherits(EntitiesSelectContainer, _Control5);
 
     function EntitiesSelectContainer(props) {
         _classCallCheck(this, EntitiesSelectContainer);
 
-        var _this7 = _possibleConstructorReturn(this, (EntitiesSelectContainer.__proto__ || Object.getPrototypeOf(EntitiesSelectContainer)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (EntitiesSelectContainer.__proto__ || Object.getPrototypeOf(EntitiesSelectContainer)).call(this, props));
 
-        if (_.isEmpty(_this7.props.entity)) {
+        if (_.isEmpty(_this10.props.entity)) {
             throw new Error("Please specify an entity for select");
         }
 
-        _this7.discriminator = "entity_select_" + _this7.props.entity;
-        _this7.datasource = datasource.create();
-        _this7.query = null;
-        return _this7;
+        _this10.discriminator = "entity_select_" + _this10.props.entity;
+        _this10.datasource = datasource.create();
+        _this10.query = null;
+        return _this10;
     }
 
     _createClass(EntitiesSelectContainer, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this8 = this;
+            var _this11 = this;
 
             _entities.SelectStore.subscribe(this, function (state) {
-                _this8.datasource.setData((0, _ajex.discriminated)(state, _this8.discriminator).values);
+                _this11.datasource.setData((0, _ajex.discriminated)(state, _this11.discriminator).values);
             });
 
             var model = this.props.model;
@@ -27123,7 +29239,7 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
 
             if (!_.isEmpty(this.query)) {
                 this.__onQueryChange = function () {
-                    (0, _entities2.getSelectEntities)({ discriminator: _this8.discriminator, entity: _this8.props.entity, query: _this8.query });
+                    (0, _entities2.getSelectEntities)({ discriminator: _this11.discriminator, entity: _this11.props.entity, query: _this11.query });
                 };
 
                 this.query.on("change", this.__onQueryChange);
@@ -27149,6 +29265,60 @@ var EntitiesSelectContainer = exports.EntitiesSelectContainer = function (_Contr
 
     return EntitiesSelectContainer;
 }(_forms.Control);
+
+var EntitiesMultiCheckContainer = exports.EntitiesMultiCheckContainer = function (_Control6) {
+    _inherits(EntitiesMultiCheckContainer, _Control6);
+
+    function EntitiesMultiCheckContainer(props) {
+        _classCallCheck(this, EntitiesMultiCheckContainer);
+
+        var _this12 = _possibleConstructorReturn(this, (EntitiesMultiCheckContainer.__proto__ || Object.getPrototypeOf(EntitiesMultiCheckContainer)).call(this, props));
+
+        _this12.discriminator = props.id;
+        if (_.isEmpty(_this12.discriminator)) {
+            throw new Error("Please specify an id of this lookup");
+        }
+
+        _this12.query = query.create();
+
+        _this12.datasource = datasource.create();
+
+        _this12.state = { result: {} };
+
+        return _this12;
+    }
+
+    _createClass(EntitiesMultiCheckContainer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this13 = this;
+
+            _entities.LookupStore.subscribe(this, function (state) {
+                _this13.datasource.setData((0, _ajex.discriminated)(state, _this13.discriminator).result);
+            });
+
+            (0, _entities2.getLookupResult)({ discriminator: this.discriminator, entity: this.props.entity, query: this.query });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+
+            _entities.LookupStore.unsubscribe(this);
+
+            this.query.off("change", this.__queryOnChange);
+
+            (0, _entities2.freeLookup)({ discriminator: this.discriminator });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var entityDescriptor = (0, _lang.optional)(this.props.entityDescriptor, {});
+            return React.createElement(_forms.MultiCheckbox, _.assign({}, this.props, { query: this.query, datasource: this.datasource, entityDescriptor: entityDescriptor, activeColor: this.props.activeColor }));
+        }
+    }]);
+
+    return EntitiesMultiCheckContainer;
+}(_forms.Control);
 });
 define('web/components/dialogs.js', function(module, exports) {
 "use strict";
@@ -27161,6 +29331,12 @@ exports.Dialog = exports.DIALOG_RESULT_CANCEL = exports.DIALOG_RESULT_OK = undef
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _lang = require("../../utils/lang");
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -27194,10 +29370,16 @@ var Dialog = exports.Dialog = function (_React$Component) {
             var me = ReactDOM.findDOMNode(this);
             $(me).modal({ show: false }).on("show.bs.modal", function () {
                 return _this2.opened = true;
-            }).on("hide.bs.modal", function () {
-                _this2.opened = false;
-                if (_.isFunction(_this2.props.onClose)) {
-                    _this2.props.onClose(_this2.dialogResult);
+            }).on("hide.bs.modal", function (e) {
+                if ((0, _lang.forceBoolean)(_this2.props.notHide)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                } else {
+                    _this2.opened = false;
+                    if (_.isFunction(_this2.props.onClose)) {
+                        _this2.props.onClose(_this2.dialogResult);
+                    }
                 }
             });
 
@@ -27313,7 +29495,7 @@ define('web/components/forms.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Image = exports.File = exports.Lookup = exports.Select = exports.Number = exports.Switch = exports.YesNo = exports.DateTime = exports.Mail = exports.Spacer = exports.Color = exports.ReadOnlyText = exports.TextArea = exports.Text = exports.Control = exports.InlineField = exports.Field = exports.Form = exports.FormBody = exports.FormSubmitEvent = exports.Tabs = exports.AreaNoCard = exports.Area = exports.Label = exports.Model = exports.VALIDATION_ERROR = undefined;
+exports.SingleFile = exports.PasswordText = exports.SingleImage = exports.MultiFile = exports.Gallery = exports.Image = exports.File = exports.Lookup = exports.Select = exports.Number = exports.Switch = exports.YesNo = exports.DateTime = exports.Mail = exports.Spacer = exports.Color = exports.ReadOnlyText = exports.TextArea = exports.Text = exports.Control = exports.InlineField = exports.Field = exports.FORM_FOOTER = exports.Form = exports.FormBody = exports.FormSubmitEvent = exports.Tabs = exports.AreaNoCard = exports.Area = exports.Label = exports.Model = exports.VALIDATION_ERROR = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -27344,6 +29526,10 @@ var _datasource = require("../../utils/datasource");
 var datasource = _interopRequireWildcard(_datasource);
 
 var _lang2 = require("../../utils/lang");
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -27476,7 +29662,7 @@ var Model = exports.Model = function (_Observable) {
     }, {
         key: "hasChanges",
         value: function hasChanges() {
-            var d = (0, _lang2.diff)(this.data, this.initialData);
+            var d = (0, _lang.diff)(this.data, this.initialData);
             return d.length > 0;
         }
     }, {
@@ -27704,7 +29890,7 @@ var Area = exports.Area = function (_React$Component2) {
                     return f.component;
                 }, function () {
                     return defaultFieldCass;
-                }), { key: f.property, model: _this6.props.model, field: f });
+                }), { key: f.property, model: _this6.props.model, field: f, descriptor: descriptor });
             });
 
             return React.createElement(
@@ -27755,6 +29941,7 @@ var AreaNoCard = exports.AreaNoCard = function (_React$Component3) {
         value: function render() {
             var _this8 = this;
 
+            var descriptor = this.props.descriptor;
             var area = this.props.area;
             var tabs = !_.isEmpty(area.tabs) && React.createElement(Tabs, { tabs: area.tabs, model: this.props.model });
             var fields = !_.isEmpty(area.fields) && _.filter(area.fields, function (f) {
@@ -27764,7 +29951,7 @@ var AreaNoCard = exports.AreaNoCard = function (_React$Component3) {
                     return f.component;
                 }, function () {
                     return Field;
-                }), { key: f.property, model: _this8.props.model, field: f });
+                }), { key: f.property, model: _this8.props.model, field: f, descriptor: descriptor });
             });
             var actionKey = 1;
 
@@ -27869,19 +30056,15 @@ var Tabs = exports.Tabs = function (_React$Component4) {
                         return f.component;
                     }, function () {
                         return defaultFieldClass;
-                    }), { key: f.property, model: _this11.props.model, field: f });
+                    }), { key: f.property, model: _this11.props.model, field: f, onCancel: _this11.props.onCancel, canSave: _this11.props.canSave });
                 });
-                var el = React.createElement(
+                return React.createElement(
                     "div",
-                    { key: "pane_" + c.key, role: "tabpanel", className: "tab-pane" + (first ? " active" : ""), id: "" + c.key },
+                    { key: key, role: "tabpanel", className: "tab-pane " + _this11.getTabClass(selectedTab, c.id, firstTabId), id: "" + c.key },
                     React.createElement(
                         "div",
                         { className: "row" },
-                        React.createElement(
-                            "div",
-                            { className: "p-l-30 p-t-10 p-r-30" },
-                            fields
-                        )
+                        fields
                     ),
                     React.createElement("div", { className: "clearfix" })
                 );
@@ -28012,7 +30195,7 @@ var FormBody = exports.FormBody = function (_React$Component5) {
                     return f.component;
                 }, function () {
                     return defaultFieldCass;
-                }), { key: f.property, model: model, field: f });
+                }), { key: f.property, model: model, field: f, descriptor: descriptor, params: _this13.props.params, onCancel: _this13.props.onCancel });
             });
             var showInCard = (0, _lang.optional)(descriptor.showInCard, true);
 
@@ -28055,10 +30238,18 @@ var Form = exports.Form = function (_React$Component6) {
         _this14.model = new Model(_this14);
         _this14.model.once("load", function () {
             var descriptor = _this14.props.descriptor;
+            if (_.isFunction(descriptor.onModelLoadFirstTime)) {
+                descriptor.onModelLoadFirstTime(_this14.model);
+            }
+        });
+
+        _this14.model.on("load", function () {
+            var descriptor = _this14.props.descriptor;
             if (_.isFunction(descriptor.onModelLoad)) {
                 descriptor.onModelLoad(_this14.model);
             }
         });
+
         return _this14;
     }
 
@@ -28145,6 +30336,11 @@ var Form = exports.Form = function (_React$Component6) {
             return null;
         }
     }, {
+        key: "showFormFooter",
+        value: function showFormFooter() {
+            return (0, _lang.optional)(this.props.descriptor.showFormFooter, true);
+        }
+    }, {
         key: "render",
         value: function render() {
             var descriptor = this.props.descriptor;
@@ -28152,6 +30348,9 @@ var Form = exports.Form = function (_React$Component6) {
 
             var inline = (0, _lang.optional)(descriptor.inline, false);
             var className = inline ? "form-horizontal" : "";
+            var canSave = this.props.canSave;
+            var canCancel = this.props.canCancel;
+            var showFormFooter = this.showFormFooter();
 
             return React.createElement(
                 "div",
@@ -28160,28 +30359,7 @@ var Form = exports.Form = function (_React$Component6) {
                     "form",
                     { action: "javascript:;", className: className, role: "form", onSubmit: this.onSubmit.bind(this) },
                     React.createElement(FormBody, { descriptor: descriptor, model: model }),
-                    React.createElement(
-                        "div",
-                        { className: "row" },
-                        React.createElement(
-                            "div",
-                            { className: "text-right col-sm-12" },
-                            React.createElement(
-                                "button",
-                                { type: "button", className: "btn btn-default waves-effect m-r-10", onClick: this.onCancel.bind(this) },
-                                React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
-                                " ",
-                                descriptor.cancelText || (0, _strings2.default)("back")
-                            ),
-                            React.createElement(
-                                "button",
-                                { type: "submit", className: "btn btn-primary waves-effect" },
-                                React.createElement("i", { className: "zmdi zmdi-save" }),
-                                " ",
-                                descriptor.submitText || (0, _strings2.default)("save")
-                            )
-                        )
-                    ),
+                    showFormFooter && React.createElement(FormFooter, { descriptor: descriptor, model: model, onCancel: this.onCancel.bind(this) }),
                     React.createElement("div", { className: "clearfix" }),
                     this.getExtra()
                 )
@@ -28192,12 +30370,98 @@ var Form = exports.Form = function (_React$Component6) {
     return Form;
 }(React.Component);
 
+var FormFooter = function (_React$Component7) {
+    _inherits(FormFooter, _React$Component7);
+
+    function FormFooter(props) {
+        _classCallCheck(this, FormFooter);
+
+        return _possibleConstructorReturn(this, (FormFooter.__proto__ || Object.getPrototypeOf(FormFooter)).call(this, props));
+    }
+
+    _createClass(FormFooter, [{
+        key: "onCancel",
+        value: function onCancel() {
+            if (_.isFunction(this.props.onCancel)) {
+                this.props.onCancel();
+            }
+        }
+    }, {
+        key: "canSave",
+        value: function canSave() {
+            var descriptor = this.props.descriptor;
+            return _.isFunction(descriptor.canSave) ? descriptor.canSave(this.props.model) : true;
+        }
+    }, {
+        key: "canCancel",
+        value: function canCancel() {
+            var descriptor = this.props.descriptor;
+            return _.isFunction(descriptor.canCancel) ? descriptor.canCancel(this.props.model) : true;
+        }
+    }, {
+        key: "render",
+        value: function render() {
+
+            var descriptor = this.props.descriptor;
+
+            var submitText = (0, _strings2.default)("save");
+            var cancelText = (0, _strings2.default)("back");
+            if (descriptor) {
+                if (descriptor.submitText) {
+                    submitText = descriptor.submitText;
+                }
+                if (descriptor.cancelText) {
+                    cancelText = descriptor.cancelText;
+                }
+            }
+
+            var style = { marginBottom: "30px" };
+
+            if (!this.props.defaultFooter) {
+                style["marginLeft"] = "15px";
+                style["marginRight"] = "15px";
+            }
+
+            var canSave = this.canSave();
+            var canCancel = this.canCancel();
+
+            return React.createElement(
+                "div",
+                { className: "row", style: style },
+                React.createElement(
+                    "div",
+                    { className: "text-right col-sm-12" },
+                    canCancel && React.createElement(
+                        "button",
+                        { type: "button", className: "btn btn-default waves-effect m-r-10", onClick: this.onCancel.bind(this) },
+                        React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
+                        " ",
+                        cancelText
+                    ),
+                    canSave && React.createElement(
+                        "button",
+                        { type: "submit", className: "btn btn-primary waves-effect" },
+                        React.createElement("i", { className: "zmdi zmdi-save" }),
+                        " ",
+                        submitText
+                    )
+                )
+            );
+        }
+    }]);
+
+    return FormFooter;
+}(React.Component);
+
 /************************
     Controls and Fields
  ************************/
 
-var Field = exports.Field = function (_React$Component7) {
-    _inherits(Field, _React$Component7);
+
+var FORM_FOOTER = exports.FORM_FOOTER = "actionsButtons";
+
+var Field = exports.Field = function (_React$Component8) {
+    _inherits(Field, _React$Component8);
 
     function Field() {
         _classCallCheck(this, Field);
@@ -28208,9 +30472,18 @@ var Field = exports.Field = function (_React$Component7) {
     _createClass(Field, [{
         key: "render",
         value: function render() {
+
+            if (this.props.field.property == FORM_FOOTER) {
+
+                return React.createElement(FormFooter, { descriptor: this.props.descriptor, model: this.props.model, onCancel: this.onCancel.bind(this) });
+            }
+
             var model = this.props.model;
             var className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12");
-            var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.props));
+            var control = React.createElement(_.isFunction(this.props.field.getControl) ? this.props.field.getControl(model) : this.props.field.control, _.assign({
+                field: this.props.field,
+                model: this.props.model
+            }, this.props.field.props));
             var hasLabel = this.props.field.label != undefined && this.props.field.label != null;
             var validationResult = (0, _lang.optional)(model.validationResult[this.props.field.property], { valid: true });
             if (!validationResult.valid) {
@@ -28236,8 +30509,8 @@ var Field = exports.Field = function (_React$Component7) {
     return Field;
 }(React.Component);
 
-var InlineField = exports.InlineField = function (_React$Component8) {
-    _inherits(InlineField, _React$Component8);
+var InlineField = exports.InlineField = function (_React$Component9) {
+    _inherits(InlineField, _React$Component9);
 
     function InlineField() {
         _classCallCheck(this, InlineField);
@@ -28248,6 +30521,10 @@ var InlineField = exports.InlineField = function (_React$Component8) {
     _createClass(InlineField, [{
         key: "render",
         value: function render() {
+            if (this.props.field.property == FORM_FOOTER) {
+                return React.createElement(FormFooter, { descriptor: this.props.descriptor, model: this.props.model, onCancel: this.onCancel.bind(this) });
+            }
+
             var model = this.props.model;
             var className = "form-group " + (this.props.field.size ? this.props.field.size : "col-sm-12");
             var control = React.createElement(this.props.field.control, _.assign({ field: this.props.field, model: this.props.model }, this.props.field.props));
@@ -28286,8 +30563,8 @@ var InlineField = exports.InlineField = function (_React$Component8) {
     return InlineField;
 }(React.Component);
 
-var Control = exports.Control = function (_React$Component9) {
-    _inherits(Control, _React$Component9);
+var Control = exports.Control = function (_React$Component10) {
+    _inherits(Control, _React$Component10);
 
     function Control(props) {
         _classCallCheck(this, Control);
@@ -28387,12 +30664,12 @@ var ReadOnlyText = exports.ReadOnlyText = function (_Control3) {
     _createClass(ReadOnlyText, [{
         key: "getText",
         value: function getText() {
-            var _this21 = this;
+            var _this22 = this;
 
             var field = this.props.field;
             var model = this.props.model;
             var formatter = (0, _lang.optional)(function () {
-                return _this21.props.formatter;
+                return _this22.props.formatter;
             }, function () {
                 return function (v) {
                     return v;
@@ -28437,7 +30714,7 @@ var Color = exports.Color = function (_Control4) {
     _createClass(Color, [{
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this23 = this;
+            var _this24 = this;
 
             var field = this.props.field;
             var model = this.props.model;
@@ -28445,7 +30722,7 @@ var Color = exports.Color = function (_Control4) {
             var input = $(me).find("#" + field.property);
             $(me).find(".color-picker").farbtastic(function (v) {
                 model.set(field.property, v);
-                _this23.forceUpdate();
+                _this24.forceUpdate();
             });
         }
     }, {
@@ -28550,35 +30827,80 @@ var DateTime = exports.DateTime = function (_Control7) {
     }
 
     _createClass(DateTime, [{
+        key: "getDefaultFormat",
+        value: function getDefaultFormat() {
+            return "DD/MM/YYYY";
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
+
+            var self = this;
+
             var me = ReactDOM.findDOMNode(this);
-            $(me).datetimepicker({
-                locale: this.props.locale,
-                format: this.props.format
-            });
 
             var field = this.props.field;
             var model = this.props.model;
 
             $(me).on("dp.change", function (e) {
-                var date = e.date.toDate();
-                var time = date.getTime();
-                model.set(field.property, time);
-            });
-
-            model.once("load", function () {
-                var value = model.get(field.property);
-                var date = new Date();
-                if (value) {
-                    date.setTime(value);
+                if (e.date) {
+                    var date = e.date.toDate();
+                    var time = date.getTime();
+                    model.set(field.property, time);
+                } else {
+                    model.set(field.property, null);
                 }
-                $(me).data("DateTimePicker").date(date);
             });
+        }
+    }, {
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(props, state) {
+            if (props.model) {
+                this.setData();
+            }
+        }
+    }, {
+        key: "setData",
+        value: function setData() {
+            var self = this;
+            var options = {
+                locale: this.props.locale,
+                format: this.props.format ? this.props.format : self.getDefaultFormat()
+            };
+
+            var minDate = this.props.getMinDate && this.props.getMinDate(this.props.model);
+            var maxDate = this.props.getMaxDate && this.props.getMaxDate(this.props.model);
+            var disabledDates = this.props.getDisabledDates && this.props.getDisabledDates(this.props.model);
+
+            if (minDate) {
+                options["minDate"] = minDate;
+            }
+
+            if (maxDate) {
+                options["maxDate"] = maxDate;
+            }
+
+            if (disabledDates) {
+                options["disabledDates"] = disabledDates;
+            }
+            var field = this.props.field;
+            var model = this.props.model;
+            var me = ReactDOM.findDOMNode(this);
+            var value = model.get(field.property);
+
+            if ($(me).data('DateTimePicker')) $(me).data('DateTimePicker').destroy();
+            $(me).datetimepicker(options);
+            $(me).data("DateTimePicker").date(value ? new Date(value) : null);
+        }
+    }, {
+        key: "isDisabled",
+        value: function isDisabled() {
+            return _.isFunction(this.props.isDisabled) ? this.props.isDisabled(this.props.model) : false;
         }
     }, {
         key: "render",
         value: function render() {
+            var disabled = this.isDisabled();
             var field = this.props.field;
 
             return React.createElement(
@@ -28588,6 +30910,7 @@ var DateTime = exports.DateTime = function (_Control7) {
                     "div",
                     { className: "fg-line" },
                     React.createElement("input", {
+                        disabled: disabled,
                         type: "text",
                         className: "form-control input-sm",
                         id: field.property,
@@ -28729,13 +31052,37 @@ var Switch = exports.Switch = function (_Control9) {
 var Number = exports.Number = function (_Control10) {
     _inherits(Number, _Control10);
 
-    function Number() {
+    function Number(props) {
         _classCallCheck(this, Number);
 
-        return _possibleConstructorReturn(this, (Number.__proto__ || Object.getPrototypeOf(Number)).apply(this, arguments));
+        var _this30 = _possibleConstructorReturn(this, (Number.__proto__ || Object.getPrototypeOf(Number)).call(this, props));
+
+        _this30.setState({});
+        return _this30;
     }
 
+    // getMinValue() {
+    //     return _.isFunction(this.props.getMinValue) ? this.props.getMinValue(this.props.model) : 0;
+    // }
+
+
     _createClass(Number, [{
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var value = e.target.value;
+            var model = this.props.model;
+            var field = this.props.field;
+
+            if (value == "" || value == "-" || (this.props.onlyInteger ? value.match(/^\d+$/) : value.match(/^-?(\d+\.?\d{0,9}|\.\d{1,9})$/))) {
+
+                model.set(field.property, value);
+                this.forceUpdate();
+                if (_.isFunction(this.props.performOnChange)) {
+                    this.props.performOnChange(this.props.model, value);
+                }
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var field = this.props.field;
@@ -28744,12 +31091,13 @@ var Number = exports.Number = function (_Control10) {
                 "div",
                 { className: "fg-line" },
                 React.createElement("input", {
-                    type: "number",
+                    ref: "text",
+                    type: "text",
                     className: "form-control input-sm",
                     id: field.property,
                     "data-property": field.property,
                     placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), 0),
+                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
                     onChange: this.onValueChange.bind(this) })
             );
         }
@@ -28764,12 +31112,12 @@ var Select = exports.Select = function (_Control11) {
     function Select(props) {
         _classCallCheck(this, Select);
 
-        var _this30 = _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).call(this, props));
+        var _this31 = _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).call(this, props));
 
-        _this30.__dataSourceOnChange = function (data) {
-            _this30.forceUpdate();
+        _this31.__dataSourceOnChange = function (data) {
+            _this31.forceUpdate();
         };
-        return _this30;
+        return _this31;
     }
 
     _createClass(Select, [{
@@ -28893,21 +31241,21 @@ var Lookup = exports.Lookup = function (_Control12) {
     function Lookup(props) {
         _classCallCheck(this, Lookup);
 
-        var _this31 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
+        var _this32 = _possibleConstructorReturn(this, (Lookup.__proto__ || Object.getPrototypeOf(Lookup)).call(this, props));
 
-        _this31.datasource = _this31.props.datasource || datasource.create();
-        _this31.query = _this31.props.query || query.create();
+        _this32.datasource = _this32.props.datasource || datasource.create();
+        _this32.query = _this32.props.query || query.create();
 
-        _this31.__dataSourceOnChange = function (data) {
-            _this31.forceUpdate();
+        _this32.__dataSourceOnChange = function (data) {
+            _this32.forceUpdate();
         };
 
-        _this31.__queryChange = function () {
-            if (_.isFunction(_this31.props.loader)) {
-                _this31.props.loader(_this31.query, _this31.datasource);
+        _this32.__queryChange = function () {
+            if (_.isFunction(_this32.props.loader)) {
+                _this32.props.loader(_this32.query, _this32.datasource);
             }
         };
-        return _this31;
+        return _this32;
     }
 
     _createClass(Lookup, [{
@@ -29140,7 +31488,7 @@ var Lookup = exports.Lookup = function (_Control12) {
     }, {
         key: "render",
         value: function render() {
-            var _this32 = this;
+            var _this33 = this;
 
             var mode = this.checkedMode();
             var model = this.props.model;
@@ -29150,7 +31498,7 @@ var Lookup = exports.Lookup = function (_Control12) {
                     cell: _grids.ActionsCell,
                     tdClassName: "grid-actions",
                     actions: [{ icon: "zmdi zmdi-delete", action: function action(row) {
-                            return _this32.removeRow(row);
+                            return _this33.removeRow(row);
                         } }]
                 }]) }) : null;
             var addClassName = void 0;
@@ -29279,23 +31627,23 @@ var File = exports.File = function (_Control13) {
     function File(props) {
         _classCallCheck(this, File);
 
-        var _this33 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
+        var _this34 = _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).call(this, props));
 
-        _this33.state = { filename: null };
-        return _this33;
+        _this34.state = { filename: null };
+        return _this34;
     }
 
     _createClass(File, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this34 = this;
+            var _this35 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this34.setState({ filename: file.name });
+                _this35.setState({ filename: file.name });
             });
         }
     }, {
@@ -29390,14 +31738,14 @@ var Image = exports.Image = function (_Control14) {
     _createClass(Image, [{
         key: "onFileSelected",
         value: function onFileSelected(e) {
-            var _this36 = this;
+            var _this37 = this;
 
             var model = this.props.model;
             var field = this.props.field;
             var file = e.target.files[0];
             inputfile.readDataUrl(file).then(function (result) {
                 model.set(field.property, result);
-                _this36.forceUpdate();
+                _this37.forceUpdate();
             });
         }
     }, {
@@ -29474,6 +31822,483 @@ var Image = exports.Image = function (_Control14) {
 
     return Image;
 }(Control);
+
+var Gallery = exports.Gallery = function (_Control15) {
+    _inherits(Gallery, _Control15);
+
+    function Gallery(props) {
+        _classCallCheck(this, Gallery);
+
+        var _this38 = _possibleConstructorReturn(this, (Gallery.__proto__ || Object.getPrototypeOf(Gallery)).call(this, props));
+
+        _this38.state = { images: [] };
+        _this38.model = _this38.props.model;
+        _this38.field = _this38.props.field;
+        _this38.counter = 0;
+
+        return _this38;
+    }
+
+    _createClass(Gallery, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this39 = this;
+
+            this.model.once("load", function () {
+
+                var value = (0, _lang.optional)(_this39.model.get(_this39.field.property), []);
+                _.assign(_this39.state, { images: value });
+                _this39.forceUpdate();
+            });
+        }
+    }, {
+        key: "onImageAdd",
+        value: function onImageAdd(newImage) {
+
+            var images = (0, _lang.optional)(this.state.images, []);
+
+            if (!_.any(images, function (i) {
+                return i === newImage;
+            })) {
+                images.push(newImage);
+                _.assign(this.state, { images: images });
+
+                this.model.set(this.field.property, images);
+                this.forceUpdate();
+                return true;
+            }
+
+            return false;
+        }
+    }, {
+        key: "onImageDelete",
+        value: function onImageDelete(imageToRemove) {
+            var images = (0, _lang.optional)(this.state.images, []);
+
+            images = _.filter(images, function (i) {
+                return i !== imageToRemove;
+            });
+            _.assign(this.state, { images: images });
+            this.model.set(this.field.property, images);
+            this.forceUpdate();
+        }
+    }, {
+        key: "createSingleImageComponent",
+        value: function createSingleImageComponent(imageData) {
+            this.counter++;
+
+            return React.createElement(SingleImage, { key: this.field.property + "_" + this.counter,
+                imageData: imageData,
+                onImageAdd: this.onImageAdd.bind(this),
+                onImageDelete: this.onImageDelete.bind(this)
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this40 = this;
+
+            var images = (0, _lang.optional)(this.state.images, []);
+            var fields = [];
+            var actions = [];
+
+            if (images.length > 0) {
+                _.forEach(images, function (e) {
+                    fields.push(_this40.createSingleImageComponent(e));
+                });
+            }
+
+            fields.push(this.createSingleImageComponent());
+
+            return React.createElement(
+                "div",
+                null,
+                fields
+            );
+        }
+    }]);
+
+    return Gallery;
+}(Control);
+
+var MultiFile = exports.MultiFile = function (_Control16) {
+    _inherits(MultiFile, _Control16);
+
+    function MultiFile(props) {
+        _classCallCheck(this, MultiFile);
+
+        var _this41 = _possibleConstructorReturn(this, (MultiFile.__proto__ || Object.getPrototypeOf(MultiFile)).call(this, props));
+
+        _this41.state = { files: [] };
+        _this41.model = _this41.props.model;
+        _this41.field = _this41.props.field;
+        _this41.counter = 0;
+        _this41.fileTypes = _this41.field.fileTypes || "*";
+        return _this41;
+    }
+
+    _createClass(MultiFile, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this42 = this;
+
+            this.model.once("load", function () {
+
+                var value = (0, _lang.optional)(_this42.model.get(_this42.field.property), []);
+                _.assign(_this42.state, { files: value });
+                _this42.forceUpdate();
+            });
+        }
+    }, {
+        key: "onAdd",
+        value: function onAdd(newFile) {
+            var files = (0, _lang.optional)(this.state.files, []);
+
+            if (!_.any(files, function (i) {
+                return i.data === newFile.data;
+            })) {
+                files.push(newFile);
+                _.assign(this.state, { files: files });
+
+                this.model.set(this.field.property, files);
+                this.forceUpdate();
+                return true;
+            }
+
+            return false;
+        }
+    }, {
+        key: "onDelete",
+        value: function onDelete(toRemove) {
+            var files = (0, _lang.optional)(this.state.files, []);
+            files = _.filter(files, function (i) {
+                return i.data !== toRemove.data;
+            });
+            _.assign(this.state, { files: files });
+            this.model.set(this.field.property, files);
+            this.forceUpdate();
+        }
+    }, {
+        key: "createSingleFileComponent",
+        value: function createSingleFileComponent(data) {
+            this.counter++;
+
+            return React.createElement(SingleFile, { key: this.field.property + "_" + this.counter,
+                file: data ? data : {},
+                fileTypes: this.fileTypes,
+                onAdd: this.onAdd.bind(this),
+                onDelete: this.onDelete.bind(this)
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this43 = this;
+
+            var files = (0, _lang.optional)(this.state.files, []);
+            var fields = [];
+            var actions = [];
+            var title = (0, _lang.optional)(this.props.field.title, (0, _strings2.default)("attachments"));
+
+            if (files.length > 0) {
+                _.forEach(files, function (e) {
+                    fields.push(_this43.createSingleFileComponent(e));
+                });
+            }
+
+            fields.push(this.createSingleFileComponent());
+
+            return React.createElement(
+                "div",
+                null,
+                React.createElement(HeaderBlock, { title: title, label: this.props.field.label, actions: actions }),
+                fields
+            );
+        }
+    }]);
+
+    return MultiFile;
+}(Control);
+
+var SingleImage = exports.SingleImage = function (_Control17) {
+    _inherits(SingleImage, _Control17);
+
+    function SingleImage(props) {
+        _classCallCheck(this, SingleImage);
+
+        var _this44 = _possibleConstructorReturn(this, (SingleImage.__proto__ || Object.getPrototypeOf(SingleImage)).call(this, props));
+
+        _this44.state = { data: props.data };
+        return _this44;
+    }
+
+    _createClass(SingleImage, [{
+        key: "onFileSelected",
+        value: function onFileSelected(e) {
+            var _this45 = this;
+
+            var file = e.target.files[0];
+            inputfile.readDataUrl(file).then(function (result) {
+                if (_.isFunction(_this45.props.onImageAdd)) {
+                    if (_this45.props.onImageAdd(result)) {
+                        _.assign(_this45.state, { imageData: result });
+                        _this45.forceUpdate();
+                    }
+                }
+            });
+        }
+    }, {
+        key: "delete",
+        value: function _delete(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("input[type=file]").val(null);
+
+            var image = this.state.imageData;
+            _.assign(this.state, { imageData: null });
+            this.forceUpdate();
+            if (_.isFunction(this.props.onImageDelete)) {
+                this.props.onImageDelete(image);
+            }
+        }
+    }, {
+        key: "search",
+        value: function search(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find("input[type=file]").click();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var accept = ".jpg,.png,.jpeg,.gif,.bmp";
+
+            var imgStyle = {
+                "backgroundRepeat": "no-repeat",
+                "backgroundSize": "contain",
+                "backgroundPosition": "center",
+                "height": "150px",
+                "backgroundColor": "#F2F2F2"
+            };
+            if (this.props.width) {
+                imgStyle.width = this.props.width;
+            }
+            if (this.props.height) {
+                imgStyle.height = this.props.height;
+            }
+
+            var imageData = (0, _lang.optional)(this.state.imageData, null);
+
+            return React.createElement(
+                "div",
+                { className: "input-image col-sm-4 col-ms-6", style: { marginBottom: '5px' } },
+                React.createElement(
+                    "div",
+                    { onClick: this.search.bind(this) },
+                    !_.isEmpty(imageData) ? React.createElement(
+                        "div",
+                        { className: "input-image-container" },
+                        React.createElement(
+                            "div",
+                            { className: "actions" },
+                            React.createElement(
+                                "a",
+                                { href: "javascript:;", onClick: this.delete.bind(this), className: "delete-button" },
+                                React.createElement("i", {
+                                    className: "zmdi zmdi-close" })
+                            )
+                        ),
+                        React.createElement("div", { className: "input-image",
+                            style: _.assign(imgStyle, { "backgroundImage": "url(\"" + imageData + "\")" }) })
+                    ) : React.createElement("div", { className: "input-image",
+                        style: _.assign(imgStyle, { "backgroundImage": "url(\"resources/images/noimage.png\")" }) })
+                ),
+                React.createElement("input", { type: "file", accept: accept, onChange: this.onFileSelected.bind(this) })
+            );
+        }
+    }]);
+
+    return SingleImage;
+}(Control);
+
+var PasswordText = exports.PasswordText = function (_Control18) {
+    _inherits(PasswordText, _Control18);
+
+    function PasswordText() {
+        _classCallCheck(this, PasswordText);
+
+        return _possibleConstructorReturn(this, (PasswordText.__proto__ || Object.getPrototypeOf(PasswordText)).apply(this, arguments));
+    }
+
+    _createClass(PasswordText, [{
+        key: "render",
+        value: function render() {
+            var field = this.props.field;
+
+            return React.createElement(
+                "div",
+                { className: "fg-line" },
+                React.createElement("input", {
+                    type: "password",
+                    className: "form-control input-sm",
+                    id: field.property,
+                    "data-property": field.property,
+                    placeholder: field.placeholder,
+                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                    onChange: this.onValueChange.bind(this) })
+            );
+        }
+    }]);
+
+    return PasswordText;
+}(Control);
+
+var SingleFile = exports.SingleFile = function (_Control19) {
+    _inherits(SingleFile, _Control19);
+
+    function SingleFile(props) {
+        _classCallCheck(this, SingleFile);
+
+        var _this47 = _possibleConstructorReturn(this, (SingleFile.__proto__ || Object.getPrototypeOf(SingleFile)).call(this, props));
+
+        var filename = (0, _lang.optional)(props.file.filename, null);
+        var data = (0, _lang.optional)(props.file.data, null);
+        var base64 = (0, _lang.optional)(props.file.base64, null);
+
+        _this47.state = { filename: filename, data: data, base64: base64 };
+        return _this47;
+    }
+
+    _createClass(SingleFile, [{
+        key: "onFileSelected",
+        value: function onFileSelected(e) {
+            var _this48 = this;
+
+            var file = e.target.files[0];
+            showLoader();
+            inputfile.readDataUrl(file).then(function (result) {
+                if (_.isFunction(_this48.props.onAdd)) {
+                    _this48.props.onAdd({ data: result, filename: file.name, base64: true });
+                }
+                hideLoader();
+            });
+        }
+    }, {
+        key: "remove",
+        value: function remove(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if (_.isFunction(this.props.onDelete)) {
+                this.props.onDelete({ data: this.state.data, filename: this.state.filename });
+            }
+        }
+    }, {
+        key: "download",
+        value: function download(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var value = (0, _lang.optional)(this.state.data, null);
+
+            var url = config.get("service.url") + value;
+            window.open(url);
+        }
+    }, {
+        key: "search",
+        value: function search(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var me = ReactDOM.findDOMNode(this);
+
+            //Serve per invocare il change se si seleziona un file uguale al precedente
+            $(me).find("input[type=file]").val("");
+            $(me).find("input[type=file]").click();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+
+            var value = (0, _lang.optional)(this.state.data, null);
+            //let fileName = optional(this.state.filename, null)
+            var hasValue = !_.isEmpty(value);
+            var readOnly = (0, _lang.optional)(this.props.readOnly, false);
+            var canDownload = hasValue && !value.includes("base64");
+            var component = null;
+            var fileTypes = (0, _lang.optional)(this.props.fileTypes, "*");
+
+            if (!hasValue) {
+                component = React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "div",
+                        { className: "actions pull-right" },
+                        React.createElement(
+                            "a",
+                            { href: "javascript:;", title: (0, _strings2.default)("search"), onClick: this.search.bind(this), className: "m-r-0" },
+                            React.createElement("i", {
+                                className: "zmdi zmdi-search" })
+                        )
+                    ),
+                    React.createElement("span", { className: "placeholder" })
+                );
+            } else {
+                component = React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "div",
+                        { className: "actions pull-right" },
+                        readOnly && React.createElement(
+                            "a",
+                            { href: "javascript:;", title: (0, _strings2.default)("remove"), onClick: this.remove.bind(this), className: "m-r-0" },
+                            React.createElement("i", {
+                                className: "zmdi zmdi-close" })
+                        ),
+                        canDownload && React.createElement(
+                            "a",
+                            { href: "javascript:;", title: (0, _strings2.default)("download"), onClick: this.download.bind(this),
+                                className: "m-r-0" },
+                            React.createElement("i", { className: "zmdi zmdi-download" })
+                        )
+                    ),
+                    React.createElement(
+                        "span",
+                        { className: "input-file-name" },
+                        React.createElement("span", { className: "zmdi zmdi-file" }),
+                        " ",
+                        this.state.filename,
+                        " "
+                    )
+                );
+            }
+
+            return React.createElement(
+                "div",
+                { className: "col-sm-4 col-ms-6", style: { marginBottom: '5px' } },
+                React.createElement(
+                    "div",
+                    { className: "input-file fg-line", tabIndex: "0" },
+                    React.createElement(
+                        "div",
+                        { onClick: this.search.bind(this) },
+                        component
+                    ),
+                    React.createElement("input", { type: "file", accept: fileTypes, onChange: this.onFileSelected.bind(this) })
+                )
+            );
+        }
+    }]);
+
+    return SingleFile;
+}(Control);
 });
 define('web/components/grids.js', function(module, exports) {
 "use strict";
@@ -29481,7 +32306,7 @@ define('web/components/grids.js', function(module, exports) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.SelectCell = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.EditTextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
+exports.ButtonCell = exports.EditCheckCell = exports.Grid = exports.QuickSearch = exports.NoCard = exports.ResultSummary = exports.Pagination = exports.Filters = exports.Filter = exports.KeywordSearch = exports.SelectCell = exports.ActionsCell = exports.CheckCell = exports.TextCell = exports.EditTextCell = exports.Cell = exports.GridFooter = exports.FooterCell = exports.GridBody = exports.Row = exports.GridHeader = exports.HeaderCell = exports.SearchDialog = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -29823,10 +32648,13 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
     }, {
         key: "getFieldFilterType",
         value: function getFieldFilterType(property) {
-            var field = this.model.findField(property);
-            if (field) {
-                return field.filterType;
-            }
+            var filterType = this.props.column.filterType;
+            if (!filterType) {
+                var field = this.model.findField(property);
+                if (field) {
+                    return field.filterType;
+                }
+            } else return filterType;
         }
     }, {
         key: "filter",
@@ -29836,12 +32664,16 @@ var SearchDialog = exports.SearchDialog = function (_React$Component) {
             if (this.props.query && this.props.column && this.props.column.property) {
                 var manualFilterType = (0, _lang.optional)(this.model.get("_filterType"), "eq");
                 var data = this.model.sanitized();
+                this.props.query.die();
                 _.each(_.keys(data), function (k) {
                     if (k !== "_filterType") {
                         var filterType = (0, _lang.optional)(_this4.getFieldFilterType(k), manualFilterType);
                         _this4.props.query.filter(filterType, k, data[k]);
                     }
                 });
+                this.props.query.page = 1;
+                this.props.query.live();
+                this.props.query.invokeChange();
 
                 this.close();
             }
@@ -30287,6 +33119,17 @@ var Cell = exports.Cell = function (_React$Component8) {
         return _possibleConstructorReturn(this, (Cell.__proto__ || Object.getPrototypeOf(Cell)).apply(this, arguments));
     }
 
+    _createClass(Cell, [{
+        key: "getValue",
+        value: function getValue() {
+            var column = this.props.column;
+            var property = this.props.property;
+            var row = this.props.row;
+
+            return row.data[property];
+        }
+    }]);
+
     return Cell;
 }(React.Component);
 
@@ -30620,7 +33463,7 @@ var Filter = exports.Filter = function (_React$Component10) {
             return React.createElement(
                 "button",
                 { onClick: this.unfilter.bind(this), className: "btn btn-no-shadow btn-primary waves-effect m-r-10" },
-                this.props.data.property,
+                (0, _strings2.default)(this.props.data.property),
                 "=",
                 this.props.data.value,
                 " ",
@@ -31242,14 +34085,119 @@ var Grid = exports.Grid = function (_React$Component16) {
     return Grid;
 }(React.Component);
 
+var EditCheckCell = exports.EditCheckCell = function (_Cell6) {
+    _inherits(EditCheckCell, _Cell6);
+
+    function EditCheckCell(props) {
+        _classCallCheck(this, EditCheckCell);
+
+        var _this36 = _possibleConstructorReturn(this, (EditCheckCell.__proto__ || Object.getPrototypeOf(EditCheckCell)).call(this, props));
+
+        _this36.state = { value: "false" };
+        return _this36;
+    }
+
+    _createClass(EditCheckCell, [{
+        key: "componentWillUpdate",
+        value: function componentWillUpdate(nextProps, nextState) {
+            if (nextProps.value != nextState.value) {
+                this.setState({ value: nextProps.value });
+            }
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.setState({ value: this.props.value });
+        }
+    }, {
+        key: "onValueChange",
+        value: function onValueChange(e) {
+            var newValue = $(e.target).is(":checked");
+            this.setState({ value: newValue });
+
+            if (_.isFunction(this.props.onValueChange)) {
+                var column = this.props.column;
+                var property = this.props.property;
+                var row = this.props.row;
+                this.props.onValueChange(column, row.data, newValue);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+
+            var property = this.props.property;
+            var value = (0, _lang.optional)(this.state.value, "false");
+            var checked = value === true || value === "true";
+
+            return React.createElement(
+                "div",
+                { className: "checkbox", onClick: this.onValueChange.bind(this) },
+                React.createElement(
+                    "label",
+                    null,
+                    React.createElement("input", { type: "checkbox", value: value, "data-property": property, checked: checked }),
+                    React.createElement("i", { className: "input-helper" })
+                )
+            );
+        }
+    }]);
+
+    return EditCheckCell;
+}(Cell);
+
 function createCell(column, row, firstElement, onExpand) {
     var props = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
 
     var key = column.property + "" + row.index;
     var value = row.data[column.property];
-
-    return React.createElement(column.cell, _.assign({ key: key, column: column, property: column.property, row: row, value: value, firstElement: firstElement, onExpand: onExpand }, props));
+    var cell = _.isFunction(column.getCell) ? column.getCell(value, row) : column.cell;
+    return React.createElement(cell, _.assign({ key: key, column: column, property: column.property, row: row, value: value, firstElement: firstElement, onExpand: onExpand }, props));
 }
+
+var ButtonCell = exports.ButtonCell = function (_Cell7) {
+    _inherits(ButtonCell, _Cell7);
+
+    function ButtonCell() {
+        _classCallCheck(this, ButtonCell);
+
+        return _possibleConstructorReturn(this, (ButtonCell.__proto__ || Object.getPrototypeOf(ButtonCell)).apply(this, arguments));
+    }
+
+    _createClass(ButtonCell, [{
+        key: "onClick",
+        value: function onClick() {
+            if (_.isFunction(this.props.action)) {
+                this.props.action(this.props.column, this.props.row.data, this.props.value);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var formatter = _.isFunction(this.props.formatter) ? this.props.formatter : function (v) {
+                return v;
+            };
+            var className = (0, _lang.optional)(this.props.className, "btn btn-link ");
+            var value = formatter(this.getValue());
+
+            return value === "NA" ? React.createElement(
+                "span",
+                null,
+                value
+            ) : React.createElement(
+                "a",
+                { ref: "button", href: "javascript:;", className: className, onClick: this.onClick.bind(this) },
+                React.createElement(
+                    "span",
+                    null,
+                    value
+                )
+            );
+        }
+    }]);
+
+    return ButtonCell;
+}(Cell);
 });
 define('web/components/layout.js', function(module, exports) {
 "use strict";
@@ -31283,6 +34231,10 @@ var _strings2 = _interopRequireDefault(_strings);
 var _underscore = require("../../libs/underscore");
 
 var _underscore2 = _interopRequireDefault(_underscore);
+
+var _system = require("../../stores/system");
+
+var _system2 = require("../../actions/system");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -31693,66 +34645,50 @@ var MainMenuContainer = function (_React$Component6) {
 var Footer = function (_React$Component7) {
     _inherits(Footer, _React$Component7);
 
-    function Footer() {
+    function Footer(props) {
         _classCallCheck(this, Footer);
 
-        return _possibleConstructorReturn(this, (Footer.__proto__ || Object.getPrototypeOf(Footer)).apply(this, arguments));
+        var _this9 = _possibleConstructorReturn(this, (Footer.__proto__ || Object.getPrototypeOf(Footer)).call(this, props));
+
+        (0, _aj.connect)(_this9, _system.SystemStore, {});
+        return _this9;
     }
 
     _createClass(Footer, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            (0, _system2.systemInformation)();
+        }
+    }, {
         key: "render",
         value: function render() {
+            var backendVersion = this.state.backendVersion;
+            var apiVersion = this.state.apiVersion;
+            var copyrightInfos = this.state.copyrightInfos;
+
             return React.createElement(
                 "footer",
                 { id: "footer" },
-                "Copyright 2017 Applica srl",
                 React.createElement(
                     "ul",
                     { className: "f-menu" },
-                    React.createElement(
+                    backendVersion && React.createElement(
                         "li",
                         null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            "Home"
-                        )
+                        " Web: v ",
+                        backendVersion
                     ),
-                    React.createElement(
+                    apiVersion && React.createElement(
                         "li",
                         null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            "Dashboard"
-                        )
+                        " API: v ",
+                        apiVersion
                     ),
-                    React.createElement(
+                    copyrightInfos && React.createElement(
                         "li",
                         null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            "Reports"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            "Support"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            "Contact"
-                        )
+                        " Copyright: ",
+                        copyrightInfos
                     )
                 )
             );
@@ -32177,9 +35113,13 @@ var _login = require("../screens/login");
 
 var _login2 = _interopRequireDefault(_login);
 
-var _session = require("../../stores/session");
-
 var _aj = require("../utils/aj");
+
+var _changePassword = require("../screens/changePassword");
+
+var _changePassword2 = _interopRequireDefault(_changePassword);
+
+var _session = require("../../stores/session");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -32204,7 +35144,13 @@ var Secure = function (_React$Component) {
     _createClass(Secure, [{
         key: "render",
         value: function render() {
-            return this.state.isLoggedIn ? this.props.children : React.createElement(_login2.default, null);
+            var toPrint = this.props.children;
+            if (this.state.isLoggedIn && this.state.user && this.state.user.firstLogin) {
+                toPrint = React.createElement(_changePassword2.default, null);
+            } else if (!this.state.isLoggedIn) {
+                toPrint = React.createElement(_login2.default, null);
+            }
+            return toPrint;
         }
     }]);
 
@@ -32232,6 +35178,8 @@ var _strings = require("../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
+var _session = require("../api/session");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var entities = {
@@ -32246,6 +35194,44 @@ var entities = {
 		form: {
 			title: (0, _strings2.default)("editUser"),
 			subtitle: (0, _strings2.default)("editUserDescription"),
+			getActions: function getActions(data) {
+				var actions = ["back", "save", "save-go-back", "revisions"];
+				if ((0, _session.hasPermission)("canResetPassword")) {
+					if (data && data.id) {
+						actions.push({
+							type: "button",
+							icon: "zmdi zmdi-brush",
+							tooltip: "Reset password",
+							action: function action() {
+
+								swal({
+									title: (0, _strings2.default)("confirm"),
+									text: "Verrà impostata una nuova password ed inviata all'indirizzo mail dell'utente",
+									showCancelButton: true
+								}).then(function () {
+									resetUserPassword({ id: data.id });
+									if (data.id === (0, _session.getLoggedUser)().id) {
+										swal({
+											title: (0, _strings2.default)("confirm"),
+											text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
+											showCancelButton: false
+										}).then(function () {
+											logout();
+											ui.navigate("/login");
+										}).catch(function (e) {
+											logger.i(e);
+										});
+									}
+								}).catch(function (e) {
+									logger.i(e);
+								});
+							}
+						});
+					}
+				}
+				return actions;
+			},
+
 			descriptor: {
 				areas: [{
 					title: (0, _strings2.default)("generalInformations"),
@@ -32271,6 +35257,14 @@ var entities = {
 						},
 						validator: function validator(value) {
 							return (0, _validator.check)(value).isEmail();
+						}
+					}, {
+						property: "password",
+						control: _forms.PasswordText,
+						label: (0, _strings2.default)("password"),
+						placeholder: (0, _strings2.default)("password"),
+						sanitizer: function sanitizer(value) {
+							return (0, _validator.sanitize)(value).trim();
 						}
 					}, {
 						property: "active",
@@ -32355,8 +35349,75 @@ var entities = {
 				}]
 			}
 		}
-	}
-};
+
+		// ,revisionSettings: {
+		//     form: {
+		//         title: M("entityRevisionSettings"),
+		//         subtitle: null,
+		//         descriptor: {
+		//             canGoBack() {
+		//                 return false
+		//             },
+		//             fields: [
+		//                 {
+		//                     property: "items",
+		//                     control: MultiCheckboxByValue,
+		//                     size: "col-xs-12",
+		//                     props: {
+		//                         formatter: v => {
+		//                             return M(v.itemType)
+		//                         }
+		//                     }
+		//                 },
+		//             ]
+		//         }
+		//     }
+		// },
+		// revision: {
+		//     grid: {
+		//         title: M("revisions"),
+		//         descriptor: {
+		//             columns: [
+		//                 {property: "code", header: M("code"), cell: TextCell, sortable: false, searchable: false},
+		//                 {property: "type", header: M("type"), cell: TextCell, sortable: false, searchable: false},
+		//                 {
+		//                     property: "creator",
+		//                     header: M("author"),
+		//                     cell: TextCell,
+		//                     sortable: false,
+		//                     searchable: false
+		//                 },
+		//
+		//                 {
+		//                     property: "dateToString",
+		//                     header: M("date"),
+		//                     cell: TextCell,
+		//                     sortable: false,
+		//                     searchable: false
+		//                 },
+		//                 {
+		//                     property: "differences",
+		//                     header: M("differences"),
+		//                     cell: MultiTextCell,
+		//                     sortable: false,
+		//                     searchable: false,
+		//                     props: {
+		//                         singleItemFormatter(v) {
+		//                             debugger
+		//                             let previousValueString = "";
+		//                             let newValueString = "";
+		//                             previousValueString = M("previousValue") + ": " + (v.previousValueDescription? v.previousValueDescription : " null ") + ", ";
+		//                             newValueString = M("newValue") + ": " + (v.newValueDescription? v.newValueDescription : " null ");
+		//                             return M(v.name) + " -> " + previousValueString + newValueString
+		//                         }
+		//                     }
+		//                 }
+		//
+		//             ]
+		//         }
+		//     },
+		// }
+	} };
 
 exports.default = entities;
 });
@@ -32397,8 +35458,6 @@ var _pluginsimpl = require("./pluginsimpl");
 
 var plugins = _interopRequireWildcard(_pluginsimpl);
 
-var _menu = require("../actions/menu");
-
 var _session = require("../actions/session");
 
 var _keyboard = require("./utils/keyboard");
@@ -32408,10 +35467,6 @@ var keyboard = _interopRequireWildcard(_keyboard);
 var _session2 = require("../stores/session");
 
 var _entities = require("./screens/entities");
-
-var _menu2 = require("./menu");
-
-var _menu3 = _interopRequireDefault(_menu2);
 
 var _loader = require("./components/loader");
 
@@ -32427,10 +35482,16 @@ ui.addRoute("/entities/:entity", function (params) {
     return ui.changeScreen(React.createElement(_entities.EntitiesGrid, { key: params.entity, entity: params.entity }));
 });
 ui.addRoute("/entities/:entity/:entityId", function (params) {
-    return ui.changeScreen(React.createElement(_entities.EntityForm, { key: params.entity, entity: params.entity, entityId: params.entityId }));
+    return ui.changeScreen(React.createElement(_entities.EntityForm, { key: params.entity, entity: params.entity, entityId: params.entityId, params: params }));
 });
-ui.addRoute("/entities/:entity/new", function (params) {
-    return ui.changeScreen(React.createElement(_entities.EntityForm, { key: params.entity, entity: params.entity }));
+ui.addRoute("/entities/single/:entity", function (params) {
+    return ui.changeScreen(React.createElement(_entities.EntityForm, { key: params.entity, entity: params.entity, entityId: "_", params: params }));
+});
+ui.addRoute("/revision/:entity/:entityId", function (params) {
+    return ui.changeScreen(React.createElement(_entities.RevisionGrid, { key: params.entity, entityId: params.entityId, entity: params.entity, params: params }));
+});
+ui.addRoute("/recover", function (params) {
+    return ui.changeScreen(React.createElement(_recover2.default, null));
 });
 
 /* Account routes */
@@ -32446,6 +35507,7 @@ ui.addRoute("/recover", function (params) {
 ui.addRoute("/registrationComplete", function (params) {
     return ui.changeScreen(React.createElement(_registrationOk2.default, null));
 });
+
 ui.addRoute("/confirm", function (params) {
     return ui.changeScreen(React.createElement(_confirm2.default, { activationCode: params.activationCode }));
 });
@@ -32461,9 +35523,6 @@ keyboard.attach();
 /* render main index page into dom */
 ReactDOM.render(React.createElement(_layout.Index, null), document.getElementById("entry-point"));
 
-/* Setup menu voices */
-(0, _menu.setupMenu)({ menu: _menu3.default });
-
 /* Avoid going in screens that require login before trying session resume */
 var owner = {};
 _session2.SessionStore.subscribe(owner, function (state) {
@@ -32476,41 +35535,6 @@ _session2.SessionStore.subscribe(owner, function (state) {
 
 /* automatic login, if possible */
 (0, _session.resumeSession)();
-});
-define('web/menu.js', function(module, exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _strings = require("../strings");
-
-var _strings2 = _interopRequireDefault(_strings);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = [{
-    icon: "zmdi zmdi-shield-security",
-    text: (0, _strings2.default)("security"),
-    children: [{
-        icon: "zmdi zmdi-accounts-alt",
-        text: (0, _strings2.default)("users"),
-        href: "/#/entities/user?grid=users"
-    }, {
-        icon: "zmdi zmdi-key",
-        text: (0, _strings2.default)("roles"),
-        href: "/#/entities/role?grid=roles"
-    }]
-}, {
-    icon: "zmdi zmdi-wrench",
-    text: (0, _strings2.default)("setup"),
-    children: [{
-        icon: "zmdi zmdi-labels",
-        text: (0, _strings2.default)("categories"),
-        href: "/#/entities/category?grid=categories"
-    }]
-}];
 });
 define('web/pluginsimpl.js', function(module, exports) {
 "use strict";
@@ -32612,6 +35636,123 @@ exports.register = function () {
     window.Toast = exports.Toast;
     window.Loader = exports.Loader;
 };
+});
+define('web/screens/changePassword.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _layout = require("../components/layout");
+
+var _strings = require("../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _account = require("../../actions/account");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ChangePassword = function (_Screen) {
+    _inherits(ChangePassword, _Screen);
+
+    function ChangePassword(props) {
+        _classCallCheck(this, ChangePassword);
+
+        var _this = _possibleConstructorReturn(this, (ChangePassword.__proto__ || Object.getPrototypeOf(ChangePassword)).call(this, props));
+
+        _this.state = {};
+        return _this;
+    }
+
+    _createClass(ChangePassword, [{
+        key: "changePassword",
+        value: function changePassword() {
+            (0, _account.changePassword)({ password: this.state.password, passwordConfirm: this.state.passwordConfirm });
+        }
+    }, {
+        key: "updatePassword",
+        value: function updatePassword(value) {
+            this.state.password = value.target.value;
+        }
+    }, {
+        key: "updatePasswordConfirm",
+        value: function updatePasswordConfirm(value) {
+            this.state.passwordConfirm = value.target.value;
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                _layout.FullScreenLayout,
+                null,
+                React.createElement(
+                    "div",
+                    { className: "login-content" },
+                    React.createElement(
+                        "div",
+                        { className: "lc-block lc-block-alt toggled", id: "l-lockscreen" },
+                        React.createElement(
+                            "div",
+                            { className: "lcb-form", ref: "changePassword_form" },
+                            React.createElement(
+                                "p",
+                                null,
+                                "E' necessario impostare una password personale al primo accesso nel sistema"
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-lock" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "password", onChange: this.updatePassword.bind(this), name: "password", className: "form-control", placeholder: (0, _strings2.default)("password") })
+                                )
+                            ),
+                            React.createElement(
+                                "div",
+                                { className: "input-group m-b-20" },
+                                React.createElement(
+                                    "span",
+                                    { className: "input-group-addon" },
+                                    React.createElement("i", { className: "zmdi zmdi-lock-outline" })
+                                ),
+                                React.createElement(
+                                    "div",
+                                    { className: "fg-line" },
+                                    React.createElement("input", { type: "password", name: "confirmPassword", onChange: this.updatePasswordConfirm.bind(this), className: "form-control", placeholder: (0, _strings2.default)("passwordConfirm") })
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            "a",
+                            { href: "javascript:;", onClick: this.changePassword.bind(this), className: "btn btn-login btn-success btn-float waves-effect waves-circle waves-float" },
+                            React.createElement("i", { className: "zmdi zmdi-arrow-forward" })
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return ChangePassword;
+}(_layout.Screen);
+
+exports.default = ChangePassword;
 });
 define('web/screens/confirm.js', function(module, exports) {
 "use strict";
@@ -32759,7 +35900,7 @@ var Recover = function (_Screen) {
 
 exports.default = Recover;
 });
-define('web/screens/entities/entitiesGrid.js', function(module, exports) {
+define('web/screens/entities/abstractEntitiesGrid.js', function(module, exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -32768,17 +35909,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _entities = require("../../../stores/entities");
-
 var _layout = require("../../components/layout");
 
 var _strings = require("../../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _entities2 = require("../../../actions/entities");
-
-var _aj = require("../../utils/aj");
+var _entities = require("../../../actions/entities");
 
 var _common = require("../../components/common");
 
@@ -32792,13 +35929,15 @@ var _lang = require("../../../utils/lang");
 
 var _keyboard = require("../../utils/keyboard");
 
-var _entities3 = require("../../entities");
+var _entities2 = require("../../entities");
 
-var _entities4 = _interopRequireDefault(_entities3);
+var _entities3 = _interopRequireDefault(_entities2);
 
 var _ui = require("../../utils/ui");
 
 var ui = _interopRequireWildcard(_ui);
+
+var _session = require("../../../api/session");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -32810,21 +35949,21 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var EntitiesGrid = function (_Screen) {
-    _inherits(EntitiesGrid, _Screen);
+var AbstractEntitiesGrid = function (_Screen) {
+    _inherits(AbstractEntitiesGrid, _Screen);
 
-    function EntitiesGrid(props) {
-        _classCallCheck(this, EntitiesGrid);
+    function AbstractEntitiesGrid(props) {
+        _classCallCheck(this, AbstractEntitiesGrid);
 
-        var _this = _possibleConstructorReturn(this, (EntitiesGrid.__proto__ || Object.getPrototypeOf(EntitiesGrid)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (AbstractEntitiesGrid.__proto__ || Object.getPrototypeOf(AbstractEntitiesGrid)).call(this, props));
 
         if (_.isEmpty(_this.getEntity())) {
             throw new Error("Please specify entity for form");
         }
 
-        var _query = _entities4.default[_this.getEntity()].grid.initialQuery;
-        if (_.isFunction(_entities4.default[_this.getEntity()].grid.initialQuery)) {
-            _query = _entities4.default[_this.getEntity()].grid.initialQuery();
+        var _query = _entities3.default[_this.getEntity()].grid.initialQuery;
+        if (_.isFunction(_entities3.default[_this.getEntity()].grid.initialQuery)) {
+            _query = _entities3.default[_this.getEntity()].grid.initialQuery();
         }
         if (!_query) {
             _query = query.create();
@@ -32833,18 +35972,10 @@ var EntitiesGrid = function (_Screen) {
         }
 
         _this.state = { grid: null, result: null, query: _query };
-
-        _this.state.query.on("change", function () {
-            _this.onQueryChanged();
-        });
-
-        _this.discriminator = "entity_grid_" + _this.getEntity();
-
-        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_entities.EntitiesStore]);
         return _this;
     }
 
-    _createClass(EntitiesGrid, [{
+    _createClass(AbstractEntitiesGrid, [{
         key: "getEntity",
         value: function getEntity() {
             return this.props.entity;
@@ -32852,17 +35983,17 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            (0, _entities2.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
+            (0, _entities.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            (0, _entities2.freeEntities)({ discriminator: this.discriminator });
+            (0, _entities.freeEntities)({ discriminator: this.discriminator });
         }
     }, {
         key: "onQueryChanged",
         value: function onQueryChanged() {
-            (0, _entities2.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
+            (0, _entities.loadEntities)({ discriminator: this.discriminator, entity: this.getEntity(), query: this.state.query });
         }
     }, {
         key: "editEntity",
@@ -32885,17 +36016,17 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "getCreateUrl",
         value: function getCreateUrl() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             var createUrl = grid.createUrl;
             if (_.isFunction(createUrl)) {
                 createUrl = createUrl();
             }
-            return (0, _lang.optional)(createUrl, "/entities/" + this.getEntity() + "/create");
+            return (0, _lang.optional)(createUrl, "/entities/" + this.getEntity() + "/new");
         }
     }, {
         key: "getEditUrl",
         value: function getEditUrl(data) {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             if (_.isFunction(grid.editUrl)) {
                 return (0, _lang.format)(grid.editUrl(data));
             } else if (!_.isEmpty(grid.editUrl)) {
@@ -32903,6 +36034,14 @@ var EntitiesGrid = function (_Screen) {
             } else {
                 return "/entities/" + this.getEntity() + "/" + data.id;
             }
+        }
+    }, {
+        key: "getDeleteMessage",
+        value: function getDeleteMessage() {
+            var message = (0, _lang.format)((0, _strings2.default)("entityDeleteConfirm"), this.refs.grid.getSelection().length);
+            var entityMessage = this.getGrid().deleteMessage;
+            if (entityMessage) message = (0, _lang.format)("{0}\n{1}", message, entityMessage);
+            return message;
         }
     }, {
         key: "deleteEntities",
@@ -32918,20 +36057,13 @@ var EntitiesGrid = function (_Screen) {
                 return;
             }
 
-            swal({ title: (0, _strings2.default)("confirm"), text: (0, _lang.format)((0, _strings2.default)("entityDeleteConfirm"), selection.length), showCancelButton: true }).then(function () {
-                (0, _entities2.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
+            swal({ title: (0, _strings2.default)("confirm"), text: this.getDeleteMessage(), showCancelButton: true }).then(function () {
+                (0, _entities.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
                         return s.id;
                     }) });
             }).catch(function (e) {
                 logger.i(e);
             });
-        }
-    }, {
-        key: "onGridKeyDown",
-        value: function onGridKeyDown(e) {
-            if ((0, _keyboard.isCancel)(e.which)) {
-                this.deleteEntities();
-            }
         }
     }, {
         key: "onGridRowDoubleClick",
@@ -32941,13 +36073,13 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "getTitle",
         value: function getTitle() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.title, "List");
         }
     }, {
         key: "getSubtitle",
         value: function getSubtitle() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return grid.subtitle;
         }
     }, {
@@ -32960,14 +36092,16 @@ var EntitiesGrid = function (_Screen) {
                 type: "button",
                 icon: "zmdi zmdi-refresh-alt",
                 tooltip: (0, _strings2.default)("refresh"),
+                permissions: [this.getEntity() + ":" + _session.Permission.LIST],
                 action: function action() {
-                    (0, _entities2.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.getEntity(), query: _this3.state.query });
+                    (0, _entities.loadEntities)({ discriminator: _this3.discriminator, entity: _this3.getEntity(), query: _this3.state.query });
                 }
             }, {
                 id: "create",
                 type: "button",
                 icon: "zmdi zmdi-plus",
                 tooltip: (0, _strings2.default)("create"),
+                permissions: [this.getEntity() + ":" + _session.Permission.NEW],
                 action: function action() {
                     _this3.createEntity();
                 }
@@ -32976,6 +36110,7 @@ var EntitiesGrid = function (_Screen) {
                 type: "button",
                 icon: "zmdi zmdi-delete",
                 tooltip: (0, _strings2.default)("delete"),
+                permissions: [this.getEntity() + ":" + _session.Permission.DELETE],
                 action: function action() {
                     _this3.deleteEntities();
                 }
@@ -32989,14 +36124,14 @@ var EntitiesGrid = function (_Screen) {
                 }
             }];
 
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             var matcher = new _common.ActionsMatcher(defaultActions);
             return matcher.match(grid.actions);
         }
     }, {
         key: "getDescriptor",
         value: function getDescriptor() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return grid.descriptor;
         }
     }, {
@@ -33007,47 +36142,61 @@ var EntitiesGrid = function (_Screen) {
     }, {
         key: "isQuickSearchEnabled",
         value: function isQuickSearchEnabled() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.quickSearchEnabled, false);
         }
     }, {
         key: "canEdit",
         value: function canEdit() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canEdit, true);
         }
     }, {
         key: "canCreate",
         value: function canCreate() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canCreate, true);
         }
     }, {
         key: "canDelete",
         value: function canDelete() {
-            var grid = _entities4.default[this.getEntity()].grid;
+            var grid = _entities3.default[this.getEntity()].grid;
             return (0, _lang.optional)(grid.canDelete, true);
+        }
+    }, {
+        key: "hideFilters",
+        value: function hideFilters() {
+            return false;
+        }
+    }, {
+        key: "generateHeaderBlock",
+        value: function generateHeaderBlock() {
+
+            var title = this.getTitle();
+            var subtitle = this.getSubtitle();
+            var actions = this.getActions();
+            return React.createElement(_common.HeaderBlock, { title: title, subtitle: subtitle, actions: actions });
         }
     }, {
         key: "render",
         value: function render() {
-            var title = this.getTitle();
-            var subtitle = this.getSubtitle();
-            var actions = this.getActions();
+
             var descriptor = this.getDescriptor();
             var data = this.getData();
+            var header = this.generateHeaderBlock();
 
             return React.createElement(
                 _layout.Layout,
                 null,
-                React.createElement(_common.HeaderBlock, { title: title, subtitle: subtitle, actions: actions }),
+                header,
                 React.createElement(_grids.Grid, {
                     ref: "grid",
                     descriptor: descriptor,
                     data: data,
-                    query: this.state.query,
-                    onKeyDown: this.onGridKeyDown.bind(this),
-                    onRowDoubleClick: this.onGridRowDoubleClick.bind(this),
+                    hideFilters: this.hideFilters(),
+                    query: this.state.query
+                    //onKeyDown={this.onGridKeyDown.bind(this)}
+                    , onRowDoubleClick: this.onGridRowDoubleClick.bind(this),
                     quickSearchEnabled: this.isQuickSearchEnabled()
                 }),
                 this.canCreate() && React.createElement(_common.FloatingButton, { icon: "zmdi zmdi-plus", onClick: this.createEntity.bind(this) })
@@ -33055,8 +36204,54 @@ var EntitiesGrid = function (_Screen) {
         }
     }]);
 
-    return EntitiesGrid;
+    return AbstractEntitiesGrid;
 }(_layout.Screen);
+
+exports.default = AbstractEntitiesGrid;
+});
+define('web/screens/entities/entitiesGrid.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _entities = require("../../../stores/entities");
+
+var _aj = require("../../utils/aj");
+
+var _abstractEntitiesGrid = require("./abstractEntitiesGrid");
+
+var _abstractEntitiesGrid2 = _interopRequireDefault(_abstractEntitiesGrid);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var EntitiesGrid = function (_AbstractEntitiesGrid) {
+    _inherits(EntitiesGrid, _AbstractEntitiesGrid);
+
+    function EntitiesGrid(props) {
+        _classCallCheck(this, EntitiesGrid);
+
+        var _this = _possibleConstructorReturn(this, (EntitiesGrid.__proto__ || Object.getPrototypeOf(EntitiesGrid)).call(this, props));
+
+        _this.state.query.on("change", function () {
+            _this.onQueryChanged();
+        });
+
+        _this.discriminator = "entity_grid_" + _this.getEntity();
+
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_entities.EntitiesStore]);
+        return _this;
+    }
+
+    return EntitiesGrid;
+}(_abstractEntitiesGrid2.default);
 
 exports.default = EntitiesGrid;
 });
@@ -33069,8 +36264,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _entities = require("../../../stores/entities");
-
 var _layout = require("../../components/layout");
 
 var _strings = require("../../../strings");
@@ -33079,21 +36272,25 @@ var _strings2 = _interopRequireDefault(_strings);
 
 var _aj = require("../../utils/aj");
 
-var _common = require("../../components/common");
+var _entities = require("../../../actions/entities");
 
 var _forms = require("../../components/forms");
 
-var _entities2 = require("../../../actions/entities");
+var _entities2 = require("../../entities");
 
-var _entities3 = require("../../entities");
-
-var _entities4 = _interopRequireDefault(_entities3);
+var _entities3 = _interopRequireDefault(_entities2);
 
 var _ui = require("../../utils/ui");
 
 var ui = _interopRequireWildcard(_ui);
 
 var _lang = require("../../../utils/lang");
+
+var _entities4 = require("../../../stores/entities");
+
+var _common = require("../../components/common");
+
+var _session = require("../../../api/session");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -33121,7 +36318,7 @@ var EntityForm = function (_Screen) {
         _this.initialEntity = null;
         _this.willGoBack = true;
 
-        (0, _aj.connectDiscriminated)(_this.discriminator, _this, _entities.EntitiesStore, { data: null });
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, _entities4.EntitiesStore, { data: null });
         return _this;
     }
 
@@ -33140,16 +36337,28 @@ var EntityForm = function (_Screen) {
             window.onbeforeunload = this.onBeforeUnload;
             ui.addOnBeforeChangeListener(this.onBeforeUnload);
 
-            if (!_.isEmpty(this.props.entityId) && this.props.entityId !== "create") {
-                (0, _entities2.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
-            } else {
-                (0, _entities2.newEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId });
+            this.setState({ isCreation: this.props.entityId == "new" });
+            (0, _entities.getEntity)({ discriminator: this.discriminator, entity: this.props.entity, id: this.props.entityId, params: this.props.params });
+            //checkRevisionEnableStatus({discriminator: this.discriminator, entity: this.props.entity})
+        }
+    }, {
+        key: "goToRevision",
+        value: function goToRevision() {
+            ui.navigate("/revision/" + this.props.entity + "/" + this.getEntityId());
+        }
+    }, {
+        key: "getEntityId",
+        value: function getEntityId() {
+            var id = this.state.data != null ? this.state.data.id : null;
+            if (!id) {
+                if (this.props.entityId !== "new" && this.props.entityId !== "_") id = this.props.entityId;
             }
+            return id;
         }
     }, {
         key: "componentWillUnmount",
         value: function componentWillUnmount() {
-            (0, _entities2.freeEntities)({ discriminator: this.discriminator });
+            (0, _entities.freeEntities)({ discriminator: this.discriminator });
 
             window.onbeforeunload = null;
             ui.removeOnBeforeChangeListener(this.onBeforeUnload);
@@ -33166,7 +36375,7 @@ var EntityForm = function (_Screen) {
             if (_.isFunction(this.props.onSubmit)) {
                 this.props.onSubmit(data);
             } else {
-                (0, _entities2.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data, reload: !this.willGoBack });
+                (0, _entities.saveEntity)({ discriminator: this.discriminator, entity: this.props.entity, data: data, reload: !this.willGoBack });
             }
         }
     }, {
@@ -33202,6 +36411,20 @@ var EntityForm = function (_Screen) {
                         });
                     }
                 }
+                this.refs.form.model.invalidateForm();
+            }
+
+            if (state.loaded && !this.initialized) {
+                this.onDataLoad(state.data);
+                this.initialized = true;
+            }
+        }
+    }, {
+        key: "onDataLoad",
+        value: function onDataLoad(data) {
+            var form = _entities3.default[this.getEntity()].form;
+            if (_.isFunction(form.onDataLoad)) {
+                form.onDataLoad(data, this.props.params);
             }
         }
     }, {
@@ -33212,7 +36435,7 @@ var EntityForm = function (_Screen) {
     }, {
         key: "getGridUrl",
         value: function getGridUrl(data) {
-            var form = _entities4.default[this.getEntity()].form;
+            var form = _entities3.default[this.getEntity()].form;
             var gridUrl = form.gridUrl;
             if (_.isFunction(gridUrl)) {
                 gridUrl = gridUrl(data);
@@ -33232,42 +36455,102 @@ var EntityForm = function (_Screen) {
                 action: function action() {
                     _this2.goBack();
                 }
-            }, {
-                id: "save",
-                type: "button",
-                icon: "zmdi zmdi-save",
-                tooltip: (0, _strings2.default)("save"),
-                action: function action() {
-                    _this2.submit(true);
-                }
             }];
 
-            var form = _entities4.default[this.getEntity()].form;
+            if (this.canSave()) {
+                defaultActions.push({
+                    id: "save",
+                    type: "button",
+                    icon: "zmdi zmdi-save",
+                    tooltip: (0, _strings2.default)("save"),
+                    permissions: this.getEntitySavePermissions(),
+                    action: function action() {
+                        _this2.submit(false);
+                    }
+                }, {
+                    id: "save-go-back",
+                    type: "button",
+                    icon: "zmdi zmdi-rotate-ccw",
+                    tooltip: (0, _strings2.default)("saveAndGoBack"),
+                    permissions: this.getEntitySavePermissions(),
+                    action: function action() {
+                        _this2.submit(true);
+                    }
+                });
+            }
+
+            if (this.canShowRevisions()) {
+                defaultActions.push({
+                    id: "revisions",
+                    type: "button",
+                    icon: "zmdi zmdi-time-restore",
+                    tooltip: (0, _strings2.default)("showRevisions"),
+                    action: function action() {
+                        _this2.goToRevision();
+                    }
+                });
+            }
+
+            var form = _entities3.default[this.getEntity()].form;
             var matcher = new _common.ActionsMatcher(defaultActions);
-            return matcher.match(form.actions);
+            return matcher.match(_.isFunction(form.getActions) ? form.getActions(this.state.data) : form.actions);
+        }
+    }, {
+        key: "canShowRevisions",
+        value: function canShowRevisions() {
+            return this.state && this.state.revisionEnabled && this.state.revisionEnabled === true && this.getEntityId();
+        }
+    }, {
+        key: "canSave",
+        value: function canSave() {
+            var form = _entities3.default[this.getEntity()].form;
+            return (0, _lang.optional)(form.canSave, (0, _session.hasPermission)(this.getEntitySavePermissions()));
+        }
+    }, {
+        key: "getEntitySavePermissions",
+        value: function getEntitySavePermissions() {
+            return [this.getEntity() + ":" + _session.Permission.SAVE];
+        }
+    }, {
+        key: "getEntityListPermissions",
+        value: function getEntityListPermissions() {
+            return [this.getEntity() + ":" + _session.Permission.LIST];
+        }
+    }, {
+        key: "getPermittedActions",
+        value: function getPermittedActions() {
+            return _.filter(this.getActions(), function (a) {
+                return (0, _session.hasPermission)(a.permissions) === true;
+            });
+        }
+    }, {
+        key: "canCancel",
+        value: function canCancel() {
+            var descriptor = this.getDescriptor();
+            return _.isFunction(descriptor.canCancel) ? descriptor.canCancel(this.state.data) : true;
         }
     }, {
         key: "getTitle",
         value: function getTitle() {
-            var form = _entities4.default[this.getEntity()].form;
+            var form = _entities3.default[this.getEntity()].form;
             return (0, _lang.optional)(form.title, "Edit");
         }
     }, {
         key: "getSubtitle",
         value: function getSubtitle() {
-            var form = _entities4.default[this.getEntity()].form;
+            var form = _entities3.default[this.getEntity()].form;
             return form.subtitle;
         }
     }, {
         key: "getDescriptor",
         value: function getDescriptor() {
-            var form = _entities4.default[this.getEntity()].form;
+            var form = _entities3.default[this.getEntity()].form;
             return form.descriptor;
         }
     }, {
         key: "getFormComponent",
         value: function getFormComponent() {
-            var form = _entities4.default[this.getEntity()].form;
+            var form = _entities3.default[this.getEntity()].form;
             return (0, _lang.optional)(function () {
                 return form.component;
             }, function () {
@@ -33282,15 +36565,17 @@ var EntityForm = function (_Screen) {
             var actions = this.getActions();
             var descriptor = this.getDescriptor();
             var component = this.getFormComponent();
+            var selectedTab = this.props.params.selectedTab;
 
             return React.createElement(
                 _layout.Layout,
                 null,
-                React.createElement(_common.HeaderBlock, { title: title, subtitle: subtitle, actions: actions }),
+                React.createElement(_common.HeaderBlockWithBreadcrumbs, { title: title, subtitle: subtitle, actions: actions }),
                 React.createElement(component, {
                     ref: "form",
                     descriptor: descriptor,
                     data: this.state.data,
+                    selectedTab: selectedTab,
                     onSubmit: this.onSubmit.bind(this),
                     onCancel: this.onCancel.bind(this)
                 })
@@ -33311,6 +36596,152 @@ Object.defineProperty(exports, "__esModule", {
 });
 var EntitiesGrid = exports.EntitiesGrid = require("./entitiesGrid").default;
 var EntityForm = exports.EntityForm = require("./entityForm").default;
+var RevisionGrid = exports.RevisionGrid = require("./revisionsGrid").default;
+});
+define('web/screens/entities/revisionsGrid.js', function(module, exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _entities = require("../../../stores/entities");
+
+var _aj = require("../../utils/aj");
+
+var _abstractEntitiesGrid = require("./abstractEntitiesGrid");
+
+var _abstractEntitiesGrid2 = _interopRequireDefault(_abstractEntitiesGrid);
+
+var _strings = require("../../../strings");
+
+var _strings2 = _interopRequireDefault(_strings);
+
+var _common = require("../../components/common");
+
+var _entities2 = require("../../entities");
+
+var _entities3 = _interopRequireDefault(_entities2);
+
+var _ui = require("../../utils/ui");
+
+var ui = _interopRequireWildcard(_ui);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var RevisionsGrid = function (_AbstractEntitiesGrid) {
+    _inherits(RevisionsGrid, _AbstractEntitiesGrid);
+
+    function RevisionsGrid(props) {
+        _classCallCheck(this, RevisionsGrid);
+
+        var _this = _possibleConstructorReturn(this, (RevisionsGrid.__proto__ || Object.getPrototypeOf(RevisionsGrid)).call(this, props));
+
+        _this.state.query.eq("entity", props.entity);
+        if (props.entityId) {
+            _this.state.query.eq("entityId", props.entityId);
+        }
+
+        _this.state.query.sort("date", true);
+
+        _this.state.query.on("change", function () {
+            _this.onQueryChanged();
+        });
+
+        _this.discriminator = "entity_grid_" + _this.getEntity();
+
+        (0, _aj.connectDiscriminated)(_this.discriminator, _this, [_entities.EntitiesStore]);
+
+        return _this;
+    }
+
+    _createClass(RevisionsGrid, [{
+        key: "generateEntityUrl",
+        value: function generateEntityUrl() {
+            return "/entities/" + this.props.entity + "/" + this.props.entityId;
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            ui.navigate(this.generateEntityUrl());
+        }
+    }, {
+        key: "hideFilters",
+        value: function hideFilters() {
+            return true;
+        }
+    }, {
+        key: "getActions",
+        value: function getActions() {
+            var _this2 = this;
+
+            var defaultActions = [{
+                id: "back",
+                type: "button",
+                icon: "zmdi zmdi-arrow-left",
+                tooltip: (0, _strings2.default)("back"),
+                action: function action() {
+                    _this2.goBack();
+                }
+            }];
+
+            var grid = _entities3.default[this.getEntity()].grid;
+            var matcher = new _common.ActionsMatcher(defaultActions);
+            return matcher.match(grid.actions);
+        }
+    }, {
+        key: "getEntity",
+        value: function getEntity() {
+            return "revision";
+        }
+    }, {
+        key: "canEdit",
+        value: function canEdit() {
+            return false;
+        }
+    }, {
+        key: "canCreate",
+        value: function canCreate() {
+            return false;
+        }
+    }, {
+        key: "canDelete",
+        value: function canDelete() {
+            return false;
+        }
+    }, {
+        key: "generateTitleItems",
+        value: function generateTitleItems() {
+            var items = [];
+            items.push({ title: (0, _strings2.default)(this.props.entity), url: this.generateEntityUrl() });
+            items.push({ title: this.getTitle() });
+            return items;
+        }
+    }, {
+        key: "generateHeaderBlock",
+        value: function generateHeaderBlock() {
+            var subtitle = this.getSubtitle();
+            var title = this.generateTitleItems();
+            var actions = this.getActions();
+
+            return React.createElement(_common.HeaderBlockWithBreadcrumbs, { title: title, subtitle: subtitle, actions: actions });
+        }
+    }]);
+
+    return RevisionsGrid;
+}(_abstractEntitiesGrid2.default);
+
+exports.default = RevisionsGrid;
 });
 define('web/screens/home.js', function(module, exports) {
 "use strict";
@@ -33387,7 +36818,7 @@ var _strings = require("../../strings");
 
 var _strings2 = _interopRequireDefault(_strings);
 
-var _account = require("../../stores/account");
+var _session2 = require("../../stores/session");
 
 var _aj = require("../utils/aj");
 
@@ -33409,7 +36840,7 @@ var Login = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Login.__proto__ || Object.getPrototypeOf(Login)).call(this, props));
 
-        (0, _aj.connect)(_this, _account.SessionStore);
+        (0, _aj.connect)(_this, _session2.SessionStore);
         return _this;
     }
 
@@ -33563,6 +36994,14 @@ var _forms = require("../utils/forms");
 
 var forms = _interopRequireWildcard(_forms);
 
+var _lang = require("../../utils/lang");
+
+var _underscore = require("../../libs/underscore");
+
+var _ = _interopRequireWildcard(_underscore);
+
+var _passwordRecovery = require("../../stores/passwordRecovery");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -33581,26 +37020,71 @@ var Recover = function (_Screen) {
 
         var _this = _possibleConstructorReturn(this, (Recover.__proto__ || Object.getPrototypeOf(Recover)).call(this, props));
 
-        (0, _aj.connect)(_this, _account.AccountStore);
+        (0, _aj.connect)(_this, [_account.AccountStore, _passwordRecovery.PasswordRecoveryStore]);
         return _this;
     }
 
     _createClass(Recover, [{
-        key: "recover",
-        value: function recover() {
-            var data = forms.serialize(this.refs.recover_form);
-            (0, _account2.recoverAccount)(data);
+        key: "requestCode",
+        value: function requestCode(data) {
+            (0, _account2.requestRecoveryCode)(data);
+        }
+    }, {
+        key: "requestNewCode",
+        value: function requestNewCode() {
+            var data = {
+                mail: this.state.mail
+            };
+            this.requestCode(data);
+        }
+    }, {
+        key: "validateCode",
+        value: function validateCode(data) {
+            data.mail = this.state.mail;
+            (0, _account2.validateRecoveryCode)(data);
+        }
+    }, {
+        key: "resetPassword",
+        value: function resetPassword(data) {
+            _.assign(data, { mail: this.state.mail, code: this.state.code });
+            (0, _account2.resetPassword)(data);
         }
     }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(props, state) {
             if (state.recovered) {
-                ui.navigate("/");
+                // ui.navigate("/")
+            }
+        }
+    }, {
+        key: "getContent",
+        value: function getContent() {
+            var recoveryStep = (0, _lang.safeGet)(this.state, "recoveryStep", 1);
+            switch (recoveryStep) {
+                case 1:
+                    return React.createElement(CodeRequestForm, {
+                        onSubmit: this.requestCode.bind(this)
+                    });
+                case 2:
+                    return React.createElement(CodeValidationForm, {
+                        onSubmit: this.validateCode.bind(this),
+                        onTryAgain: this.requestNewCode.bind(this)
+                    });
+                case 3:
+                    return React.createElement(PasswordChangeForm, {
+                        onSubmit: this.resetPassword.bind(this)
+                    });
+                case 4:
+                    return ui.navigate("/");
+                default:
+                    return "";
             }
         }
     }, {
         key: "render",
         value: function render() {
+
+            var content = this.getContent();
             return React.createElement(
                 _layout.FullScreenLayout,
                 null,
@@ -33610,34 +37094,7 @@ var Recover = function (_Screen) {
                     React.createElement(
                         "div",
                         { className: "lc-block toggled", id: "l-forget-password" },
-                        React.createElement(
-                            "form",
-                            { action: "javascript:;", className: "lcb-form", onSubmit: this.recover.bind(this), ref: "recover_form" },
-                            React.createElement(
-                                "p",
-                                { className: "text-left" },
-                                (0, _strings2.default)("accountRecoverText")
-                            ),
-                            React.createElement(
-                                "div",
-                                { className: "input-group m-b-20" },
-                                React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-email" })
-                                ),
-                                React.createElement(
-                                    "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
-                                )
-                            ),
-                            React.createElement(
-                                "button",
-                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
-                                React.createElement("i", { className: "zmdi zmdi-check" })
-                            )
-                        ),
+                        content,
                         React.createElement(
                             "div",
                             { className: "lcb-navigation" },
@@ -33645,22 +37102,10 @@ var Recover = function (_Screen) {
                                 "a",
                                 { href: "#login", "data-ma-block": "#l-login" },
                                 React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
-                                " ",
                                 React.createElement(
                                     "span",
                                     null,
                                     (0, _strings2.default)("signIn")
-                                )
-                            ),
-                            React.createElement(
-                                "a",
-                                { href: "#register", "data-ma-block": "#l-register" },
-                                React.createElement("i", { className: "zmdi zmdi-plus" }),
-                                " ",
-                                React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("register")
                                 )
                             )
                         )
@@ -33674,6 +37119,236 @@ var Recover = function (_Screen) {
 }(_layout.Screen);
 
 exports.default = Recover;
+
+var CodeRequestForm = function (_React$Component) {
+    _inherits(CodeRequestForm, _React$Component);
+
+    function CodeRequestForm(props) {
+        _classCallCheck(this, CodeRequestForm);
+
+        return _possibleConstructorReturn(this, (CodeRequestForm.__proto__ || Object.getPrototypeOf(CodeRequestForm)).call(this, props));
+    }
+
+    _createClass(CodeRequestForm, [{
+        key: "onSubmit",
+        value: function onSubmit() {
+            var data = forms.serialize(this.refs.recover_form);
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(data);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "form",
+                { action: "javascript:;", className: "lcb-form", onSubmit: this.onSubmit.bind(this),
+                    ref: "recover_form" },
+                React.createElement(
+                    "p",
+                    { className: "text-left" },
+                    (0, _strings2.default)("accountRecoverText")
+                ),
+                React.createElement(
+                    "div",
+                    { className: "input-group m-b-20" },
+                    React.createElement(
+                        "span",
+                        { className: "input-group-addon" },
+                        React.createElement("i", { className: "zmdi zmdi-email" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "fg-line" },
+                        React.createElement("input", { type: "email", name: "mail", className: "form-control",
+                            placeholder: (0, _strings2.default)("mailAddress") })
+                    )
+                ),
+                React.createElement(
+                    "button",
+                    { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                    React.createElement("i", {
+                        className: "zmdi zmdi-check" })
+                )
+            );
+        }
+    }]);
+
+    return CodeRequestForm;
+}(React.Component);
+
+var CodeValidationForm = function (_React$Component2) {
+    _inherits(CodeValidationForm, _React$Component2);
+
+    function CodeValidationForm(props) {
+        _classCallCheck(this, CodeValidationForm);
+
+        return _possibleConstructorReturn(this, (CodeValidationForm.__proto__ || Object.getPrototypeOf(CodeValidationForm)).call(this, props));
+    }
+
+    _createClass(CodeValidationForm, [{
+        key: "onSubmit",
+        value: function onSubmit() {
+            var data = forms.serialize(this.refs.validate_code_form);
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(data);
+            }
+        }
+    }, {
+        key: "onTryAgain",
+        value: function onTryAgain() {
+            if (_.isFunction(this.props.onTryAgain)) {
+                this.props.onTryAgain();
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "form",
+                { action: "javascript:;", className: "lcb-form", onSubmit: this.onSubmit.bind(this),
+                    ref: "validate_code_form" },
+                React.createElement(
+                    "p",
+                    { className: "text-left" },
+                    (0, _strings2.default)("codeValidationText")
+                ),
+                React.createElement(
+                    "div",
+                    { className: "input-group m-b-20" },
+                    React.createElement(
+                        "span",
+                        { className: "input-group-addon" },
+                        React.createElement("i", { className: "zmdi zmdi-key" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "fg-line" },
+                        React.createElement("input", { type: "text", name: "code", className: "form-control",
+                            placeholder: (0, _strings2.default)("validationCode") })
+                    )
+                ),
+                React.createElement(
+                    "button",
+                    {
+                        type: "button",
+                        className: "btn btn-success btn-icon-text waves-effect",
+                        onClick: this.onTryAgain.bind(this)
+                    },
+                    React.createElement("i", { className: "zmdi zmdi-refresh" }),
+                    (0, _strings2.default)("requestNew")
+                ),
+                React.createElement(
+                    "button",
+                    { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                    React.createElement("i", {
+                        className: "zmdi zmdi-check" })
+                )
+            );
+        }
+    }]);
+
+    return CodeValidationForm;
+}(React.Component);
+
+var PasswordChangeForm = function (_React$Component3) {
+    _inherits(PasswordChangeForm, _React$Component3);
+
+    function PasswordChangeForm(props) {
+        _classCallCheck(this, PasswordChangeForm);
+
+        var _this4 = _possibleConstructorReturn(this, (PasswordChangeForm.__proto__ || Object.getPrototypeOf(PasswordChangeForm)).call(this, props));
+
+        _this4.state = {};
+        return _this4;
+    }
+
+    _createClass(PasswordChangeForm, [{
+        key: "onSubmit",
+        value: function onSubmit() {
+            var data = {
+                password: this.state.password,
+                passwordConfirm: this.state.passwordConfirm
+            };
+            if (_.isFunction(this.props.onSubmit)) {
+                this.props.onSubmit(data);
+            }
+        }
+    }, {
+        key: "updatePassword",
+        value: function updatePassword(e) {
+            this.setState({ password: e.target.value });
+        }
+    }, {
+        key: "updatePasswordConfirm",
+        value: function updatePasswordConfirm(e) {
+
+            this.setState({ passwordConfirm: e.target.value });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "form",
+                { action: "javascript:;", className: "lcb-form", onSubmit: this.onSubmit.bind(this),
+                    ref: "validate_code_form" },
+                React.createElement(
+                    "p",
+                    { className: "text-left" },
+                    (0, _strings2.default)("newPasswordText")
+                ),
+                React.createElement(
+                    "div",
+                    { className: "input-group m-b-20" },
+                    React.createElement(
+                        "span",
+                        { className: "input-group-addon" },
+                        React.createElement("i", { className: "zmdi zmdi-lock" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "fg-line" },
+                        React.createElement("input", {
+                            type: "password",
+                            name: "password",
+                            className: "form-control",
+                            placeholder: (0, _strings2.default)("password"),
+                            onChange: this.updatePassword.bind(this)
+                        })
+                    )
+                ),
+                React.createElement(
+                    "div",
+                    { className: "input-group m-b-20" },
+                    React.createElement(
+                        "span",
+                        { className: "input-group-addon" },
+                        React.createElement("i", { className: "zmdi zmdi-lock-outline" })
+                    ),
+                    React.createElement(
+                        "div",
+                        { className: "fg-line" },
+                        React.createElement("input", {
+                            type: "password",
+                            name: "passwordConfirm",
+                            className: "form-control",
+                            placeholder: (0, _strings2.default)("passwordConfirm"),
+                            onChange: this.updatePasswordConfirm.bind(this)
+                        })
+                    )
+                ),
+                React.createElement(
+                    "button",
+                    { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                    React.createElement("i", {
+                        className: "zmdi zmdi-check" })
+                )
+            );
+        }
+    }]);
+
+    return PasswordChangeForm;
+}(React.Component);
 });
 define('web/screens/register.js', function(module, exports) {
 "use strict";
@@ -34559,6 +38234,32 @@ exports.startNavigation = function (_base) {
 	loop();
 };
 
+exports.addQueryParam = function (param, value) {
+	updateQueryStringParam(param, value);
+};
+
+function updateQueryStringParam(key, value) {
+
+	var base = [location.protocol, '//', location.host, location.pathname].join("");
+	if (location.href.indexOf("#") !== -1) {
+		base = base + "#/" + _clearSlashes(location.href.split("#")[1].split("?")[0]);
+	}
+	var urlQueryString = location.href.split("?")[1];
+
+	var newParams = key + '=' + value;
+	// If the "search" string exists, then build params from it
+	if (urlQueryString) {
+		urlQueryString.split("&").forEach(function (e, i) {
+			if (e.split("=")[0] != key) {
+				newParams = newParams + "&" + e;
+			}
+		});
+	}
+	base = base + "?" + newParams;
+
+	history.replaceState({}, "", base);
+}
+
 exports.navigate = function (path) {
 	var openInNewTab = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
@@ -34568,6 +38269,7 @@ exports.navigate = function (path) {
 		$("<a>").attr("href", _clearSlashes(base + path)).attr("target", "_blank").get(0).click();
 	} else {
 		history.pushState(null, null, _clearSlashes(base + path));
+		$("html, body").animate({ scrollTop: 0 }, "slow");
 	}
 };
 

@@ -39,6 +39,7 @@
         <module>framework-tracking</module>
         <module>framework-indexing</module>
         <module>framework-revision</module>
+        <module>framework-cli</module>
         <module>scripts</module>
     </modules>
 

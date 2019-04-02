@@ -1,7 +1,7 @@
 package applica.framework.modules.hibernate;
 
 import applica.framework.Key;
-import applica.framework.annotations.ManyToMany;
+import applica.framework.cli.annotations.ManyToMany;
 import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.library.utils.Strings;
 import applica.framework.library.utils.TypeUtils;
