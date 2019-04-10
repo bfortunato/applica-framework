@@ -1221,7 +1221,7 @@ export class Select extends Control {
             })
 
         $(me).find("select")
-            .selectpicker({
+            .select2({
                 liveSearch: optional(this.props.searchEnabled, false)
             })
             .on("loaded.bs.select", function() {
@@ -1247,7 +1247,7 @@ export class Select extends Control {
         let me = ReactDOM.findDOMNode(this)
         let multiple = optional(this.props.multiple, false)
 
-        $(me).find("select").selectpicker("refresh")
+        $(me).find("select").select2()
     }
 
     componentWillUnmount() {

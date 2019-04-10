@@ -31156,7 +31156,7 @@ var Select = exports.Select = function (_Control11) {
                 $(me).removeClass("fg-toggled");
             });
 
-            $(me).find("select").selectpicker({
+            $(me).find("select").select2({
                 liveSearch: (0, _lang.optional)(this.props.searchEnabled, false)
             }).on("loaded.bs.select", function () {
                 if (_.isEmpty(model.get(field.property))) {
@@ -31182,7 +31182,7 @@ var Select = exports.Select = function (_Control11) {
             var me = ReactDOM.findDOMNode(this);
             var multiple = (0, _lang.optional)(this.props.multiple, false);
 
-            $(me).find("select").selectpicker("refresh");
+            $(me).find("select").select2();
         }
     }, {
         key: "componentWillUnmount",
@@ -34268,96 +34268,29 @@ var Header = function (_React$Component) {
         value: function render() {
             return React.createElement(
                 "header",
-                { id: "header", className: "clearfix", "data-ma-theme": "blue" },
+                { id: "header", className: "header clearfix" },
                 React.createElement(
-                    "ul",
-                    { className: "h-inner" },
+                    "div",
+                    { className: "navigation-trigger hidden-xl-up", "data-ma-action": "aside-open", "data-ma-target": ".sidebar" },
                     React.createElement(
-                        "li",
-                        { className: "hi-trigger ma-trigger", "data-ma-action": "sidebar-open", "data-ma-target": "#sidebar" },
-                        React.createElement(
-                            "div",
-                            { className: "line-wrap" },
-                            React.createElement("div", { className: "line top" }),
-                            React.createElement("div", { className: "line center" }),
-                            React.createElement("div", { className: "line bottom" })
-                        )
-                    ),
+                        "div",
+                        { className: "navigation-trigger__inner" },
+                        React.createElement("i", { className: "navigation-trigger__line" }),
+                        React.createElement("i", { className: "navigation-trigger__line" }),
+                        React.createElement("i", { className: "navigation-trigger__line" })
+                    )
+                ),
+                React.createElement(
+                    "div",
+                    { className: "header__logo hidden-sm-down" },
                     React.createElement(
-                        "li",
-                        { className: "hi-logo hidden-xs" },
+                        "h1",
+                        null,
                         React.createElement(
                             "a",
                             { href: "index.html" },
                             (0, _strings2.default)("appName")
                         )
-                    ),
-                    React.createElement(
-                        "li",
-                        { className: "pull-right" },
-                        React.createElement(
-                            "ul",
-                            { className: "hi-menu" },
-                            React.createElement(
-                                "li",
-                                { "data-ma-action": "search-open" },
-                                React.createElement(
-                                    "a",
-                                    { href: "" },
-                                    React.createElement("i", { className: "him-icon zmdi zmdi-search" })
-                                )
-                            ),
-                            React.createElement(
-                                "li",
-                                { className: "dropdown" },
-                                React.createElement(
-                                    "a",
-                                    { "data-toggle": "dropdown", href: "" },
-                                    React.createElement("i", { className: "him-icon zmdi zmdi-more-vert" })
-                                ),
-                                React.createElement(
-                                    "ul",
-                                    { className: "dropdown-menu pull-right" },
-                                    React.createElement(
-                                        "li",
-                                        { className: "hidden-xs" },
-                                        React.createElement(
-                                            "a",
-                                            { "data-ma-action": "fullscreen", href: "" },
-                                            "Toggle Fullscreen"
-                                        )
-                                    ),
-                                    React.createElement(
-                                        "li",
-                                        null,
-                                        React.createElement(
-                                            "a",
-                                            { href: "" },
-                                            "Privacy Settings"
-                                        )
-                                    ),
-                                    React.createElement(
-                                        "li",
-                                        null,
-                                        React.createElement(
-                                            "a",
-                                            { href: "" },
-                                            "Other Settings"
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                ),
-                React.createElement(
-                    "div",
-                    { className: "h-search-wrap" },
-                    React.createElement(
-                        "div",
-                        { className: "hsw-inner" },
-                        React.createElement("i", { className: "hsw-close zmdi zmdi-arrow-left", "data-ma-action": "search-close" }),
-                        React.createElement("input", { type: "text" })
                     )
                 )
             );
@@ -34394,67 +34327,49 @@ var ProfileBox = function (_React$Component2) {
 
             return React.createElement(
                 "div",
-                { className: "s-profile" },
+                { className: "user" },
                 React.createElement(
-                    "a",
-                    { href: "", "data-ma-action": "profile-menu-toggle" },
-                    this.state.cover && React.createElement("img", { src: this.state.cover, className: "cover", alt: "" }),
+                    "div",
+                    { className: "user__info", "data-toggle": "dropdown" },
+                    this.state.profileImage ? React.createElement("img", { className: "user__img", src: this.state.profileImage, alt: "" }) : React.createElement("img", { className: "user__img", src: "theme/img/demo/profile-pics/1.jpg", alt: "" }),
+                    React.createElement("img", { className: "user__img", src: "demo/img/profile-pics/8.jpg", alt: "" }),
                     React.createElement(
                         "div",
-                        { className: "sp-pic" },
-                        this.state.profileImage ? React.createElement("img", { src: this.state.profileImage, alt: "" }) : React.createElement("img", { src: "theme/img/demo/profile-pics/1.jpg", alt: "" })
-                    ),
-                    React.createElement(
-                        "div",
-                        { className: "sp-info" },
-                        (0, _lang.optional)(function () {
-                            return _this3.state.user.name;
-                        }, "NA"),
-                        React.createElement("i", { className: "zmdi zmdi-caret-down" })
+                        null,
+                        React.createElement(
+                            "div",
+                            { className: "user__name" },
+                            (0, _lang.optional)(function () {
+                                return _this3.state.user.name;
+                            }, "NA")
+                        ),
+                        React.createElement(
+                            "div",
+                            { className: "user__email" },
+                            (0, _lang.optional)(function () {
+                                return _this3.state.user.mail;
+                            }, "NA")
+                        )
                     )
                 ),
                 React.createElement(
-                    "ul",
-                    { className: "main-menu" },
+                    "div",
+                    { className: "dropdown-menu" },
                     React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            React.createElement("i", { className: "zmdi zmdi-account" }),
-                            " View Profile"
-                        )
+                        "a",
+                        { className: "dropdown-item", href: "#" },
+                        "View Profile"
                     ),
                     React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            React.createElement("i", { className: "zmdi zmdi-input-antenna" }),
-                            " Privacy Settings"
-                        )
+                        "a",
+                        { className: "dropdown-item", href: "#" },
+                        "Settings"
                     ),
                     React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "" },
-                            React.createElement("i", { className: "zmdi zmdi-settings" }),
-                            " Settings"
-                        )
-                    ),
-                    React.createElement(
-                        "li",
-                        null,
-                        React.createElement(
-                            "a",
-                            { href: "javascript:", onClick: this.logout.bind(this) },
-                            React.createElement("i", { className: "zmdi zmdi-time-restore" }),
-                            " Logout"
-                        )
+                        "a",
+                        { className: "dropdown-item", href: "#", onClick: this.logout.bind(this) },
+                        React.createElement("i", { className: "zmdi zmdi-time-restore" }),
+                        " Logout"
                     )
                 )
             );
@@ -34512,7 +34427,7 @@ var MenuLevel = function (_React$Component3) {
                 }
                 var hasChildren = !_underscore2.default.isEmpty(i.children);
                 if (hasChildren) {
-                    className += " sub-menu";
+                    className += " navigation__sub";
                 }
                 if (i.expanded) {
                     className += " toggled";
@@ -34537,10 +34452,16 @@ var MenuLevel = function (_React$Component3) {
             if (expanded) {
                 style.display = "block";
             }
+            var className = "";
+            if (isMainMenu) {
+                className += "navigation";
+            } else {
+                className = "navigation__sub";
+            }
 
             return React.createElement(
                 "ul",
-                { className: isMainMenu ? "main-menu" : undefined, style: style },
+                { className: className, style: style },
                 items
             );
         }
@@ -34598,9 +34519,13 @@ var SideBar = function (_React$Component5) {
         value: function render() {
             return React.createElement(
                 "aside",
-                { id: "sidebar", className: "sidebar c-overflow" },
-                React.createElement(ProfileBox, null),
-                React.createElement(MainMenuContainer, null)
+                { id: "sidebar", className: "sidebar" },
+                React.createElement(
+                    "div",
+                    { className: "scrollbar-inner" },
+                    React.createElement(ProfileBox, null),
+                    React.createElement(MainMenuContainer, null)
+                )
             );
         }
     }]);
@@ -34668,10 +34593,10 @@ var Footer = function (_React$Component7) {
 
             return React.createElement(
                 "footer",
-                { id: "footer" },
+                { className: "footer hidden-xs-down" },
                 React.createElement(
                     "ul",
-                    { className: "f-menu" },
+                    { className: "nav footer__nav" },
                     backendVersion && React.createElement(
                         "li",
                         null,
@@ -34714,18 +34639,14 @@ var Layout = function (_React$Component8) {
                 "div",
                 null,
                 React.createElement(Header, null),
+                React.createElement(SideBar, null),
                 React.createElement(
                     "section",
-                    { id: "main" },
-                    React.createElement(SideBar, null),
+                    { className: "content" },
                     React.createElement(
-                        "section",
-                        { id: "content" },
-                        React.createElement(
-                            "div",
-                            { className: "container" },
-                            this.props.children
-                        )
+                        "div",
+                        { className: "container" },
+                        this.props.children
                     )
                 ),
                 React.createElement(Footer, null)

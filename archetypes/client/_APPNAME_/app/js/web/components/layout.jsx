@@ -25,50 +25,17 @@ function hidePageLoader() {
 class Header extends React.Component {
     render() {
         return (
-            <header id="header" className="clearfix" data-ma-theme="blue">
-                <ul className="h-inner">
-                    <li className="hi-trigger ma-trigger" data-ma-action="sidebar-open" data-ma-target="#sidebar">
-                        <div className="line-wrap">
-                            <div className="line top"></div>
-                            <div className="line center"></div>
-                            <div className="line bottom"></div>
-                        </div>
-                    </li>
-
-                    <li className="hi-logo hidden-xs">
-                        <a href="index.html">{M("appName")}</a>
-                    </li>
-
-                    <li className="pull-right">
-                        <ul className="hi-menu">
-
-                            <li data-ma-action="search-open">
-                                <a href=""><i className="him-icon zmdi zmdi-search"></i></a>
-                            </li>
-
-                            <li className="dropdown">
-                                <a data-toggle="dropdown" href=""><i className="him-icon zmdi zmdi-more-vert"></i></a>
-                                <ul className="dropdown-menu pull-right">
-                                    <li className="hidden-xs">
-                                        <a data-ma-action="fullscreen" href="">Toggle Fullscreen</a>
-                                    </li>
-                                    <li>
-                                        <a href="">Privacy Settings</a>
-                                    </li>
-                                    <li>
-                                        <a href="">Other Settings</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <div className="h-search-wrap">
-                    <div className="hsw-inner">
-                        <i className="hsw-close zmdi zmdi-arrow-left" data-ma-action="search-close"></i>
-                        <input type="text" />
+            <header id="header" className="header clearfix">
+                <div className="navigation-trigger hidden-xl-up" data-ma-action="aside-open" data-ma-target=".sidebar">
+                    <div className="navigation-trigger__inner">
+                        <i className="navigation-trigger__line"></i>
+                        <i className="navigation-trigger__line"></i>
+                        <i className="navigation-trigger__line"></i>
                     </div>
+                </div>
+
+                <div className="header__logo hidden-sm-down">
+                    <h1><a href="index.html">{M("appName")}</a></h1>
                 </div>
             </header>
         )
@@ -92,42 +59,25 @@ class ProfileBox extends React.Component {
 
     render() {
         return (
-            <div className="s-profile">
-                <a href="" data-ma-action="profile-menu-toggle">
-                    {this.state.cover &&
-                        <img src={this.state.cover} className="cover" alt="" />
-                    }
-
-
-                    <div className="sp-pic">
+            <div className="user">
+                <div className="user__info" data-toggle="dropdown">
                         {this.state.profileImage ?
-                            <img src={this.state.profileImage} alt="" />
+                            <img className="user__img" src={this.state.profileImage} alt="" />
                             :
-                            <img src="theme/img/demo/profile-pics/1.jpg" alt="" />
+                            <img className="user__img" src="theme/img/demo/profile-pics/1.jpg" alt="" />
                         }
+                    <img className="user__img" src="demo/img/profile-pics/8.jpg" alt="" />
+                    <div>
+                        <div className="user__name">{optional(() => this.state.user.name, "NA")}</div>
+                        <div className="user__email">{optional(() => this.state.user.mail, "NA")}</div>
                     </div>
+                </div>
 
-                    <div className="sp-info">
-                        {optional(() => this.state.user.name, "NA")}
-
-                        <i className="zmdi zmdi-caret-down"></i>
-                    </div>
-                </a>
-
-                <ul className="main-menu">
-                    <li>
-                        <a href=""><i className="zmdi zmdi-account"></i> View Profile</a>
-                    </li>
-                    <li>
-                        <a href=""><i className="zmdi zmdi-input-antenna"></i> Privacy Settings</a>
-                    </li>
-                    <li>
-                        <a href=""><i className="zmdi zmdi-settings"></i> Settings</a>
-                    </li>
-                    <li>
-                        <a href="javascript:" onClick={this.logout.bind(this)}><i className="zmdi zmdi-time-restore"></i> Logout</a>
-                    </li>
-                </ul>
+                <div className="dropdown-menu">
+                    <a className="dropdown-item" href="#">View Profile</a>
+                    <a className="dropdown-item" href="#">Settings</a>
+                    <a className="dropdown-item" href="#" onClick={this.logout.bind(this)}><i className="zmdi zmdi-time-restore"></i> Logout</a>
+                </div>
             </div>
         )
     }
@@ -164,7 +114,7 @@ class MenuLevel extends React.Component {
             let className = ""
             if (i.active) { className += "active" }
             let hasChildren = !_.isEmpty(i.children)
-            if (hasChildren) { className += " sub-menu" }
+            if (hasChildren) { className += " navigation__sub" }
             if (i.expanded) { className += " toggled" }
 
             return (
@@ -185,9 +135,15 @@ class MenuLevel extends React.Component {
         if (expanded) {
             style.display = "block"
         }
+        let className = ""
+        if (isMainMenu) {
+            className += "navigation"
+        } else {
+            className = "navigation__sub"
+        }
 
         return (
-            <ul className={isMainMenu ? "main-menu" : undefined} style={style}>
+            <ul className={className} style={style}>
                 {items}
             </ul>
         )
@@ -220,9 +176,11 @@ class MainMenu extends React.Component {
 class SideBar extends React.Component {
     render() {
         return (
-            <aside id="sidebar" className="sidebar c-overflow">
-                <ProfileBox />
-                <MainMenuContainer />
+            <aside id="sidebar" className="sidebar">
+                <div className="scrollbar-inner">
+                    <ProfileBox />
+                    <MainMenuContainer />
+                </div>
             </aside>
         )
     }
@@ -268,15 +226,12 @@ class Footer extends React.Component {
         let copyrightInfos = this.state.copyrightInfos;
 
         return (
-            <footer id="footer">
-                <ul className="f-menu">
+            <footer className="footer hidden-xs-down">
+                <ul className="nav footer__nav">
                     {backendVersion && <li> Web: v {backendVersion}</li> }
                     {apiVersion && <li> API: v {apiVersion}</li>}
                     {copyrightInfos && <li> Copyright: {copyrightInfos}</li>}
                 </ul>
-
-
-
             </footer>
         )
     }
@@ -287,15 +242,12 @@ class Layout extends React.Component {
         return (
             <div>
                 <Header/>
+                <SideBar/>
 
-                <section id="main">
-                    <SideBar/>
-
-                    <section id="content">
-                        <div className="container">
-                            {this.props.children}
-                        </div>
-                    </section>
+                <section className="content">
+                    <div className="container">
+                        {this.props.children}
+                    </div>
                 </section>
 
                 <Footer />
