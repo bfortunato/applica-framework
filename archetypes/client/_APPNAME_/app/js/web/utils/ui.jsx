@@ -138,16 +138,16 @@ exports.changeScreen = function(screen) {
 			if (changeScreenConfirmEnabled) {
 				if (out) {
 					swal({title: M("confirm"), text: M("formChangeAlert"), showCancelButton: true})
-						.then(() => {
-							screens.invoke("screen.change", screen);
+						.then(res => {
+							if (res.value) {
+								screens.invoke("screen.change", screen);	
+							} else {
+								if (!_.isEmpty(veryLastFragment)) {
+									routerDisabledNextTime = true
+									window.location.href = "#" + veryLastFragment
+								}
+							}							
 						})
-						.catch(() => {
-							if (!_.isEmpty(veryLastFragment)) {
-								routerDisabledNextTime = true
-								window.location.href = "#" + veryLastFragment
-							}
-						})
-
 					return;
 				}
 			} else {

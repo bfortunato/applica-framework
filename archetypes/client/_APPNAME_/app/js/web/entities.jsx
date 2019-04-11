@@ -33,13 +33,13 @@ const entities = {
 							icon: "zmdi zmdi-brush",
 							tooltip: "Reset password",
 							action: () => {
-
 								swal({
 									title: M("confirm"),
 									text: "Verrà impostata una nuova password ed inviata all'indirizzo mail dell'utente",
 									showCancelButton: true
 								})
-									.then(() => {
+								.then((res) => {
+									if (res.value) {
 										resetUserPassword({id: data.id})
 										if (data.id === getLoggedUser().id) {
 											swal({
@@ -47,20 +47,18 @@ const entities = {
 												text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
 												showCancelButton: false
 											})
-												.then(() => {
+											.then((res) => {
+												if (res.value) {
 													logout();
 													ui.navigate("/login")
-
-												})
-												.catch((e) => {
-													logger.i(e)
-												})
+												}
+											})
 										}
-
-									})
-									.catch((e) => {
-										logger.i(e)
-									})
+									}
+								})
+								.catch((e) => {
+									logger.i(e)
+								})
 
 							}
 						})
@@ -145,6 +143,7 @@ const entities = {
 		grid: {
 			title: M("rolesList"),
 			subtitle: M("rolesListDescription"),
+			quickSearchEnabled: true,
 			descriptor: {
 				columns: [
 	                {property: "role", header: "Role", cell: TextCell, sortable: true, searchable: true}

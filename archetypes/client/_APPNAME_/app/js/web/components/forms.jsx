@@ -301,7 +301,7 @@ export class Area extends React.Component {
             <Card title={area.title} subtitle={area.subtitle} actions={area.actions}>
                 {tabs}
                 <div className="row">
-                    <div className="p-l-30 p-r-30">
+                    <div className="col-md-12">
                         {fields}
                     </div>
                 </div>
@@ -667,8 +667,7 @@ class FormFooter extends React.Component {
     }
 
     render() {
-
-        let descriptor = this.props.descriptor;
+        const descriptor = this.props.descriptor;
 
         let submitText = M("save");
         let cancelText = M("back");
@@ -681,25 +680,18 @@ class FormFooter extends React.Component {
             }
         }
 
-        let style = {marginBottom: "30px"}
+        const style = {marginBottom: "30px"}
 
-        if(!this.props.defaultFooter) {
-            style["marginLeft"] = "15px";
-            style["marginRight"] = "15px";
-        }
-
-        let canSave = this.canSave();
-        let canCancel = this.canCancel();
+        const canSave = this.canSave();
+        const canCancel = this.canCancel();
 
         return (
 
-            <div className="row" style={style}>
-                <div className="text-right col-sm-12">
-                    {canCancel &&
-                    <button type="button" className="btn btn-default waves-effect m-r-10" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {cancelText}</button>
-                    }
-                    {canSave && <button type="submit" className="btn btn-primary waves-effect"><i className="zmdi zmdi-save" /> {submitText}</button>}
-                </div>
+            <div className="btn-actions-bar" style={style}>
+                {canCancel &&
+                <button type="button" className="btn btn-dark" onClick={this.onCancel.bind(this)}><i className="zmdi zmdi-arrow-back" /> {cancelText}</button>
+                }
+                {canSave && <button type="submit" className="btn btn-primary"><i className="zmdi zmdi-save" /> {submitText}</button>}
             </div>
 
         );
@@ -739,7 +731,6 @@ export class Field extends React.Component {
             className += " " + this.props.field.className
         }
         return (
-
             <div className={className} style={{minHeight: 58}}>
                 {hasLabel &&
                     <Label field={this.props.field}/>
@@ -748,6 +739,7 @@ export class Field extends React.Component {
                 {!validationResult.valid && !_.isEmpty(validationResult.message) &&
                     <small className="help-block">{validationResult.message}</small>
                 }
+                <i className="form-group__bar"></i>
             </div>
         )
     }
@@ -789,6 +781,7 @@ export class InlineField extends React.Component {
                         <small className="help-block">{validationResult.message}</small>
                     }
                 </div>
+                <i className="form-group__bar"></i>
             </div>
         )
     }
@@ -814,16 +807,14 @@ export class Text extends Control {
         let field = this.props.field
 
         return (
-            <div className="fg-line">
-                <input
-                    type="text"
-                    className="form-control input-sm"
-                    id={field.property}
-                    data-property={field.property}
-                    placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property), "")}
-                    onChange={this.onValueChange.bind(this)} />
-            </div>
+            <input
+                type="text"
+                className="form-control input-sm"
+                id={field.property}
+                data-property={field.property}
+                placeholder={field.placeholder}
+                value={optional(this.props.model.get(field.property), "")}
+                onChange={this.onValueChange.bind(this)} />
         )
     }
 }
@@ -835,16 +826,14 @@ export class TextArea extends Control {
             height: optional(this.props.height, "150px")
         }
         return (
-            <div className="fg-line">
-                <textarea
-                    style={style}
-                    className="form-control"
-                    id={field.property}
-                    data-property={field.property}
-                    placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property), "")}
-                    onChange={this.onValueChange.bind(this)} />
-            </div>
+            <textarea
+                style={style}
+                className="form-control"
+                id={field.property}
+                data-property={field.property}
+                placeholder={field.placeholder}
+                value={optional(this.props.model.get(field.property), "")}
+                onChange={this.onValueChange.bind(this)} />
         )
     }
 }
@@ -863,18 +852,16 @@ export class ReadOnlyText extends Control {
         
 
         return (
-            <div className="fg-line">
-                <input
-                    disabled="disabled"
-                    readOnly="readOnly"
-                    type="text"
-                    className="form-control input-sm"
-                    id={field.property}
-                    data-property={field.property}
-                    placeholder={field.placeholder}
-                    value={this.getText()}
-                    onChange={this.onValueChange.bind(this)} />
-            </div>
+            <input
+                disabled="disabled"
+                readOnly="readOnly"
+                type="text"
+                className="form-control input-sm"
+                id={field.property}
+                data-property={field.property}
+                placeholder={field.placeholder}
+                value={this.getText()}
+                onChange={this.onValueChange.bind(this)} />
         )
     }
 }
@@ -900,7 +887,7 @@ export class Color extends Control {
         return (
             <div className="cp-container">
                 <div className="">
-                    <div className="fg-line dropdown">
+                    <div className="dropdown">
                         <input
                             type="text"
                             className="form-control cp-value"
@@ -937,16 +924,14 @@ export class Mail extends Control {
         let field = this.props.field
 
         return (
-            <div className="fg-line">
-                <input
-                    type="email"
-                    className="form-control input-sm"
-                    id={field.property}
-                    data-property={field.property}
-                    placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property), "")}
-                    onChange={this.onValueChange.bind(this)} />
-            </div>
+            <input
+                type="email"
+                className="form-control input-sm"
+                id={field.property}
+                data-property={field.property}
+                placeholder={field.placeholder}
+                value={optional(this.props.model.get(field.property), "")}
+                onChange={this.onValueChange.bind(this)} />
         )
     }
 }
@@ -1028,15 +1013,13 @@ export class DateTime extends Control {
 
         return (
             <div className="input-group">
-                <div className="fg-line">
-                    <input
-                        disabled={disabled}
-                        type="text"
-                        className="form-control input-sm"
-                        id={field.property}
-                        data-property={field.property}
-                        placeholder={field.placeholder} />
-                </div>
+                <input
+                    disabled={disabled}
+                    type="text"
+                    className="form-control input-sm"
+                    id={field.property}
+                    data-property={field.property}
+                    placeholder={field.placeholder} />
                 <div className="input-group-addon">
                     <span className="zmdi zmdi-calendar" />
                 </div>
@@ -1074,21 +1057,22 @@ export class YesNo extends Control {
     }
 
     render() {
-        let field = this.props.field
-        let yesText = optional(this.props.yesText, "Yes")
-        let noText = optional(this.props.noText, "No")
-
+        const field = this.props.field
+        const yesText = optional(this.props.yesText, "Yes")
+        const noText = optional(this.props.noText, "No")
+        const yesId = `__yesno-${field.property}-yes`
+        const noId = `__yesno-${field.property}-no`
         return (
             <div className="yesno">
-                <label className="radio radio-inline m-r-5">
-                    <input type="radio" name={field.property} value="true" checked={optional(this.props.model.get(field.property), false)} onChange={this.onValueChange.bind(this)} />
-                    <i className="input-helper">{yesText}</i>
-                </label>
-                <label className="radio radio-inline m-r-5">
-                    <input type="radio" name={field.property} value="false" checked={!(optional(this.props.model.get(field.property), false))} onChange={this.onValueChange.bind(this)} />
-                    <i className="input-helper">{noText}</i>
-                </label>
+            <div className="radio radio--inline">
+                <input id={yesId} type="radio" name={field.property} value="true" checked={optional(this.props.model.get(field.property), false)} onChange={this.onValueChange.bind(this)} />
+                <label htmlFor={yesId} className="radio__label">{yesText}</label>
             </div>
+            <div className="radio radio--inline">
+                <input id={noId} type="radio" name={field.property} value="false" checked={!(optional(this.props.model.get(field.property), false))} onChange={this.onValueChange.bind(this)} />
+                <label htmlFor={noId} className="radio__label">{noText}</label>
+            </div>
+        </div>
         )
     }
 }
@@ -1157,18 +1141,15 @@ export class Number extends Control {
         let field = this.props.field
 
         return (
-
-            <div className="fg-line">
-                <input
-                    ref="text"
-                    type="text"
-                    className="form-control input-sm"
-                    id={field.property}
-                    data-property={field.property}
-                    placeholder={field.placeholder}
-                    value={optional(this.props.model.get(field.property), "")}
-                    onChange={this.onValueChange.bind(this)}/>
-            </div>
+            <input
+                ref="text"
+                type="text"
+                className="form-control input-sm"
+                id={field.property}
+                data-property={field.property}
+                placeholder={field.placeholder}
+                value={optional(this.props.model.get(field.property), "")}
+                onChange={this.onValueChange.bind(this)}/>
         )
     }
 }
@@ -1264,21 +1245,19 @@ export class Select extends Control {
         let multiple = optional(this.props.multiple, false)
 
         return (
-            <div className="fg-line">
-                <select
-                    id={field.property}
-                    className="form-control"
-                    data-property={field.property}
-                    onChange={this.onValueChange.bind(this)}
-                    title={field.placeholder}
-                    value={optional(model.get(field.property), multiple ? [] : "")}
-                    multiple={multiple}>
-                    {this.props.allowNull &&
-                        <option key="empty" value="" style={{color: "#999999"}}>{optional(this.props.nullText, "(none)")}</option>
-                    }
-                    {options}
-                </select>
-            </div>
+            <select
+                id={field.property}
+                className="form-control"
+                data-property={field.property}
+                onChange={this.onValueChange.bind(this)}
+                title={field.placeholder}
+                value={optional(model.get(field.property), multiple ? [] : "")}
+                multiple={multiple}>
+                {this.props.allowNull &&
+                    <option key="empty" value="" style={{color: "#999999"}}>{optional(this.props.nullText, "(none)")}</option>
+                }
+                {options}
+            </select>
         )
     }
 }
@@ -1541,8 +1520,8 @@ export class Lookup extends Control {
                 <div className="lookup">
                     <div className="lookup-header" onClick={this.showEntities.bind(this)}>
                         <div className="actions">
-                            <a href="javascript:;" title={M("remove")} onClick={this.remove.bind(this)} className="m-r-0"><i className="zmdi zmdi-close" /></a>
-                            <a href="javascript:;" title={M("add")} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
+                            <a href="javascript:;" className="actions__item" title={M("remove")} onClick={this.remove.bind(this)}><i className="zmdi zmdi-close" /></a>
+                            <a href="javascript:;" className="actions__item" title={M("add")} onClick={this.showEntities.bind(this)}><i className={addClassName} /></a>
                         </div>
                         <span className="lookup-current-value">{this.getHeaderText()}</span>
                         <div className="clearfix"></div>
@@ -1570,8 +1549,7 @@ export class Lookup extends Control {
                     <div className="modal-dialog modal-lg" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 className="modal-title" id="myModalLabel">{field.label}</h4>
+                                <h5 className="modal-title" id="myModalLabel">{field.label}</h5>
                             </div>
                             <div className="modal-body">
                                 <Grid 
@@ -1725,7 +1703,7 @@ export class Image extends Control {
         let imageData = model.get(field.property)
 
         return (
-            <div className="input-image fg-line">
+            <div className="input-image">
                 <div onClick={this.search.bind(this)}>
                     {!_.isEmpty(imageData) ?
                         <div className="input-image-container">
@@ -1921,7 +1899,6 @@ export class SingleImage extends Control {
     }
 
     onFileSelected(e) {
-
         let file = e.target.files[0]
         inputfile.readDataUrl(file).then(result => {
             if (_.isFunction(this.props.onImageAdd)) {
@@ -1932,7 +1909,6 @@ export class SingleImage extends Control {
             }
 
         })
-
     }
 
     delete(e) {

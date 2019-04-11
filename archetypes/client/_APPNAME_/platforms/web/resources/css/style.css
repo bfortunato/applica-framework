@@ -75,7 +75,7 @@ html.ismobile .global-loader {
   animation-duration: 0.25s; }
 
 .card-header-inverse {
-  background-color: #2196F3; }
+  background-color: #ff6b68; }
   .card-header-inverse h2 {
     color: #FFFFFF; }
 
@@ -86,14 +86,16 @@ html.ismobile .global-loader {
   background-color: #ebebeb; }
 
 .table-hover > tbody > tr.selected {
-  background-color: #2196F3;
+  background-color: #ff6b68;
   color: white; }
 
 .table-hover > tbody > tr.selected:hover {
-  background-color: #0c7cd5; }
+  background-color: #ff3935; }
 
 .result-summary {
-  margin: 30px; }
+  margin-bottom: 25px;
+  font-size: .9rem;
+  color: #9c9c9c; }
 
 /*-------------------------
     Forms
@@ -119,10 +121,10 @@ html.ismobile .global-loader {
   background-color: #ebebeb; }
 
 .table-hover > tbody > tr.level-0.selected:hover {
-  background-color: #0c7cd5; }
+  background-color: #ff3935; }
 
 .table-hover > tbody > tr.level-0.selected {
-  background-color: #2196f3;
+  background-color: #ff6b68;
   color: white; }
 
 .table-hover > tbody > tr.level-1 {
@@ -135,10 +137,10 @@ html.ismobile .global-loader {
   background-color: #d2d2d2; }
 
 .table-hover > tbody > tr.level-1.selected:hover {
-  background-color: #0960a5; }
+  background-color: #ff0702; }
 
 .table-hover > tbody > tr.level-1.selected {
-  background-color: #0c7cd5;
+  background-color: #ff3935;
   color: white; }
 
 .table-hover > tbody > tr.level-2 {
@@ -151,10 +153,10 @@ html.ismobile .global-loader {
   background-color: #b8b8b8; }
 
 .table-hover > tbody > tr.level-2.selected:hover {
-  background-color: #064475; }
+  background-color: #ce0400; }
 
 .table-hover > tbody > tr.level-2.selected {
-  background-color: #0960a5;
+  background-color: #ff0702;
   color: white; }
 
 .table-hover > tbody > tr.level-3 {
@@ -167,10 +169,10 @@ html.ismobile .global-loader {
   background-color: #9f9f9f; }
 
 .table-hover > tbody > tr.level-3.selected:hover {
-  background-color: #042844; }
+  background-color: #9b0300; }
 
 .table-hover > tbody > tr.level-3.selected {
-  background-color: #064475;
+  background-color: #ce0400;
   color: white; }
 
 .table-hover > tbody > tr.level-4 {
@@ -183,10 +185,10 @@ html.ismobile .global-loader {
   background-color: #858585; }
 
 .table-hover > tbody > tr.level-4.selected:hover {
-  background-color: #010c14; }
+  background-color: #680200; }
 
 .table-hover > tbody > tr.level-4.selected {
-  background-color: #042844;
+  background-color: #9b0300;
   color: white; }
 
 .table-hover > tbody > tr.level-5 {
@@ -199,10 +201,10 @@ html.ismobile .global-loader {
   background-color: #6c6c6c; }
 
 .table-hover > tbody > tr.level-5.selected:hover {
-  background-color: black; }
+  background-color: #350100; }
 
 .table-hover > tbody > tr.level-5.selected {
-  background-color: #010c14;
+  background-color: #680200;
   color: white; }
 
 .table-hover > tbody > tr.level-6 {
@@ -215,10 +217,10 @@ html.ismobile .global-loader {
   background-color: #525252; }
 
 .table-hover > tbody > tr.level-6.selected:hover {
-  background-color: black; }
+  background-color: #020000; }
 
 .table-hover > tbody > tr.level-6.selected {
-  background-color: black;
+  background-color: #350100;
   color: white; }
 
 .table-hover > tbody > tr.level-7 {
@@ -234,7 +236,7 @@ html.ismobile .global-loader {
   background-color: black; }
 
 .table-hover > tbody > tr.level-7.selected {
-  background-color: black;
+  background-color: #020000;
   color: white; }
 
 .table-hover > tbody > tr.level-8 {
@@ -276,6 +278,26 @@ html.ismobile .global-loader {
   .grid .table thead tr th:last-child {
     border-radius: 0px 3px 0px 0px; }
 
+.grid .table > thead > tr > th.sorting_asc:after {
+  content: '\f1cd'; }
+
+.grid .table > thead > tr > th.sorting_asc:after, .grid .table > thead > tr > th.sorting_desc:after {
+  font-family: Material-Design-Iconic-Font;
+  position: absolute;
+  top: .75rem;
+  right: 1rem;
+  font-size: 1.4rem; }
+
+.grid .table > thead > tr > th.sorting_desc:after {
+  content: '\f1ce'; }
+
+.grid .table > thead > tr > th.sorting_asc:after, .grid .table > thead > tr > th.sorting_desc:after {
+  font-family: Material-Design-Iconic-Font;
+  position: absolute;
+  top: .75rem;
+  right: 1rem;
+  font-size: 1.4rem; }
+
 .grid .table > thead > tr > th:last-child {
   padding-right: 15px; }
 
@@ -309,22 +331,36 @@ tr.collapsible {
     -o-transform: scale(1, 1);
     transform: scale(1, 1); }
 
-.quick-search-container {
-  float: right;
-  width: 40%; }
-  .quick-search-container .quick-search {
-    border: solid 1px #efefef;
-    padding: 5px;
-    margin: 10px; }
-    .quick-search-container .quick-search .quick-search-input-container {
-      margin-right: 30px; }
-      .quick-search-container .quick-search .quick-search-input-container input {
-        border: 0px;
-        width: 100%;
-        height: 100%;
-        font-weight: 500; }
-    .quick-search-container .quick-search i.zmdi {
-      font-size: 20px; }
+.quick-search-container .quick-search {
+  border-bottom: 1px solid #eceff1;
+  padding: 5px;
+  margin-bottom: 10px;
+  position: relative; }
+  .quick-search-container .quick-search .quick-search-input-container {
+    margin-left: 30px; }
+    .quick-search-container .quick-search .quick-search-input-container input {
+      border: 0px;
+      width: 100%;
+      height: 100%;
+      font-weight: 500; }
+  .quick-search-container .quick-search i.zmdi {
+    font-size: 20px; }
+  .quick-search-container .quick-search:after {
+    right: 50%; }
+  .quick-search-container .quick-search:before {
+    left: 50%; }
+  .quick-search-container .quick-search:after, .quick-search-container .quick-search:before {
+    content: '';
+    position: absolute;
+    height: 2px;
+    width: 0;
+    bottom: -1px;
+    transition: width .5s ease;
+    background-color: #ff6b68; }
+  .quick-search-container .quick-search.quick-search__active:after {
+    width: 50%; }
+  .quick-search-container .quick-search.quick-search__active:before {
+    width: 50%; }
 
 .modal .quick-search {
   margin-right: 0px !important; }
@@ -353,7 +389,7 @@ tr.collapsible {
     white-space: nowrap;
     position: absolute;
     right: 7px;
-    margin-top: -2px; }
+    margin-top: -4px; }
     .grid-actions .grid-actions-container a.grid-action {
       display: inline-block;
       color: #5E5E5E;
@@ -361,7 +397,8 @@ tr.collapsible {
       height: 25px;
       border-radius: 2px;
       font-size: 18px;
-      text-align: center; }
+      text-align: center;
+      line-height: 26px; }
     .grid-actions .grid-actions-container a.grid-action:hover {
       background-color: #d2d2d2; }
 
@@ -419,13 +456,16 @@ tr.collapsible {
     background-color: #FFFFFF;
     height: 30px;
     padding-left: 7px;
-    cursor: pointer; }
+    cursor: pointer;
+    position: relative; }
     .lookup .lookup-header .placeholder {
       color: #AEAEAE; }
     .lookup .lookup-header .actions {
       position: absolute;
-      right: 0px;
-      top: 2px; }
+      right: 10px;
+      top: 0px; }
+      .lookup .lookup-header .actions .actions__item {
+        margin-right: -10px; }
   .lookup .lookup-header:hover {
     background-color: #ebebeb; }
   .lookup table {
@@ -447,7 +487,10 @@ tr.collapsible {
     tr:hover td {
       background-color: #f0f0f0;
     }
-    */ }
+    */
+    margin-bottom: 0px; }
+    .lookup table:not(.table-bordered) > tbody:first-child td, .lookup table:not(.table-bordered) > tbody:first-child th, .lookup table:not(.table-bordered) > thead:first-child td, .lookup table:not(.table-bordered) > thead:first-child th {
+      border-top: 1px solid #f2f4f5; }
     .lookup table th.actions, .lookup table td.actions {
       width: 1%;
       padding: 0px;
@@ -557,9 +600,6 @@ tr.collapsible {
 /*-------------------------
     Select form control
 --------------------------*/
-.bootstrap-select-container .fg-line {
-  margin-top: -3px; }
-
 .has-error .bootstrap-select .btn-default {
   border-color: #FF3E63 !important; }
 
@@ -587,6 +627,10 @@ tr.collapsible {
 --------------------------*/
 .form-spacer-control {
   height: 60px; }
+
+/*---form bar primar color */
+.form-group__bar:after, .form-group__bar:before {
+  background-color: #ff6b68; }
 
 /*-------------------------
     color picker
@@ -677,3 +721,21 @@ tr.collapsible {
 
 .fs72 {
   font-size: 72px; }
+
+.btn-actions-bar {
+  text-align: right; }
+  .btn-actions-bar .btn {
+    margin-left: 5px; }
+
+.btn-primary {
+  background-color: #ff6b68;
+  border-color: #ff6b68; }
+  .btn-primary:hover {
+    background-color: #ff0702;
+    border-color: #ff0702; }
+
+.radio__label:after {
+  background-color: #ff6b68; }
+
+.checkbox > input[type=checkbox]:checked ~ .checkbox__label:before, .checkbox > input[type=checkbox]:checked ~ .radio__label:before, .checkbox > input[type=radio]:checked ~ .checkbox__label:before, .checkbox > input[type=radio]:checked ~ .radio__label:before, .radio > input[type=checkbox]:checked ~ .checkbox__label:before, .radio > input[type=checkbox]:checked ~ .radio__label:before, .radio > input[type=radio]:checked ~ .checkbox__label:before, .radio > input[type=radio]:checked ~ .radio__label:before {
+  border-color: #ff6b68; }

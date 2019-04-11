@@ -67,15 +67,24 @@ export class ActionButton extends React.Component {
     }
 
     componentDidMount() {
-        $(this.refs.button).tooltip({trigger: "hover"})
+        $(this.refs.button).tooltip({trigger: "hover"});
+    }
+
+    componentWillUnmount() {
+        $(this.refs.button).tooltip("dispose");
     }
 
     render() {
+        let className = "actions__item"
+        if (this.props.className) {
+            className += " " + this.props.className
+        }
+
         return (
             <a  
                 ref="button" 
                 href="javascript:;" 
-                className={this.props.className}
+                className={className}
                 data-toggle="tooltip" 
                 data-placement="bottom" 
                 title={this.props.action.tooltip} 
@@ -97,9 +106,9 @@ export class Actions extends React.Component {
 
         return (
             !_.isEmpty(actions) &&
-            <ul className="actions">
-                {actions.map(a => <li key={actionKey++}>{React.createElement(Actions.getButtonClass(a), {action: a})}</li>)}
-            </ul>
+            <div className="actions">
+                {actions.map(a => React.createElement(Actions.getButtonClass(a), {key: actionKey++, action: a}))}
+            </div>
 
         )
     }
@@ -117,18 +126,19 @@ Actions.getButtonClass = function(action) {
 export class HeaderBlock extends React.Component {
     render() {
         return (
-            <div className="block-header">
-                {(!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions)) &&
-                    <h2>
-                        {this.props.title}
-                        {!_.isEmpty(this.props.subtitle) &&
-                            <small>{this.props.subtitle}</small>
-                        }
-                    </h2>
+            <header className="content__title">
+                {(!_.isEmpty(this.props.title)) &&
+                    <h1>{this.props.title}</h1>
                 }
 
-                <Actions actions={this.props.actions} />
-            </div>
+                {!_.isEmpty(this.props.subtitle) &&
+                    <small>{this.props.subtitle}</small>
+                }
+
+                {(!_.isEmpty(this.props.actions)) &&
+                    <Actions actions={this.props.actions} />
+                }
+            </header>
         )
     }
 }
@@ -141,25 +151,29 @@ export class Card extends React.Component {
         if (this.props.padding) {
             bodyClass += " card-padding"
         }
-        let headerClass = "card-header"
+        let titleClass = "card-title"
         if (this.props.inverseHeader) {
-            headerClass += " card-header-inverse"
+            titleClass += " card-title-inverse"
+        }
+        let subtitleClass = "card-title"
+        if (this.props.inverseHeader) {
+            subtitleClass += " card-title-inverse"
         }
         return (
             <div className={cardClass}>
-                {!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ?
-                    <div className={headerClass}>
-                        <h2>
-                            {this.props.title}
-                            {!_.isEmpty(this.props.subtitle) ?
-                                <small>{this.props.subtitle}</small>
-                                : null }
-                        </h2>
-
-                        <Actions actions={this.props.actions} />
-                    </div>
-                    : null }
                 <div className={bodyClass}>
+                    {!_.isEmpty(this.props.title) &&
+                        <h4 className={titleClass}>{this.props.title}</h4>
+                    }
+
+                    {!_.isEmpty(this.props.subtitle) &&
+                        <h6 className={headerClass}>{this.props.subtitle}</h6>
+                    }
+
+                    {!_.isEmpty(this.props.actions) && 
+                        <Actions actions={this.props.actions} />
+                    }
+
                     {this.props.children}
                 </div>
             </div>
@@ -176,7 +190,7 @@ export class FloatingButton extends React.Component {
 
     render() {
         return (
-            <button type="button" className="btn btn-float btn-danger m-btn waves-effect waves-circle waves-float" onClick={this.onClick.bind(this)}><i className={this.props.icon}></i></button>
+            <button type="button" className="btn btn--action btn-danger" onClick={this.onClick.bind(this)}><i className={this.props.icon}></i></button>
         )
     }
 }
@@ -300,18 +314,19 @@ export class HeaderBlockWithBreadcrumbs extends React.Component {
         }
 
         return (
-            <div className="block-header">
-                {(!_.isEmpty(title) || !_.isEmpty(this.props.actions)) &&
-                <h2>
-                    {title}
-                    {!_.isEmpty(this.props.subtitle) &&
-                    <small>{this.props.subtitle}</small>
-                    }
-                </h2>
+            <header className="content__title">
+                {(!_.isEmpty(title)) &&
+                    <h1>{title}</h1>
                 }
 
-                <Actions actions={this.props.actions} />
-            </div>
+                {!_.isEmpty(this.props.subtitle) &&
+                    <small>{this.props.subtitle}</small>
+                }
+
+                {(!_.isEmpty(this.props.actions)) &&
+                    <Actions actions={this.props.actions} />
+                }
+            </header>
         )
     }
 }

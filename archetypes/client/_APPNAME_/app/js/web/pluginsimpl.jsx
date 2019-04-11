@@ -4,13 +4,13 @@ exports.Alert = {
     alert(data, callback) {
         let {title, message, type} = data;
         let _callback = (v) => { if (_.isFunction(callback)) {  callback(v) } }
-        swal({title, text: message, type}).then(() => _callback(true)).catch(() => _callback(false))
+        swal({title, text: message, type}).then((res) => _callback(res.value))
     },
 
     confirm(data, callback) {
         let {title, message} = data;
         let _callback = (v) => { if (_.isFunction(callback)) {  callback(v) } }
-        swal({title, text: message, showCancelButton: true}).then(() => _callback(true)).catch(() => _callback(false))
+        swal({title, text: message, showCancelButton: true}).then((res) => _callback(res.value))
     }
 }
 

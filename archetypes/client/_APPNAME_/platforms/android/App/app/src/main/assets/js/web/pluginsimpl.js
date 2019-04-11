@@ -12,11 +12,7 @@ exports.Alert = {
                 callback(v);
             }
         };
-        swal({ title: title, text: message, type: type }).then(function () {
-            return _callback(true);
-        }).catch(function () {
-            return _callback(false);
-        });
+        swal({ title: title, text: message, type: type }).then(res => _callback(res.value));
     },
     confirm: function confirm(data) {
         var title = data.title,

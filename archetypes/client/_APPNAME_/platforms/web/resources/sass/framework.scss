@@ -119,7 +119,9 @@ html.ismobile .global-loader {
 }
 
 .result-summary {
-  margin: 30px;
+  margin-bottom: 25px;
+  font-size: .9rem;
+  color: #9c9c9c;
 }
 
 /*-------------------------
@@ -192,6 +194,29 @@ $darken-value: 10%;
   }
 }
 
+.grid .table>thead>tr>th.sorting_asc:after {
+    content: '\f1cd';
+}
+
+.grid .table>thead>tr>th.sorting_asc:after, .grid .table>thead>tr>th.sorting_desc:after {
+    font-family: Material-Design-Iconic-Font;
+    position: absolute;
+    top: .75rem;
+    right: 1rem;
+    font-size: 1.4rem;
+}
+
+.grid .table>thead>tr>th.sorting_desc:after {
+    content: '\f1ce';
+}
+.grid .table>thead>tr>th.sorting_asc:after, .grid .table>thead>tr>th.sorting_desc:after {
+    font-family: Material-Design-Iconic-Font;
+    position: absolute;
+    top: .75rem;
+    right: 1rem;
+    font-size: 1.4rem;
+}
+
 .grid .table>thead>tr>th:last-child {
   padding-right: 15px;
 }
@@ -234,16 +259,15 @@ tr.collapsible {
 }
 
 .quick-search-container {
-  float: right;
-  width: 40%;
 
   .quick-search {
-    border: solid 1px #efefef;
+    border-bottom: 1px solid #eceff1;
     padding: 5px;
-    margin: 10px;
+    margin-bottom: 10px;
+    position: relative;
 
     .quick-search-input-container {
-      margin-right: 30px;
+      margin-left: 30px;
 
       input {
         border: 0px;
@@ -251,10 +275,40 @@ tr.collapsible {
         height: 100%;
         font-weight: 500;
       }
+
     }
 
     i.zmdi {
       font-size: 20px;
+    }
+
+
+    &:after {
+      right: 50%;
+    }
+
+    &:before {
+        left: 50%;
+    }
+
+    &:after, &:before {
+        content: '';
+        position: absolute;
+        height: 2px;
+        width: 0;
+        bottom: -1px;
+        transition: width .5s ease;
+        background-color: $primary-color;
+    }
+
+    &.quick-search__active {
+      &:after {
+        width: 50%;
+      }
+
+      &:before {
+          width: 50%;
+      }
     }
   }
 }
@@ -297,7 +351,7 @@ tr.collapsible {
     white-space: nowrap;
     position: absolute;
     right: 7px;
-    margin-top: -2px;
+    margin-top: -4px;
 
     a.grid-action {
       display: inline-block;
@@ -307,6 +361,7 @@ tr.collapsible {
       border-radius: 2px;
       font-size: 18px;
       text-align: center;
+      line-height: 26px;
     }
 
     a.grid-action:hover {
@@ -370,6 +425,7 @@ tr.collapsible {
     height: 30px;
     padding-left: 7px;
     cursor: pointer;
+    position: relative;
 
     .placeholder {
       color: $placeholder-color
@@ -377,8 +433,12 @@ tr.collapsible {
 
     .actions {
       position: absolute;
-      right: 0px;
-      top: 2px;
+      right: 10px;
+      top: 0px;
+
+      .actions__item {
+        margin-right: -10px;
+      }
     }
   }
 
@@ -406,6 +466,12 @@ tr.collapsible {
       background-color: #f0f0f0;
     }
     */
+
+    margin-bottom: 0px;
+
+    &:not(.table-bordered)>tbody:first-child td, &:not(.table-bordered)>tbody:first-child th, &:not(.table-bordered)>thead:first-child td, &:not(.table-bordered)>thead:first-child th {
+      border-top: 1px solid #f2f4f5;
+    }
 
     th.actions, td.actions {
       width: 1%;
@@ -573,9 +639,7 @@ tr.collapsible {
 --------------------------*/
 
 .bootstrap-select-container {
-  .fg-line {
-    margin-top: -3px;
-  }
+  
 }
 
 .has-error {
@@ -621,6 +685,11 @@ tr.collapsible {
   height: 60px;
 }
 
+
+/*---form bar primar color */
+.form-group__bar:after, .form-group__bar:before {
+    background-color: $primary-color;
+}
 
 /*-------------------------
     color picker
@@ -730,4 +799,33 @@ tr.collapsible {
 }
 .fs72 {
   font-size: 72px;
+}
+
+.btn-actions-bar {
+  text-align: right;
+
+  .btn {
+    margin-left: 5px;
+  }
+}
+
+.btn-primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+
+    &:hover {
+      background-color: darken($primary-color, 20);
+      border-color: darken($primary-color, 20);
+    }
+}
+
+.radio__label:after {
+  background-color: $primary-color;
+}
+
+.radio__label:before {
+}
+
+.checkbox>input[type=checkbox]:checked~.checkbox__label:before, .checkbox>input[type=checkbox]:checked~.radio__label:before, .checkbox>input[type=radio]:checked~.checkbox__label:before, .checkbox>input[type=radio]:checked~.radio__label:before, .radio>input[type=checkbox]:checked~.checkbox__label:before, .radio>input[type=checkbox]:checked~.radio__label:before, .radio>input[type=radio]:checked~.checkbox__label:before, .radio>input[type=radio]:checked~.radio__label:before {
+    border-color: $primary-color;
 }

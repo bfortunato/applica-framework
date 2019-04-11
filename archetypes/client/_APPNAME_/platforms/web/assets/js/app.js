@@ -2626,8 +2626,8 @@ function find(entity, query) {
 }
 
 function load(entity, query) {
-    var url = config.get("entities.url") + "/" + entity;
-    return utils.get(url, (0, _lang.flatten)(query.cleaned()));
+    var url = config.get("entities.url") + "/" + entity + "/find";
+    return utils.postJson(url, query.cleaned());
 }
 
 function delete_(entity, ids) {
@@ -27369,6 +27369,8 @@ strings["en"] = {
     selectPermissions: "Select permissions for role",
     back: "Back",
     save: "Save",
+    saveAndGoBack: "Save and go back",
+    revisions: "Revisions",
     image: "Image",
     cover: "Cover",
     saveComplete: "Save complete",
@@ -27582,7 +27584,7 @@ strings["it"] = (_strings$it = {
     typeValueToSearch: "Tipo di valore da cercare",
     value: "Valore",
     filters: "Filtri",
-    pagination: "Mostrando {0} di {1} di {2}",
+    pagination: "Record da {0} a {1} di {2} totali",
     noResults: "Non ci sono risultati con i criteri specificati",
     selectAll: "Seleziona tutto",
     delete: "Rimuovi",
@@ -27616,6 +27618,8 @@ strings["it"] = (_strings$it = {
     selectPermissions: "Seleziona i premessi per il ruolo",
     back: "Indietro",
     save: "Salva",
+    saveAndGoBack: "Salva e torna alla lista",
+    revisions: "Revisioni",
     image: "Immagine",
     cover: "Rivestimenti",
     saveComplete: "Salvataggio completato",
@@ -28447,14 +28451,24 @@ var ActionButton = exports.ActionButton = function (_React$Component2) {
             $(this.refs.button).tooltip({ trigger: "hover" });
         }
     }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            $(this.refs.button).tooltip("dispose");
+        }
+    }, {
         key: "render",
         value: function render() {
+            var className = "actions__item";
+            if (this.props.className) {
+                className += " " + this.props.className;
+            }
+
             return React.createElement(
                 "a",
                 {
                     ref: "button",
                     href: "javascript:;",
-                    className: this.props.className,
+                    className: className,
                     "data-toggle": "tooltip",
                     "data-placement": "bottom",
                     title: this.props.action.tooltip,
@@ -28490,14 +28504,10 @@ var Actions = exports.Actions = function (_React$Component3) {
             var actions = this.getPermittedActions();
 
             return !_.isEmpty(actions) && React.createElement(
-                "ul",
+                "div",
                 { className: "actions" },
                 actions.map(function (a) {
-                    return React.createElement(
-                        "li",
-                        { key: actionKey++ },
-                        React.createElement(Actions.getButtonClass(a), { action: a })
-                    );
+                    return React.createElement(Actions.getButtonClass(a), { key: actionKey++, action: a });
                 })
             );
         }
@@ -28528,19 +28538,19 @@ var HeaderBlock = exports.HeaderBlock = function (_React$Component4) {
         key: "render",
         value: function render() {
             return React.createElement(
-                "div",
-                { className: "block-header" },
-                (!_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions)) && React.createElement(
-                    "h2",
+                "header",
+                { className: "content__title" },
+                !_.isEmpty(this.props.title) && React.createElement(
+                    "h1",
                     null,
-                    this.props.title,
-                    !_.isEmpty(this.props.subtitle) && React.createElement(
-                        "small",
-                        null,
-                        this.props.subtitle
-                    )
+                    this.props.title
                 ),
-                React.createElement(Actions, { actions: this.props.actions })
+                !_.isEmpty(this.props.subtitle) && React.createElement(
+                    "small",
+                    null,
+                    this.props.subtitle
+                ),
+                !_.isEmpty(this.props.actions) && React.createElement(Actions, { actions: this.props.actions })
             );
         }
     }]);
@@ -28566,31 +28576,31 @@ var Card = exports.Card = function (_React$Component5) {
             if (this.props.padding) {
                 bodyClass += " card-padding";
             }
-            var headerClass = "card-header";
+            var titleClass = "card-title";
             if (this.props.inverseHeader) {
-                headerClass += " card-header-inverse";
+                titleClass += " card-title-inverse";
+            }
+            var subtitleClass = "card-title";
+            if (this.props.inverseHeader) {
+                subtitleClass += " card-title-inverse";
             }
             return React.createElement(
                 "div",
                 { className: cardClass },
-                !_.isEmpty(this.props.title) || !_.isEmpty(this.props.actions) ? React.createElement(
-                    "div",
-                    { className: headerClass },
-                    React.createElement(
-                        "h2",
-                        null,
-                        this.props.title,
-                        !_.isEmpty(this.props.subtitle) ? React.createElement(
-                            "small",
-                            null,
-                            this.props.subtitle
-                        ) : null
-                    ),
-                    React.createElement(Actions, { actions: this.props.actions })
-                ) : null,
                 React.createElement(
                     "div",
                     { className: bodyClass },
+                    !_.isEmpty(this.props.title) && React.createElement(
+                        "h4",
+                        { className: titleClass },
+                        this.props.title
+                    ),
+                    !_.isEmpty(this.props.subtitle) && React.createElement(
+                        "h6",
+                        { className: headerClass },
+                        this.props.subtitle
+                    ),
+                    !_.isEmpty(this.props.actions) && React.createElement(Actions, { actions: this.props.actions }),
                     this.props.children
                 )
             );
@@ -28621,7 +28631,7 @@ var FloatingButton = exports.FloatingButton = function (_React$Component6) {
         value: function render() {
             return React.createElement(
                 "button",
-                { type: "button", className: "btn btn-float btn-danger m-btn waves-effect waves-circle waves-float", onClick: this.onClick.bind(this) },
+                { type: "button", className: "btn btn--action btn-danger", onClick: this.onClick.bind(this) },
                 React.createElement("i", { className: this.props.icon })
             );
         }
@@ -28781,19 +28791,19 @@ var HeaderBlockWithBreadcrumbs = exports.HeaderBlockWithBreadcrumbs = function (
             }
 
             return React.createElement(
-                "div",
-                { className: "block-header" },
-                (!_.isEmpty(title) || !_.isEmpty(this.props.actions)) && React.createElement(
-                    "h2",
+                "header",
+                { className: "content__title" },
+                !_.isEmpty(title) && React.createElement(
+                    "h1",
                     null,
-                    title,
-                    !_.isEmpty(this.props.subtitle) && React.createElement(
-                        "small",
-                        null,
-                        this.props.subtitle
-                    )
+                    title
                 ),
-                React.createElement(Actions, { actions: this.props.actions })
+                !_.isEmpty(this.props.subtitle) && React.createElement(
+                    "small",
+                    null,
+                    this.props.subtitle
+                ),
+                !_.isEmpty(this.props.actions) && React.createElement(Actions, { actions: this.props.actions })
             );
         }
     }]);
@@ -29465,7 +29475,7 @@ var Dialog = exports.Dialog = function (_React$Component) {
                             "div",
                             { className: "modal-header" },
                             React.createElement(
-                                "h4",
+                                "h5",
                                 { className: "modal-title" },
                                 this.props.title
                             )
@@ -29902,7 +29912,7 @@ var Area = exports.Area = function (_React$Component2) {
                     { className: "row" },
                     React.createElement(
                         "div",
-                        { className: "p-l-30 p-r-30" },
+                        { className: "col-md-12" },
                         fields
                     )
                 ),
@@ -30401,7 +30411,6 @@ var FormFooter = function (_React$Component7) {
     }, {
         key: "render",
         value: function render() {
-
             var descriptor = this.props.descriptor;
 
             var submitText = (0, _strings2.default)("save");
@@ -30417,34 +30426,25 @@ var FormFooter = function (_React$Component7) {
 
             var style = { marginBottom: "30px" };
 
-            if (!this.props.defaultFooter) {
-                style["marginLeft"] = "15px";
-                style["marginRight"] = "15px";
-            }
-
             var canSave = this.canSave();
             var canCancel = this.canCancel();
 
             return React.createElement(
                 "div",
-                { className: "row", style: style },
-                React.createElement(
-                    "div",
-                    { className: "text-right col-sm-12" },
-                    canCancel && React.createElement(
-                        "button",
-                        { type: "button", className: "btn btn-default waves-effect m-r-10", onClick: this.onCancel.bind(this) },
-                        React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
-                        " ",
-                        cancelText
-                    ),
-                    canSave && React.createElement(
-                        "button",
-                        { type: "submit", className: "btn btn-primary waves-effect" },
-                        React.createElement("i", { className: "zmdi zmdi-save" }),
-                        " ",
-                        submitText
-                    )
+                { className: "btn-actions-bar", style: style },
+                canCancel && React.createElement(
+                    "button",
+                    { type: "button", className: "btn btn-dark", onClick: this.onCancel.bind(this) },
+                    React.createElement("i", { className: "zmdi zmdi-arrow-back" }),
+                    " ",
+                    cancelText
+                ),
+                canSave && React.createElement(
+                    "button",
+                    { type: "submit", className: "btn btn-primary" },
+                    React.createElement("i", { className: "zmdi zmdi-save" }),
+                    " ",
+                    submitText
                 )
             );
         }
@@ -30501,7 +30501,8 @@ var Field = exports.Field = function (_React$Component8) {
                     "small",
                     { className: "help-block" },
                     validationResult.message
-                )
+                ),
+                React.createElement("i", { className: "form-group__bar" })
             );
         }
     }]);
@@ -30555,7 +30556,8 @@ var InlineField = exports.InlineField = function (_React$Component9) {
                         { className: "help-block" },
                         validationResult.message
                     )
-                )
+                ),
+                React.createElement("i", { className: "form-group__bar" })
             );
         }
     }]);
@@ -30600,18 +30602,14 @@ var Text = exports.Text = function (_Control) {
         value: function render() {
             var field = this.props.field;
 
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", {
-                    type: "text",
-                    className: "form-control input-sm",
-                    id: field.property,
-                    "data-property": field.property,
-                    placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
-                    onChange: this.onValueChange.bind(this) })
-            );
+            return React.createElement("input", {
+                type: "text",
+                className: "form-control input-sm",
+                id: field.property,
+                "data-property": field.property,
+                placeholder: field.placeholder,
+                value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                onChange: this.onValueChange.bind(this) });
         }
     }]);
 
@@ -30634,18 +30632,14 @@ var TextArea = exports.TextArea = function (_Control2) {
             var style = {
                 height: (0, _lang.optional)(this.props.height, "150px")
             };
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("textarea", {
-                    style: style,
-                    className: "form-control",
-                    id: field.property,
-                    "data-property": field.property,
-                    placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
-                    onChange: this.onValueChange.bind(this) })
-            );
+            return React.createElement("textarea", {
+                style: style,
+                className: "form-control",
+                id: field.property,
+                "data-property": field.property,
+                placeholder: field.placeholder,
+                value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                onChange: this.onValueChange.bind(this) });
         }
     }]);
 
@@ -30682,20 +30676,16 @@ var ReadOnlyText = exports.ReadOnlyText = function (_Control3) {
         value: function render() {
             var field = this.props.field;
 
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", {
-                    disabled: "disabled",
-                    readOnly: "readOnly",
-                    type: "text",
-                    className: "form-control input-sm",
-                    id: field.property,
-                    "data-property": field.property,
-                    placeholder: field.placeholder,
-                    value: this.getText(),
-                    onChange: this.onValueChange.bind(this) })
-            );
+            return React.createElement("input", {
+                disabled: "disabled",
+                readOnly: "readOnly",
+                type: "text",
+                className: "form-control input-sm",
+                id: field.property,
+                "data-property": field.property,
+                placeholder: field.placeholder,
+                value: this.getText(),
+                onChange: this.onValueChange.bind(this) });
         }
     }]);
 
@@ -30740,7 +30730,7 @@ var Color = exports.Color = function (_Control4) {
                     { className: "" },
                     React.createElement(
                         "div",
-                        { className: "fg-line dropdown" },
+                        { className: "dropdown" },
                         React.createElement("input", {
                             type: "text",
                             className: "form-control cp-value",
@@ -30799,18 +30789,14 @@ var Mail = exports.Mail = function (_Control6) {
         value: function render() {
             var field = this.props.field;
 
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", {
-                    type: "email",
-                    className: "form-control input-sm",
-                    id: field.property,
-                    "data-property": field.property,
-                    placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
-                    onChange: this.onValueChange.bind(this) })
-            );
+            return React.createElement("input", {
+                type: "email",
+                className: "form-control input-sm",
+                id: field.property,
+                "data-property": field.property,
+                placeholder: field.placeholder,
+                value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                onChange: this.onValueChange.bind(this) });
         }
     }]);
 
@@ -30906,17 +30892,13 @@ var DateTime = exports.DateTime = function (_Control7) {
             return React.createElement(
                 "div",
                 { className: "input-group" },
-                React.createElement(
-                    "div",
-                    { className: "fg-line" },
-                    React.createElement("input", {
-                        disabled: disabled,
-                        type: "text",
-                        className: "form-control input-sm",
-                        id: field.property,
-                        "data-property": field.property,
-                        placeholder: field.placeholder })
-                ),
+                React.createElement("input", {
+                    disabled: disabled,
+                    type: "text",
+                    className: "form-control input-sm",
+                    id: field.property,
+                    "data-property": field.property,
+                    placeholder: field.placeholder }),
                 React.createElement(
                     "div",
                     { className: "input-group-addon" },
@@ -30971,27 +30953,28 @@ var YesNo = exports.YesNo = function (_Control8) {
             var field = this.props.field;
             var yesText = (0, _lang.optional)(this.props.yesText, "Yes");
             var noText = (0, _lang.optional)(this.props.noText, "No");
-
+            var yesId = "__yesno-" + field.property + "-yes";
+            var noId = "__yesno-" + field.property + "-no";
             return React.createElement(
                 "div",
                 { className: "yesno" },
                 React.createElement(
-                    "label",
-                    { className: "radio radio-inline m-r-5" },
-                    React.createElement("input", { type: "radio", name: field.property, value: "true", checked: (0, _lang.optional)(this.props.model.get(field.property), false), onChange: this.onValueChange.bind(this) }),
+                    "div",
+                    { className: "radio radio--inline" },
+                    React.createElement("input", { id: yesId, type: "radio", name: field.property, value: "true", checked: (0, _lang.optional)(this.props.model.get(field.property), false), onChange: this.onValueChange.bind(this) }),
                     React.createElement(
-                        "i",
-                        { className: "input-helper" },
+                        "label",
+                        { htmlFor: yesId, className: "radio__label" },
                         yesText
                     )
                 ),
                 React.createElement(
-                    "label",
-                    { className: "radio radio-inline m-r-5" },
-                    React.createElement("input", { type: "radio", name: field.property, value: "false", checked: !(0, _lang.optional)(this.props.model.get(field.property), false), onChange: this.onValueChange.bind(this) }),
+                    "div",
+                    { className: "radio radio--inline" },
+                    React.createElement("input", { id: noId, type: "radio", name: field.property, value: "false", checked: !(0, _lang.optional)(this.props.model.get(field.property), false), onChange: this.onValueChange.bind(this) }),
                     React.createElement(
-                        "i",
-                        { className: "input-helper" },
+                        "label",
+                        { htmlFor: noId, className: "radio__label" },
                         noText
                     )
                 )
@@ -31087,19 +31070,15 @@ var Number = exports.Number = function (_Control10) {
         value: function render() {
             var field = this.props.field;
 
-            return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement("input", {
-                    ref: "text",
-                    type: "text",
-                    className: "form-control input-sm",
-                    id: field.property,
-                    "data-property": field.property,
-                    placeholder: field.placeholder,
-                    value: (0, _lang.optional)(this.props.model.get(field.property), ""),
-                    onChange: this.onValueChange.bind(this) })
-            );
+            return React.createElement("input", {
+                ref: "text",
+                type: "text",
+                className: "form-control input-sm",
+                id: field.property,
+                "data-property": field.property,
+                placeholder: field.placeholder,
+                value: (0, _lang.optional)(this.props.model.get(field.property), ""),
+                onChange: this.onValueChange.bind(this) });
         }
     }]);
 
@@ -31209,25 +31188,21 @@ var Select = exports.Select = function (_Control11) {
             var multiple = (0, _lang.optional)(this.props.multiple, false);
 
             return React.createElement(
-                "div",
-                { className: "fg-line" },
-                React.createElement(
-                    "select",
-                    {
-                        id: field.property,
-                        className: "form-control",
-                        "data-property": field.property,
-                        onChange: this.onValueChange.bind(this),
-                        title: field.placeholder,
-                        value: (0, _lang.optional)(model.get(field.property), multiple ? [] : ""),
-                        multiple: multiple },
-                    this.props.allowNull && React.createElement(
-                        "option",
-                        { key: "empty", value: "", style: { color: "#999999" } },
-                        (0, _lang.optional)(this.props.nullText, "(none)")
-                    ),
-                    options
-                )
+                "select",
+                {
+                    id: field.property,
+                    className: "form-control",
+                    "data-property": field.property,
+                    onChange: this.onValueChange.bind(this),
+                    title: field.placeholder,
+                    value: (0, _lang.optional)(model.get(field.property), multiple ? [] : ""),
+                    multiple: multiple },
+                this.props.allowNull && React.createElement(
+                    "option",
+                    { key: "empty", value: "", style: { color: "#999999" } },
+                    (0, _lang.optional)(this.props.nullText, "(none)")
+                ),
+                options
             );
         }
     }]);
@@ -31522,12 +31497,12 @@ var Lookup = exports.Lookup = function (_Control12) {
                             { className: "actions" },
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: (0, _strings2.default)("remove"), onClick: this.remove.bind(this), className: "m-r-0" },
+                                { href: "javascript:;", className: "actions__item", title: (0, _strings2.default)("remove"), onClick: this.remove.bind(this) },
                                 React.createElement("i", { className: "zmdi zmdi-close" })
                             ),
                             React.createElement(
                                 "a",
-                                { href: "javascript:;", title: (0, _strings2.default)("add"), onClick: this.showEntities.bind(this) },
+                                { href: "javascript:;", className: "actions__item", title: (0, _strings2.default)("add"), onClick: this.showEntities.bind(this) },
                                 React.createElement("i", { className: addClassName })
                             )
                         ),
@@ -31566,16 +31541,7 @@ var Lookup = exports.Lookup = function (_Control12) {
                                 "div",
                                 { className: "modal-header" },
                                 React.createElement(
-                                    "button",
-                                    { type: "button", className: "close", "data-dismiss": "modal", "aria-label": "Close" },
-                                    React.createElement(
-                                        "span",
-                                        { "aria-hidden": "true" },
-                                        "\xD7"
-                                    )
-                                ),
-                                React.createElement(
-                                    "h4",
+                                    "h5",
                                     { className: "modal-title", id: "myModalLabel" },
                                     field.label
                                 )
@@ -31796,7 +31762,7 @@ var Image = exports.Image = function (_Control14) {
 
             return React.createElement(
                 "div",
-                { className: "input-image fg-line" },
+                { className: "input-image" },
                 React.createElement(
                     "div",
                     { onClick: this.search.bind(this) },
@@ -32800,29 +32766,29 @@ var HeaderCell = exports.HeaderCell = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var sortIcon = "zmdi zmdi-unfold-more";
+            var sortClass = "";
             if (this.state.sorting && this.state.sortDescending) {
-                sortIcon = "zmdi zmdi-caret-down";
+                sortClass = "sorting_desc";
             } else if (this.state.sorting && !this.state.sortDescending) {
-                sortIcon = "zmdi zmdi-caret-up";
+                sortClass = "sorting_asc";
+            }
+
+            var searchButtonRight = 10;
+            if (sortClass != "") {
+                searchButtonRight += 25;
             }
 
             return React.createElement(
                 "th",
-                { className: "hover", style: { position: "relative" } },
+                { className: "hover " + sortClass, style: { position: "relative" } },
                 React.createElement(
                     "span",
                     { onClick: this.changeSort.bind(this), className: "pointer-cursor" },
                     this.props.column.header
                 ),
-                this.props.column.sortable && React.createElement(
-                    "a",
-                    { className: "pull-right", href: "javascript:;", onClick: this.changeSort.bind(this) },
-                    React.createElement("i", { className: sortIcon })
-                ),
                 this.props.column.searchable && React.createElement(
                     "a",
-                    { ref: "search", className: "btn btn-primary btn-no-shadow", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-5px", position: "absolute", right: "30px" } },
+                    { ref: "search", className: "btn btn-sm btn-light", href: "javascript:;", onClick: this.search.bind(this), style: { display: "none", marginTop: "-3px", position: "absolute", right: searchButtonRight } },
                     React.createElement("i", { className: "zmdi zmdi-search" })
                 ),
                 this.props.column.searchable && React.createElement(SearchDialog, { column: this.props.column, query: this.props.query })
@@ -33740,11 +33706,24 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
                 _this31.props.query.setKeyword(keyword);
             }
         }, 250);
-
         return _this31;
     }
 
     _createClass(QuickSearch, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+
+            $(me).find("input[type=search]").focus(function () {
+                $(me).find(".quick-search").addClass("quick-search__active");
+            }).blur(function () {
+                $(me).find(".quick-search").removeClass("quick-search__active");
+            });
+        }
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {}
+    }, {
         key: "onChange",
         value: function onChange(e) {
             this._onChange(e.target.value);
@@ -33765,11 +33744,12 @@ var QuickSearch = exports.QuickSearch = function (_React$Component15) {
                 React.createElement(
                     "div",
                     { className: "quick-search" },
-                    React.createElement("i", { className: "zmdi zmdi-search pull-right" }),
+                    React.createElement("i", { className: "zmdi zmdi-search pull-left" }),
                     React.createElement(
                         "div",
                         { className: "quick-search-input-container" },
-                        React.createElement("input", { type: "search", onKeyDown: this.onKeyDown.bind(this), onChange: this.onChange.bind(this) })
+                        React.createElement("input", { type: "search", onKeyDown: this.onKeyDown.bind(this), onChange: this.onChange.bind(this), placeholder: (0, _strings2.default)("search") }),
+                        React.createElement("div", { className: "form-control__bar" })
                     )
                 )
             );
@@ -34643,11 +34623,7 @@ var Layout = function (_React$Component8) {
                 React.createElement(
                     "section",
                     { className: "content" },
-                    React.createElement(
-                        "div",
-                        { className: "container" },
-                        this.props.children
-                    )
+                    this.props.children
                 ),
                 React.createElement(Footer, null)
             );
@@ -35124,24 +35100,25 @@ var entities = {
 							icon: "zmdi zmdi-brush",
 							tooltip: "Reset password",
 							action: function action() {
-
 								swal({
 									title: (0, _strings2.default)("confirm"),
 									text: "Verrà impostata una nuova password ed inviata all'indirizzo mail dell'utente",
 									showCancelButton: true
-								}).then(function () {
-									resetUserPassword({ id: data.id });
-									if (data.id === (0, _session.getLoggedUser)().id) {
-										swal({
-											title: (0, _strings2.default)("confirm"),
-											text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
-											showCancelButton: false
-										}).then(function () {
-											logout();
-											ui.navigate("/login");
-										}).catch(function (e) {
-											logger.i(e);
-										});
+								}).then(function (res) {
+									if (res.value) {
+										resetUserPassword({ id: data.id });
+										if (data.id === (0, _session.getLoggedUser)().id) {
+											swal({
+												title: (0, _strings2.default)("confirm"),
+												text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
+												showCancelButton: false
+											}).then(function (res) {
+												if (res.value) {
+													logout();
+													ui.navigate("/login");
+												}
+											});
+										}
 									}
 								}).catch(function (e) {
 									logger.i(e);
@@ -35227,6 +35204,7 @@ var entities = {
 		grid: {
 			title: (0, _strings2.default)("rolesList"),
 			subtitle: (0, _strings2.default)("rolesListDescription"),
+			quickSearchEnabled: true,
 			descriptor: {
 				columns: [{ property: "role", header: "Role", cell: _grids.TextCell, sortable: true, searchable: true }]
 			}
@@ -35471,10 +35449,8 @@ exports.Alert = {
                 callback(v);
             }
         };
-        swal({ title: title, text: message, type: type }).then(function () {
-            return _callback(true);
-        }).catch(function () {
-            return _callback(false);
+        swal({ title: title, text: message, type: type }).then(function (res) {
+            return _callback(res.value);
         });
     },
     confirm: function confirm(data, callback) {
@@ -35486,10 +35462,8 @@ exports.Alert = {
                 callback(v);
             }
         };
-        swal({ title: title, text: message, showCancelButton: true }).then(function () {
-            return _callback(true);
-        }).catch(function () {
-            return _callback(false);
+        swal({ title: title, text: message, showCancelButton: true }).then(function (res) {
+            return _callback(res.value);
         });
     }
 };
@@ -35978,12 +35952,12 @@ var AbstractEntitiesGrid = function (_Screen) {
                 return;
             }
 
-            swal({ title: (0, _strings2.default)("confirm"), text: this.getDeleteMessage(), showCancelButton: true }).then(function () {
-                (0, _entities.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
-                        return s.id;
-                    }) });
-            }).catch(function (e) {
-                logger.i(e);
+            swal({ title: (0, _strings2.default)("confirm"), text: this.getDeleteMessage(), showCancelButton: true }).then(function (res) {
+                if (res.value) {
+                    (0, _entities.deleteEntities)({ discriminator: _this2.discriminator, entity: _this2.getEntity(), ids: selection.map(function (s) {
+                            return s.id;
+                        }) });
+                }
             });
         }
     }, {
@@ -36048,6 +36022,11 @@ var AbstractEntitiesGrid = function (_Screen) {
             var grid = _entities3.default[this.getEntity()].grid;
             var matcher = new _common.ActionsMatcher(defaultActions);
             return matcher.match(grid.actions);
+        }
+    }, {
+        key: "getGrid",
+        value: function getGrid() {
+            return this.refs.grid;
         }
     }, {
         key: "getDescriptor",
@@ -38210,15 +38189,16 @@ exports.changeScreen = function (screen) {
 
 			if (changeScreenConfirmEnabled) {
 				if (out) {
-					swal({ title: (0, _strings2.default)("confirm"), text: (0, _strings2.default)("formChangeAlert"), showCancelButton: true }).then(function () {
-						screens.invoke("screen.change", screen);
-					}).catch(function () {
-						if (!_.isEmpty(veryLastFragment)) {
-							routerDisabledNextTime = true;
-							window.location.href = "#" + veryLastFragment;
+					swal({ title: (0, _strings2.default)("confirm"), text: (0, _strings2.default)("formChangeAlert"), showCancelButton: true }).then(function (res) {
+						if (res.value) {
+							screens.invoke("screen.change", screen);
+						} else {
+							if (!_.isEmpty(veryLastFragment)) {
+								routerDisabledNextTime = true;
+								window.location.href = "#" + veryLastFragment;
+							}
 						}
 					});
-
 					return;
 				}
 			} else {

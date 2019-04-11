@@ -13,8 +13,8 @@ export function find(entity, query) {
 }
 
 export function load(entity, query) {
-    let url = config.get("entities.url") + "/" + entity
-    return utils.get(url, flatten(query.cleaned()))
+    let url = config.get("entities.url") + "/" + entity + "/find"
+    return utils.postJson(url, query.cleaned())
 }
 
 export function delete_(entity, ids) {

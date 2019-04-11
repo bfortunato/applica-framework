@@ -1,5 +1,6 @@
 package applica._APPNAME_.api.controllers;
 
+import applica._APPNAME_.services.responses.ErrorResponse;
 import applica._APPNAME_.services.responses.ResponseCode;
 import applica.framework.Entity;
 import applica.framework.Query;
@@ -74,15 +75,39 @@ public class EntitiesController {
         }
     }
 
+    @PostMapping("/find")
+    public Response getEntitiesPost(@PathVariable("entity") String entity, @RequestBody Query query) {
+        try {
+            if (crudGuard != null) {
+                crudGuard.check(CrudPermission.LIST, entity);
+            }
+
+            Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entity);
+            if (definition.isPresent()) {
+                FindOperation findOperation = operationsFactory.createFind(definition.get().getType());
+                ObjectNode result = findOperation.find(query);
+
+                return new ValueResponse(result);
+            } else {
+                logger.warn("Entity definition not found: " + entity);
+                return new Response(ResponseCode.ERROR_NOT_FOUND);
+            }
+        } catch (OperationException e) {
+            e.printStackTrace();
+            return new ErrorResponse(e.getErrorCode(), e.getData());
+        } catch (CrudAuthorizationException e) {
+            return new Response(Response.UNAUTHORIZED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(Response.ERROR);
+        }
+    }
+
     @DeleteMapping("/{id}")
     public Response deleteEntities(@PathVariable("entity") String entityName, String id) {
         try {
             if (crudGuard != null) {
-                try {
-                    crudGuard.check(CrudPermission.DELETE, entityName);
-                } catch (CrudAuthorizationException e) {
-                    return new Response(Response.UNAUTHORIZED);
-                }
+                crudGuard.check(CrudPermission.DELETE, entityName);
             }
             Optional<EntityDefinition> definition = EntitiesRegistry.instance().get(entityName);
             if (definition.isPresent()) {
@@ -100,6 +125,8 @@ public class EntitiesController {
             }
 
             return new Response(e.getErrorCode());
+        } catch (CrudAuthorizationException e) {
+            return new Response(Response.UNAUTHORIZED);
         } catch (Exception e) {
             e.printStackTrace();
             return new Response(Response.ERROR);

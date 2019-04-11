@@ -245,9 +245,7 @@ class Layout extends React.Component {
                 <SideBar/>
 
                 <section className="content">
-                    <div className="container">
-                        {this.props.children}
-                    </div>
+                    {this.props.children}
                 </section>
 
                 <Footer />

@@ -104,10 +104,11 @@ export default class AbstractEntitiesGrid extends Screen {
         }
 
         swal({ title: M("confirm"), text: this.getDeleteMessage(), showCancelButton: true })
-            .then(() => {
-                deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
+            .then(res => {
+                if (res.value) {
+                    deleteEntities({discriminator: this.discriminator, entity: this.getEntity(), ids: selection.map(s => s.id)})
+                }
             })
-            .catch((e) => {logger.i(e)})
     }
 
     onGridRowDoubleClick(row) {
@@ -163,6 +164,10 @@ export default class AbstractEntitiesGrid extends Screen {
         let grid = entities[this.getEntity()].grid
         let matcher = new ActionsMatcher(defaultActions)
         return matcher.match(grid.actions)
+    }
+
+    getGrid() {
+        return this.refs.grid
     }
 
     getDescriptor() {

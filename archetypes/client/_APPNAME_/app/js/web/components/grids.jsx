@@ -398,23 +398,24 @@ export class HeaderCell extends React.Component {
     }
 
     render() {
-        let sortIcon = "zmdi zmdi-unfold-more"
+        let sortClass = ""
         if (this.state.sorting && this.state.sortDescending) {
-            sortIcon = "zmdi zmdi-caret-down"
+            sortClass = "sorting_desc"
         } else if (this.state.sorting && !this.state.sortDescending) {
-            sortIcon = "zmdi zmdi-caret-up"
+            sortClass = "sorting_asc"
+        }
+
+        let searchButtonRight = 10
+        if (sortClass != "") {
+            searchButtonRight += 25
         }
 
         return (
-            <th className="hover" style={{position: "relative"}}>
+            <th className={"hover " + sortClass} style={{position: "relative"}}>
                 <span onClick={this.changeSort.bind(this)} className="pointer-cursor">{this.props.column.header}</span>
 
-                {this.props.column.sortable &&
-                    <a className="pull-right" href="javascript:;" onClick={this.changeSort.bind(this)}><i className={sortIcon}/></a>
-                }
-
                 {this.props.column.searchable &&
-                    <a ref="search" className="btn btn-primary btn-no-shadow" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-5px", position: "absolute", right: "30px"}}><i className="zmdi zmdi-search"/></a>
+                    <a ref="search" className="btn btn-sm btn-light" href="javascript:;" onClick={this.search.bind(this)} style={{display: "none", marginTop: "-3px", position: "absolute", right: searchButtonRight}}><i className="zmdi zmdi-search"/></a>
                 }
 
                 {this.props.column.searchable &&
@@ -1009,7 +1010,23 @@ export class QuickSearch extends React.Component {
                 this.props.query.setKeyword(keyword)
             }
         }, 250)
+    }
+
+    componentDidMount() {
+        const me = ReactDOM.findDOMNode(this);
+
+        $(me).find("input[type=search]")
+            .focus(() => {
+                $(me).find(".quick-search").addClass("quick-search__active");    
+            })
+            .blur(() => {
+                $(me).find(".quick-search").removeClass("quick-search__active");
+            })
         
+    }
+
+    componentWillUnmount() {
+
     }
 
     onChange(e) {
@@ -1026,9 +1043,10 @@ export class QuickSearch extends React.Component {
         return (
             <div className="quick-search-container">
                 <div className="quick-search">
-                    <i className="zmdi zmdi-search pull-right" />
+                    <i className="zmdi zmdi-search pull-left" />
                     <div className="quick-search-input-container">
-                        <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} />
+                        <input type="search" onKeyDown={this.onKeyDown.bind(this)} onChange={this.onChange.bind(this)} placeholder={M("search")} />
+                        <div className="form-control__bar"/>
                     </div>
                 </div>
             </div>

@@ -95,7 +95,7 @@ export class Dialog extends React.Component {
                     <div className="modal-content">
                         {!headerHidden &&
                             <div className="modal-header">
-                                <h4 className="modal-title">{this.props.title}</h4>
+                                <h5 className="modal-title">{this.props.title}</h5>
                             </div>
                         }
                         <div className="modal-body" style={bodyStyle}>
