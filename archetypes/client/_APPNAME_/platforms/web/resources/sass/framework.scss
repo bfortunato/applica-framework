@@ -829,3 +829,11 @@ tr.collapsible {
 .checkbox>input[type=checkbox]:checked~.checkbox__label:before, .checkbox>input[type=checkbox]:checked~.radio__label:before, .checkbox>input[type=radio]:checked~.checkbox__label:before, .checkbox>input[type=radio]:checked~.radio__label:before, .radio>input[type=checkbox]:checked~.checkbox__label:before, .radio>input[type=checkbox]:checked~.radio__label:before, .radio>input[type=radio]:checked~.checkbox__label:before, .radio>input[type=radio]:checked~.radio__label:before {
     border-color: $primary-color;
 }
+
+.form-group--float .form-control:focus~label {
+    color: $label-color;
+}
+
+.checkbox>input[type=checkbox]:checked~.checkbox__label:before, .checkbox>input[type=radio]:checked~.checkbox__label:before, .radio>input[type=checkbox]:checked~.checkbox__label:before, .radio>input[type=radio]:checked~.checkbox__label:before {
+    background-color: $primary-color;
+}

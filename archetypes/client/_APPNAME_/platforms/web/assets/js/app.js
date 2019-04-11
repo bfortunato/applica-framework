@@ -36751,6 +36751,28 @@ var Login = function (_Screen) {
             (0, _session.login)(data);
         }
     }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".form-control").change(function () {
+                var x = $(this).val();
+
+                if (!x.length == 0) {
+                    $(this).addClass("form-control--active");
+                }
+            }).change();
+
+            $(me).on("blur input", ".form-group--float .form-control", function () {
+                var i = $(this).val();
+
+                if (i.length == 0) {
+                    $(this).removeClass("form-control--active");
+                } else {
+                    $(this).addClass("form-control--active");
+                }
+            });
+        }
+    }, {
         key: "componentDidUpdate",
         value: function componentDidUpdate() {
             if (this.state.isLoggedIn) {
@@ -36758,6 +36780,9 @@ var Login = function (_Screen) {
                     location.href = "/#/";
                 }
             }
+
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".form-control").change();
         }
     }, {
         key: "render",
@@ -36767,90 +36792,71 @@ var Login = function (_Screen) {
                 null,
                 React.createElement(
                     "div",
-                    { className: "login-content" },
+                    { className: "login" },
                     React.createElement(
                         "div",
-                        { className: "lc-block toggled", id: "l-login" },
+                        { className: "login__block active", id: "l-login" },
                         React.createElement(
                             "div",
-                            { className: "text-center m-b-10" },
-                            React.createElement("img", { src: "resources/images/logo.png" })
+                            { className: "login__block__header" },
+                            React.createElement("i", { className: "zmdi zmdi-account-circle" }),
+                            "Hi there! Please Sign in",
+                            React.createElement(
+                                "div",
+                                { className: "actions actions--inverse login__block__actions" },
+                                React.createElement(
+                                    "div",
+                                    { className: "dropdown" },
+                                    React.createElement("i", { "data-toggle": "dropdown", className: "zmdi zmdi-more-vert actions__item" }),
+                                    React.createElement(
+                                        "div",
+                                        { className: "dropdown-menu dropdown-menu-right" },
+                                        React.createElement(
+                                            "a",
+                                            { className: "dropdown-item", href: "/#/register" },
+                                            "Create an account"
+                                        ),
+                                        React.createElement(
+                                            "a",
+                                            { className: "dropdown-item", href: "/#/recover" },
+                                            "Forgot password?"
+                                        )
+                                    )
+                                )
+                            )
                         ),
                         React.createElement(
                             "form",
                             { action: "javascript:", className: "lcb-form", onSubmit: this.login.bind(this), ref: "login_form" },
                             React.createElement(
                                 "div",
-                                { className: "input-group m-b-20" },
+                                { className: "login__block__body" },
                                 React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                    "div",
+                                    { className: "form-group form-group--float form-group--centered" },
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", autoComplete: "username" }),
+                                    React.createElement(
+                                        "label",
+                                        null,
+                                        "Email Address"
+                                    ),
+                                    React.createElement("i", { className: "form-group__bar" })
                                 ),
                                 React.createElement(
                                     "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
-                                )
-                            ),
-                            React.createElement(
-                                "div",
-                                { className: "input-group m-b-20" },
-                                React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-male" })
+                                    { className: "form-group form-group--float form-group--centered" },
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control", autoComplete: "current-password" }),
+                                    React.createElement(
+                                        "label",
+                                        null,
+                                        "Password"
+                                    ),
+                                    React.createElement("i", { className: "form-group__bar" })
                                 ),
                                 React.createElement(
-                                    "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: (0, _strings2.default)("password") })
-                                )
-                            ),
-                            React.createElement(
-                                "div",
-                                { className: "checkbox" },
-                                React.createElement(
-                                    "label",
-                                    null,
-                                    React.createElement("input", { type: "checkbox", name: "remember_me", value: "1" }),
-                                    React.createElement("i", { className: "input-helper" }),
-                                    "Keep me signed in"
-                                )
-                            ),
-                            React.createElement(
-                                "button",
-                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
-                                React.createElement("i", { className: "zmdi zmdi-arrow-forward" })
-                            )
-                        ),
-                        React.createElement(
-                            "div",
-                            { className: "lcb-navigation" },
-                            React.createElement(
-                                "a",
-                                { href: "#register", "data-ma-block": "#l-register" },
-                                React.createElement("i", { className: "zmdi zmdi-plus" }),
-                                " ",
-                                React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("register")
-                                )
-                            ),
-                            React.createElement(
-                                "a",
-                                { href: "#recover", "data-ma-block": "#l-forget-password" },
-                                React.createElement(
-                                    "i",
-                                    null,
-                                    "?"
-                                ),
-                                " ",
-                                React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("forgotPassword")
+                                    "button",
+                                    { type: "submit", className: "btn btn--icon login__block__btn" },
+                                    React.createElement("i", { className: "zmdi zmdi-long-arrow-right" })
                                 )
                             )
                         )
@@ -36950,6 +36956,28 @@ var Recover = function (_Screen) {
             (0, _account2.resetPassword)(data);
         }
     }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".form-control").change(function () {
+                var x = $(this).val();
+
+                if (!x.length == 0) {
+                    $(this).addClass("form-control--active");
+                }
+            }).change();
+
+            $(me).on("blur input", ".form-group--float .form-control", function () {
+                var i = $(this).val();
+
+                if (i.length == 0) {
+                    $(this).removeClass("form-control--active");
+                } else {
+                    $(this).addClass("form-control--active");
+                }
+            });
+        }
+    }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(props, state) {
             if (state.recovered) {
@@ -36990,24 +37018,43 @@ var Recover = function (_Screen) {
                 null,
                 React.createElement(
                     "div",
-                    { className: "login-content" },
+                    { className: "login" },
                     React.createElement(
                         "div",
-                        { className: "lc-block toggled", id: "l-forget-password" },
-                        content,
+                        { "class": "login__block active", id: "l-forget-password" },
                         React.createElement(
                             "div",
-                            { className: "lcb-navigation" },
+                            { "class": "login__block__header palette-Purple bg" },
+                            React.createElement("i", { "class": "zmdi zmdi-account-circle" }),
+                            "Forgot Password?",
                             React.createElement(
-                                "a",
-                                { href: "#login", "data-ma-block": "#l-login" },
-                                React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
+                                "div",
+                                { "class": "actions actions--inverse login__block__actions" },
                                 React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("signIn")
+                                    "div",
+                                    { "class": "dropdown" },
+                                    React.createElement("i", { "data-toggle": "dropdown", "class": "zmdi zmdi-more-vert actions__item" }),
+                                    React.createElement(
+                                        "div",
+                                        { "class": "dropdown-menu dropdown-menu-right" },
+                                        React.createElement(
+                                            "a",
+                                            { "class": "dropdown-item", href: "/#/login" },
+                                            "Already have an account?"
+                                        ),
+                                        React.createElement(
+                                            "a",
+                                            { "class": "dropdown-item", href: "/#/register" },
+                                            "Create an account"
+                                        )
+                                    )
                                 )
                             )
+                        ),
+                        React.createElement(
+                            "div",
+                            { "class": "login__block__body" },
+                            content
                         )
                     )
                 )
@@ -37051,24 +37098,19 @@ var CodeRequestForm = function (_React$Component) {
                 ),
                 React.createElement(
                     "div",
-                    { className: "input-group m-b-20" },
+                    { "class": "form-group form-group--float form-group--centered" },
+                    React.createElement("input", { type: "text", name: "mail", "class": "form-control" }),
                     React.createElement(
-                        "span",
-                        { className: "input-group-addon" },
-                        React.createElement("i", { className: "zmdi zmdi-email" })
+                        "label",
+                        null,
+                        "Email Address"
                     ),
-                    React.createElement(
-                        "div",
-                        { className: "fg-line" },
-                        React.createElement("input", { type: "email", name: "mail", className: "form-control",
-                            placeholder: (0, _strings2.default)("mailAddress") })
-                    )
+                    React.createElement("i", { "class": "form-group__bar" })
                 ),
                 React.createElement(
                     "button",
-                    { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
-                    React.createElement("i", {
-                        className: "zmdi zmdi-check" })
+                    { type: "submit", className: "btn btn--icon login__block__btn" },
+                    React.createElement("i", { className: "zmdi zmdi-check" })
                 )
             );
         }
@@ -37115,24 +37157,20 @@ var CodeValidationForm = function (_React$Component2) {
                 ),
                 React.createElement(
                     "div",
-                    { className: "input-group m-b-20" },
+                    { "class": "form-group form-group--float form-group--centered" },
+                    React.createElement("input", { type: "text", name: "code", "class": "form-control" }),
                     React.createElement(
-                        "span",
-                        { className: "input-group-addon" },
-                        React.createElement("i", { className: "zmdi zmdi-key" })
+                        "label",
+                        null,
+                        "Validation code"
                     ),
-                    React.createElement(
-                        "div",
-                        { className: "fg-line" },
-                        React.createElement("input", { type: "text", name: "code", className: "form-control",
-                            placeholder: (0, _strings2.default)("validationCode") })
-                    )
+                    React.createElement("i", { "class": "form-group__bar" })
                 ),
                 React.createElement(
                     "button",
                     {
                         type: "button",
-                        className: "btn btn-success btn-icon-text waves-effect",
+                        className: "btn btn--icon login__block__btn",
                         onClick: this.onTryAgain.bind(this)
                     },
                     React.createElement("i", { className: "zmdi zmdi-refresh" }),
@@ -37140,7 +37178,7 @@ var CodeValidationForm = function (_React$Component2) {
                 ),
                 React.createElement(
                     "button",
-                    { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
+                    { type: "submit", className: "btn btn--icon login__block__btn" },
                     React.createElement("i", {
                         className: "zmdi zmdi-check" })
                 )
@@ -37308,6 +37346,28 @@ var Register = function (_Screen) {
             (0, _account2.register)(data);
         }
     }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var me = ReactDOM.findDOMNode(this);
+            $(me).find(".form-control").change(function () {
+                var x = $(this).val();
+
+                if (!x.length == 0) {
+                    $(this).addClass("form-control--active");
+                }
+            }).change();
+
+            $(me).on("blur input", ".form-group--float .form-control", function () {
+                var i = $(this).val();
+
+                if (i.length == 0) {
+                    $(this).removeClass("form-control--active");
+                } else {
+                    $(this).addClass("form-control--active");
+                }
+            });
+        }
+    }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(props, state) {
             if (state.registered) {
@@ -37322,88 +37382,92 @@ var Register = function (_Screen) {
                 null,
                 React.createElement(
                     "div",
-                    { className: "login-content" },
+                    { className: "login" },
                     React.createElement(
                         "div",
-                        { className: "lc-block toggled", id: "l-register" },
+                        { className: "login__block active" },
+                        React.createElement(
+                            "div",
+                            { className: "login__block__header palette-Blue bg" },
+                            React.createElement("i", { className: "zmdi zmdi-account-circle" }),
+                            "Create an account",
+                            React.createElement(
+                                "div",
+                                { className: "actions actions--inverse login__block__actions" },
+                                React.createElement(
+                                    "div",
+                                    { className: "dropdown" },
+                                    React.createElement("i", { "data-toggle": "dropdown", className: "zmdi zmdi-more-vert actions__item" }),
+                                    React.createElement(
+                                        "div",
+                                        { className: "dropdown-menu dropdown-menu-right" },
+                                        React.createElement(
+                                            "a",
+                                            { className: "dropdown-item", href: "/#/login" },
+                                            "Already have an account?"
+                                        ),
+                                        React.createElement(
+                                            "a",
+                                            { className: "dropdown-item", href: "/#/recover" },
+                                            "Forgot password?"
+                                        )
+                                    )
+                                )
+                            )
+                        ),
                         React.createElement(
                             "form",
                             { action: "javascript:;", className: "lcb-form", onSubmit: this.register.bind(this), ref: "register_form" },
                             React.createElement(
                                 "div",
-                                { className: "input-group m-b-20" },
+                                { className: "login__block__body" },
                                 React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-account" })
+                                    "div",
+                                    { className: "form-group form-group--float form-group--centered" },
+                                    React.createElement("input", { type: "text", name: "name", className: "form-control" }),
+                                    React.createElement(
+                                        "label",
+                                        null,
+                                        "Name"
+                                    ),
+                                    React.createElement("i", { className: "form-group__bar" })
                                 ),
                                 React.createElement(
                                     "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "text", name: "name", className: "form-control", placeholder: (0, _strings2.default)("name") })
-                                )
-                            ),
-                            React.createElement(
-                                "div",
-                                { className: "input-group m-b-20" },
-                                React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-email" })
+                                    { className: "form-group form-group--float form-group--centered" },
+                                    React.createElement("input", { type: "email", name: "mail", className: "form-control" }),
+                                    React.createElement(
+                                        "label",
+                                        null,
+                                        "Email Address"
+                                    ),
+                                    React.createElement("i", { className: "form-group__bar" })
                                 ),
                                 React.createElement(
                                     "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "email", name: "mail", className: "form-control", placeholder: (0, _strings2.default)("mailAddress") })
-                                )
-                            ),
-                            React.createElement(
-                                "div",
-                                { className: "input-group m-b-20" },
-                                React.createElement(
-                                    "span",
-                                    { className: "input-group-addon" },
-                                    React.createElement("i", { className: "zmdi zmdi-male" })
+                                    { className: "form-group form-group--float form-group--centered" },
+                                    React.createElement("input", { type: "password", name: "password", className: "form-control" }),
+                                    React.createElement(
+                                        "label",
+                                        null,
+                                        "Password"
+                                    ),
+                                    React.createElement("i", { className: "form-group__bar" })
                                 ),
                                 React.createElement(
                                     "div",
-                                    { className: "fg-line" },
-                                    React.createElement("input", { type: "password", name: "password", className: "form-control", placeholder: (0, _strings2.default)("password") })
-                                )
-                            ),
-                            React.createElement(
-                                "button",
-                                { type: "submit", className: "btn btn-login btn-success btn-float animated fadeInLeft" },
-                                React.createElement("i", { className: "zmdi zmdi-check" })
-                            )
-                        ),
-                        React.createElement(
-                            "div",
-                            { className: "lcb-navigation" },
-                            React.createElement(
-                                "a",
-                                { href: "#login", "data-ma-block": "#l-login" },
-                                React.createElement("i", { className: "zmdi zmdi-long-arrow-right" }),
-                                " ",
-                                React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("signIn")
-                                )
-                            ),
-                            React.createElement(
-                                "a",
-                                { href: "#recover", "data-ma-block": "#l-forget-password" },
-                                React.createElement(
-                                    "i",
-                                    null,
-                                    "?"
+                                    { className: "checkbox" },
+                                    React.createElement("input", { type: "checkbox", id: "accept" }),
+                                    React.createElement(
+                                        "label",
+                                        { className: "checkbox__label", htmlFor: "accept" },
+                                        "Accept the license agreement"
+                                    )
                                 ),
-                                " ",
                                 React.createElement(
-                                    "span",
-                                    null,
-                                    (0, _strings2.default)("forgotPassword")
+                                    "button",
+                                    { type: "submit", className: "btn btn--icon login__block__btn" },
+                                    React.createElement("i", { className: "zmdi zmdi-check" })
                                 )
                             )
                         )

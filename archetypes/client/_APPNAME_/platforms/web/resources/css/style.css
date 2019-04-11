@@ -739,3 +739,9 @@ tr.collapsible {
 
 .checkbox > input[type=checkbox]:checked ~ .checkbox__label:before, .checkbox > input[type=checkbox]:checked ~ .radio__label:before, .checkbox > input[type=radio]:checked ~ .checkbox__label:before, .checkbox > input[type=radio]:checked ~ .radio__label:before, .radio > input[type=checkbox]:checked ~ .checkbox__label:before, .radio > input[type=checkbox]:checked ~ .radio__label:before, .radio > input[type=radio]:checked ~ .checkbox__label:before, .radio > input[type=radio]:checked ~ .radio__label:before {
   border-color: #ff6b68; }
+
+.form-group--float .form-control:focus ~ label {
+  color: #ff8482; }
+
+.checkbox > input[type=checkbox]:checked ~ .checkbox__label:before, .checkbox > input[type=radio]:checked ~ .checkbox__label:before, .radio > input[type=checkbox]:checked ~ .checkbox__label:before, .radio > input[type=radio]:checked ~ .checkbox__label:before {
+  background-color: #ff6b68; }
