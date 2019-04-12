@@ -1,5 +1,5 @@
 import {forceBoolean, optional, parseBoolean} from "../../utils/lang";
-import * as _ from "../../libs/underscore";
+import * as _ from "underscore";
 
 "use strict"
 

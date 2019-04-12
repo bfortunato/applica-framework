@@ -1,14 +1,5 @@
 "use strict";
 
-var DEBUG = true;
-
-var LOG_LEVEL_INFO = 3;
-var LOG_LEVEL_WARNING = 2;
-var LOG_LEVEL_ERROR = 1;
-var LOG_LEVEL_DISABLED = 0;
-
-var LOG_LEVEL = LOG_LEVEL_INFO;
-
 (function(global) {
 
     /**
@@ -288,82 +279,6 @@ var LOG_LEVEL = LOG_LEVEL_INFO;
             return "";
         }
     };
-
-    /**
-     * Require
-     */
-    (function() {
-        var builders = {};
-        var cache = {};
-        var currentRequireQueue = [];
-
-        function define(module, builder) {
-            if (!_.isString(module)) {
-                throw new Error("Bad module name: " + module);
-            }
-
-            if (!_.isFunction(builder)) {
-                throw new Error("Builder must be a function");
-            }
-
-            builders[module] = builder;
-
-            logger.i("Module defined: " + module);
-        }
-
-        function require(_path) {
-            var currentRelativePath = _.last(currentRequireQueue) || "";
-            var moduleExt = "js";
-            var moduleBase = path.removeExtension(path.normalize(path.join(currentRelativePath, _path)));
-            var moduleName = path.name(moduleBase);
-            var possibilities = [
-                moduleName,
-                moduleBase,
-                moduleBase + "." + moduleExt,
-                path.join(moduleBase, "index.js"),
-                path.join(moduleBase, moduleName) + "." + moduleExt
-            ];
-
-            var module = null;
-
-            for (var i = 0; i < possibilities.length; i++) {
-                var possibility = possibilities[i];
-                if (_.has(cache, possibility)) {
-                    logger.i("Loading cached module " + possibility);
-
-                    module = cache[possibility];
-                    break;
-                } else {
-                    if (_.has(builders, possibility)) {
-                        var builder = builders[possibility];
-                        if (!_.isFunction(builder)) {
-                            throw new Error("Builder for module " + possibility + " is not a function");
-                        }
-
-                        module = {};
-                        module.exports = {};
-
-                        logger.i("Loading module " + possibility);
-
-                        currentRequireQueue.push(path.base(possibility));
-                        builder(module, module.exports);
-                        currentRequireQueue = _.initial(currentRequireQueue);
-
-                        cache[possibility] = module;
-                    }
-                }
-            }
-
-            if (module == null) {
-                throw new Error("Module not found: " + _path);
-            }
-
-            return module.exports;
-        }
-
-        global.define = define;
-        global.require = require;
-    })();
 
     /**
      * Buffers

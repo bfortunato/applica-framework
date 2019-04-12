@@ -1,7 +1,7 @@
 import * as aj from "../aj/index";
 import {completed, discriminate, failed} from "../utils/ajex";
 import * as actions from "../actions/types";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {ENTITIES, GRIDS, LOOKUP, MULTIVALUE_SETTINGS, SELECT} from "./types";
 
 

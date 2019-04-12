@@ -3,7 +3,7 @@
 import * as http from "../aj/http";
 import * as preferences from "../framework/preferences";
 import * as config from "../framework/config";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import * as responses from "./responses";
 import {safeGet} from "../utils/lang";
 

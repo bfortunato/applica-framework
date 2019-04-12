@@ -1,6 +1,6 @@
 "use strict"
 
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {Observable} from "../aj/events";
 
 export const LIKE = "like"

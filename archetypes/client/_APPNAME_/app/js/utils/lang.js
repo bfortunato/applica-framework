@@ -1,4 +1,4 @@
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 
 /**
  * Format a string message (es: format("My name is {0}", "Bruno") returns "My name is Brnuo")

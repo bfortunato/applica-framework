@@ -5,7 +5,7 @@ import {createAsyncAction} from "../utils/ajex";
 import * as SessionApi from "../api/session";
 import {alert, hideLoader, showLoader, toast} from "../plugins";
 import M from "../strings";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {LOGIN, LOGOUT, RESUME_SESSION} from "./types";
 import {getUserCoverImage, getUserProfileImage} from "./ui";
 import {setupMenu} from "./menu";

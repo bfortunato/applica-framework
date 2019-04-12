@@ -90,12 +90,20 @@
 
 
         <!-- JS Business login -->
+        <script type="text/javascript">
+            var DEBUG = true;
+
+            var LOG_LEVEL_INFO = 3;
+            var LOG_LEVEL_WARNING = 2;
+            var LOG_LEVEL_ERROR = 1;
+            var LOG_LEVEL_DISABLED = 0;
+
+            var LOG_LEVEL = LOG_LEVEL_INFO;
+        </script>
         <script type="text/javascript" src="assets/js/ajweb.js"></script>
         <script type="text/javascript" src="assets/js/app.js"></script>
-
-        <!-- JS entry point -->
         <script type="text/javascript">
-            require("./web/main")
+            main();
         </script>
     </body>
 </html>

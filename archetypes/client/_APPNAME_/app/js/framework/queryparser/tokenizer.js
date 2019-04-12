@@ -1,4 +1,4 @@
-import * as _ from "../../libs/underscore";
+import * as _ from "underscore";
 import {
 	TOKEN_BLOCK_START,
 	TOKEN_BLOCK_END,

@@ -6,7 +6,7 @@ const http = require("../aj/http")
 const preferences = require("../framework/preferences")
 const config = require("../framework/config")
 
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {flatten} from "../utils/lang";
 import * as query from "../api/query";
 import {get} from "./utils";

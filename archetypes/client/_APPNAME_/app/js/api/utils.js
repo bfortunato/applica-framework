@@ -3,7 +3,7 @@
 import * as http from "../aj/http";
 import * as responses from "./responses";
 import {getSessionToken} from "./session";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 
 export function addToken(headers) {
     if (!_.isEmpty(getSessionToken())) {

@@ -8,7 +8,7 @@ import * as responses from "../api/responses";
 import {alert, hideLoader, showLoader, toast} from "../plugins";
 import {format} from "../utils/lang";
 import M from "../strings";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {
     CHANGE_PASSWORD,
     CONFIRM_ACCOUNT,

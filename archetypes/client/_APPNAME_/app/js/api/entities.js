@@ -3,7 +3,7 @@
 import * as config from "../framework/config";
 import * as utils from "./utils";
 import {addToken} from "./utils";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {flatten} from "../utils/lang";
 import * as http from "../aj/http";
 import * as responses from "./responses";

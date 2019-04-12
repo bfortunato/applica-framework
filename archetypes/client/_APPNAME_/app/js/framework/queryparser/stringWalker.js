@@ -1,4 +1,4 @@
-import * as _ from "../../libs/underscore";
+import * as _ from "underscore";
 
 export default class StringWalker {
 

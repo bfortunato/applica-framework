@@ -10,7 +10,7 @@ import M from "../strings";
 import * as GridsApi from "../api/grids";
 import * as EntitiesApi from "../api/entities";
 import * as ValuesApi from "../api/values";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {getUserCoverImage, getUserProfileImage} from "./ui"
 
 

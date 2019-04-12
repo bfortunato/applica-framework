@@ -2,7 +2,7 @@
 
 import * as aj from "../aj/index";
 import * as actions from "../actions/types";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 import {walk} from "../utils/lang";
 import {MENU} from "./types";
 import {hasPermission} from "../api/session";

@@ -1,7 +1,7 @@
 "use strict"
 
 import {Observable} from "../aj/events";
-import * as _ from "../libs/underscore";
+import _ from "underscore";
 
 function normalizeData(data) {
 	let result = null

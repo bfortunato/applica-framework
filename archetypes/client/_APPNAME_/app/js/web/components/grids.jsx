@@ -21,7 +21,7 @@ let _forms = null
 function forms() {
     if (_forms == null) {
         //from this, the url is not absolute
-        _forms = require("./web/components/forms")
+        _forms = require("./forms")
     }
 
     return _forms

@@ -3,7 +3,7 @@
 import {optional} from "../../utils/lang";
 import {isEnter} from "../utils/keyboard";
 import * as ui from "../utils/ui";
-import * as _ from "../../libs/underscore";
+import * as _ from "underscore";
 import {hasPermission} from "../../api/session";
 
 export class DropdownActionButton extends React.Component {

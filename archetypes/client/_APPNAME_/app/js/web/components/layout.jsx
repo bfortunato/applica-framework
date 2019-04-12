@@ -10,7 +10,7 @@ import {GlobalLoader, PageLoader, UnobtrusiveLoader} from "./loader";
 import {connect} from "../utils/aj";
 import {optional, parseBoolean} from "../../utils/lang";
 import M from "../../strings";
-import _ from "../../libs/underscore"
+import _ from "underscore"
 import {SystemStore} from "../../stores/system";
 import {systemInformation} from "../../actions/system";
 

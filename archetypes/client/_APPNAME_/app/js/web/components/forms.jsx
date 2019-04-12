@@ -2,15 +2,15 @@
 
 import M from "../../strings"
 import {Actions, Card} from "./common"
-import {format, optional, diff} from "../../../utils/lang"
-import {Observable} from "../../../aj/events"
+import {format, optional, diff} from "../../utils/lang"
+import {Observable} from "../../aj/events"
 import {ActionsCell, Grid, resultToGridData} from "./grids"
 import * as query from "../../api/query"
 import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
-import * as _ from "../../libs/underscore"
+import * as _ from "underscore"
 
 export const VALIDATION_ERROR = {}
 

@@ -5,7 +5,7 @@
 
 "use strict";
 
-const _ = require("../libs/underscore")
+const _ = require("underscore")
 const Observable = require("./events").Observable;
 
 var __runtime = null;
@@ -438,14 +438,26 @@ class Semaphore {
 
 Semaphore.counter = 1;
 
-function createRuntime(options) {
+/**
+ * @function createRuntime
+ * @description Creates a new instance of runtime. Usually used internally by devices runtimes
+ * @returns singleton instance of runtime
+ */
+export function createRuntime(options) {
     __runtime = AJRuntime.create();
     __runtime.init(options);
 
     return __runtime;
 };
 
-function createStore(type, reducer) {
+/**
+ * @function createStore
+ * @description Creates a new singleton instance of store
+ * @param {string} type - Name of store to create
+ * @param {function} reducer - Store reducer
+ * @returns {store} - The newly created store
+ */
+export function createStore(type, reducer) {
     if (_.has(__stores, type)) {
         throw "Cannot create store " + type + ". Only one instance of store is allowed";
     }
@@ -458,7 +470,14 @@ function createStore(type, reducer) {
     return store;
 }
 
-function createAction(type, fn) {
+/**
+ * @function createAction
+ * @Description Creates a new action for the application
+ * @param {string} type - Type of action to create
+ * @param {function} action - Action to execute
+ * @returns {function} The newly created action
+ */
+export function createAction(type, fn) {
     if (type == undefined) {
         throw new Error("Action type is undefined")
     }
@@ -480,7 +499,12 @@ function createAction(type, fn) {
     return act;
 }
 
-function dispatch(action) {
+/**
+ * @function dispatch
+ * @description Dispatch action to stores, usually called by actions
+ * @param {object} data - Data to pass to stores
+ */
+export function dispatch(action) {
     if (DEBUG) {
         logger.i("Dispatching action", action.type);
         logger.i(stringifyIfNotBrowser(action));
@@ -496,49 +520,20 @@ function dispatch(action) {
     });
 }
 
-function run(action, data) {
+/**
+ * @function run
+ * @description Run specified action. This is not the common method to call actions, but it's necessary for managing actions from
+ * devices. On JS side, call actions directly
+ * @param {type} type - Type of action to call
+ * @param {data} type - Data to pass to action
+ */
+export function run(action, data) {
     if (_.has(__actions, action)) {
         __actions[action](data);
     } else {
         logger.w("Cannot find action: " + action);
     }
 }
-
-function exec(plugin, fn, data) {
-    return __runtime.exec(plugin, fn, data);
-}
-
-/**
- * @function createRuntime
- * @description Creates a new instance of runtime. Usually used internally by devices runtimes
- * @returns singleton instance of runtime
- */
-export var createRuntime = createRuntime;
-
-/**
- * @function createStore
- * @description Creates a new singleton instance of store
- * @param {string} type - Name of store to create
- * @param {function} reducer - Store reducer
- * @returns {store} - The newly created store
- */
-export var createStore = createStore;
-
-/**
- * @function createAction
- * @Description Creates a new action for the application
- * @param {string} type - Type of action to create
- * @param {function} action - Action to execute
- * @returns {function} The newly created action
- */
-export var createAction = createAction;
-
-/**
- * @function dispatch
- * @description Dispatch action to stores, usually called by actions
- * @param {object} data - Data to pass to stores
- */
-export var dispatch = dispatch;
 
 /**
  * @function exec
@@ -548,16 +543,9 @@ export var dispatch = dispatch;
  * @param {data} data - Data to pass to plugin
  * @returns {Promise} - A promise of plugin call result
  */
-export var exec = exec;
-
-/**
- * @function run
- * @description Run specified action. This is not the common method to call actions, but it's necessary for managing actions from
- * devices. On JS side, call actions directly
- * @param {type} type - Type of action to call
- * @param {data} type - Data to pass to action
- */
-export var run = run;
+export function exec(plugin, fn, data) {
+    return __runtime.exec(plugin, fn, data);
+}
 
 
 export function createBuffer(data) {
