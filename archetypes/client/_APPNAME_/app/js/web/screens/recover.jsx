@@ -1,5 +1,5 @@
-"use strict";
-
+import React from "react";
+import ReactDOM from "react-dom";
 import {AccountStore} from "../../stores/account";
 import M from "../../strings";
 import {connect} from "../utils/aj";
@@ -8,7 +8,7 @@ import * as ui from "../utils/ui";
 import {requestRecoveryCode, resetPassword, validateRecoveryCode} from "../../actions/account";
 import * as forms from "../utils/forms";
 import {safeGet} from "../../utils/lang";
-import * as _ from "underscore"
+import _ from "underscore";
 import {PasswordRecoveryStore} from "../../stores/passwordRecovery";
 
 export default class Recover extends Screen {

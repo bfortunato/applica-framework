@@ -1,4 +1,4 @@
-"use strict";
+import _ from "underscore";
 
 exports.Alert = {
     alert(data, callback) {

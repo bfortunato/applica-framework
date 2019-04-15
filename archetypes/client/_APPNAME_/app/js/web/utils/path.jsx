@@ -1,5 +1,3 @@
-"use strict";
-
 function extension(filename) {
     var lastIndexOfDot = filename.lastIndexOf('.');
     if (lastIndexOfDot === -1) {

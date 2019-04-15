@@ -1,7 +1,7 @@
+import React from "react";
+import ReactDOM from "react-dom";
 import {forceBoolean, optional, parseBoolean} from "../../utils/lang";
-import * as _ from "underscore";
-
-"use strict"
+import _ from "underscore";
 
 export const DIALOG_RESULT_OK = 0
 export const DIALOG_RESULT_CANCEL = 1

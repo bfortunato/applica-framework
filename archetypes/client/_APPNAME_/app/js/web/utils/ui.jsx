@@ -1,9 +1,8 @@
-"use strict";
-
+import _ from "underscore";
+import RouteRecognizer from "route-recognizer";
 import M from "../../strings";
 import {Observable} from "./events";
 import {isControlPressed, isShiftPressed} from "./keyboard";
-
 
 let router = new RouteRecognizer();
 let base = null;

@@ -1,4 +1,5 @@
 import "@babel/polyfill";
+import "./web/ajweb";
 import {createRuntime} from "./aj";
 import "./stores/session";
 import "./stores/account";
@@ -21,5 +22,3 @@ global.main = function() {
 
 	return runtime;
 }
-
-

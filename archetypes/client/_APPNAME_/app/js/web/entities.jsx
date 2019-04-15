@@ -1,5 +1,4 @@
-"use strict"
-
+import _ from "underscore";
 import {CheckCell, TextCell} from "./components/grids";
 import {check, sanitize} from "../libs/validator";
 import {Image, Mail, PasswordText, Text, YesNo} from "./components/forms";

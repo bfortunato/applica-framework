@@ -1,6 +1,5 @@
-"use strict";
-
-
+import _ from "underscore";
+import React from "react";
 import {Layout, Screen} from "../../components/layout";
 import M from "../../../strings";
 import {deleteEntities, freeEntities, loadEntities} from "../../../actions/entities";

@@ -1,3 +1,5 @@
+import React from "react";
+import ReactDOM from "react-dom";
 import {Index} from "./components/layout";
 import Login from "./screens/login";
 import Register from "./screens/register";

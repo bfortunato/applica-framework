@@ -1,5 +1,4 @@
-"use strict"
-
+import React from "react"
 import Login from "../screens/login"
 import {connect} from "../utils/aj"
 import ChangePassword from "../screens/changePassword";

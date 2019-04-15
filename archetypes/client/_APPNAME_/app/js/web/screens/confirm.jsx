@@ -1,5 +1,4 @@
-"use strict";
-
+import React from "react";
 import {AccountStore} from "../../stores/account";
 import {FullScreenLayout, Screen} from "../components/layout";
 import * as ui from "../utils/ui";

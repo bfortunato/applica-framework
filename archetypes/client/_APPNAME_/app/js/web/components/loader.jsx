@@ -1,4 +1,4 @@
-"use strict"
+import React from "react"
 
 export function hidePageLoader() {
     $(".page-loader").fadeOut(500)

@@ -4,6 +4,8 @@
 .idea
 /node_modules/
 /gen/
+/app/js/node_modules/
+/app/js/package-lock.json
 .DS_Store
 build
 /platforms/android/AJ/gradle/
@@ -16,3 +18,4 @@ gradle/wrapper
 /platforms/node/node_modules/
 /platforms/web/bower_components/
 /platforms/web/node_modules/
+package-lock.json

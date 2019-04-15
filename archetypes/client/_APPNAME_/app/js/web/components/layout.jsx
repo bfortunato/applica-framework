@@ -1,5 +1,5 @@
-"use strict"
-
+import React from "react";
+import ReactDOM from "react-dom";
 import {MenuStore} from "../../stores/menu";
 import {SessionStore} from "../../stores/session";
 import {UIStore} from "../../stores/ui";

@@ -1,5 +1,3 @@
-"use strict"
-
 let EventEmitter = {}
 EventEmitter.addListener = function(obj, evt, handler) {
     let listeners = obj.__events_listeners;

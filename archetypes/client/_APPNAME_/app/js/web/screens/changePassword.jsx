@@ -1,5 +1,4 @@
-"use strict"
-
+import React from "react";
 import {FullScreenLayout, Screen} from "../components/layout";
 import M from "../../strings";
 import {changePassword} from "../../actions/account";

@@ -1,5 +1,6 @@
-"use strict"
-
+import _ from "underscore";
+import React from "react";
+import ReactDOM from "react-dom";
 import * as query from "../../api/query";
 import M from "../../strings";
 import {Actions, Card} from "./common";

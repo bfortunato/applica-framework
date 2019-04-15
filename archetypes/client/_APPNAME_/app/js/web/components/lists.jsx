@@ -1,4 +1,5 @@
-"use strict"
+import _ from "underscore";
+import React from "react";
 
 export class ListItem extends React.Component {
     constructor(props) {

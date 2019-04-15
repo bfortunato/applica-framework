@@ -1,4 +1,4 @@
-"use strict"
+import _ from "underscore";
 
 export function cleanedData(data) {
     if (_.isEmpty(data)) {

@@ -1,5 +1,3 @@
-"use strict"
-
 import * as aj from "../aj/index";
 import {EXPAND_MENU_ITEM, SET_ACTIVE_MENU_ITEM} from "./types";
 import menu from "../model/menu";

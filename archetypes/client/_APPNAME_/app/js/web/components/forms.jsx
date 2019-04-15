@@ -1,5 +1,5 @@
-"use strict"
-
+import React from "react";
+import ReactDOM from "react-dom";
 import M from "../../strings"
 import {Actions, Card} from "./common"
 import {format, optional, diff} from "../../utils/lang"
@@ -10,7 +10,7 @@ import {isCancel} from "../utils/keyboard"
 import * as inputfile from "../utils/inputfile"
 import * as datasource from "../../utils/datasource"
 import {parseBoolean} from "../../utils/lang"
-import * as _ from "underscore"
+import _ from "underscore"
 
 export const VALIDATION_ERROR = {}
 

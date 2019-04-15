@@ -1,5 +1,3 @@
-"use strict"
-
 function serialize(form) {
     var o = {}
     var a = $(form).serializeArray()

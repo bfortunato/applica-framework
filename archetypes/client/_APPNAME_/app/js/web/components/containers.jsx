@@ -1,5 +1,5 @@
-"use strict"
-
+import * as _ from "underscore";
+import React from "react";
 import * as datasource from "../../utils/datasource";
 import {LookupStore, MultiValueSettingsStore, SelectStore} from "../../stores/entities";
 import {

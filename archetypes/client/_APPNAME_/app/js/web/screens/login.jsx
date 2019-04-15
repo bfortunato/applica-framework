@@ -1,5 +1,5 @@
-"use strict"
-
+import React from "react";
+import ReactDOM from "react-dom";
 import {FullScreenLayout, Screen} from "../components/layout";
 import {login} from "../../actions/session";
 import * as forms from "../utils/forms";

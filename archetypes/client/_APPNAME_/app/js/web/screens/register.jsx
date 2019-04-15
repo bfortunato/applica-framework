@@ -1,5 +1,5 @@
-"use strict";
-
+import React from "react";
+import ReactDOM from "react-dom";
 import {AccountStore} from "../../stores/account";
 import M from "../../strings";
 import {connect} from "../utils/aj";

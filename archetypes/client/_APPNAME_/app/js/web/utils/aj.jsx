@@ -1,5 +1,4 @@
-"use strict"
-
+import _ from "underscore";
 import {discriminated} from "../../utils/ajex";
 
 function connectInternal(setState, component, stores, localState) {

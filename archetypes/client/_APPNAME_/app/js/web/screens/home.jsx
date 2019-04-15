@@ -1,5 +1,4 @@
-"use strict"
-
+import React from "react";
 const { Screen, Layout } = require("../components/layout")
 const Secure = require("../components/secure")
 

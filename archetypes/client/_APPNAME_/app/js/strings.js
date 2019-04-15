@@ -297,7 +297,7 @@ strings["it"] = {
     add: "Aggiungi",
     pleaseSpecifyData: "Per favore specifica la data",
     ok: "OK",
-    security: "Securezza",
+    security: "Sicurezza",
     users: "Utenti",
     roles: "Ruoli",
     setup: "Setup",
