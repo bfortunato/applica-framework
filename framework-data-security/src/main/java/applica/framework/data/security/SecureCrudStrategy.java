@@ -14,6 +14,13 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
 
     private String ownerPropertyName = "ownerId";
 
+    public SecureCrudStrategy(CrudStrategy parent) {
+        super(parent);
+    }
+
+    public SecureCrudStrategy() {
+    }
+
     public String getOwnerPropertyName() {
         return ownerPropertyName;
     }
