@@ -10,8 +10,8 @@ import applica.framework.revision.model.*;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.revisions.AvoidRevision;
 import applica.framework.revisions.RevisionId;
-import applica.framework.security.Security;
 import applica.framework.security.User;
+import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityUtils;
 import org.jsoup.helper.StringUtil;
 
@@ -35,7 +35,7 @@ public class BaseRevisionService implements RevisionService {
 
     @Override
     public boolean isRevisionEnabled(String entity) {
-        return enabled.get() != null && enabled.get() && getCurrentSettings().isEnabled(entity);
+        return enabled.get() != null && enabled.get() && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(entity);
     }
 
     @Override
