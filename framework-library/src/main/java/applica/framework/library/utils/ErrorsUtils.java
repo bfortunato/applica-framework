@@ -41,7 +41,6 @@ public class ErrorsUtils {
         return errorMessages;
     }
 
-
     public static String getMessage(String label) {
         Localization localization = new Localization();
         return localization.getMessage(label);
