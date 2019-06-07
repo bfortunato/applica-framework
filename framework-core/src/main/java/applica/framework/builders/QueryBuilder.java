@@ -125,6 +125,13 @@ public class QueryBuilder extends Query {
         return this;
     }
 
+    public QueryBuilder eqIgnoreCase(String property, Object value) {
+        if(value != null) {
+            getFilters().add(new Filter(property, value, Filter.EQ_IGNORE_CASE));
+        }
+        return this;
+    }
+
     public QueryBuilder eq(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.EQ));
