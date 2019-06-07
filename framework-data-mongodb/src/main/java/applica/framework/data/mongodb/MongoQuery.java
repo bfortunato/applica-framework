@@ -47,7 +47,7 @@ public class MongoQuery extends BasicDBObject {
 	public MongoQuery eq(String key, Object value, boolean ignoreCase) {
 
 		if (ignoreCase)
-			this.put(key, Pattern.compile(String.format(".*%s.*", value) , Pattern.CASE_INSENSITIVE ));
+			this.put(key, Pattern.compile(value.toString() , Pattern.CASE_INSENSITIVE ));
 		else
 			this.put(key, value);
 
