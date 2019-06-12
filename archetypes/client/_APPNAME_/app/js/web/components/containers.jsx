@@ -13,7 +13,7 @@ import {
     updateMultivalueSettings
 } from "../../actions/entities";
 import {discriminated} from "../../utils/ajex";
-import * as query from "../../api/query";
+import * as query from "../../framework/query";
 import {Control, Lookup, MultiCheckbox, Select} from "./forms";
 import {optional} from "../../utils/lang";
 

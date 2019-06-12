@@ -40,7 +40,7 @@ export function optional(val, def) {
  */
 export function safeGet(target, prop, def = null) {
     if (target === undefined || target === null) {
-        return null
+        return def
     } else {
         return optional(target[prop], def)
     }

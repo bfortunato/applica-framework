@@ -1,7 +1,7 @@
 import _ from "underscore";
 import React from "react";
 import ReactDOM from "react-dom";
-import * as query from "../../api/query";
+import * as query from "../../framework/query";
 import M from "../../strings";
 import {Actions, Card} from "./common";
 import {format, optional, parseBoolean} from "../../utils/lang";

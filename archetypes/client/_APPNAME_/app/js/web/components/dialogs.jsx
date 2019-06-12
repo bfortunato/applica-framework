@@ -25,11 +25,12 @@ export class Dialog extends React.Component {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
-                }else {
-                    this.opened = false
-                    if (_.isFunction(this.props.onClose)) {
-                        this.props.onClose(this.dialogResult)
-                    }
+                } 
+            })
+            .on("hidden.bs.modal", e => {
+                this.opened = false
+                if (_.isFunction(this.props.onClose)) {
+                    this.props.onClose(this.dialogResult)
                 }
             })
 
@@ -76,7 +77,7 @@ export class Dialog extends React.Component {
     }
 
     render() {
-        let buttons = optional(this.props.buttons, []).map(b => <button key={b.text} type="button" className="btn btn-link waves-effect" onClick={this.runButtonAction.bind(this, b)}>{b.text}</button>)
+        let buttons = optional(this.props.buttons, []).map(b => <button key={b.text} type="button" className={"btn btn-link " + optional(b.extraClassName, "")} onClick={this.runButtonAction.bind(this, b)}>{b.text}</button>)
         let style = {
             //display: this.props.hidden ? "none" : "block"
         }

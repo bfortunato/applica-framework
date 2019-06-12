@@ -29,6 +29,9 @@ export class Query extends Observable {
 
         this.invokationEnabled = true
 
+        //sortBy alias
+        this.sortBy = this.sort
+
         _.assign(this, init)
     }
 
@@ -141,7 +144,7 @@ export class Query extends Observable {
         return this
     }
 
-    sort(prop, descending) {
+    sort(prop, descending = false) {
         let current = _.find(this.sorts, s => s.property == prop)
         if (current) {
             current.descending = descending
@@ -204,4 +207,8 @@ export class Query extends Observable {
 export function create(init) {
     let query = new Query(init)
     return query
+}
+
+export default function query(init = {}) {
+    return new Query(init)
 }

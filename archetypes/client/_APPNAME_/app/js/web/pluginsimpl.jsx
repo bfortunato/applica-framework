@@ -20,13 +20,13 @@ let unobtrusiveLoaderCount = 0;
 exports.Loader = {
     show(data, callback) {
         loaderCount++
-        $(".global-loader").find(".message").text(data.message).end().show()
+        $(".global-loader").stop().fadeIn(125);
     },
 
     hide(data, callback) {
         loaderCount--
         if (loaderCount <= 0) {
-            $(".global-loader").hide()
+            $(".global-loader").stop().fadeOut(125);
             loaderCount = 0
         }
     },

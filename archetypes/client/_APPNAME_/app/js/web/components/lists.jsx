@@ -15,7 +15,7 @@ export class ListItem extends React.Component {
     render() {
         let view = React.createElement(this.props.view, {item: this.props.item, list: this.props.list})
         return (
-            <div className="list-group-item hover pointer-cursor" onClick={this.onClick.bind(this)}>
+            <div className="listview__item pointer-cursor" onClick={this.onClick.bind(this)}>
                 {view}
             </div>
         )
@@ -47,7 +47,7 @@ export class List extends React.Component {
         let onItemClick = this.props.onItemClick
         let items = data.map(i => <ListItem key={this.getKey(i)} view={view} item={i} list={this} onClick={onItemClick} />)
         return (
-            <div className="list-group lg-odd-black">
+            <div className="listview listview--hover">
                 {items}
             </div>
         )

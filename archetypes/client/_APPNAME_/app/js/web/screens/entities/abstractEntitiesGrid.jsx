@@ -5,7 +5,7 @@ import M from "../../../strings";
 import {deleteEntities, freeEntities, loadEntities} from "../../../actions/entities";
 import {ActionsMatcher, FloatingButton, HeaderBlock} from "../../components/common";
 import {Grid, resultToGridData} from "../../components/grids";
-import * as query from "../../../api/query";
+import * as query from "../../../framework/query";
 import {format, optional} from "../../../utils/lang";
 import {isCancel} from "../../utils/keyboard";
 import entities from "../../entities";

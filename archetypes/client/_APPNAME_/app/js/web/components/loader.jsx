@@ -1,47 +1,16 @@
 import React from "react"
 
-export function hidePageLoader() {
-    $(".page-loader").fadeOut(500)
-}
-
-class PageLoader extends React.Component {
-
-    componentDidUpdate() {
-        if (this.state.loading) {
-            $(this.refs.page_loader).show()
-        } else {
-            $(this.refs.page_loader).fadeOut(500);
-        }
-    }
-
-    render() {
-        return (
-            <div className="page-loader" style={{display: "block"}}>
-                <div className="preloader">
-                    <svg className="pl-circular" viewBox="25 25 50 50">
-                        <circle className="plc-path" cx="50" cy="50" r="20" />
-                    </svg>
-
-                    <p>Please wait...</p>
-                </div>
-            </div>
-        )
-    }
-}
 
 class GlobalLoader extends React.Component {
 
     render() {
         return (
-            <div className="global-loader" style={{display: "none"}}>
-                <div className="layer"></div>
-                <div className="preloader">
-                    <svg className="pl-circular" viewBox="25 25 50 50">
-                        <circle className="plc-path" cx="50" cy="50" r="20" />
+            <div className="global-loader page-loader" style={{display: "none"}}>
+                <div className="page-loader__spinner">
+                    <svg viewBox="25 25 50 50">
+                        <circle cx="50" cy="50" r="20" fill="none" strokeWidth="2" strokeMiterlimit="10"></circle>
                     </svg>
                 </div>
-
-                <p className="message">Please wait...</p>
             </div>
         )
     }
@@ -50,9 +19,9 @@ class GlobalLoader extends React.Component {
 class Preloader extends React.Component {
     render() {
         return ((this.props.visible || true) ?
-            <div className="preloader">
-                <svg className="pl-circular" viewBox="25 25 50 50">
-                    <circle className="plc-path" cx="50" cy="50" r="20" />
+            <div className="page-loader__spinner">
+                <svg viewBox="25 25 50 50">
+                    <circle cx="50" cy="50" r="20" fill="none" strokeWidth="2" strokeMiterlimit="10"></circle>
                 </svg>
             </div>
             :
@@ -66,9 +35,9 @@ class UnobtrusiveLoader extends React.Component {
     render() {
         return (
             <div className="unobtrusive-loader" style={{display: "none"}}>
-                <div className="preloader pls-white pl-sm">
-                    <svg className="pl-circular" viewBox="25 25 50 50">
-                        <circle className="plc-path" cx="50" cy="50" r="20" />
+                <div className="page-loader__spinner">
+                    <svg viewBox="25 25 50 50">
+                        <circle cx="50" cy="50" r="20" fill="none" strokeWidth="2" strokeMiterlimit="10"></circle>
                     </svg>
                 </div>
             </div>
@@ -76,7 +45,6 @@ class UnobtrusiveLoader extends React.Component {
     }
 }
 
-exports.PageLoader = PageLoader;
 exports.GlobalLoader = GlobalLoader;
 exports.Preloader = Preloader;
 exports.UnobtrusiveLoader = UnobtrusiveLoader;

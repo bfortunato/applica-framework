@@ -8,7 +8,7 @@ const config = require("../framework/config")
 
 import _ from "underscore";
 import {flatten} from "../utils/lang";
-import * as query from "../api/query";
+import * as query from "../framework/query";
 import {get} from "./utils";
 
 export function loadEntities(entity, _query) {

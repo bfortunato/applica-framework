@@ -13,6 +13,8 @@ import M from "../../strings";
 import _ from "underscore"
 import {SystemStore} from "../../stores/system";
 import {systemInformation} from "../../actions/system";
+import HeaderExtra from "./extra/headerExtra"
+import globalComponents from "./extra/globalComponents"
 
 function showPageLoader() {
     $(".page-loader").show()
@@ -26,7 +28,7 @@ class Header extends React.Component {
     render() {
         return (
             <header id="header" className="header clearfix">
-                <div className="navigation-trigger hidden-xl-up" data-ma-action="aside-open" data-ma-target=".sidebar">
+                <div className="navigation-trigger" data-ma-action="aside-open" data-ma-target=".sidebar">
                     <div className="navigation-trigger__inner">
                         <i className="navigation-trigger__line"></i>
                         <i className="navigation-trigger__line"></i>
@@ -35,8 +37,10 @@ class Header extends React.Component {
                 </div>
 
                 <div className="header__logo hidden-sm-down">
-                    <h1><a href="index.html">{M("appName")}</a></h1>
+                    <h1><a href="#">{M("appName")}</a></h1>
                 </div>
+
+                <HeaderExtra />
             </header>
         )
     }
@@ -64,9 +68,8 @@ class ProfileBox extends React.Component {
                         {this.state.profileImage ?
                             <img className="user__img" src={this.state.profileImage} alt="" />
                             :
-                            <img className="user__img" src="theme/img/demo/profile-pics/1.jpg" alt="" />
+                            <img className="user__img" src="resources/images/ic_perm_identity.png" alt="" />
                         }
-                    <img className="user__img" src="demo/img/profile-pics/8.jpg" alt="" />
                     <div>
                         <div className="user__name">{optional(() => this.state.user.name, "NA")}</div>
                         <div className="user__email">{optional(() => this.state.user.mail, "NA")}</div>
@@ -176,7 +179,7 @@ class MainMenu extends React.Component {
 class SideBar extends React.Component {
     render() {
         return (
-            <aside id="sidebar" className="sidebar">
+            <aside id="sidebar" className="sidebar sidebar--hidden">
                 <div className="scrollbar-inner">
                     <ProfileBox />
                     <MainMenuContainer />
@@ -227,11 +230,13 @@ class Footer extends React.Component {
 
         return (
             <footer className="footer hidden-xs-down">
-                <ul className="nav footer__nav">
-                    {backendVersion && <li> Web: v {backendVersion}</li> }
-                    {apiVersion && <li> API: v {apiVersion}</li>}
-                    {copyrightInfos && <li> Copyright: {copyrightInfos}</li>}
-                </ul>
+                <p className="nav footer__nav">
+                    {backendVersion && <span> Web: v{backendVersion}&nbsp; </span> }
+                    -&nbsp;
+                    {apiVersion && <span>API: v{apiVersion}&nbsp; </span>}
+                    -&nbsp;
+                    {copyrightInfos && <span>Copyright: {copyrightInfos}&nbsp; </span>}
+                </p>
             </footer>
         )
     }
@@ -244,7 +249,7 @@ class Layout extends React.Component {
                 <Header/>
                 <SideBar/>
 
-                <section className="content">
+                <section className="content content--full">
                     {this.props.children}
                 </section>
 
@@ -303,10 +308,10 @@ class Index extends React.Component {
     render() {
         return (
             <div>
-                <PageLoader />
                 <GlobalLoader />
                 <UnobtrusiveLoader />
                 <ScreenContainer />
+                {globalComponents()}
             </div>
         )
     }

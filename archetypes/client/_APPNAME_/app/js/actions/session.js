@@ -7,8 +7,9 @@ import {alert, hideLoader, showLoader, toast} from "../plugins";
 import M from "../strings";
 import _ from "underscore";
 import {LOGIN, LOGOUT, RESUME_SESSION} from "./types";
-import {getUserCoverImage, getUserProfileImage} from "./ui";
+import {getUserProfileImage} from "./ui";
 import {setupMenu} from "./menu";
+import {selectOrganization} from "./organizations"
 
 export const login = createAsyncAction(LOGIN, data => {
     if (_.isEmpty(data.mail) || _.isEmpty(data.password)) {
@@ -42,8 +43,12 @@ function performLoginUserAction (user) {
     if (user) {
         setupMenu({user})
     }
-    getUserProfileImage()
-    getUserCoverImage()
+
+    getUserProfileImage();
+
+    if (user.selectedOrganization) {
+        selectOrganization({organizationId: user.selectedOrganization.id})    
+    }
 }
 
 export const resumeSession = createAsyncAction(RESUME_SESSION, data => {

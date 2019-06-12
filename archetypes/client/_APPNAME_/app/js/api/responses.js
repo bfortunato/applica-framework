@@ -1,3 +1,4 @@
+import _ from "underscore"
 import {getLanguage} from "../strings";
 
 
@@ -36,8 +37,8 @@ const messages = {
 	it: {}
 }
 
-messages["en"][OK]										  = "OK"
-messages["en"][ERROR] 									  = "Generic error"
+messages["en"][OK]										    = "OK"
+messages["en"][ERROR] 									    = "Generic error"
 messages["en"][ERROR_MAIL_ALREADY_EXISTS]                   = "Cannot register: mail already exists"
 messages["en"][ERROR_MAIL_NOT_FOUND]                        = "Mail not found"
 messages["en"][ERROR_BAD_CREDENTIALS]                       = "Cannot login: bad username or password"
