@@ -2,11 +2,12 @@ package applica.framework.widgets.operations;
 
 import applica.framework.Entity;
 import applica.framework.Repo;
-import applica.framework.RepositoriesFactory;
-import applica.framework.Repository;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
-import org.springframework.beans.factory.annotation.Autowired;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.utils.PermissionUtils;
+import applica.framework.widgets.acl.CrudPermission;
 
 import java.util.List;
 
@@ -39,6 +40,11 @@ public class BaseDeleteOperation implements DeleteOperation {
     }
 
     protected void remove(Object id) throws OperationException {
+        try {
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.DELETE, getEntityType(), Repo.of(getEntityType()).get(id).orElse(null));
+        } catch (AuthorizationException e) {
+            throw new OperationException(Response.UNAUTHORIZED);
+        }
         Repo.of(getEntityType()).delete(id);
     }
 
