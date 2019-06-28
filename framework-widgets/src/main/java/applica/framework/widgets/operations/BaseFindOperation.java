@@ -39,7 +39,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         try {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.LIST, getEntityType());
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.LIST, getEntityType(), query);
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED);
         }
