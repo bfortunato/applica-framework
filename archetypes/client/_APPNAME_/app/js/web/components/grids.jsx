@@ -1368,8 +1368,8 @@ export class EditCheckCell extends Cell {
 export function createCell(column, row, firstElement, onExpand, props = {}) {
     let key = column.property + "" + row.index
     let value = row.data[column.property]
-    let cell = _.isFunction(column.getCell) ? column.getCell(value, row) : column.cell;
-    return React.createElement(cell, _.assign({key, column, property: column.property, row, value, firstElement, onExpand}, props))
+
+    return React.createElement(column.cell, _.assign({key, column, property: column.property, row, value, firstElement, onExpand}, props))
     
 }
 

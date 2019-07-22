@@ -1,5 +1,4 @@
-import {forceBoolean, optional, parseBoolean} from "../../utils/lang";
-import * as _ from "../../libs/underscore";
+import {optional, parseBoolean} from "../../utils/lang";
 
 "use strict"
 
@@ -20,16 +19,10 @@ export class Dialog extends React.Component {
         $(me)
             .modal({show: false})
             .on("show.bs.modal", () => this.opened = true)
-            .on("hide.bs.modal", (e) => {
-                if (forceBoolean(this.props.notHide)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }else {
-                    this.opened = false
-                    if (_.isFunction(this.props.onClose)) {
-                        this.props.onClose(this.dialogResult)
-                    }
+            .on("hide.bs.modal", () => {
+                this.opened = false
+                if (_.isFunction(this.props.onClose)) {
+                    this.props.onClose(this.dialogResult)
                 }
             })
 

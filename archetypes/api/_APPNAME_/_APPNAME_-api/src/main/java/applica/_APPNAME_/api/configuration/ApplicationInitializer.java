@@ -1,10 +1,14 @@
 package applica._APPNAME_.api.configuration;
 
-import applica._APPNAME_.api.facade.AccountFacade;
 import applica._APPNAME_.api.permissions.PermissionMap;
 import applica._APPNAME_.domain.data.RolesRepository;
 import applica._APPNAME_.domain.data.UsersRepository;
-import applica._APPNAME_.domain.model.*;
+import applica._APPNAME_.domain.model.EntityList;
+import applica._APPNAME_.domain.model.Filters;
+import applica._APPNAME_.domain.model.Role;
+import applica._APPNAME_.domain.model.User;
+import applica.framework.revision.services.RevisionService;
+import applica._APPNAME_.domain.model.CustomPermissions;
 import applica._APPNAME_.services.authorizations.AuthorizationContexts;
 import applica.framework.Query;
 import applica.framework.data.mongodb.MongoEmbedded;
@@ -13,7 +17,7 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.utils.NullableDateConverter;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.licensing.LicenseManager;
-import applica.framework.revision.services.RevisionService;
+import applica.framework.security.Security;
 import applica.framework.security.authorization.Permissions;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.acl.CrudSecurityConfigurer;
@@ -21,23 +25,17 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static applica.framework.security.authorization.BaseAuthorizationService.SUPERUSER_PERMISSION;
+import java.util.*;
 
 /**
  * Created by bimbobruno on 22/11/2016.
  */
 @Component
 public class ApplicationInitializer {
-
-    private static final String DEFAULT_ADMIN_PASSWORD = "applica";
-    private static final String DEFAULT_ADMIN_USERNAME = "admin@applica.guru";
 
     private Log logger = LogFactory.getLog(getClass());
 
@@ -56,9 +54,6 @@ public class ApplicationInitializer {
     @Autowired
     private RolesRepository rolesRepository;
 
-    @Autowired
-    private AccountFacade accountFacade;
-
     public void init() {
         if (revisionService != null)
             revisionService.disableRevisionForCurrentThread();
@@ -70,10 +65,10 @@ public class ApplicationInitializer {
         setupPermissions();
         initializeCustomPermissions();
 
-        User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, DEFAULT_ADMIN_USERNAME)).findFirst().orElse(null);
+        User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, "admin@applica.guru")).findFirst().orElse(null);
         if (user == null) {
             user = new User();
-            String encodedPassword = accountFacade.encryptAndGetPassword(DEFAULT_ADMIN_PASSWORD);
+            String encodedPassword = new Md5PasswordEncoder().encodePassword("applica", null);
             user.setMail("admin@applica.guru");
             user.setPassword(encodedPassword);
             user.setName("admin");
@@ -126,7 +121,7 @@ public class ApplicationInitializer {
     private List<String> getPermissionByRole(String roleDescription) {
         switch (roleDescription) {
             case Role.ADMIN:
-                return Arrays.asList(CustomPermissions.RESET_USER_PASSWORD, SUPERUSER_PERMISSION);
+                return Arrays.asList(SUPERUSER_PERMISSION);
             default:
                 return new ArrayList<>();
         }

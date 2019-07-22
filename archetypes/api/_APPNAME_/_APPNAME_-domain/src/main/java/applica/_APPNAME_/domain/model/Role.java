@@ -1,7 +1,6 @@
 package applica._APPNAME_.domain.model;
 
 import applica.framework.AEntity;
-import applica.framework.library.i18n.LocalizationUtils;
 import applica.framework.widgets.entities.EntityId;
 
 import java.util.ArrayList;
@@ -47,9 +46,5 @@ public class Role extends AEntity implements applica.framework.security.Role {
 
     public static List<String> getAllRoles() {
         return Arrays.asList(ADMIN, USER);
-    }
-
-    public String getLocalizedRole(){
-        return LocalizationUtils.getInstance().getMessage(String.format("%s.%s", "label", role));
     }
 }

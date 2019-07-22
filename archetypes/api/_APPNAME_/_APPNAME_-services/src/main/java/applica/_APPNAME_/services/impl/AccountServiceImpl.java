@@ -1,14 +1,15 @@
 package applica._APPNAME_.services.impl;
 
 import applica._APPNAME_.domain.data.RolesRepository;
-import applica._APPNAME_.domain.model.*;
+import applica._APPNAME_.domain.model.Filters;
+import applica._APPNAME_.domain.model.PasswordChange;
+import applica._APPNAME_.domain.model.Role;
 import applica._APPNAME_.services.AccountService;
 import applica._APPNAME_.services.MailService;
-import applica._APPNAME_.services.UserService;
 import applica._APPNAME_.services.exceptions.*;
 import applica._APPNAME_.domain.data.UsersRepository;
+import applica._APPNAME_.domain.model.User;
 import applica.framework.Query;
-import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.base64.URLData;
 import applica.framework.library.mail.MailUtils;
@@ -18,18 +19,21 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.security.PasswordUtils;
-import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.Security;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Created by bimbobruno on 15/11/2016.
@@ -54,9 +58,6 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private MailService mailService;
 
-    @Autowired
-    private UserService userService;
-
     @Override
     public void register(String name, String email, String password) throws MailAlreadyExistsException, MailNotValidException, PasswordNotValidException, ValidationException {
         if (StringUtils.isEmpty(name) || StringUtils.isEmpty(email) || StringUtils.isEmpty(password)) {
@@ -79,7 +80,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         String activationCode = UUID.randomUUID().toString();
-        String encodedPassword = encryptAndGetPassword(password);
+        String encodedPassword = new Md5PasswordEncoder().encodePassword(password, null);
 
         User user = new User();
         user.setName(name);
@@ -122,7 +123,8 @@ public class AccountServiceImpl implements AccountService {
         User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
 
         String newPassword = PasswordUtils.generateRandom();
-        String encodedPassword = encryptAndGetPassword(newPassword);
+        Md5PasswordEncoder encoder = new Md5PasswordEncoder();
+        String encodedPassword = encoder.encodePassword(newPassword, null);
         user.setPassword(encodedPassword);
 
         usersRepository.save(user);
@@ -180,111 +182,12 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public void changePassword(User user, String password, String passwordConfirm) throws ValidationException, MailNotFoundException {
-        if (user == null)
-            throw new MailNotFoundException();
-        Validation.validate(new PasswordChange(user, password, passwordConfirm));
-
-        //Salvo la vecchia password (criptata) nello storico di quelle modificate dall'utente
-        String previousPassword = user.getPassword();
-
-        user.setCurrentPasswordSetDate(new Date());
-        user.setPassword(encryptAndGetPassword(password));
-        usersRepository.save(user);
-
-        new Thread(()-> {
-            Repo.of(UserPassword.class).save(new UserPassword(previousPassword, user.getSid()));
-        }).start();
-    }
-
-    @Override
-    public String encryptAndGetPassword(String password) {
-        password = password + "{" + options.get("password.salt") + "}";
-
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] array = md.digest(password.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte anArray : array) {
-                sb.append(Integer.toHexString((anArray & 0xFF) | 0x100), 1, 3);
-            }
-
-            return sb.toString();
-
-        } catch (java.security.NoSuchAlgorithmException ignored) {
-
-        }
-        return "";
-    }
-
-    @Override
-    public boolean needToChangePassword(applica.framework.security.User user) {
-        Calendar threeMonthAgo = Calendar.getInstance();
-        threeMonthAgo.add(Calendar.MONTH, -1 * getPasswordDuration());
-        return ((User) user).getCurrentPasswordSetDate() == null || ((User) user).getCurrentPasswordSetDate().before(threeMonthAgo.getTime());
-    }
-
-    @Override
-    public void deactivateInactiveUsers() {
-        Calendar sixMonthAgo = Calendar.getInstance();
-        //TODO: parametrizzare questo valore?
-        sixMonthAgo.add(Calendar.MONTH, -6);
-        Repo.of(User.class).find(Query.build().lte(Filters.LAST_LOGIN, sixMonthAgo.getTime())).getRows().forEach(u -> {
-            u.setActive(false);
-            Repo.of(User.class).save(u);
-        });
-    }
-
-
-    private int getPasswordDuration() {
-        return Integer.parseInt(options.get("password.duration"));
-    }
-
-    @Override
-    public boolean hasPasswordSetBefore(Object userId, String encryptedPassword, Integer changesToConsider) {
-        Query query = Query.build().eq(Filters.USER_ID, userId).sort(Filters.CREATION_DATE, true);
-        if (changesToConsider != null) {
-            query.setPage(1);
-            query.setRowsPerPage(changesToConsider);
-        }
-
-        return Repo.of(UserPassword.class).find(query).getRows().stream().filter(p -> Objects.equals(encryptedPassword, p.getPassword())).collect(Collectors.toList()).size() > 0;
-    }
-    @Override
-    public PasswordRecoveryCode getPasswordRecoverForUser(String userId) {
-        return Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.USER_ID, userId)).findFirst().orElse(null);
-    }
-
-    @Override
-    public PasswordRecoveryCode getPasswordRecoveryCode(String code) {
-        return Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.CODE, code)).findFirst().orElse(null);
-    }
-
-    @Override
-    public void deletePasswordRecoveryCode(PasswordRecoveryCode code) {
-        Repo.of(PasswordRecoveryCode.class).delete(code.getSid());
-    }
-
-    @Override
-    public void savePasswordRecoveryCode(PasswordRecoveryCode passwordRecoveryCode) {
-        Repo.of(PasswordRecoveryCode.class).save(passwordRecoveryCode);
-    }
-
-    @Override
-    public void validateRecoveryCode(String mail, String code, boolean deleteRecord) throws MailNotFoundException, CodeNotValidException {
-        User user = usersRepository.find(Query.build().eq(Filters.USER_MAIL, mail)).findFirst().orElseThrow(MailNotFoundException::new);
-        PasswordRecoveryCode passwordRecoveryCode = Repo.of(PasswordRecoveryCode.class).find(Query.build().eq(Filters.USER_ID, user.getSid()).eq(Filters.CODE, code.toUpperCase())).findFirst().orElseThrow(CodeNotValidException::new);
-        if (deleteRecord)
-            Repo.of(PasswordRecoveryCode.class).delete(passwordRecoveryCode.getId());
-    }
-
-    @Override
-    public void resetPassword(String mail, String code, String password, String passwordConfirm) throws MailNotFoundException, CodeNotValidException, ValidationException {
-        validateRecoveryCode(mail, code, false);
-        User user = userService.getUserByMails(Arrays.asList(mail)).get(0);
-        changePassword(user, password, passwordConfirm);
-        PasswordRecoveryCode passwordRecoveryCode = getPasswordRecoveryCode(code);
-        deletePasswordRecoveryCode(passwordRecoveryCode);
+    public void changePassword(String password, String passwordConfirm) throws ValidationException {
+        Validation.validate(new PasswordChange(password, passwordConfirm));
+        User loggedUser = (User) Security.withMe().getLoggedUser();
+        ((User) loggedUser).setFirstLogin(false);
+        loggedUser.setPassword(new Md5PasswordEncoder().encodePassword(password, null));
+        usersRepository.save(loggedUser);
     }
 
 }

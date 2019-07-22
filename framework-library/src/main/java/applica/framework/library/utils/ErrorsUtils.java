@@ -15,7 +15,10 @@ import java.util.stream.Collectors;
  */
 public class ErrorsUtils {
 
-    public String getAllErrorMessages(Errors errors) {
+    // Prevent initialization
+    private ErrorsUtils() { }
+
+    public static String getAllErrorMessages(Errors errors) {
         String errorMessages = "";
         for(ObjectError error: errors.getAllErrors()) {
             errorMessages = String.format("%s%s: %s<br>",  errorMessages, getMessage(error.getObjectName()), getMessage(error.getDefaultMessage()));
@@ -23,12 +26,12 @@ public class ErrorsUtils {
         return errorMessages;
     }
 
-    public String getAllErrorMessages(List<ValidationResult.Error> errors) {
+    public static String getAllErrorMessages(List<ValidationResult.Error> errors) {
 
         return getAllErrorMessages(errors, null);
     }
 
-    public String getAllErrorMessages(List<ValidationResult.Error> errors, String errorSeparator) {
+    public static String getAllErrorMessages(List<ValidationResult.Error> errors, String errorSeparator) {
 
         String errorMessages = "";
         String separator = StringUtils.hasLength(errorSeparator) ? errorSeparator : "";
@@ -38,8 +41,7 @@ public class ErrorsUtils {
         return errorMessages;
     }
 
-
-    public String getMessage(String label) {
+    public static String getMessage(String label) {
         Localization localization = new Localization();
         return localization.getMessage(label);
     }

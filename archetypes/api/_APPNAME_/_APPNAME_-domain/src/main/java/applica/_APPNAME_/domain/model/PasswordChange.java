@@ -7,24 +7,14 @@ import applica.framework.AEntity;
  */
 public class PasswordChange extends AEntity{
 
-    private User user;
     private String password;
     private String passwordConfirm;
 
     public PasswordChange() {}
 
-    public PasswordChange(User user, String password, String passwordConfirm) {
-        this.user = user;
+    public PasswordChange(String password, String passwordConfirm) {
         this.password = password;
         this.passwordConfirm = passwordConfirm;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getPasswordConfirm() {

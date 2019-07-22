@@ -5,7 +5,6 @@ import {check, sanitize} from "../libs/validator";
 import {Image, Mail, PasswordText, Text, YesNo} from "./components/forms";
 import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers";
 import M from "../strings";
-import {getLoggedUser, hasPermission} from "../api/session";
 
 
 const entities = {
@@ -24,50 +23,6 @@ const entities = {
 		form: {
 			title: M("editUser"),
 			subtitle: M("editUserDescription"),
-			getActions(data) {
-				let actions = ["back", "save", "save-go-back", "revisions"];
-				if (hasPermission("canResetPassword")) {
-					if (data && data.id) {
-						actions.push({
-							type: "button",
-							icon: "zmdi zmdi-brush",
-							tooltip: "Reset password",
-							action: () => {
-
-								swal({
-									title: M("confirm"),
-									text: "Verrà impostata una nuova password ed inviata all'indirizzo mail dell'utente",
-									showCancelButton: true
-								})
-									.then(() => {
-										resetUserPassword({id: data.id})
-										if (data.id === getLoggedUser().id) {
-											swal({
-												title: M("confirm"),
-												text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
-												showCancelButton: false
-											})
-												.then(() => {
-													logout();
-													ui.navigate("/login")
-
-												})
-												.catch((e) => {
-													logger.i(e)
-												})
-										}
-
-									})
-									.catch((e) => {
-										logger.i(e)
-									})
-
-							}
-						})
-					}
-				}
-				return actions
-			},
 			descriptor: {
 	            areas: [
 	                {
