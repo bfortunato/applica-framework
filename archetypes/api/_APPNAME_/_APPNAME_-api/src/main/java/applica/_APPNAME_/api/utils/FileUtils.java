@@ -13,9 +13,9 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.tika.Tika;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
+import org.apache.axis.encoding.Base64;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.Base64;
 
 import static applica._APPNAME_.api.utils.FileType.*;
 
@@ -105,7 +105,7 @@ public class FileUtils {
         Attachment attachment = null;
 
         if (StringUtils.hasLength(imageData) && StringUtils.hasLength(filename) && StringUtils.hasLength(fileServerPath)) {
-            byte[] data = Base64.getDecoder().decode(imageData);
+            byte[] data = Base64.decode(imageData);
             InputStream stream = new ByteArrayInputStream(data);
             FileServer fileServer = ApplicationContextProvider.provide().getBean(FileServer.class);
 
@@ -148,7 +148,7 @@ public class FileUtils {
         response.setHeader("Content-disposition", String.format("attachment; filename=\"%s\"", fileName.replaceAll("\\s+", "_")));
         response.setStatus(200);
         IOUtils.copy(fileInputStream, response.getOutputStream());
-        fileInputStream.close();
+        IOUtils.closeQuietly(fileInputStream);
     }
 
     public static String getAttachmentFullUrl(String path) {

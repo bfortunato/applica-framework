@@ -1,5 +1,5 @@
-import React from "react";
-import ReactDOM from "react-dom";
+"use strict";
+
 import {AccountStore} from "../../stores/account";
 import M from "../../strings";
 import {connect} from "../utils/aj";
@@ -8,7 +8,7 @@ import * as ui from "../utils/ui";
 import {requestRecoveryCode, resetPassword, validateRecoveryCode} from "../../actions/account";
 import * as forms from "../utils/forms";
 import {safeGet} from "../../utils/lang";
-import _ from "underscore";
+import * as _ from "../../libs/underscore"
 import {PasswordRecoveryStore} from "../../stores/passwordRecovery";
 
 export default class Recover extends Screen {
@@ -36,29 +36,6 @@ export default class Recover extends Screen {
     resetPassword(data) {
         _.assign(data,{mail: this.state.mail, code: this.state.code});
         resetPassword(data);
-    }
-
-    componentDidMount() {
-        const me = ReactDOM.findDOMNode(this)
-        $(me).find(".form-control").change(function () {
-            var x = $(this).val();
-
-            if(!x.length == 0) {
-                $(this).addClass("form-control--active");
-            }
-        }).change();
-
-        $(me).on("blur input", ".form-group--float .form-control", function(){
-            var i = $(this).val();
-
-            if (i.length == 0) {
-                $(this).removeClass("form-control--active");
-            }
-            else {
-                $(this).addClass("form-control--active");
-            }
-        });     
-        
     }
 
     componentWillUpdate(props, state) {
@@ -95,26 +72,15 @@ export default class Recover extends Screen {
         let content = this.getContent();
         return (
             <FullScreenLayout>
-                <div className="login">
-                    <div class="login__block active" id="l-forget-password">
-                        <div class="login__block__header palette-Purple bg">
-                            <i class="zmdi zmdi-account-circle"></i>
-                            Forgot Password?
+                <div className="login-content">
+                    <div className="lc-block toggled" id="l-forget-password">
+                        {content}
 
-                            <div class="actions actions--inverse login__block__actions">
-                                <div class="dropdown">
-                                    <i data-toggle="dropdown" class="zmdi zmdi-more-vert actions__item"></i>
-
-                                    <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" href="/#/login">Already have an account?</a>
-                                        <a class="dropdown-item" href="/#/register">Create an account</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="login__block__body">
-                            {content}
+                        <div className="lcb-navigation">
+                            <a href="#login" data-ma-block="#l-login"><i className="zmdi zmdi-long-arrow-right"></i>
+                                <span>{M("signIn")}</span></a>
+                            {/*<a href="#register" data-ma-block="#l-register"><i className="zmdi zmdi-plus"></i>*/}
+                                {/*<span>{M("register")}</span></a>*/}
                         </div>
                     </div>
                 </div>
@@ -142,13 +108,16 @@ class CodeRequestForm extends React.Component {
                   ref="recover_form">
                 <p className="text-left">{M("accountRecoverText")}</p>
 
-                <div class="form-group form-group--float form-group--centered">
-                    <input type="text" name="mail" class="form-control" />
-                    <label>Email Address</label>
-                    <i class="form-group__bar"></i>
+                <div className="input-group m-b-20">
+                    <span className="input-group-addon"><i className="zmdi zmdi-email"></i></span>
+                    <div className="fg-line">
+                        <input type="email" name="mail" className="form-control"
+                               placeholder={M("mailAddress")}/>
+                    </div>
                 </div>
 
-                <button type="submit" className="btn btn--icon login__block__btn"><i className="zmdi zmdi-check"></i></button>
+                <button type="submit" className="btn btn-login btn-success btn-float animated fadeInLeft"><i
+                    className="zmdi zmdi-check"></i></button>
             </form>
         )
 
@@ -179,22 +148,24 @@ class CodeValidationForm extends React.Component {
                   ref="validate_code_form">
                 <p className="text-left">{M("codeValidationText")}</p>
 
-               <div class="form-group form-group--float form-group--centered">
-                    <input type="text" name="code" class="form-control" />
-                    <label>Validation code</label>
-                    <i class="form-group__bar"></i>
+                <div className="input-group m-b-20">
+                    <span className="input-group-addon"><i className="zmdi zmdi-key"></i></span>
+                    <div className="fg-line">
+                        <input type="text" name="code" className="form-control"
+                               placeholder={M("validationCode")}/>
+                    </div>
                 </div>
 
                 <button
                     type="button"
-                    className = "btn btn--icon login__block__btn"
+                    className = "btn btn-success btn-icon-text waves-effect"
                     onClick = {this.onTryAgain.bind(this)}
                 >
                     <i className = "zmdi zmdi-refresh"/>
                     {M("requestNew")}
                 </button>
 
-                <button type="submit" className="btn btn--icon login__block__btn"><i
+                <button type="submit" className="btn btn-login btn-success btn-float animated fadeInLeft"><i
                     className="zmdi zmdi-check"></i></button>
 
 

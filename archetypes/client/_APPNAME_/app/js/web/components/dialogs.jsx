@@ -1,7 +1,7 @@
-import React from "react";
-import ReactDOM from "react-dom";
 import {forceBoolean, optional, parseBoolean} from "../../utils/lang";
-import _ from "underscore";
+import * as _ from "../../libs/underscore";
+
+"use strict"
 
 export const DIALOG_RESULT_OK = 0
 export const DIALOG_RESULT_CANCEL = 1
@@ -25,12 +25,11 @@ export class Dialog extends React.Component {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
-                } 
-            })
-            .on("hidden.bs.modal", e => {
-                this.opened = false
-                if (_.isFunction(this.props.onClose)) {
-                    this.props.onClose(this.dialogResult)
+                }else {
+                    this.opened = false
+                    if (_.isFunction(this.props.onClose)) {
+                        this.props.onClose(this.dialogResult)
+                    }
                 }
             })
 
@@ -77,7 +76,7 @@ export class Dialog extends React.Component {
     }
 
     render() {
-        let buttons = optional(this.props.buttons, []).map(b => <button key={b.text} type="button" className={"btn btn-link " + optional(b.extraClassName, "")} onClick={this.runButtonAction.bind(this, b)}>{b.text}</button>)
+        let buttons = optional(this.props.buttons, []).map(b => <button key={b.text} type="button" className="btn btn-link waves-effect" onClick={this.runButtonAction.bind(this, b)}>{b.text}</button>)
         let style = {
             //display: this.props.hidden ? "none" : "block"
         }
@@ -96,7 +95,7 @@ export class Dialog extends React.Component {
                     <div className="modal-content">
                         {!headerHidden &&
                             <div className="modal-header">
-                                <h5 className="modal-title">{this.props.title}</h5>
+                                <h4 className="modal-title">{this.props.title}</h4>
                             </div>
                         }
                         <div className="modal-body" style={bodyStyle}>

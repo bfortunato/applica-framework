@@ -1,10 +1,12 @@
-import _ from "underscore";
+"use strict"
+
 import {CheckCell, TextCell} from "./components/grids";
 import {check, sanitize} from "../libs/validator";
 import {Image, Mail, PasswordText, Text, YesNo} from "./components/forms";
 import {EntitiesLookupContainer, ValuesLookupContainer} from "./components/containers";
 import M from "../strings";
 import {getLoggedUser, hasPermission} from "../api/session";
+import {resetUserPassword} from "../actions/account";
 
 
 const entities = {
@@ -32,13 +34,13 @@ const entities = {
 							icon: "zmdi zmdi-brush",
 							tooltip: "Reset password",
 							action: () => {
+
 								swal({
 									title: M("confirm"),
 									text: "Verrà impostata una nuova password ed inviata all'indirizzo mail dell'utente",
 									showCancelButton: true
 								})
-								.then((res) => {
-									if (res.value) {
+									.then(() => {
 										resetUserPassword({id: data.id})
 										if (data.id === getLoggedUser().id) {
 											swal({
@@ -46,18 +48,20 @@ const entities = {
 												text: "La tua password è stata resettata. Dovrai eseguire un nuovo accesso",
 												showCancelButton: false
 											})
-											.then((res) => {
-												if (res.value) {
+												.then(() => {
 													logout();
 													ui.navigate("/login")
-												}
-											})
+
+												})
+												.catch((e) => {
+													logger.i(e)
+												})
 										}
-									}
-								})
-								.catch((e) => {
-									logger.i(e)
-								})
+
+									})
+									.catch((e) => {
+										logger.i(e)
+									})
 
 							}
 						})
@@ -142,7 +146,6 @@ const entities = {
 		grid: {
 			title: M("rolesList"),
 			subtitle: M("rolesListDescription"),
-			quickSearchEnabled: true,
 			descriptor: {
 				columns: [
 	                {property: "role", header: "Role", cell: TextCell, sortable: true, searchable: true}

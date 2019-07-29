@@ -12,7 +12,6 @@ import java.util.Objects;
  * Created by antoniolovicario on 27/04/17.
  */
 public class SchedulerCondition implements Condition {
-
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         return Objects.equals(ApplicationContextProvider.provide().getBean(OptionsManager.class).get("enable.scheduled.sync"), "ON");

@@ -39,14 +39,13 @@ public class AuthController extends LocalizedController {
         try {
             String token = authService.token(mail, password);
             User user = Security.withMe().getLoggedUser();
-            //((applica._APPNAME_.domain.model.User) user).setNeedToChangePassword(accountService.needToChangePassword(user));
+            ((applica._APPNAME_.domain.model.User) user).setNeedToChangePassword(accountService.needToChangePassword(user));
             return new LoginResponse(token, user);
         } catch (BadCredentialsException e) {
             return new Response(ERROR_BAD_CREDENTIALS);
         } catch (TokenGenerationException e) {
             return new Response(ERROR_TOKEN_GENERATION);
         } catch (Exception e) {
-            e.printStackTrace();
             return new Response(ERROR);
         }
     }

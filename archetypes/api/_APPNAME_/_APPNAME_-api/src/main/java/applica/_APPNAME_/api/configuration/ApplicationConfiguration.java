@@ -1,10 +1,7 @@
 package applica._APPNAME_.api.configuration;
 
-import applica._APPNAME_.domain.utils.CustomErrorUtils;
-import applica._APPNAME_.domain.utils.CustomLocalizationUtils;
 import applica.framework.ApplicationContextProvider;
 import applica.framework.DefaultRepositoriesFactory;
-import applica.framework.library.i18n.LocalizationUtils;
 import applica.framework.RepositoriesFactory;
 import applica.framework.fileserver.FileServer;
 import applica.framework.fileserver.SimpleFileServer;
@@ -14,7 +11,6 @@ import applica.framework.library.cache.Cache;
 import applica.framework.library.cache.MemoryCache;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.options.PropertiesOptionManager;
-import applica.framework.library.utils.ErrorsUtils;
 import applica.framework.library.velocity.BaseVelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilder;
 import applica.framework.library.velocity.VelocityBuilderProvider;
@@ -53,11 +49,6 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     public OptionsManager optionsManager() {
         options = new PropertiesOptionManager();
         return options;
-    }
-
-    @Bean
-    public LocalizationUtils getLocalizationUtils() {
-        return new CustomLocalizationUtils();
     }
 
     @Bean
@@ -131,13 +122,6 @@ public class ApplicationConfiguration implements WebMvcConfigurer {
     public FileServer fileServer() {
         return new SimpleFileServer();
     }
-
-
-    @Bean
-    public ErrorsUtils getErrorUtils() {
-        return new CustomErrorUtils();
-    }
-
 
     @Bean
     public ServletRegistrationBean imagesServlet() {

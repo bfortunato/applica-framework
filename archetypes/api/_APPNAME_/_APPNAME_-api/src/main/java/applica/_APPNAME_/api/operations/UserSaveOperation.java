@@ -7,8 +7,6 @@ import applica.framework.Repo;
 import applica.framework.widgets.operations.BaseSaveOperation;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -39,7 +37,7 @@ public class UserSaveOperation extends BaseSaveOperation {
         String passwordToSave = null;
         if (org.springframework.util.StringUtils.hasLength(data.get("password").asText())) {
             //set / modifica password
-            passwordToSave = new BCryptPasswordEncoder().encode(data.get("password").asText());
+            passwordToSave = accountFacade.encryptAndGetPassword(data.get("password").asText());
             ((User) entity).setCurrentPasswordSetDate(new Date());
         } else {
             if (entity.getId() != null) {
@@ -67,7 +65,7 @@ public class UserSaveOperation extends BaseSaveOperation {
                 user.setRegistrationDate(new Date());
 
                 String tempPassword = user.getSid();
-                user.setPassword(new BCryptPasswordEncoder().encode(tempPassword));
+                user.setPassword(accountFacade.encryptAndGetPassword(tempPassword));
             }
 
             Repo.of(User.class).save(user);

@@ -18,6 +18,7 @@ import applica.framework.library.options.OptionsManager;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.security.PasswordUtils;
+import applica.framework.security.authorization.AuthorizationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;

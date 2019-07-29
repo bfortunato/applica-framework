@@ -19,6 +19,7 @@ public class Filter{
     public static final String LT = "lt";
     public static final String LTE = "lte";
     public static final String EQ = "eq";
+    public static final String EQ_IGNORE_CASE = "eq_ignorecase";
     public static final String IN = "in";
     public static final String LIN = "lin";
     public static final String NIN = "nin";

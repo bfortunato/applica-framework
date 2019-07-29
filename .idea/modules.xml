@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/applica-framework.iml" filepath="$PROJECT_DIR$/.idea/applica-framework.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework.iml" filepath="$PROJECT_DIR$/framework.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-cli/framework-cli.iml" filepath="$PROJECT_DIR$/framework-cli/framework-cli.iml" />
-      <module fileurl="file://$PROJECT_DIR$/framework-cli/framework-cli.iml" filepath="$PROJECT_DIR$/framework-cli/framework-cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-core/framework-core.iml" filepath="$PROJECT_DIR$/framework-core/framework-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data/framework-data.iml" filepath="$PROJECT_DIR$/framework-data/framework-data.iml" />
       <module fileurl="file://$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" filepath="$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" />

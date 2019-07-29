@@ -88,6 +88,7 @@ public class SimpleFileServer implements FileServer, InitializingBean {
         try {
             response = client.execute(method);
         } catch (IOException e) {
+            e.printStackTrace();
             throw new IOException(e);
         } finally {
             if (response != null) {

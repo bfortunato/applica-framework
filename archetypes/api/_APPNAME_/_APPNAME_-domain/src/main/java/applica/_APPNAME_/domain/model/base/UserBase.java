@@ -6,7 +6,7 @@ package applica._APPNAME_.domain.model.base;
 
 import applica._APPNAME_.domain.model.Role;
 import applica.framework.AEntity;
-import applica.framework.cli.annotations.ManyToMany;
+import applica.framework.annotations.ManyToMany;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -127,6 +127,11 @@ public class UserBase extends AEntity {
     public void setCurrentPasswordSetDate(Date currentPasswordSetDate) {
         this.currentPasswordSetDate = currentPasswordSetDate;
     }
+
+    public String getRoleDescription() {
+        return String.join((CharSequence) roles.stream().map(Role::getLocalizedRole).collect(Collectors.toList()), ", ");
+    }
+
 
     public String getFullName() {
         return String.format("%s %s", lastname, name);
