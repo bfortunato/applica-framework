@@ -112,7 +112,7 @@ exports.navigate = function(path, openInNewTab = false) {
 			.attr("href", _clearSlashes(base + path))
 			.attr("target", "_blank")
 			.get(0)
-			.click()
+			.dispatchEvent(new MouseEvent(`click`, {bubbles: true, cancelable: true, view: window}));
 	} else {
 		history.pushState(null, null, _clearSlashes(base + path))
         $("html, body").animate({ scrollTop: 0 }, "slow");

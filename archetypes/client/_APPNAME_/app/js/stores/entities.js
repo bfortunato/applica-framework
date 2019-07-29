@@ -2,7 +2,17 @@ import * as aj from "../aj/index";
 import {completed, discriminate, failed} from "../utils/ajex";
 import * as actions from "../actions/types";
 import _ from "underscore";
-import {ENTITIES, GRIDS, LOOKUP, MULTIVALUE_SETTINGS, SELECT} from "./types";
+import {ENTITIES, GRIDS, LOOKUP, MULTIVALUE_SETTINGS, SELECT, SEARCH} from "./types";
+
+
+export const SearchStore = aj.createStore(SEARCH, (state = {}, action) => {
+    switch (action.type) {
+case actions.UPDATE_QUERY:
+    return discriminate(state, action.discriminator, {query: action.query, params: action.params})
+case actions.GET_QUERY:
+    return discriminate(state, action.discriminator)
+}
+});
 
 
 export const GridsStore = aj.createStore(GRIDS, (state = {grid: null}, action) => {

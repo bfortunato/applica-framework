@@ -1,16 +1,17 @@
 import _ from "underscore";
 import React from "react";
 import {Layout, Screen} from "../../components/layout";
+import {SearchStore} from "../../../stores/entities";
 import M from "../../../strings";
-import {deleteEntities, freeEntities, loadEntities} from "../../../actions/entities";
+import {deleteEntities, freeEntities, loadEntities, updateQuery} from "../../../actions/entities";
 import {ActionsMatcher, FloatingButton, HeaderBlock} from "../../components/common";
 import {Grid, resultToGridData} from "../../components/grids";
 import * as query from "../../../framework/query";
 import {format, optional} from "../../../utils/lang";
-import {isCancel} from "../../utils/keyboard";
 import entities from "../../entities";
 import * as ui from "../../utils/ui";
 import {Permission} from "../../../api/session";
+import {discriminated} from "../../../utils/ajex";
 
 export default class AbstractEntitiesGrid extends Screen {
     constructor(props) {
@@ -20,7 +21,30 @@ export default class AbstractEntitiesGrid extends Screen {
             throw new Error("Please specify entity for form")
         }
 
-        let _query = entities[this.getEntity()].grid.initialQuery
+        this.discriminator = "entity_grid_" + this.getEntity()
+        let _query = this.getInitialQuery();
+        this.state = {grid: null, result: null, query: _query}
+        this.state.query.on("change", () => {
+            updateQuery({discriminator: this.discriminator, query: this.state.query});
+            this.onQueryChanged()
+        })
+
+        this.state = {grid: null, result: null, query: _query}
+    }
+
+
+    getInitialQuery() {
+
+        let state = optional(discriminated(optional(SearchStore.state, {}), this.discriminator), {});
+        let _query;
+        if (state ) {
+            _query = state.query;
+        }
+
+        if (!_query)
+            _query = entities[this.getEntity()].grid.initialQuery
+
+
         if (_.isFunction(entities[this.getEntity()].grid.initialQuery)) {
             _query = entities[this.getEntity()].grid.initialQuery()
         }
@@ -30,7 +54,7 @@ export default class AbstractEntitiesGrid extends Screen {
             _query.rowsPerPage = 50
         }
 
-        this.state = {grid: null, result: null, query: _query}
+        return _query;
     }
 
     getEntity() {

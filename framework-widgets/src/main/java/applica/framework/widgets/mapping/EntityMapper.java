@@ -494,23 +494,6 @@ public class EntityMapper {
         }
     }
 
-
-    public void entitiesToIds(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
-        Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
-        Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
-
-        List<Entity> relatedEntities = null;
-        try {
-            relatedEntities = (List<Entity>) PropertyUtils.getProperty(source, sourceProperty);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        ArrayNode arrayNode = destination.putArray(destinationProperty);
-        for (Entity entity : relatedEntities) {
-            arrayNode.add(String.valueOf(entity.getId()));
-        }
-    }
-
     public void attachmentToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
@@ -607,6 +590,46 @@ public class EntityMapper {
         }
     }
 
+    public void idsToEntities (Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, Class<? extends Entity> propertyClass) {
+        ArrayNode arrayNode = destination.putArray(destinationProperty);
+        for (Entity entity: idsToEntityList(source, sourceProperty, propertyClass)) {
+            arrayNode.addPOJO(entity);
+        }
+    }
+
+    public void entitiesToIds(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
+
+        List<Entity> relatedEntities = null;
+        try {
+            relatedEntities = (List<Entity>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        ArrayNode arrayNode = destination.putArray(destinationProperty);
+        for (Entity entity : relatedEntities) {
+            arrayNode.add(String.valueOf(entity.getId()));
+        }
+    }
+
+    public List<Entity> idsToEntityList (Entity source, String sourceProperty, Class<? extends Entity> propertyClass) {
+
+        List<Entity> entities = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+        try {
+            ids = (List<String>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        if (ids != null) {
+            for (String entityId : ids) {
+                entities.add(Repo.of(propertyClass).get(entityId).get());
+            }
+        }
+
+        return entities;
+    }
 
     public void dataUrlToAttachment(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
