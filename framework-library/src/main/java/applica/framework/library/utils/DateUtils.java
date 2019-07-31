@@ -5,6 +5,9 @@ import org.springframework.util.StringUtils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -120,27 +123,27 @@ public class DateUtils {
         return calendar.getTime();
     }
 
-    public static Date getEndOfTheDay(Date day) {
-        Calendar toDate = GregorianCalendar.getInstance();
-        toDate.setTime(day);
-        toDate.set(GregorianCalendar.HOUR_OF_DAY, 23);
-        toDate.set(GregorianCalendar.MINUTE, 59);
-        toDate.set(GregorianCalendar.SECOND, 59);
 
-        return toDate.getTime();
+
+    public static Date getBeginOfTheDay(Date date) {
+        LocalDateTime localDateTime = dateToLocalDateTime(date);
+        LocalDateTime startOfDay = localDateTime.with(LocalTime.MIN);
+        return localDateTimeToDate(startOfDay);
     }
 
-    public static Date getBeginOfTheDay(Date day) {
-
-        Calendar fromDate = GregorianCalendar.getInstance();
-        fromDate.setTime(day);
-        fromDate.set(GregorianCalendar.HOUR_OF_DAY, 0);
-        fromDate.set(GregorianCalendar.MINUTE, 0);
-        fromDate.set(GregorianCalendar.SECOND, 0);
-
-        return fromDate.getTime();
+    public static Date getEndOfTheDay(Date date) {
+        LocalDateTime localDateTime = dateToLocalDateTime(date);
+        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
+        return localDateTimeToDate(endOfDay);
     }
 
+    private static LocalDateTime dateToLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    private static Date localDateTimeToDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
 
 
     public static String getStringifyDate(Date date, String format) {
