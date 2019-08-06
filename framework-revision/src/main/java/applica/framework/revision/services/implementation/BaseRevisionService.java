@@ -52,9 +52,11 @@ public class BaseRevisionService implements RevisionService {
         String type = createRevisionType(entity, previousEntity);
         //TODO: se entrambe le entity e previousEntity sono null il servizio andrà in nullPOinter. Questo caso si verifica solo quando faccio la revisione di sotto - oggetti che non erano valorizzati nè prima nè dopo quindi posso "permettermi" di non gestire il caso. Magari in futuro prevenirlo o gestirlo appositamente
         Class<? extends Entity> entityClass = generateEntityClass(entity, previousEntity);
-        String entityId = String.valueOf(generateEntityId(entity, previousEntity));
+        Object id = generateEntityId(entity, previousEntity);
+        String entityId = id != null? String.valueOf(id) : null;
         Revision revision = createNewRevision(user, type, entityClass, entityId, entity, previousEntity);
-        revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
+        if (entityId != null)
+            revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
 
     }
@@ -259,7 +261,7 @@ public class BaseRevisionService implements RevisionService {
     }
 
 
-    private long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity) {
+    public long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity) {
         Revision last = Repo.of(Revision.class).find(Query.build().eq("entityId", entityId).eq("entity", EntityUtils.getEntityIdAnnotation(entity)).sort("date", true).page(1).rowsPerPage(1)).findFirst().orElse(null);
         return last != null ? last.getCode() + 1 : 1;
     }
