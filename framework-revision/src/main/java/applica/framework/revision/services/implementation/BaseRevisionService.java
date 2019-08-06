@@ -55,7 +55,7 @@ public class BaseRevisionService implements RevisionService {
         Object id = generateEntityId(entity, previousEntity);
         String entityId = id != null? String.valueOf(id) : null;
         Revision revision = createNewRevision(user, type, entityClass, entityId, entity, previousEntity);
-        if (entityId != null)
+        if (entityId != null && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(EntityUtils.getEntityIdAnnotation(entityClass)))
             revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
 
