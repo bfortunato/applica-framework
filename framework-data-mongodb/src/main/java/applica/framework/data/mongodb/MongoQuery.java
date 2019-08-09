@@ -246,5 +246,9 @@ public class MongoQuery extends BasicDBObject {
 			parent.or(expressions);
 		}		
 	}
+
+	public void elemMatch(String property, MongoQuery elemMatchs) {
+		this.put(property, new BasicDBObject("$elemMatch", elemMatchs));
+	}
 	
 }

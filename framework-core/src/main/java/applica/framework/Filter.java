@@ -31,6 +31,7 @@ public class Filter{
     public static final String RANGE = "range";
     public static final String EXISTS = "exists";
     public static final String EXACT = "exact";
+    public static final String ELEM_MATCH =     "elemMatch";
 
     //GEO-FILTERS: used to apply geometric relationships between geographical coordinates
     public static final String GEO = "geo";

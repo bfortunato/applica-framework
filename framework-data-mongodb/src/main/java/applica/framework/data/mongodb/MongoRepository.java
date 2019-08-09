@@ -144,6 +144,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                     return q;
                 }).collect(Collectors.toList()));
                 break;
+            case Filter.ELEM_MATCH:
+                Query elemMatchs = (Query) filter.getValue();
+                mongoQuery.elemMatch(filter.getProperty(), createQuery(elemMatchs));
+                break;
         }
     }
 
