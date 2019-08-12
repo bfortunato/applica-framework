@@ -102,6 +102,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             case Filter.EQ:
                 mongoQuery.eq(filter.getProperty(), filter.getValue());
                 break;
+            case Filter.EQ_IGNORE_CASE:
+                mongoQuery.eq(filter.getProperty(), filter.getValue(), true);
+                break;
             case Filter.NE:
                 mongoQuery.ne(filter.getProperty(), filter.getValue());
                 break;
@@ -140,6 +143,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                     pushFilter(q, f);
                     return q;
                 }).collect(Collectors.toList()));
+                break;
+            case Filter.ELEM_MATCH:
+                Query elemMatchs = (Query) filter.getValue();
+                mongoQuery.elemMatch(filter.getProperty(), createQuery(elemMatchs));
                 break;
         }
     }

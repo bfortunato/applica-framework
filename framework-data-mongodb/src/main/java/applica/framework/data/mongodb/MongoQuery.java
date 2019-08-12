@@ -41,7 +41,15 @@ public class MongoQuery extends BasicDBObject {
 	 * Use eq for "equal"
 	 */
 	public MongoQuery eq(String key, Object value) {
-		this.put(key, value);		
+		return eq(key, value, false);
+	}
+
+	public MongoQuery eq(String key, Object value, boolean ignoreCase) {
+		if (ignoreCase)
+			this.put(key, Pattern.compile("^(?)" + Pattern.quote(value.toString()) , Pattern.CASE_INSENSITIVE ));
+		else
+			this.put(key, value);
+
 		return this;
 	}
 	
@@ -182,6 +190,7 @@ public class MongoQuery extends BasicDBObject {
 		return this;
 	}
 
+
 	public abstract class BinaryExpression {
 		protected MongoQuery parent;
 		protected List<MongoQuery> expressions = new ArrayList<>();
@@ -236,6 +245,10 @@ public class MongoQuery extends BasicDBObject {
 		protected void flushParent() {
 			parent.or(expressions);
 		}		
+	}
+
+	public void elemMatch(String property, MongoQuery elemMatchs) {
+		this.put(property, new BasicDBObject("$elemMatch", elemMatchs));
 	}
 	
 }

@@ -38,6 +38,15 @@ public class TemplatedMail {
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
+    private boolean debug;
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     private class ByteAttachmentData {
         byte[] bytes;
@@ -136,6 +145,7 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
+        session.getProperties().setProperty("mail.debug", String.valueOf(debug));
         session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
         session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 

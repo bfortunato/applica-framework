@@ -179,6 +179,11 @@
             <artifactId>jts</artifactId>
             <version>1.13</version>
         </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-annotations -->
         <!--<dependency>-->
