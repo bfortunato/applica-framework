@@ -8,7 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.springframework.util.StringUtils;
-
+import applica.framework.widgets.mapping.Attachment;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -35,6 +35,8 @@ public class TemplatedMail {
     private List<Recipient> recipients = new ArrayList<>();
     private String subject;
     private List<String> attachments = new ArrayList<>();
+    private String mailText;
+    private List<Attachment> attachmentList;
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
@@ -215,7 +217,7 @@ public class TemplatedMail {
         if (StringUtils.hasLength(returnReceipt)) {
             message.setHeader("Return-Receipt-To:",String.format("<%s>", returnReceipt));
         }
-
+        mailText = bodyWriter.toString();
         Transport.send(message);
     }
 
@@ -249,6 +251,13 @@ public class TemplatedMail {
 
     public void addBcc(String mail) {
         this.recipients.add(new Recipient(mail, Recipient.TYPE_CCN));
+    }
+    public List<Attachment> getAttachmentList() {
+        return attachmentList;
+    }
+
+    public void setAttachmentList(List<Attachment> attachmentList) {
+        this.attachmentList = attachmentList;
     }
 
 }
