@@ -31,7 +31,10 @@ import {
     NEW_ENTITY,
     SAVE_ENTITY,
     SET_MULTIVALUE_SETTINGS,
-    UPDATE_MULTIVALUE_SETTINGS
+    UPDATE_MULTIVALUE_SETTINGS,
+    UPDATE_QUERY,
+    GET_QUERY
+
 } from "./types";
 
 export const getGrid = createAsyncAction(GET_GRID, data => {
@@ -410,3 +413,23 @@ export const checkRevisionEnableStatus =  createAsyncAction(CHECK_REVISION_ENABL
         })
 });
 
+export const updateQuery = createAsyncAction(UPDATE_QUERY, data => {
+
+    aj.dispatch({
+        type: UPDATE_QUERY,
+        query: data.query,
+        params: data.params,
+        discriminator: data.discriminator
+
+    })
+})
+
+
+export const getQuery = createAsyncAction(GET_QUERY, data => {
+
+    aj.dispatch({
+        type: GET_QUERY,
+        discriminator: data.discriminator
+
+    })
+})

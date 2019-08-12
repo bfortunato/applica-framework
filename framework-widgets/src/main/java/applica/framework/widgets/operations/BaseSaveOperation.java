@@ -7,6 +7,10 @@ import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.utils.PermissionUtils;
+import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -39,6 +43,7 @@ public class BaseSaveOperation implements SaveOperation {
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
             Entity entity = serializer.deserialize(data);
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.SAVE, getEntityType(), entity);
 
             finishEntity(data, entity);
 
@@ -51,6 +56,8 @@ public class BaseSaveOperation implements SaveOperation {
         } catch (SerializationException e) {
             e.printStackTrace();
             throw new OperationException(Response.ERROR_SERIALIZATION);
+        } catch (AuthorizationException e) {
+            throw new OperationException(Response.UNAUTHORIZED);
         }
     }
 

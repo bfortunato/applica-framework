@@ -24,7 +24,7 @@ export const login = createAsyncAction(LOGIN, data => {
     SessionApi.start(data.mail, data.password)
         .then(user => {
             hideLoader()
-            toast(M("welcome") + " " + user.name);
+            toast(M("welcome") + " " +  jQuery(user.name).text());
 
             login.complete({user})
             performLoginUserAction(user)
@@ -54,7 +54,7 @@ export const resumeSession = createAsyncAction(RESUME_SESSION, data => {
     SessionApi.resume()
         .then(user => {
             hideLoader()
-            toast(M("welcome") + " " + user.name);
+            toast(M("welcome") + " " + jQuery(user.name).text());
 
             resumeSession.complete({user})
             performLoginUserAction(user)
