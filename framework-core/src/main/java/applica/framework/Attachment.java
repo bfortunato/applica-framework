@@ -1,4 +1,4 @@
-package applica.framework.widgets.mapping;
+package applica.framework;
 
 import applica.framework.AEntity;
 
@@ -6,7 +6,6 @@ import applica.framework.AEntity;
  * Created by antoniolovicario on 31/08/17.
  */
 
-//TODO: spostare in un package più appropriato
 public class Attachment extends AEntity {
     private String path;
     private String name;

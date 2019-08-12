@@ -1,6 +1,7 @@
 package applica.framework.widgets.mapping;
 
 import applica.framework.AEntity;
+import applica.framework.Attachment;
 import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;

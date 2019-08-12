@@ -1,5 +1,6 @@
 package applica.framework.library.mail;
 
+import applica.framework.Attachment;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.velocity.VelocityBuilderProvider;
 import org.apache.commons.io.FilenameUtils;
@@ -8,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.springframework.util.StringUtils;
-import applica.framework.widgets.mapping.Attachment;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -48,6 +48,14 @@ public class TemplatedMail {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public String getMailText() {
+        return mailText;
+    }
+
+    public void setMailText(String mailText) {
+        this.mailText = mailText;
     }
 
     private class ByteAttachmentData {
