@@ -128,6 +128,10 @@ export default class AbstractEntitiesGrid  extends Screen {
         return grid.subtitle
     }
 
+getGrid() {
+    return entities[this.getEntity()].grid;
+}
+
     getActions() {
         let defaultActions = [
             {
