@@ -12,5 +12,5 @@ public interface AuthTokenValidator {
     void validate(User expectedUser, String token) throws TokenValidationException, TokenFormatException, TokenExpiredException;
     boolean isExpiring(String token) throws TokenValidationException, TokenFormatException, TokenExpiredException;
 
-    boolean isExpired(String token) throws TokenFormatException, TokenExpiredException;
+    boolean isExpired(String token) throws TokenFormatException;
 }
