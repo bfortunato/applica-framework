@@ -1,6 +1,6 @@
 package applica.framework.cli;
 
-import applica.framework.cli.annotations.Action;
+import applica.framework.annotations.Action;
 
 import java.util.Properties;
 
@@ -10,7 +10,7 @@ import java.util.Properties;
  * Date: 01/10/14
  * Time: 20:22
  */
-@applica.framework.cli.annotations.Module("modules")
+@applica.framework.annotations.Module("modules")
 public class ModulesModule implements Module {
 
     @Action(value = "show", description = "Display all available modules")

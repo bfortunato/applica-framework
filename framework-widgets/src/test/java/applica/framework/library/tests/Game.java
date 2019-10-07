@@ -1,8 +1,8 @@
 package applica.framework.library.tests;
 
 import applica.framework.SEntity;
-import applica.framework.cli.annotations.ManyToMany;
-import applica.framework.cli.annotations.OneToMany;
+import applica.framework.annotations.ManyToMany;
+import applica.framework.annotations.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;

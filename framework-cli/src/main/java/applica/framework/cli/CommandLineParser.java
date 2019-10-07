@@ -1,8 +1,11 @@
 package applica.framework.cli;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Applica (www.applica.guru)
@@ -23,14 +26,24 @@ public class CommandLineParser {
         properties = new Properties();
         command = args[0];
 
+        var key = new AtomicReference<String>();
+
         Arrays.asList(args)
                 .stream()
                 .skip(1)
-                .filter(p -> p.startsWith("-D") && p.contains("="))
                 .forEach(p -> {
-                    String pair = p.substring(2);
-                    String[] split = pair.split("=");
-                    properties.putIfAbsent(split[0].toLowerCase(), split[1]);
+                    if (p.startsWith("--")) {
+                        //there is a previous key, so it's boolean
+                        if (StringUtils.isNotEmpty(key.get())) {
+                            properties.putIfAbsent(key.get(), true);
+                        }
+                        key.set(p.substring(2));
+                    } else {
+                        if (StringUtils.isNotEmpty(key.get())) {
+                            properties.put(key.get(), p);
+                            key.set(null);
+                        }
+                     }
                 });
     }
 

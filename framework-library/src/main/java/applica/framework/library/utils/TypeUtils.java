@@ -1,8 +1,8 @@
 package applica.framework.library.utils;
 
-import applica.framework.cli.annotations.ManyToMany;
-import applica.framework.cli.annotations.ManyToOne;
-import applica.framework.cli.annotations.OneToMany;
+import applica.framework.annotations.ManyToMany;
+import applica.framework.annotations.ManyToOne;
+import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
 import com.vividsolutions.jts.geom.*;
 import org.apache.commons.beanutils.ConvertUtils;

@@ -6,30 +6,15 @@ import org.springframework.util.StringUtils;
 
 public class Applica {
 
-    public static final String VERSION = "2.2-RELEASE";
+    public static final String VERSION = "2.3.0";
+    public static final String FRAMEWORK_ARCHETYPES_REPOSITORY_URL = "https://github.com/bfortunato/applica-framework-archetype-{archetype}.git";
 
-    public static String frameworkHome = null;
     public static String javaHome = null;
-    public static String mavenHome = null;
 
     public static void main(String[] args) {
-        frameworkHome = System.getenv("APPLICAFRAMEWORK_HOME");
-        if (!StringUtils.hasLength(frameworkHome)) {
-            System.err.println("Please set APPLICAFRAMEWORK_HOME environment variable");
-            System.exit(1);
-            return;
-        }
-
         javaHome = System.getenv("JAVA_HOME");
-        if (!StringUtils.hasLength(frameworkHome)) {
+        if (!StringUtils.hasLength(javaHome)) {
             System.err.println("Please set JAVA_HOME environment variable");
-            System.exit(1);
-            return;
-        }
-
-        mavenHome = System.getenv("M2_HOME");
-        if (!StringUtils.hasLength(mavenHome)) {
-            System.err.println("Please set M2_HOME environment variable");
             System.exit(1);
             return;
         }

@@ -1,9 +1,9 @@
 package applica.framework.data.mongodb;
 
 import applica.framework.*;
-import applica.framework.cli.annotations.ManyToMany;
-import applica.framework.cli.annotations.ManyToOne;
-import applica.framework.cli.annotations.OneToMany;
+import applica.framework.annotations.ManyToMany;
+import applica.framework.annotations.ManyToOne;
+import applica.framework.annotations.OneToMany;
 import applica.framework.data.IgnoreNestedReferences;
 import applica.framework.library.utils.TypeUtils;
 import com.mongodb.BasicDBObject;

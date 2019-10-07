@@ -1,6 +1,6 @@
 package applica.framework.cli;
 
-import applica.framework.cli.annotations.Action;
+import applica.framework.annotations.Action;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -32,7 +32,7 @@ public class Modules {
 
     public void scan(Package pkg) {
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(applica.framework.cli.annotations.Module.class));
+        scanner.addIncludeFilter(new AnnotationTypeFilter(applica.framework.annotations.Module.class));
 
         List<Class<?>> types = new ArrayList<>();
         for (BeanDefinition bean : scanner.findCandidateComponents(pkg.getName())) {
@@ -46,7 +46,7 @@ public class Modules {
 
         types.forEach((type) -> {
             Optional
-                    .ofNullable(type.getAnnotation(applica.framework.cli.annotations.Module.class))
+                    .ofNullable(type.getAnnotation(applica.framework.annotations.Module.class))
                     .ifPresent((moduleAnnotation) -> {
                         ModuleInfo moduleInfo = new ModuleInfo();
                         moduleInfo.setModule(moduleAnnotation.value());

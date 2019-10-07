@@ -1,19 +1,9 @@
 #!/bin/bash
 
-FRAMEWORK_VERSION="2.2-RELEASE"
+FRAMEWORK_VERSION="2.3.0"
 
 if [ -z "$JAVA_HOME" ]; then
     echo "Please set JAVA_HOME"
-    exit
-fi
-
-if [ -z "$M2_HOME" ]; then
-    echo "Please set M2_HOME"
-    exit
-fi
-
-if [ -z "$APPLICAFRAMEWORK_HOME" ]; then
-    echo "Please set APPLICAFRAMEWORK_HOME"
     exit
 fi
 
