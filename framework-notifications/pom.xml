@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>framework-revision</artifactId>
-    <name>framework-revision</name>
+    <artifactId>framework-notifications</artifactId>
+    <name>framework-notifications</name>
     <packaging>jar</packaging>
     <version>${applica.framework.version}</version>
     <url>http://www.applica.guru</url>
@@ -18,14 +18,20 @@
     <dependencies>
         <dependency>
             <groupId>applica.framework</groupId>
-            <artifactId>framework-core</artifactId>
+            <artifactId>framework-library</artifactId>
             <version>${applica.framework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>applica.framework</groupId>
-            <artifactId>framework-widgets</artifactId>
+            <artifactId>framework-security</artifactId>
             <version>${applica.framework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>6.10.0</version>
         </dependency>
 
         <dependency>
@@ -34,8 +40,6 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
-
 
     </dependencies>
 
