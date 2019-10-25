@@ -2,16 +2,24 @@ package applica.framework.notifications;
 
 import applica.framework.AEntity;
 import applica.framework.library.dynaobject.BaseDynamicObject;
-import applica.framework.library.dynaobject.DynamicObject;
 
 import java.util.Date;
 
 public class Notification extends AEntity {
 
+    private Object senderId;
     private Date date;
     private String title;
     private String body;
     private BaseDynamicObject data = new BaseDynamicObject();
+
+    public Object getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(Object senderId) {
+        this.senderId = senderId;
+    }
 
     public Date getDate() {
         return date;

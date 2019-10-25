@@ -39,4 +39,8 @@ public class Inbox extends AEntity {
         notificationIds.removeIf(n -> n.equals(notificationId));
         readNotificationIds.add(notificationId);
     }
+
+    public void addNotification(Object notificationId) {
+        notificationIds.add(notificationId);
+    }
 }

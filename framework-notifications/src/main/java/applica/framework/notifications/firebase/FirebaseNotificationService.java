@@ -4,11 +4,13 @@ import applica.framework.Query;
 import applica.framework.Repo;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.notifications.*;
-import applica.framework.notifications.Notification;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.*;
+import com.google.firebase.messaging.BatchResponse;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MulticastMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -16,10 +18,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FirebaseNotificationService implements NotificationService, InitializingBean, DisposableBean {
@@ -80,24 +79,37 @@ public class FirebaseNotificationService implements NotificationService, Initial
 
         notification.getData().getProperties().forEach(p -> message.putData(p.getKey(), p.getValue() != null ? p.getValue().toString() : null));
 
+        List<Object> usersWithToken = new ArrayList<>();
         for (Object userId : recipients) {
             String token = getToken(userId);
             if (token != null) {
                 message.addToken(token);
+                usersWithToken.add(userId);
             }
         }
 
-        BatchResponse response = null;
-        try {
-            response = FirebaseMessaging.getInstance().sendMulticast(message.build());
-        } catch (FirebaseMessagingException e) {
-            throw new MessagingException(e);
+        if (usersWithToken.size() > 0){
+            BatchResponse response = null;
+            try {
+                response = FirebaseMessaging.getInstance().sendMulticast(message.build());
+            } catch (FirebaseMessagingException e) {
+                throw new MessagingException(e);
+            }
+
+            logger.info(String.format("Notification successfully sent to %d recipients. %d failures", response.getSuccessCount(), response.getFailureCount()));
+            response.getResponses().forEach(r -> logger.info(r.getMessageId()));
+
+            Repo.of(Notification.class).save(notification);
+
+            for (var userId : recipients) {
+                if (usersWithToken.contains(userId)) {
+                    var inbox = getInbox(userId);
+                    inbox.addNotification(notification.getId());
+
+                    Repo.of(Inbox.class).save(inbox);
+                }
+            }
         }
-
-        logger.info(String.format("Notification successfully sent to %d recipients. %d failures", response.getSuccessCount(), response.getFailureCount()));
-        response.getResponses().forEach(r -> logger.info(r.getMessageId()));
-
-        Repo.of(Notification.class).save(notification);
     }
 
     private com.google.firebase.messaging.Notification toFirebase(Notification notification) {
@@ -125,11 +137,11 @@ public class FirebaseNotificationService implements NotificationService, Initial
                 .getNotificationIds()
                 .stream()
                 .filter(i -> inbox.getReadNotificationIds().stream().noneMatch(r -> r.equals(i)))
+                .skip((page - 1) * rowsPerPage)
+                .limit(rowsPerPage)
                 .map(i -> Repo.of(Notification.class).get(i))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .skip((page - 1) * rowsPerPage)
-                .limit(rowsPerPage)
                 .collect(Collectors.toList());
     }
 
