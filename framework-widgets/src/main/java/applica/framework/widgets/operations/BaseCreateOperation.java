@@ -2,6 +2,12 @@ package applica.framework.widgets.operations;
 
 import applica.framework.AEntity;
 import applica.framework.Entity;
+import applica.framework.library.responses.Response;
+import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.utils.PermissionUtils;
+import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
@@ -20,6 +26,12 @@ public class BaseCreateOperation implements CreateOperation {
     @Override
     public ObjectNode create(Map<String, Object> params) throws OperationException {
 
+        try {
+            authorize();
+        } catch (AuthorizationException e) {
+            throw new OperationException(Response.UNAUTHORIZED);
+        }
+
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         ObjectNode node = null;
         try {
@@ -30,6 +42,12 @@ public class BaseCreateOperation implements CreateOperation {
         finishNode(node, params);
         return node;
 
+    }
+
+    public void authorize() throws AuthorizationException {
+        if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.NEW, getEntityType());
+        }
     }
 
     public Entity createEntity(Map<String, Object> params) {

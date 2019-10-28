@@ -3,6 +3,11 @@ package applica.framework.widgets.operations;
 import applica.framework.*;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
+import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.utils.PermissionUtils;
+import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultResultSerializer;
 import applica.framework.widgets.serialization.ResultSerializer;
@@ -31,10 +36,22 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public ObjectNode find(Query query) throws OperationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
+        try {
+            authorize(query);
+        } catch (AuthorizationException e) {
+            throw new OperationException(Response.UNAUTHORIZED);
+        }
+
         Result<? extends Entity> result = fetch(query);
         ObjectNode node = serialize(result);
 
         return node;
+    }
+
+    public void authorize(Query query) throws AuthorizationException {
+        if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.LIST, getEntityType(), query);
+        }
     }
 
     protected Result<? extends Entity> fetch(Query query) throws OperationException {

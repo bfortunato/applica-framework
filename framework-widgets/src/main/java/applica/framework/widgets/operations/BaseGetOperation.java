@@ -6,6 +6,11 @@ import applica.framework.RepositoriesFactory;
 import applica.framework.Repository;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
+import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.security.Security;
+import applica.framework.security.authorization.AuthorizationException;
+import applica.framework.security.utils.PermissionUtils;
+import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -26,6 +31,13 @@ public class BaseGetOperation implements GetOperation {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         Entity entity = fetch(id);
+
+        try {
+            authorize(entity);
+        } catch (AuthorizationException e) {
+            throw new OperationException(Response.UNAUTHORIZED);
+        }
+
         ObjectNode node = null;
         if (entity != null) {
             node = serialize(entity);
@@ -34,6 +46,14 @@ public class BaseGetOperation implements GetOperation {
         }
 
         return node;
+    }
+
+    public void authorize(Entity entity) throws AuthorizationException {
+        if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.EDIT, getEntityType(), entity);
+
+        }
+
     }
 
     protected Entity fetch(Object id) throws OperationException {
