@@ -38,7 +38,7 @@ public class BaseAuthorizationService implements AuthorizationService {
             authorized = true;
         }
         //altrimenti, se non trova il permesso tra quelli statici controlla tra quelli dinamici
-        if (! authorized) {
+        if (!authorized) {
             String[] elements = permission.split(":");
             Assert.isTrue(elements.length >= 2, "Bad permission format: " + permission);
 

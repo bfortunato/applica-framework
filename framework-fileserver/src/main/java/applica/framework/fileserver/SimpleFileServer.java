@@ -189,10 +189,12 @@ public class SimpleFileServer implements FileServer, InitializingBean {
 
 
     private void throwExceptionByCode(int code) throws IOException {
-        if (code == 404) {
-            throw new IOException("not found");
-        } else if (code == 500) {
-            throw new IOException();
+        if (code != 200) {
+            if (code == 404) {
+                throw new IOException("not found");
+            } else {
+                throw new IOException("Error " + code);
+            }
         }
     }
 

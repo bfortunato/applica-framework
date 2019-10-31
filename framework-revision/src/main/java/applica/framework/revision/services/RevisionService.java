@@ -8,7 +8,6 @@ import applica.framework.security.User;
 import java.util.List;
 
 public interface RevisionService {
-    RevisionSettings getCurrentSettings();
 
     boolean isRevisionEnabled(String entity);
 
