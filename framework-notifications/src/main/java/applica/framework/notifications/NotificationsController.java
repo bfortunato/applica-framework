@@ -59,7 +59,7 @@ public class NotificationsController {
     }
 
     @GetMapping("")
-    public Response findUnreadNotifications(long page, long rowsPerPage) {
+    public Response findUnreadNotifications(@RequestParam(defaultValue = "1") long page, @RequestParam(defaultValue = "50") long rowsPerPage) {
         try {
             return new ValueResponse(notificationService.findUnreadNotifications(SecurityUtils.getLoggedUserId(), page, rowsPerPage));
         } catch (AuthenticationException e) {
