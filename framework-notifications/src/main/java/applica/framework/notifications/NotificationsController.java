@@ -5,9 +5,7 @@ import applica.framework.library.responses.ValueResponse;
 import applica.framework.security.AuthenticationException;
 import applica.framework.security.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/notifications")
@@ -49,7 +47,8 @@ public class NotificationsController {
         }
     }
 
-    public Response markAsRead(Object notificationId) {
+    @PostMapping("/{notificationId}/read")
+    public Response markAsRead(@PathVariable("notificationId") String notificationId) {
         try {
             notificationService.markAsRead(SecurityUtils.getLoggedUserId(), notificationId);
 
@@ -59,6 +58,7 @@ public class NotificationsController {
         }
     }
 
+    @GetMapping("")
     public Response findUnreadNotifications(long page, long rowsPerPage) {
         try {
             return new ValueResponse(notificationService.findUnreadNotifications(SecurityUtils.getLoggedUserId(), page, rowsPerPage));
