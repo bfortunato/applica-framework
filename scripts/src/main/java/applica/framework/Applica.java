@@ -20,8 +20,8 @@ public class Applica {
         frameworkHome = "/Users/antoniolovicario/Progetti/applica_framework_2_1_4/";
         ProjectModule module = new ProjectModule();
         Properties p = new Properties();
-        p.setProperty("name", "jira_ticket_AAA");
-        p.setProperty("archetype", "client");
+        p.setProperty("name", "connettore_confindustria");
+        p.setProperty("archetype", "api");
         module.create(p);
 
 //        if (!StringUtils.hasLength(frameworkHome)) {

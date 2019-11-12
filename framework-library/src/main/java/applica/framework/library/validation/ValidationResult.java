@@ -10,7 +10,7 @@ public class ValidationResult {
     List<Error> errors = new ArrayList<>();
 
     public void reject(String property, String message) {
-        errors.add(new Error(property, LocalizationUtils.getMessage(message)));
+        errors.add(new Error(property, LocalizationUtils.getInstance().getMessage(message)));
     }
 
     public boolean isValid() {
