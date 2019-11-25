@@ -43,9 +43,10 @@ public class BaseSaveOperation implements SaveOperation {
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
             Entity entity = serializer.deserialize(data);
+            finishEntity(data, entity);
             PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.SAVE, getEntityType(), entity);
 
-            finishEntity(data, entity);
+
 
             validate(entity);
             beforeSave(data, entity);
