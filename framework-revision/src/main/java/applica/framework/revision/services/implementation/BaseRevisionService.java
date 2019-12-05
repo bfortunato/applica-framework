@@ -6,6 +6,7 @@ import applica.framework.Repo;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
+import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.revision.model.*;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.revisions.AvoidRevision;
@@ -27,7 +28,7 @@ public class BaseRevisionService implements RevisionService {
 
     @Override
     public boolean isRevisionEnabled(String entity) {
-        return enabled.get() != null && enabled.get() && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(entity);
+        return SystemOptionsUtils.isEnabled("revisions") && enabled.get() != null && enabled.get() && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(entity);
     }
 
     @Override
