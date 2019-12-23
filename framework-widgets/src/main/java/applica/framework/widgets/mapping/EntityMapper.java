@@ -660,5 +660,51 @@ public class EntityMapper {
         }
     }
 
+    public void idsToEntities (Entity source, ObjectNode destination, String sourceProperty, String destinationProperty, Class<? extends Entity> propertyClass) {
+        ArrayNode arrayNode = destination.putArray(destinationProperty);
+        for (Entity entity: idsToEntityList(source, sourceProperty, propertyClass)) {
+            arrayNode.addPOJO(entity);
+        }
+    }
+
+    public void entitiesToIds(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, boolean setNullIfEmpty) {
+        Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
+
+        try {
+            List<String> ids = entitiesToIdsList(source, sourceProperty);
+            PropertyUtils.setProperty(destination, destinationProperty, setNullIfEmpty && ids.size() == 0? null : ids);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public List<Entity> idsToEntityList (Entity source, String sourceProperty, Class<? extends Entity> propertyClass) {
+
+        List<Entity> entities = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+        try {
+            ids = (List<String>) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        if (ids != null) {
+            for (String entityId : ids) {
+                entities.add(Repo.of(propertyClass).get(entityId).get());
+            }
+        }
+
+        return entities;
+    }
+
+    public List<String> entitiesToIdsList(ObjectNode source, String sourceProperty) {
+        List<String> ids = new ArrayList<>();
+        if (source.get(sourceProperty) != null) {
+            source.get(sourceProperty).forEach(jsonNode ->  {
+                ids.add(jsonNode.get("id").asText());
+            });
+        }
+        return ids;
+    }
+
 }
 
