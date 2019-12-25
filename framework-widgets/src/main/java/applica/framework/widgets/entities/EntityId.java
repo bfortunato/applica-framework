@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 public @interface EntityId {
     String value();
     boolean allowRevision() default false;
+    boolean automaticCodeGeneration() default false;
 }
