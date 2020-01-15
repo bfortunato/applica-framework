@@ -17,6 +17,7 @@ import applica.framework.widgets.entities.EntityUtils;
 import org.jsoup.helper.StringUtil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -73,7 +74,7 @@ public class BaseRevisionService implements RevisionService {
         Revision revision = new Revision();
         revision.setType(type);
         revision.setEntityId(entityId);
-        revision.setEntity(EntityUtils.getEntityIdAnnotation(entityClass));
+        revision.setEntity(entityClass.getName());
         revision.setDate(new Date());
 
         if (user != null) {
@@ -81,7 +82,7 @@ public class BaseRevisionService implements RevisionService {
             revision.setCreator(user.toString());
         }
 
-        getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || entity == null  || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
+        getAllFields(entityClass).stream().filter(f -> !isTransient(f) && f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || entity == null  || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
                     try {
                         revision.getDifferences().addAll(createNewAttributeDifferences(user, f, entity, previousEntity));
                     } catch (Exception e) {
@@ -90,6 +91,10 @@ public class BaseRevisionService implements RevisionService {
         );
 
         return revision;
+    }
+
+    private boolean isTransient(Field field) {
+        return Modifier.isTransient(field.getModifiers());
     }
 
 
