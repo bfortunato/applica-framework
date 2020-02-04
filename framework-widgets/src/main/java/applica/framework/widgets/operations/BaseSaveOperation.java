@@ -10,6 +10,7 @@ import applica.framework.library.validation.ValidationException;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
+import applica.framework.security.utils.SystemOptionsUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -44,7 +45,8 @@ public class BaseSaveOperation implements SaveOperation {
         try {
             Entity entity = serializer.deserialize(data);
             finishEntity(data, entity);
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.SAVE, getEntityType(), entity);
+            if (SystemOptionsUtils.isEnabled("crud.authorization.enabled"))
+                PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.SAVE, getEntityType(), entity);
 
 
 

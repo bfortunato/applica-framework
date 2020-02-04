@@ -6,6 +6,7 @@ import applica.framework.library.responses.Response;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
+import applica.framework.security.utils.SystemOptionsUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
@@ -26,7 +27,8 @@ public class BaseCreateOperation implements CreateOperation {
     public ObjectNode create(Map<String, Object> params) throws OperationException {
 
         try {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.NEW, getEntityType());
+            if (SystemOptionsUtils.isEnabled("crud.authorization.enabled"))
+                PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.NEW, getEntityType());
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED);
         }

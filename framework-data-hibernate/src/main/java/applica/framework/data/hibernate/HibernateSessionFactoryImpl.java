@@ -159,7 +159,7 @@ public class HibernateSessionFactoryImpl implements HibernateSessionFactory {
         String fullKey = String.format("applica.framework.data.hibernate.%s.%s", dataSource, key);
         String value = options.get(fullKey);
         if (StringUtils.isEmpty(value)) {
-            throw new ProgramException("Options not found: " + fullKey);
+           // throw new ProgramException("Options not found: " + fullKey);
         }
 
         return value;

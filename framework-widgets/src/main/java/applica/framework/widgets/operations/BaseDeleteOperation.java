@@ -7,6 +7,7 @@ import applica.framework.library.utils.ProgramException;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
+import applica.framework.security.utils.SystemOptionsUtils;
 import applica.framework.widgets.acl.CrudPermission;
 
 import java.util.List;
@@ -41,7 +42,8 @@ public class BaseDeleteOperation implements DeleteOperation {
 
     protected void remove(Object id) throws OperationException {
         try {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.DELETE, getEntityType(), Repo.of(getEntityType()).get(id).orElse(null));
+            if (SystemOptionsUtils.isEnabled("crud.authorization.enabled"))
+                PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.DELETE, getEntityType(), Repo.of(getEntityType()).get(id).orElse(null));
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED);
         }

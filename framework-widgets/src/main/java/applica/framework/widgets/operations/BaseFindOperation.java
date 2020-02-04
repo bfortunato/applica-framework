@@ -9,6 +9,7 @@ import applica.framework.library.utils.ProgramException;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
+import applica.framework.security.utils.SystemOptionsUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultResultSerializer;
@@ -39,7 +40,9 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
 
         try {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.LIST, getEntityType(), query);
+            if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
+                PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.LIST, getEntityType(), query);
+            }
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED);
         }

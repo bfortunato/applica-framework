@@ -7,6 +7,7 @@ import applica.framework.library.utils.ProgramException;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
+import applica.framework.security.utils.SystemOptionsUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -30,7 +31,9 @@ public class BaseGetOperation implements GetOperation {
         Entity entity = fetch(id);
 
         try {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.EDIT, getEntityType(), entity);
+            if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
+                PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.EDIT, getEntityType(), entity);
+            }
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED);
         }
