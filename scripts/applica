@@ -9,5 +9,5 @@ fi
 
 JAVA="$JAVA_HOME/bin/java"
 JAR="${APPLICAFRAMEWORK_HOME}/scripts/target/scripts-$FRAMEWORK_VERSION.jar"
-$JAVA -cp "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
+"$JAVA" -cp "${APPLICAFRAMEWORK_HOME}/scripts/target/lib/*:$JAR" applica.framework.Applica $@
 

@@ -1,16 +1,9 @@
 package applica.framework.modules;
 
-import applica.framework.AppContext;
 import applica.framework.Applica;
 import applica.framework.cli.Module;
-import applica.framework.cli.SystemUtils;
-import applica.framework.annotations.Action;
-import applica.framework.editors.FileEditor;
-import applica.framework.library.utils.FileWalker;
-import applica.framework.library.utils.FileWalkerListener;
+import applica.framework.cli.annotations.Action;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.util.Assert;
@@ -24,7 +17,7 @@ import java.util.*;
  * Date: 01/10/14
  * Time: 19:02
  */
-@applica.framework.annotations.Module("project")
+@applica.framework.cli.annotations.Module("project")
 public class ProjectModule implements Module {
 
     void p(String message, Object... params) {

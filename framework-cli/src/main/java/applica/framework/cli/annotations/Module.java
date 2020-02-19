@@ -1,4 +1,4 @@
-package applica.framework.annotations;
+package applica.framework.cli.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

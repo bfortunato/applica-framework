@@ -1,7 +1,7 @@
 package applica.framework.modules;
 
 import applica.framework.cli.Module;
-import applica.framework.annotations.Action;
+import applica.framework.cli.annotations.Action;
 import applica.framework.licensing.InvalidLicenseException;
 import applica.framework.licensing.License;
 import applica.framework.licensing.LicenseGenerationException;
@@ -21,7 +21,7 @@ import java.util.Properties;
 /**
  * Created by bimbobruno on 13/10/15.
  */
-@applica.framework.annotations.Module("license")
+@applica.framework.cli.annotations.Module("license")
 public class LicenseModule implements Module {
 
     void p(String message, Object... params) {
