@@ -178,7 +178,7 @@ public class HibernateModule implements Module {
                 Class c = classLoader.loadClass(className);
 
                 if (c.getAnnotation(IgnoreMapping.class) == null) {
-                    if (TypeUtils.isEntity(c)) {
+                    if (TypeUtils.isPersistable(c)) {
                         entities.add(c);
                     }
                 }
@@ -217,7 +217,7 @@ public class HibernateModule implements Module {
     public static boolean isMappedEntitySubclass(Class type, List<Class> allEntities) {
         return (
                 allEntities.stream().anyMatch(e -> e.equals(type.getSuperclass())) &&
-                TypeUtils.isEntity(type.getSuperclass()) &&
+                TypeUtils.isPersistable(type.getSuperclass()) &&
                 type.getSuperclass().getAnnotation(IgnoreMapping.class) == null
         );
     }

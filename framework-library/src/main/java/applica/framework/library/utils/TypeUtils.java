@@ -1,5 +1,6 @@
 package applica.framework.library.utils;
 
+import applica.framework.Persistable;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
@@ -314,6 +315,10 @@ public class TypeUtils {
         }
 
         return (T) ConvertUtils.convert(value, destinationType);
+    }
+
+    public static boolean isPersistable(Class<?> aClass) {
+        return implementsInterface(aClass, Entity.class, true) || implementsInterface(aClass, Persistable.class, true);
     }
 }
 

@@ -84,8 +84,8 @@ public class MongoCrudStrategy implements CrudStrategy {
         return response;
     }
 
-    private MongoMapper.MappingConfig generateMappingConfigFromQuery(Query loadRequest) {
-        MongoMapper.MappingConfig config = new MongoMapper.MappingConfig();
+    private MongoMapper.MappingContext generateMappingConfigFromQuery(Query loadRequest) {
+        MongoMapper.MappingContext config = new MongoMapper.MappingContext();
         config.setAlwaysIgnoreNestedReferences(loadRequest.isIgnoreNestedReferences());
         return config;
     }

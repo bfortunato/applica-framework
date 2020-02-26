@@ -40,7 +40,7 @@ public class MongoMapper {
 		Date.class
 	};
 
-	public static class MappingConfig {
+	public static class MappingContext {
 		private int nestedIgnoredReferenceCounter = 0;
 		private boolean alwaysIgnoreNestedReferences;
 
@@ -65,9 +65,9 @@ public class MongoMapper {
 		}
 	}
 
-	public BasicDBObject loadBasicDBObject(Entity source, MappingConfig mappingConfig) {
-		if (mappingConfig == null) {
-			mappingConfig = new MappingConfig();
+	public BasicDBObject loadBasicDBObject(Persistable source, MappingContext mappingContext) {
+		if (mappingContext == null) {
+			mappingContext = new MappingContext();
 		}
 
 		BasicDBObject document = new BasicDBObject();
@@ -75,13 +75,16 @@ public class MongoMapper {
 			Class<?> type = source.getClass();
             
             //put entity id in document
-            if (source.getId() != null) {
-            	try {
-					document.put("_id", new ObjectId(String.valueOf(source.getId())));
-				} catch (Exception e) {
-            		//logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+			if (source instanceof Entity) {
+				Entity psource = (Entity) source;
+				if (psource.getId() != null) {
+					try {
+						document.put("_id", new ObjectId(String.valueOf(psource.getId())));
+					} catch (Exception e) {
+						//logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+					}
 				}
-            }
+			}
             
 			//logger.warn("Converting " + type.getSimpleName());
 			for(Field field : TypeUtils.getAllFields(type)) {
@@ -94,25 +97,23 @@ public class MongoMapper {
 					} else {
                         try {
 							if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-								mappingConfig.pushIgnoreNestedReferences();
+								mappingContext.pushIgnoreNestedReferences();
 							}
 
-                            if (!mappingConfig.isIgnoringNestedReferences() && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
+                            if (!mappingContext.isIgnoringNestedReferences() && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null && TypeUtils.isList(fieldSourceValue.getClass())) {
                                     List<?> sourceList = (List<?>) fieldSourceValue;
                                     ArrayList<Object> values = new ArrayList<Object>();
                                     Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                                     Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());
-                                    Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) typeArgument);
-                                    Objects.requireNonNull(repository, "Repository for class not found: " + typeArgument.toString());
                                     for (Object el : sourceList) {
                                         Entity e = (Entity) el;
                                         values.add(e.getId());
                                     }
                                     document.put(field.getName(), values);
                                 }
-                            } else if (!mappingConfig.isIgnoringNestedReferences() && field.getAnnotation(ManyToOne.class) != null) {
+                            } else if (!mappingContext.isIgnoringNestedReferences() && field.getAnnotation(ManyToOne.class) != null) {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null && TypeUtils.isEntity(fieldSourceValue.getClass())) {
                                     Entity fieldSourceEntity = ((Entity) fieldSourceValue);
@@ -124,7 +125,7 @@ public class MongoMapper {
                             } else {
                                 Object fieldSourceValue = field.get(source);
                                 if (fieldSourceValue != null) {
-                                    Object basicDBObjectValue = convertToBasicDBObjectValue(fieldSourceValue, mappingConfig);
+                                    Object basicDBObjectValue = convertToBasicDBObjectValue(fieldSourceValue, mappingContext);
                                     if (basicDBObjectValue != null) {
                                         document.put(field.getName(), basicDBObjectValue);
                                     }
@@ -135,7 +136,7 @@ public class MongoMapper {
                         } finally {
                         	if (field != null) {
 								if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-									mappingConfig.popIgnoreNestedReferences();
+									mappingContext.popIgnoreNestedReferences();
 								}
 							}
 						}
@@ -149,12 +150,12 @@ public class MongoMapper {
 	
 	
 	
-	private Object convertToBasicDBObjectValue(Object source, MappingConfig mappingConfig) {
+	private Object convertToBasicDBObjectValue(Object source, MappingContext mappingContext) {
 		Object value = null;
-		if (TypeUtils.isEntity(source.getClass())) {
+		if (TypeUtils.isPersistable(source.getClass())) {
 			try {
 				//logger.warn("Field is entity");
-				value = loadBasicDBObject((Entity)source, mappingConfig);
+				value = loadBasicDBObject((Persistable) source, mappingContext);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}	
@@ -167,7 +168,7 @@ public class MongoMapper {
 				List<?> list = (List<?>)source;
 				ArrayList<Object> values = new ArrayList<Object>();
 				for(Object el : list) {
-					Object elVal = convertToBasicDBObjectValue(el, mappingConfig);
+					Object elVal = convertToBasicDBObjectValue(el, mappingContext);
 					if (elVal != null) values.add(elVal);
 				}
 				value = values;
@@ -179,24 +180,26 @@ public class MongoMapper {
 		return value;
 	}
 	
-	public Object loadObject(BasicDBObject source, Class<?> destinationType, MappingConfig mappingConfig) {
-		if (mappingConfig == null) {
-			mappingConfig = new MappingConfig();
+	public Object loadObject(BasicDBObject source, Class<?> destinationType, MappingContext mappingContext) {
+		if (mappingContext == null) {
+			mappingContext = new MappingContext();
 		}
 
-		Entity destination = null;
+		Persistable destination;
 		try {
-			destination = (Entity)destinationType.newInstance();
+			destination = (Persistable)destinationType.getConstructor().newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 		
-		if (source != null && destination != null) {
+		if (source != null) {
 			Class<?> type = destination.getClass();
 			for(String key : source.keySet()) {
-				if (key.equals("_id")) { 
-					destination.setId(source.getString(key));
+				if (key.equals("_id")) {
+					if (destination instanceof Entity) {
+						((Entity) destination).setId(source.getString(key));
+					}
 				} else {
 					Field field = null;
 
@@ -204,7 +207,7 @@ public class MongoMapper {
 						field = TypeUtils.getField(type, key);
 
 						if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-							mappingConfig.pushIgnoreNestedReferences();
+							mappingContext.pushIgnoreNestedReferences();
 						}
 
 						if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
@@ -212,8 +215,8 @@ public class MongoMapper {
 
 							if (key.endsWith("Id") && field.getType().equals(Object.class)) {
 								field.set(destination, source.get(field.getName()));
-							} else if (TypeUtils.isEntity(field.getType())) {
-								if ((!mappingConfig.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
+							} else if (TypeUtils.isPersistable(field.getType())) {
+								if ((!mappingContext.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
                                     Entity value = null;
                                     String sourceId = (String) source.get(field.getName());
                                     Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
@@ -224,7 +227,7 @@ public class MongoMapper {
                                     }
                                 } else {
                                     BasicDBObject childDocument = (BasicDBObject)source.get(key);
-                                    Object value = loadObject(childDocument, field.getType(), mappingConfig);
+                                    Object value = loadObject(childDocument, field.getType(), mappingContext);
                                     field.set(destination, value);
                                 }
                             } else if (field.getType().equals(Key.class)) {
@@ -232,7 +235,7 @@ public class MongoMapper {
                             } else if (isAllowed(field.getType())) {
 								field.set(destination, source.get(key));
 							} else if (TypeUtils.isList(field.getType())) {
-                                if ((!mappingConfig.isIgnoringNestedReferences() && firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
+                                if ((!mappingContext.isIgnoringNestedReferences() && firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
                                     ArrayList<Object> values = new ArrayList<Object>();
                                     Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                                     Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());
@@ -248,8 +251,8 @@ public class MongoMapper {
                                     Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
                                     List<?> sourceList = (List<?>)source.get(field.getName());
                                     for(Object el : sourceList) {
-                                        if (TypeUtils.isEntity(typeArgument)) {
-                                            values.add(loadObject((BasicDBObject)el, typeArgument, mappingConfig));
+                                        if (TypeUtils.isPersistable(typeArgument)) {
+                                            values.add(loadObject((BasicDBObject)el, typeArgument, mappingContext));
                                         } else if (isAllowed(typeArgument)) {
                                             values.add(el);
                                         } else if (Object.class.equals(typeArgument)) {
@@ -269,7 +272,7 @@ public class MongoMapper {
 					} finally {
 						if (field != null) {
 							if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-								mappingConfig.popIgnoreNestedReferences();
+								mappingContext.popIgnoreNestedReferences();
 							}
 						}
 					}
