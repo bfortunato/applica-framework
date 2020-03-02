@@ -25,4 +25,6 @@ public class LocalizationUtils {
     public String getMessage(String code) {
         return ApplicationContextProvider.provide().getBean(LocalizationUtils.class).getLocalizedMessage(code);
     }
+
+
 }

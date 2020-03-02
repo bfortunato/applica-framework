@@ -38,12 +38,13 @@ public class ProjectModule implements Module {
         Assert.isTrue(properties.containsKey("archetype"), "missing archetype. Specify --archetype <value>");
 
         String appName = (String) properties.get("name");
+        String destination = (String) properties.get("destination");
         String archetype = (String) properties.get("archetype");
 
         p("Creating %s with %s archetype...", appName, archetype);
 
         String repositoryUrl;
-        String destination = String.format("./%s", appName);
+        destination = destination != null? destination: String.format("./%s", appName);
 
         if (archetype.startsWith("http:\\") || archetype.startsWith("https://")) {
             repositoryUrl = archetype;

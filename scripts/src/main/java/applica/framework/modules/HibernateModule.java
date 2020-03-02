@@ -184,7 +184,7 @@ public class HibernateModule implements Module {
                 }
 
             } catch (Throwable e) {
-                e.printStackTrace();
+               // e.printStackTrace();
             }
         }
 
@@ -228,6 +228,10 @@ public class HibernateModule implements Module {
             if (!properties.containsKey("no-rebuild")) {
                 Modules.instance().call("project:clean", new Properties());
                 Modules.instance().call("project:build", new Properties());
+            }
+
+            if (properties.containsKey("appDir")) {
+               AppContext.initFromAppDir(properties.getProperty("appDir"));
             }
 
             List<String> webAppPaths = getWebAppPaths();
