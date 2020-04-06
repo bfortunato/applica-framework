@@ -18,54 +18,29 @@ public class Applica {
     public static String javaHome = null;
 
     public static void main(String[] args) {
-        javaHome = "/Library/Java/JavaVirtualMachines/jdk-13.jdk/Contents/Home/";
-
-//        //Dipendenze Hibernate
-//
-//        HibernateModule module = new HibernateModule();
-//        Properties properties = new Properties();
-//        properties.setProperty("no-rebuild", "true");
-//        properties.setProperty("appDir", "/Users/antoniolovicario/Progetti/cerpero_new/api");
-//
-//        module.generateMappings(properties);
-
-        //Generazione progetto
+        javaHome = System.getenv("JAVA_HOME");
         if (!StringUtils.hasLength(javaHome)) {
             System.err.println("Please set JAVA_HOME environment variable");
             System.exit(1);
             return;
         }
 
-        ProjectModule projectModule = new ProjectModule();
-        Properties properties = new Properties();
-        properties.setProperty("name", "cerpero");
-        properties.setProperty("archetype", "client");
-        properties.setProperty("destination", "/Users/antoniolovicario/Progetti/cerpero_new");
+        Modules.instance().scan(Applica.class.getPackage());
+
+        CommandLineParser parser = new CommandLineParser();
         try {
-            projectModule.init(properties);
-        } catch (GitAPIException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            parser.parse(args);
+
+            if (parser.getCommand().equals("version")) {
+                System.out.println("Applica Framework version " + VERSION);
+            } else if (parser.getCommand().equals("help")) {
+                printUsage();
+            } else {
+                Modules.instance().call(parser.getCommand(), parser.getProperties());
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-       // Implemenazione standard
-//        Modules.instance().scan(Applica.class.getPackage());
-//
-//        CommandLineParser parser = new CommandLineParser();
-//        try {
-//            parser.parse(args);
-//
-//            if (parser.getCommand().equals("version")) {
-//                System.out.println("Applica Framework version " + VERSION);
-//            } else if (parser.getCommand().equals("help")) {
-//                printUsage();
-//            } else {
-//                Modules.instance().call(parser.getCommand(), parser.getProperties());
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     public static void printUsage() {
