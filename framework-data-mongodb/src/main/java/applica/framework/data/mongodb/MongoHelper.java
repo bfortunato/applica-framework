@@ -2,6 +2,7 @@ package applica.framework.data.mongodb;
 
 import applica.framework.library.options.OptionsManager;
 import com.mongodb.*;
+import com.mongodb.client.MongoClients;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -74,7 +75,6 @@ public class MongoHelper {
                 String host = options.get(String.format("applica.framework.data.mongodb.%s.host", dataSource));
 				Integer port = Integer.parseInt(options.get(String.format("applica.framework.data.mongodb.%s.port", dataSource)));
                 if (StringUtils.isNotEmpty(username)) {
-
 					ds.mongo = new MongoClient(
                             new ServerAddress(host, port != null ? port : 27017),
                             Arrays.asList(createMongoCredential(dataSource, username, password, db))
