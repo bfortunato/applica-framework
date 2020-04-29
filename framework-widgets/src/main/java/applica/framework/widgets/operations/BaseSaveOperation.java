@@ -59,7 +59,7 @@ public class BaseSaveOperation implements SaveOperation {
             e.printStackTrace();
             throw new OperationException(Response.ERROR_SERIALIZATION);
         } catch (AuthorizationException e) {
-            throw new OperationException(Response.UNAUTHORIZED);
+            throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
     }
 

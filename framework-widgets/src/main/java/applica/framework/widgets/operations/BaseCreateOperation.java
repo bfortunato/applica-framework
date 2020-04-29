@@ -27,9 +27,9 @@ public class BaseCreateOperation implements CreateOperation {
     public ObjectNode create(Map<String, Object> params) throws OperationException {
 
         try {
-            authorize();
+            authorize(params);
         } catch (AuthorizationException e) {
-            throw new OperationException(Response.UNAUTHORIZED);
+            throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
 
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
@@ -44,9 +44,9 @@ public class BaseCreateOperation implements CreateOperation {
 
     }
 
-    public void authorize() throws AuthorizationException {
+    public void authorize(Map<String, Object> params) throws AuthorizationException {
         if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
-            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.NEW, getEntityType());
+            PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.NEW, getEntityType(), params);
         }
     }
 

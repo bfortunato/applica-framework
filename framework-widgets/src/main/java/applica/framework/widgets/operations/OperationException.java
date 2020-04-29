@@ -8,6 +8,13 @@ import applica.framework.library.responses.CodedException;
 public class OperationException extends CodedException {
 
     private Object data;
+    private String message;
+
+    public OperationException(int errorCode, String message) {
+        super(errorCode);
+        this.message = message;
+    }
+
 
     public OperationException(int errorCode, Throwable cause) {
         super(errorCode, cause);
@@ -28,5 +35,14 @@ public class OperationException extends CodedException {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

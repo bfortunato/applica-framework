@@ -35,7 +35,7 @@ public class BaseGetOperation implements GetOperation {
         try {
             authorize(entity);
         } catch (AuthorizationException e) {
-            throw new OperationException(Response.UNAUTHORIZED);
+            throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
 
         ObjectNode node = null;

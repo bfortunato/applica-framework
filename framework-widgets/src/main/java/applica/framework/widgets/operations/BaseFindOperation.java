@@ -39,7 +39,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         try {
             authorize(query);
         } catch (AuthorizationException e) {
-            throw new OperationException(Response.UNAUTHORIZED);
+            throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
 
         Result<? extends Entity> result = fetch(query);

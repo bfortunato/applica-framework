@@ -48,7 +48,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         try {
             authorize(Repo.of(getEntityType()).get(id).orElse(null));
         } catch (AuthorizationException e) {
-            throw new OperationException(Response.UNAUTHORIZED);
+            throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
         Repo.of(getEntityType()).delete(id);
     }
