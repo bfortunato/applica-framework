@@ -261,6 +261,8 @@ public class MongoMapper {
                                     }
                                     field.set(destination, values);
                                 }
+							} else if (Objects.equals(field.getType(), Object.class)) {
+								field.set(destination, source.get(key));
 							}
 												
 						}
