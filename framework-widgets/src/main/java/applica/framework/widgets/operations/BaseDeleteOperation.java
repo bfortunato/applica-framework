@@ -53,7 +53,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         Repo.of(getEntityType()).delete(id);
     }
 
-    private void authorize(Entity entity) throws AuthorizationException {
+    protected void authorize(Entity entity) throws AuthorizationException {
         if (SystemOptionsUtils.isEnabled("crud.authorization.enabled")) {
             PermissionUtils.authorize(Security.withMe().getLoggedUser(), "entity", CrudPermission.DELETE, getEntityType(), entity);
 
