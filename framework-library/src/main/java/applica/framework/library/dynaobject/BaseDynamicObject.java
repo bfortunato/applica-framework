@@ -53,6 +53,11 @@ public class BaseDynamicObject extends AEntity implements DynamicObject {
         properties.clear();
     }
 
+    @Override
+    public <T> T get(String key) {
+        return (T) getProperty(key);
+    }
+
     public List<Property> getProperties() {
         return properties;
     }
