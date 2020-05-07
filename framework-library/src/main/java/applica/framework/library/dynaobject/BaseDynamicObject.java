@@ -1,6 +1,6 @@
 package applica.framework.library.dynaobject;
 
-import applica.framework.AEntity;
+import applica.framework.Persistable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by bimbobruno on 11/16/17.
  */
-public class BaseDynamicObject extends AEntity implements DynamicObject {
+public class BaseDynamicObject implements DynamicObject, Persistable {
 
     private List<Property> properties = new ArrayList<>();
 
