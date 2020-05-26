@@ -113,7 +113,10 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         if(id != null) {
             if (constraintsChecker != null) {
-                repository.get(id).ifPresent(constraintsChecker::checkPrimary);
+                repository.get(id).ifPresent(entity -> {
+                    constraintsChecker.checkPrimary(entity);
+                    constraintsChecker.checkDelete(entity);
+                });
             }
 
             mongoRepository.getCollection().remove(MongoQuery.mk().id(String.valueOf(id)));
