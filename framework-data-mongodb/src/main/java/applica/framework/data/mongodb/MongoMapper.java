@@ -40,31 +40,6 @@ public class MongoMapper {
 		Date.class
 	};
 
-	public static class MappingContext {
-		private int nestedIgnoredReferenceCounter = 0;
-		private boolean alwaysIgnoreNestedReferences;
-
-		public void pushIgnoreNestedReferences() {
-			nestedIgnoredReferenceCounter++;
-		}
-
-		public void popIgnoreNestedReferences() {
-			if (nestedIgnoredReferenceCounter == 0) {
-				throw new RuntimeException("nested ignored references counter cannot be negative");
-			}
-
-			nestedIgnoredReferenceCounter--;
-		}
-
-		public boolean isIgnoringNestedReferences() {
-			return nestedIgnoredReferenceCounter > 0 || alwaysIgnoreNestedReferences;
-		}
-
-		public void setAlwaysIgnoreNestedReferences(boolean alwaysIgnoreNestedReferences) {
-			this.alwaysIgnoreNestedReferences = alwaysIgnoreNestedReferences;
-		}
-	}
-
 	public BasicDBObject loadBasicDBObject(Persistable source, MappingContext mappingContext) {
 		if (mappingContext == null) {
 			mappingContext = new MappingContext();
@@ -219,9 +194,17 @@ public class MongoMapper {
 								if ((!mappingContext.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
                                     Entity value = null;
                                     String sourceId = (String) source.get(field.getName());
-                                    Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
-                                    Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
-                                    value = (Entity) repository.get(sourceId).orElse(null);
+									value = mappingContext.getCached((Class<? extends Entity>) field.getType(), sourceId);
+									if (value == null) {
+										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
+										Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
+										if (repository instanceof MongoRepository) {
+											value = (Entity) ((MongoRepository) repository).get(sourceId, mappingContext).orElse(null);
+										} else{
+											value = (Entity) repository.get(sourceId).orElse(null);
+										}
+										mappingContext.putInCache(value);
+									}
                                     if (value != null) {
                                         field.set(destination, value);
                                     }
@@ -243,7 +226,19 @@ public class MongoMapper {
                                     Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) typeArgument);
                                     Objects.requireNonNull(repository, "Repository for class not found: " + typeArgument.toString());
                                     for(Object el : sourceList) {
-                                        repository.get(el).ifPresent(values::add);
+										Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
+										if (value == null) {
+											if (repository instanceof MongoRepository) {
+												value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
+											} else{
+												value = (Entity) repository.get(el).orElse(null);
+											}
+											mappingContext.putInCache(value);
+										}
+
+										if (value != null) {
+											values.add(value);
+										}
                                     }
                                     field.set(destination, values);
                                 } else {

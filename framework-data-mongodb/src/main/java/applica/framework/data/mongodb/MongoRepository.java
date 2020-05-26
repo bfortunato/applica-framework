@@ -2,6 +2,7 @@ package applica.framework.data.mongodb;
 
 import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
+import applica.framework.library.utils.Nulls;
 import applica.framework.library.utils.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -29,6 +30,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	private Log logger = LogFactory.getLog(getClass());
 
     private DB db;
+    private MappingContext mappingContext;
 
     public void init() {
         if (db == null) {
@@ -61,6 +63,21 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		
 		return Optional.ofNullable(entity);
 	}
+
+    public Optional<T> get(Object id, MappingContext mappingContext) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
+
+        this.mappingContext = mappingContext;
+        T entity = crudStrategy.get(id, this);
+        this.mappingContext = null;
+
+        return Optional.ofNullable(entity);
+    }
 
 	@Override
 	public Result find(applica.framework.Query query) {
@@ -226,5 +243,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return q;
         }).collect(Collectors.toList()));
         return query;
+    }
+
+    public MappingContext getMappingContext() {
+        return mappingContext;
     }
 }
