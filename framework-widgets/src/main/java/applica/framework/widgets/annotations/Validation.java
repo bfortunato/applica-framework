@@ -1,0 +1,46 @@
+package applica.framework.widgets.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Validation {
+
+    public static final String RANGE_MIN = "MIN_VALUE";
+    public static final String RANGE_MAX = "MAX_VALUE";
+
+    public static final String GT = "gt";
+    public static final String GTE = "gte";
+    public static final String LT = "lt";
+    public static final String LTE = "lte";
+
+
+    //Campo da rifiutare
+    String rejectField() default "";
+    boolean required() default false;
+    boolean unique() default false;
+
+    //> 0
+    boolean greaterThanZero() default false;
+
+    //>= 0
+    boolean positive() default false;
+
+
+    /*
+    * ESEMPIO:
+    @Validation(rangeType = Validation.RANGE_MIN, rangeOtherValue = "max", rangeOperator = Validation.LTE)
+    private Double min;
+
+    @Validation(rangeType = Validation.RANGE_MAX, rangeOtherValue = "min", rangeOperator = Validation.GTE)
+    private Double max;
+    * */
+    String rangeType() default "";
+    String rangeOperator() default "";
+    String rangeOtherValue() default "";
+
+
+}

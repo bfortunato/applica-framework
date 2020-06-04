@@ -13,12 +13,12 @@ import java.util.HashMap;
  */
 public class DefaultOperationsFactory implements OperationsFactory {
 
-    private class OperationDefinitions {
-        GetOperation get;
-        FindOperation find;
-        DeleteOperation delete;
-        SaveOperation save;
-        CreateOperation create;
+    public class OperationDefinitions {
+        public GetOperation get;
+        public FindOperation find;
+        public DeleteOperation delete;
+        public SaveOperation save;
+        public CreateOperation create;
     }
 
     @Autowired
@@ -186,4 +186,15 @@ public class DefaultOperationsFactory implements OperationsFactory {
 
         return createOperation;
     }
+
+    @Override
+    public HashMap<Class<? extends Entity>, OperationDefinitions> getDefaultOperations() {
+        return defaultOperations;
+    }
+
+    @Override
+    public OperationDefinitions generateNewOperationDefinitionsInstance() {
+        return new OperationDefinitions();
+    }
+
 }

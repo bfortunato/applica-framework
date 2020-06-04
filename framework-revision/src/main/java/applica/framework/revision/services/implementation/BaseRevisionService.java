@@ -74,7 +74,7 @@ public class BaseRevisionService implements RevisionService {
         Revision revision = new Revision();
         revision.setType(type);
         revision.setEntityId(entityId);
-        revision.setEntity(entityClass.getName());
+        EntitiesRegistry.instance().get(entityClass).ifPresent(e -> revision.setEntity(e.getId()));
         revision.setDate(new Date());
 
         if (user != null) {

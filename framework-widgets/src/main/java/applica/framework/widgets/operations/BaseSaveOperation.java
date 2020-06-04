@@ -8,23 +8,48 @@ import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
+import applica.framework.library.validation.ValidationResult;
+import applica.framework.security.CodeGeneratorService;
+import applica.framework.security.NumericCodedEntity;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.Materialization;
+import applica.framework.widgets.entities.EntitiesRegistry;
+import applica.framework.widgets.entities.EntityId;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
 import applica.framework.widgets.serialization.EntitySerializer;
 import applica.framework.widgets.serialization.SerializationException;
+import applica.framework.widgets.utils.ClassUtils;
+import applica.framework.widgets.utils.ValidationUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Objects;
 
 public class BaseSaveOperation implements SaveOperation {
 
     @Autowired(required = false)
     private EntityMapper entityMapper;
+
+    @Autowired
+    private CodeGeneratorService codeGeneratorService;
+
+    public void validate(Entity entity) throws ValidationException {
+        ValidationResult result = Validation.getValidationResult(entity);
+
+        ValidationUtils.validate(entity, result);
+
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
+    }
 
     private Class<? extends Entity> entityType;
 
@@ -69,9 +94,6 @@ public class BaseSaveOperation implements SaveOperation {
 
     }
 
-    public void validate(Entity entity) throws ValidationException {
-        Validation.validate(entity);
-    }
 
     protected void beforeSave(ObjectNode data, Entity entity) throws OperationException {
 
@@ -85,13 +107,43 @@ public class BaseSaveOperation implements SaveOperation {
 
     }
 
-    protected void finishEntity(ObjectNode node, Entity entity) throws OperationException {
-
-    }
 
     protected EntityMapper map() {
         Objects.requireNonNull(entityMapper, "EntityMapper is null. Did you add a bean in application context configuration?");
 
         return entityMapper;
+    }
+
+
+    protected void finishEntity(ObjectNode node, Entity entity) throws OperationException {
+        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+
+        fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null && f.getAnnotation(Materialization.class).reverseMaterialization()).forEach(f -> {
+            try {
+                PropertyUtils.setProperty(entity, f.getName(), getMaterializedPropertyId(f, entity));
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        });
+
+        if(entity instanceof NumericCodedEntity && entity.getId() == null && isCodeAutoGenerationEnabled()) {
+            ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType()));
+        }
+
+    }
+
+    private Object getMaterializedPropertyId(Field f, Entity entity) {
+        Object materialized = null;
+        try {
+            materialized = PropertyUtils.getProperty(entity, f.getAnnotation(Materialization.class).entityField());
+            return materialized != null? ((Entity) materialized).getId() : null;
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    private boolean isCodeAutoGenerationEnabled() {
+        return EntitiesRegistry.instance().get(getEntityType()).get().getType().getAnnotation(EntityId.class).automaticCodeGeneration();
     }
 }

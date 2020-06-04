@@ -1,6 +1,7 @@
 package applica.framework.library.mail;
 
 import applica.framework.library.options.OptionsManager;
+import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.library.velocity.VelocityBuilderProvider;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
@@ -38,6 +39,16 @@ public class TemplatedMail {
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
+
+    private String mailText;
+
+    public String getMailText() {
+        return mailText;
+    }
+
+    public void setMailText(String mailText) {
+        this.mailText = mailText;
+    }
 
     private class ByteAttachmentData {
         byte[] bytes;
@@ -205,6 +216,10 @@ public class TemplatedMail {
         if (StringUtils.hasLength(returnReceipt)) {
             message.setHeader("Return-Receipt-To:",String.format("<%s>", returnReceipt));
         }
+
+
+        if (SystemOptionsUtils.isEnabled("log.email"))
+            this.mailText = bodyWriter.toString();
 
         Transport.send(message);
     }
