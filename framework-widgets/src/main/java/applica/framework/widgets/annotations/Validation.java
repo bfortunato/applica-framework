@@ -1,5 +1,7 @@
 package applica.framework.widgets.annotations;
 
+import applica.framework.Entity;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -21,7 +23,10 @@ public @interface Validation {
     //Campo da rifiutare
     String rejectField() default "";
     boolean required() default false;
+
     boolean unique() default false;
+    //Se la classe sulla quale fare il controllo di univocità è diversa da quella della entità corrente
+    Class<? extends Entity>[] uniqueClass() default {};
 
     //> 0
     boolean greaterThanZero() default false;
@@ -41,6 +46,7 @@ public @interface Validation {
     String rangeType() default "";
     String rangeOperator() default "";
     String rangeOtherValue() default "";
+
 
 
 }

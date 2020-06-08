@@ -96,7 +96,7 @@ public class DateUtils {
     }
 
     public static boolean isInCurrentDay(Date date) {
-        return getDateWithOnlyDay(date).equals(getDateWithOnlyDay(new Date()));
+        return getBeginOfTheDay(date).equals(getBeginOfTheDay(new Date()));
 
     }
     /**
@@ -111,14 +111,6 @@ public class DateUtils {
         return calendar;
     }
 
-    public static Date getDateWithOnlyDay(Date date) {
-        Calendar calendar = getCalendarInstance(date);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
-    }
 
     public static Date getEndOfTheDay(Date day) {
         Calendar toDate = GregorianCalendar.getInstance();
@@ -132,13 +124,12 @@ public class DateUtils {
 
     public static Date getBeginOfTheDay(Date day) {
 
-        Calendar fromDate = GregorianCalendar.getInstance();
-        fromDate.setTime(day);
-        fromDate.set(GregorianCalendar.HOUR_OF_DAY, 0);
-        fromDate.set(GregorianCalendar.MINUTE, 0);
-        fromDate.set(GregorianCalendar.SECOND, 0);
-
-        return fromDate.getTime();
+        Calendar calendar = getCalendarInstance(day);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
 

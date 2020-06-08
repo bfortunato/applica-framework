@@ -29,7 +29,7 @@ public class ValidationUtils {
                 }
 
                 //VAlidazione "unique": il campo non deve essere presente su altre entità del sistema
-                if (annotation.unique() && !entityService.isUnique(entity.getClass(), field.getName(), field.getName(), entity)) {
+                if (annotation.unique() && !entityService.isUnique(annotation.uniqueClass().length > 0? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), field.getName(), entity)) {
                     result.reject(StringUtils.hasLength(annotation.rejectField())? annotation.rejectField(): field.getName(), "validation.field.alreadyUsed");
                 }
 
