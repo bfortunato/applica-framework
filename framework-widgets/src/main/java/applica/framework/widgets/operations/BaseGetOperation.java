@@ -67,9 +67,13 @@ public class BaseGetOperation implements GetOperation {
     protected Entity fetch(Object id) throws OperationException {
         Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
-        fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-            entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
-        });
+        if (entityService != null) {
+            fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
+                entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
+            });
+        }
+
+
 
         return e;
     }

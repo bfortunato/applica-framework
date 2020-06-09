@@ -38,7 +38,7 @@ public class BaseSaveOperation implements SaveOperation {
     @Autowired(required = false)
     private EntityMapper entityMapper;
 
-    @Autowired
+    @Autowired(required = false)
     private CodeGeneratorService codeGeneratorService;
 
     public void validate(Entity entity) throws ValidationException {
@@ -126,8 +126,11 @@ public class BaseSaveOperation implements SaveOperation {
             }
         });
 
-        if(entity instanceof NumericCodedEntity && entity.getId() == null && isCodeAutoGenerationEnabled()) {
-            ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType()));
+        if (codeGeneratorService != null) {
+            if(entity instanceof NumericCodedEntity && entity.getId() == null && isCodeAutoGenerationEnabled()) {
+                ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType()));
+            }
+
         }
 
     }
