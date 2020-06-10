@@ -88,7 +88,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return entityMapper;
     }
 
-    protected Result<? extends Entity> fetch(Query query) throws OperationException {
+    public Result<? extends Entity> fetch(Query query) throws OperationException {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
