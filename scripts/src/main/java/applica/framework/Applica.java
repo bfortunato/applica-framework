@@ -12,18 +12,18 @@ import java.util.Properties;
 
 public class Applica {
 
-    public static final String VERSION = "2.3.0";
+    public static final String VERSION = "master";
     public static final String FRAMEWORK_ARCHETYPES_REPOSITORY_URL = "https://github.com/bfortunato/applica-framework-archetype-{archetype}.git";
 
     public static String javaHome = null;
 
     public static void main(String[] args) {
         javaHome = System.getenv("JAVA_HOME");
-        if (!StringUtils.hasLength(javaHome)) {
-            System.err.println("Please set JAVA_HOME environment variable");
-            System.exit(1);
-            return;
-        }
+//        if (!StringUtils.hasLength(javaHome)) {
+//            System.err.println("Please set JAVA_HOME environment variable");
+//            System.exit(1);
+//            return;
+//        }
 
         Modules.instance().scan(Applica.class.getPackage());
 

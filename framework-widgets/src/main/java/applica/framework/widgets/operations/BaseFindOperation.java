@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BaseFindOperation implements FindOperation, ResultSerializerListener {
+    private ThreadLocal<Boolean> materializationDisabled = new ThreadLocal<>();
 
     @Autowired(required = false)
     private EntityMapper entityMapper;
@@ -43,6 +44,16 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
     public void setEntityType(Class<? extends Entity> type) {
         this.entityType = type;
+    }
+
+    @Override
+    public void disableAutomaticMaterialization() {
+        materializationDisabled.set(true);
+    }
+
+    @Override
+    public void enableAutomaticMaterialization() {
+        materializationDisabled.set(false);
     }
 
     @Override
@@ -88,16 +99,16 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return entityMapper;
     }
 
-    public Result<? extends Entity> fetch(Query query) throws OperationException {
+    @Override
+    public Result<? extends Entity> fetch(Query query) {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
-        if (entityService != null) {
+        if (entityService != null && !(materializationDisabled.get() != null  && materializationDisabled.get())) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
                 entityService.materializePropertyFromId((List<Entity>) entities.getRows(), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
             });
         }
-
 
         return entities;
     }
@@ -105,6 +116,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     private boolean isNumber(Class c) {
         return c == int.class || c == long.class || c == double.class || c == float.class;
     }
+
 
     public Query generateQuery(Query query, List<Field> fieldList) {
         //adeguo tutti i filtri per i campi "boolean"
