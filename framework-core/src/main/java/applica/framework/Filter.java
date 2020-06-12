@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 /**
  * Describe a filter
  */
-public class Filter{
+public class Filter {
 
     public static final String LIKE = "like";
     public static final String GT = "gt";
@@ -32,7 +32,6 @@ public class Filter{
     public static final String EXACT = "exact";
 
     //GEO-FILTERS: used to apply geometric relationships between geographical coordinates
-    public static final String GEO = "geo";
     public static final String GEO_CONTAINS =   "geocontains";
     public static final String GEO_EQ =         "geoequals";
     public static final String GEO_DISJOINT =   "geodisjoint";
@@ -41,6 +40,7 @@ public class Filter{
     public static final String GEO_CROSSES =    "geocrosses";
     public static final String GEO_WITHIN =     "geowithin";
     public static final String GEO_OVERLAPS =   "geooverlaps";
+    public static final String GEO_WHITHIN =   "geo_near";
 
     private String property;
     private Object value;

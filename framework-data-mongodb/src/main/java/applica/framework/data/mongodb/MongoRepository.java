@@ -147,7 +147,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 allOrs.add(generateMongoQueryWithOr(ors));
                 mongoQuery.and(allOrs);
                 break;
-            case Filter.GEO:
+            case Filter.GEO_WHITHIN:
                 mongoQuery.geo(filter.getProperty(), (GeoFilter) filter.getValue());
                 break;
             case Filter.AND:
