@@ -99,7 +99,8 @@ public class BaseSaveOperation implements SaveOperation {
 
     }
 
-    protected void persist(Entity entity) throws OperationException {
+    @Override
+    public void persist(Entity entity) throws OperationException {
         ((Repository) Repo.of(getEntityType())).save(entity);
     }
 
