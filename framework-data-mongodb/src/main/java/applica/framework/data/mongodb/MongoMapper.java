@@ -6,9 +6,13 @@ import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.data.IgnoreNestedReferences;
 import applica.framework.library.utils.TypeUtils;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.geojson.Geometry;
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
 import org.apache.commons.logging.Log;
+import org.bson.BasicBSONObject;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -222,7 +226,7 @@ public class MongoMapper {
                             }
 							else if (Geometry.class.isAssignableFrom(field.getType())) {
 
-								field.set(destination, source.get(field.getName()));
+								field.set(destination, deserializeGeometryPoint(field, ((BasicDBObject) source)));
 							}
 
 							else if (field.getType().equals(Key.class)) {
@@ -292,6 +296,7 @@ public class MongoMapper {
 		return destination;
 	}
 
+
 	private boolean firstIsId(BasicDBObject source, Field field) {
 		if (source == null) {
 			return false;
@@ -306,6 +311,20 @@ public class MongoMapper {
 		}
 
 		return false;
+	}
+
+	private Geometry deserializeGeometryPoint(Field field, BasicBSONObject o) {
+
+		try {
+			if (field.getType().equals(Point.class)) {
+				BasicDBList coordinates = ((BasicDBList) ((BasicDBObject) o.get(field.getName())).get("coordinates"));
+				return new Point(new Position(((Double) coordinates.get(0)), ((Double) coordinates.get(1))));
+			}
+			//TODO: mappare le altre tipologie di geometry
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private boolean isId(BasicDBObject source, Field field) {
