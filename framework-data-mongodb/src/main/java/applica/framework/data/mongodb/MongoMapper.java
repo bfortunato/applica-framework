@@ -219,7 +219,13 @@ public class MongoMapper {
                                     Object value = loadObject(childDocument, field.getType(), mappingContext);
                                     field.set(destination, value);
                                 }
-                            } else if (field.getType().equals(Key.class)) {
+                            }
+							else if (Geometry.class.isAssignableFrom(field.getType())) {
+
+								field.set(destination, source.get(field.getName()));
+							}
+
+							else if (field.getType().equals(Key.class)) {
                                 field.set(destination, new Key(source.get(key)));
                             } else if (isAllowed(field.getType())) {
 								field.set(destination, source.get(key));
