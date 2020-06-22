@@ -7,6 +7,7 @@ import applica.framework.annotations.OneToMany;
 import applica.framework.data.IgnoreNestedReferences;
 import applica.framework.library.utils.TypeUtils;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.geojson.Geometry;
 import org.apache.commons.logging.Log;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,9 +141,9 @@ public class MongoMapper {
             value = source;	
 		} else if (TypeUtils.isList(source.getClass())) {
 			try {
-				List<?> list = (List<?>)source;
+				List<?> list = (List<?>) source;
 				ArrayList<Object> values = new ArrayList<Object>();
-				for(Object el : list) {
+				for (Object el : list) {
 					Object elVal = convertToBasicDBObjectValue(el, mappingContext);
 					if (elVal != null) values.add(elVal);
 				}
@@ -150,11 +151,16 @@ public class MongoMapper {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}	
+		} else if (isGeometry(source.getClass()))
+			value = source;
 		
 		return value;
 	}
-	
+
+	private boolean isGeometry(Class<?> aClass) {
+		return Geometry.class.isAssignableFrom(aClass);
+	}
+
 	public Object loadObject(BasicDBObject source, Class<?> destinationType, MappingContext mappingContext) {
 		if (mappingContext == null) {
 			mappingContext = new MappingContext();

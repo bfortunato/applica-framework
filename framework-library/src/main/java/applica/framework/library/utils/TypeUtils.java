@@ -320,5 +320,6 @@ public class TypeUtils {
     public static boolean isPersistable(Class<?> aClass) {
         return implementsInterface(aClass, Entity.class, true) || implementsInterface(aClass, Persistable.class, true);
     }
+
 }
 
