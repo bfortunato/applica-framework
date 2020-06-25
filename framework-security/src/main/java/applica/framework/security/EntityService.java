@@ -15,5 +15,5 @@ public interface EntityService {
     boolean isUnique(Class<? extends Entity> entityClass, String fieldName, Object fieldValue, Entity entity);
 
 
-    void materializePropertyFromId(List<Entity> rows, String idProperty, String entityProperty, Class entityClass);
+    void materializePropertyFromId(List<? extends Entity> rows, String idProperty, String entityProperty, Class entityClass);
 }
