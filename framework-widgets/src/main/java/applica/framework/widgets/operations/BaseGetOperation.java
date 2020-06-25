@@ -41,6 +41,14 @@ public class BaseGetOperation implements GetOperation {
 
         Entity entity = fetch(id);
 
+
+        try {
+            authorize(entity);
+        } catch (AuthorizationException ex) {
+            throw new OperationException(Response.UNAUTHORIZED, ex.getMessage());
+        }
+
+
         ObjectNode node = null;
         if (entity != null) {
             node = serialize(entity);
@@ -68,14 +76,6 @@ public class BaseGetOperation implements GetOperation {
                 entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
             });
         }
-
-        try {
-            authorize(e);
-        } catch (AuthorizationException ex) {
-            throw new OperationException(Response.UNAUTHORIZED, ex.getMessage());
-        }
-
-
 
         return e;
     }
