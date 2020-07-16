@@ -48,4 +48,4 @@ public class ErrorsUtils {
         Localization localization = new Localization();
         return localization.getMessage(label);
     }
- }
+}

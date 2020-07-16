@@ -1,11 +1,12 @@
 package applica._APPNAME_.domain.model;
 
+
 import applica.framework.AEntity;
 
 /**
  * Created by antoniolovicario on 06/11/17.
  */
-public class PasswordChange extends AEntity{
+public class PasswordChange extends AEntity {
 
     private User user;
     private String password;

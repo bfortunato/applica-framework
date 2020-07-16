@@ -96,6 +96,18 @@ public class URLData {
         }
     }
 
+
+
+    public String writeOnlyBytes() {
+        if (bytes == null || mimeType == null) {
+            return null;
+        }
+
+        String base64 = Base64.encodeBase64String(bytes);
+
+        return base64;
+    }
+
     public String write() {
         if (bytes == null || mimeType == null) {
             return null;

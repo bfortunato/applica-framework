@@ -26,7 +26,7 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
                 if (validator.isExpired(token.getToken())) {
                     throw new BadCredentialsException("Token was expired");
                 }
-            } catch (Exception e) {
+            } catch (TokenFormatException e) {
                 throw new BadCredentialsException("Bad token", e);
             }
 

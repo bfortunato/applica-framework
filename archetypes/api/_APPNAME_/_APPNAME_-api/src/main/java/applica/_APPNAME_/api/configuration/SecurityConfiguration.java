@@ -1,20 +1,14 @@
 package applica._APPNAME_.api.configuration;
 
 import applica._APPNAME_.api.localization.LocalizationFilter;
-import applica.framework.ApplicationContextProvider;
-import applica.framework.library.options.OptionsManager;
-import applica.framework.security.Security;
-import applica.framework.security.UserDetailsRepository;
 import applica.framework.security.UserService;
 import applica.framework.security.authorization.AuthorizationService;
 import applica.framework.security.authorization.BaseAuthorizationService;
 import applica.framework.security.token.TokenAuthenticationFilter;
 import applica.framework.security.token.TokenAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;

@@ -70,7 +70,7 @@ public class DefaultAuthTokenValidator implements AuthTokenValidator {
     }
 
     @Override
-    public boolean isExpired(String token) throws TokenFormatException, TokenExpiredException {
+    public boolean isExpired(String token) throws TokenFormatException {
         if (!StringUtils.hasLength(token)) {
             throw new TokenFormatException("token is null");
         }
@@ -79,10 +79,6 @@ public class DefaultAuthTokenValidator implements AuthTokenValidator {
         long expiration = extractor.getExpiration(token);
 
         Date now = new Date();
-        if (now.getTime() > expiration) {
-            throw new TokenExpiredException();
-        }
-
         return now.getTime() > (expiration);
     }
 
