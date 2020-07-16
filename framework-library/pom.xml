@@ -127,24 +127,4 @@
         </dependency>
 
     </dependencies>
-
-    <!--repositories required to resolve geotools dependencies-->
-    <repositories>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-main -->
-        <repository>
-            <id>maven2-repository.dev.java.net</id>
-            <name>Java.net repository</name>
-            <url>http://download.java.net/maven/2</url>
-        </repository>
-        <repository>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>boundless</id>
-            <name>Boundless Maven Repository</name>
-            <url>http://repo.boundlessgeo.com/main</url>
-        </repository>
-    </repositories>
-
-
 </project>
