@@ -94,7 +94,7 @@ public class MongoQuery extends BasicDBObject {
 			BasicDBObject obj = new BasicDBObject();
 			if (ranges.get(0) != null && !Objects.equals(ranges.get(0), "*")) {
 				Object left = ranges.get(0) instanceof Date ? ranges.get(0) : Double.parseDouble(String.valueOf(ranges.get(0)));
-				obj.append("$gt", left);
+				obj.append("$gte", left);
 				valid = true;
 			}
 
