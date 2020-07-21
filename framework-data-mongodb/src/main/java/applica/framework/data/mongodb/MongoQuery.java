@@ -92,14 +92,14 @@ public class MongoQuery extends BasicDBObject {
 		boolean valid = false;
 		if (ranges != null && ranges.size() == 2) {
 			BasicDBObject obj = new BasicDBObject();
-			if (!Objects.equals(ranges.get(0), "*")) {
+			if (ranges.get(0) != null && !Objects.equals(ranges.get(0), "*")) {
 				Object left = ranges.get(0) instanceof Date ? ranges.get(0) : Double.parseDouble(String.valueOf(ranges.get(0)));
 				obj.append("$gt", left);
 				valid = true;
 			}
 
-			if (!Objects.equals(ranges.get(0), "*")) {
-				Object right = ranges.get(0) instanceof Date ? ranges.get(1) : Double.parseDouble(String.valueOf(ranges.get(1)));
+			if (ranges.get(1) != null && !Objects.equals(ranges.get(1), "*")) {
+				Object right = ranges.get(1) instanceof Date ? ranges.get(1) : Double.parseDouble(String.valueOf(ranges.get(1)));
 				obj.append("$lte", right);
 				valid = true;
 			}
