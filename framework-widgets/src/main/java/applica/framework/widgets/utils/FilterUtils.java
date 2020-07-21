@@ -9,7 +9,11 @@ public class FilterUtils {
     public static void addBooleanFilter(String filterName, Query query) {
         Filter f = null;
         if (query.hasFilter(filterName)) {
-            if (query.getFilterValue(filterName).equals("true")){
+            Object value = query.getFilterValue(filterName);
+            if (value instanceof Boolean) {
+                return;
+            }
+            if (value != null && value.equals("true")){
                 f = new Filter(filterName, query.getFilterValue(filterName).equals("true"), query.getFilterType(filterName));
             } else {
                 f = createBooleanFalseOrNotExistingFilter(filterName);
