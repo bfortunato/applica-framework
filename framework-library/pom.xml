@@ -134,52 +134,6 @@
             <version>4.5.2</version>
         </dependency>
 
-        <!--Geo Tools-->
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-main -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-main</artifactId>
-            <version>19.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-opengis -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
-            <version>19.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-metadata -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-metadata</artifactId>
-            <version>19.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-api -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-api</artifactId>
-            <version>19.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-referencing -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-referencing</artifactId>
-            <version>19.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-epsg-hsql -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
-            <version>19.1</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.geotools/gt-epsg-extension -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-extension</artifactId>
-            <version>19.1</version>
-            <scope>test</scope>
-        </dependency>
-
         <!--JTS-->
         <!-- https://mvnrepository.com/artifact/com.vividsolutions/jts -->
         <dependency>

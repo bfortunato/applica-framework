@@ -25,16 +25,7 @@ public class TypeUtils {
             Byte.class,
             Short.class,
             Long.class,
-            Date.class,
-
-            //Geometry section
-            Point.class,
-            MultiPoint.class,
-            Polygon.class,
-            MultiPolygon.class,
-            LineString.class,
-            MultiLineString.class,
-            Geometry.class
+            Date.class
     };
 
     public static boolean isEntity(Class<?> type) {
