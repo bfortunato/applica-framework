@@ -80,7 +80,7 @@ public class MongoHelper {
                             Arrays.asList(createMongoCredential(dataSource, username, password, db))
                     );
                 } else {
-					ds.mongo = new MongoClient(host);
+					ds.mongo = new MongoClient(new ServerAddress(host, port != null ? port : 27017));
                 }
 			} catch (MongoException e) {
 				e.printStackTrace();
