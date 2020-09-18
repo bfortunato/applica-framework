@@ -50,6 +50,7 @@ public class NumberUtils {
     public static double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
         if (Double.isNaN(value) || value == 0) return 0;
+        if (Double.isInfinite(value)) return value;
 
         BigDecimal bd = BigDecimal.valueOf(value);
         bd = bd.setScale(places, RoundingMode.HALF_DOWN);
