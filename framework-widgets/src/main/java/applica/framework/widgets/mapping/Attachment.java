@@ -22,7 +22,13 @@ public class Attachment extends AEntity {
 
     }
 
+    public static String getHumanReadableSize(long size) {
+        return org.apache.commons.io.FileUtils.byteCountToDisplaySize(size);
+    }
 
+    public String getSizeDescription() {
+        return getHumanReadableSize(this.size);
+    }
 
     public String getName() {
         return name;

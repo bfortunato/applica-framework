@@ -1,9 +1,6 @@
 package applica.framework.widgets.operations;
 
-import applica.framework.Entity;
-import applica.framework.Repo;
-import applica.framework.RepositoriesFactory;
-import applica.framework.Repository;
+import applica.framework.*;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
@@ -70,14 +67,24 @@ public class BaseGetOperation implements GetOperation {
     public Entity fetch(Object id) throws OperationException {
 
         Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
-        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+        materializeFields(e,entityService);
+
+        return e;
+    }
+
+    public static void materializeFields(Entity e, EntityService entityService) {
+        List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
         if (entityService != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
                 entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
             });
         }
+    }
 
-        return e;
+    public static void materializeFields(Entity e) {
+
+        EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
+        materializeFields(e, entityService);
     }
 
 

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -104,13 +105,25 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
-        if (entityService != null && !(materializationDisabled.get() != null  && materializationDisabled.get())) {
-            fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId((List<Entity>) entities.getRows(), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
-            });
+        if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
+            materializeFields(entities.getRows(), entityService, fieldList);
         }
 
         return entities;
+    }
+
+
+    public static void materializeFields(List<? extends Entity> rows) {
+        materializeFields(rows, ApplicationContextProvider.provide().getBean(EntityService.class), null);
+    }
+
+    public static void materializeFields(List<? extends Entity> rows, EntityService entityService, List<Field> fieldList) {
+        fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
+        if (entityService != null) {
+            fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
+                entityService.materializePropertyFromId(rows, f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
+            });
+        }
     }
 
     private boolean isNumber(Class c) {
