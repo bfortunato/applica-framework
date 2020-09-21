@@ -11,6 +11,7 @@ public class Attachment extends AEntity {
     private String path;
     private String name;
     private long size;
+    private String preview;
 
     public Attachment(){
 
@@ -36,6 +37,14 @@ public class Attachment extends AEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPreview() {
+        return preview;
+    }
+
+    public void setPreview(String preview) {
+        this.preview = preview;
     }
 
     public String getPath() {
