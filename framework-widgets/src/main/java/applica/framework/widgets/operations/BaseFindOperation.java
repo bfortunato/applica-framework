@@ -118,6 +118,8 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
     public static void materializeFields(List<? extends Entity> rows, EntityService entityService, List<Field> fieldList) {
+        if (rows.size() == 0)
+            return;
         fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
         if (entityService != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {

@@ -73,6 +73,8 @@ public class BaseGetOperation implements GetOperation {
     }
 
     public static void materializeFields(Entity e, EntityService entityService) {
+        if (e == null)
+            return;
         List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
         if (entityService != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
