@@ -1,6 +1,10 @@
 package applica.framework.data.security;
 
 import applica.framework.*;
+import applica.framework.data.security.LoggedUserIdOwnerProvider;
+import applica.framework.data.security.OwnerProvider;
+import applica.framework.data.security.SecureCrudStrategy;
+import applica.framework.data.security.SecureEntity;
 import org.springframework.util.Assert;
 
 import java.util.Optional;
@@ -67,8 +71,16 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         checkAttributes();
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
-            Filter filter = new Filter(getOwnerPropertyName(), getOwnerId());
-            query.getFilters().add(filter);
+            Object ownerId = getOwnerId();
+
+            Disjunction disjunction = new Disjunction();
+            if (ownerId == null) {
+                disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
+            } else {
+
+            }
+            disjunction.getChildren().add(new Filter(getOwnerPropertyName(), ownerId));
+            query.getFilters().add(disjunction);
         }
 
         return super.find(query, repository);
