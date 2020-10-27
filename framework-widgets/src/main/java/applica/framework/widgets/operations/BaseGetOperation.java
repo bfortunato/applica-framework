@@ -76,7 +76,7 @@ public class BaseGetOperation implements GetOperation {
         if (e == null)
             return;
         List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
-        if (entityService != null) {
+        if (entityService != null && fieldList != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
                 entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
             });
