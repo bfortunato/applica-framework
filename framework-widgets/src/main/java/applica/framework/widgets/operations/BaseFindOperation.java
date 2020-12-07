@@ -149,6 +149,9 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             Disjunction disjunction = new Disjunction();
 
             disjunction.setChildren(fieldList.stream().filter(f -> f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
+
+            popolateKeywordDisjunction(disjunction);
+
             if (disjunction.getChildren().size() > 0) {
                 query.getFilters().add(disjunction);
 
@@ -160,6 +163,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         //Todo gestisco le date in overlapp
 
         return query;
+    }
+
+    public void popolateKeywordDisjunction(Disjunction disjunction) {
+
     }
 
 }
