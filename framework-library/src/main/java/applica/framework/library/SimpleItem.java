@@ -2,6 +2,7 @@ package applica.framework.library;
 
 import applica.framework.library.utils.Func;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class SimpleItem {
         if (objects != null) {
             for (Object obj : objects) {
                 try {
-                    Object label = PropertyUtils.getSimpleProperty(obj, labelProperty);
+                    Object label = StringUtils.hasLength(labelProperty)?  PropertyUtils.getSimpleProperty(obj, labelProperty) : obj.toString();
                     Object value = PropertyUtils.getSimpleProperty(obj, valueProperty);
                     String slabel = label != null ? label.toString() : "";
                     String svalue = value != null ? value.toString() : "";
