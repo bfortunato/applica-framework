@@ -38,13 +38,17 @@ public class BaseGetOperation implements GetOperation {
 
         Entity entity = fetch(id);
 
-
         try {
             authorize(entity);
         } catch (AuthorizationException ex) {
             throw new OperationException(Response.UNAUTHORIZED, ex.getMessage());
         }
 
+        return getFromEntity(entity);
+    }
+
+    @Override
+    public ObjectNode getFromEntity(Entity entity) throws OperationException  {
 
         ObjectNode node = null;
         if (entity != null) {

@@ -7,6 +7,8 @@ public interface GetOperation {
 
     ObjectNode get(Object id) throws OperationException;
 
+    ObjectNode getFromEntity(Entity entity) throws OperationException;
+
     Entity fetch(Object id) throws OperationException;
 
     Class<? extends Entity> getEntityType();
