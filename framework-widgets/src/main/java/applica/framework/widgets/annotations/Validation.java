@@ -34,6 +34,8 @@ public @interface Validation {
     //>= 0
     boolean positive() default false;
 
+    String rejectMessage() default "";
+
 
     /*
     * ESEMPIO:
