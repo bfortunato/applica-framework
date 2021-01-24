@@ -132,9 +132,7 @@ public class BaseSaveOperation implements SaveOperation {
             if(entity instanceof NumericCodedEntity && (entity.getId() == null || ((NumericCodedEntity) entity).getCode() == 0) && isCodeAutoGenerationEnabled()) {
                 ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType()));
             }
-
         }
-
     }
 
     private Object getMaterializedPropertyId(Field f, Entity entity) {
