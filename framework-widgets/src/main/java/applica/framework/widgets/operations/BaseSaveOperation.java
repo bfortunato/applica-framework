@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class BaseSaveOperation implements SaveOperation {
 
@@ -140,7 +141,13 @@ public class BaseSaveOperation implements SaveOperation {
         Object materialized = null;
         try {
             materialized = PropertyUtils.getProperty(entity, f.getAnnotation(Materialization.class).entityField());
-            return materialized != null? ((Entity) materialized).getId() : null;
+            if (materialized != null) {
+                if (materialized instanceof List)
+                    return ((List<?>) materialized).stream().map( e -> ((Entity) e).getId()).collect(Collectors.toList());
+                return ((Entity) materialized).getId();
+            }
+            return null;
+
         } catch (Exception e) {
             return null;
         }
