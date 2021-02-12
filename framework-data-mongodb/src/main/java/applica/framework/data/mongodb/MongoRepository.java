@@ -165,10 +165,6 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
-            if (filter.getValue() == null) {
-                continue;
-            }
-
             pushFilter(mongoQuery, filter);
         }
         return mongoQuery;
