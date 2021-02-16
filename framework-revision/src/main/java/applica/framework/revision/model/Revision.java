@@ -20,7 +20,6 @@ public class Revision extends AEntity {
     private String creator;
     private Date date;
 
-
     //eventuali lista di modifiche. Se creazione  conterrà il valore della entità.
     private List<AttributeDifference> differences = new ArrayList<>();
 

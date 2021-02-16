@@ -14,8 +14,12 @@ import applica.framework.revisions.RevisionId;
 import applica.framework.security.User;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityUtils;
+import applica.framework.widgets.factory.OperationsFactory;
+import applica.framework.widgets.operations.OperationException;
 import org.jsoup.helper.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -24,6 +28,9 @@ import java.util.stream.Collectors;
 
 
 public class BaseRevisionService implements RevisionService {
+
+    @Autowired
+    private OperationsFactory operationsFactory;
 
     private static final ThreadLocal<Boolean> enabled = ThreadLocal.withInitial(() -> true);
 
@@ -36,9 +43,22 @@ public class BaseRevisionService implements RevisionService {
     public Revision createAndSaveRevision(User user, Entity entity, Entity previousEntity) {
         Revision revision = createRevision(user, entity, previousEntity);
         if (!revision.getType().equals(RevisionType.EDIT) || (revision.getDifferences().size() > 0))
-            Repo.of(Revision.class).save(revision);
+            persistRevision(revision);
 
         return revision;
+    }
+
+    private void persistRevision(Revision revision) {
+        try {
+            operationsFactory.createSave(getRevisionClass()).persist(revision);
+        } catch (OperationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Class<? extends Revision> getRevisionClass() {
+        return Revision.class;
     }
 
     @Override
@@ -71,7 +91,7 @@ public class BaseRevisionService implements RevisionService {
     }
 
     private Revision createNewRevision(User user, String type, Class<? extends Entity> entityClass, String entityId, Entity entity, Entity previousEntity) {
-        Revision revision = new Revision();
+        Revision revision = createNewRevisionInstance();
         revision.setType(type);
         revision.setEntityId(entityId);
         EntitiesRegistry.instance().get(entityClass).ifPresent(e -> revision.setEntity(e.getId()));
@@ -91,6 +111,18 @@ public class BaseRevisionService implements RevisionService {
         );
 
         return revision;
+    }
+
+    private Revision createNewRevisionInstance() {
+        Constructor constr2 = null;
+        try {
+            constr2 = getRevisionClass().getConstructor();
+            return (Revision) constr2.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     private boolean isTransient(Field field) {
@@ -197,7 +229,7 @@ public class BaseRevisionService implements RevisionService {
 
     @Override
     public List<Revision> getRevisionsForEntity(Entity entity) {
-        return Repo.of(Revision.class).find(Query.build().eq("entityId", entity.getId()).eq("entity", entity).sort("date", true)).getRows();
+        return (List<Revision>) Repo.of(getRevisionClass()).find(Query.build().eq("entityId", entity.getId()).eq("entity", entity).sort("date", true)).getRows();
     }
 
     private List<Field> getAllFields(Class<? extends Object> type) {
@@ -257,19 +289,12 @@ public class BaseRevisionService implements RevisionService {
         }
     }
 
-
-    private long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity) {
-        Revision last = Repo.of(Revision.class).find(Query.build().eq("entityId", entityId).eq("entity", EntityUtils.getEntityIdAnnotation(entity)).sort("date", true).page(1).rowsPerPage(1)).findFirst().orElse(null);
+    @Override
+    public long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity) {
+        Revision last = Repo.of(getRevisionClass()).find(Query.build().sort("date", true).page(1).rowsPerPage(1)).findFirst().orElse(null);
         return last != null ? last.getCode() + 1 : 1;
     }
 
-    private RevisionSettings createNewSettings() {
-        RevisionSettings settings = new RevisionSettings();
-        disableRevisionForCurrentThread();
-        Repo.of(RevisionSettings.class).save(settings);
-        enableRevisionForCurrentThread();
-        return settings;
-    }
 
     @Override
     public void enableRevisionForCurrentThread() {
