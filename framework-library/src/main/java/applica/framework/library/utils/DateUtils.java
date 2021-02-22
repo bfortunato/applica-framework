@@ -847,13 +847,12 @@ public class DateUtils {
     public static List<Date> getAllMonthStartDatesInRange(Date startDate, Date endDate) {
         List<Date> dates = new ArrayList<>();
         if (startDate.compareTo(endDate) < 0) {
-            Calendar end = getCalendarInstance(endDate);
+            Calendar end = getCalendarInstance(getEndOfTheDay(endDate));
             Calendar date = getCalendarInstance(startDate);
-            do {
+            while (end.getTime().getTime() >= date.getTime().getTime()) {
                 dates.add(getMonthStartDate(date.getTime()));
                 date.add(Calendar.MONTH, 1);
-
-            } while (date.get(Calendar.MONTH) <= end.get(Calendar.MONTH));
+            }
         }
         return dates;
     }
