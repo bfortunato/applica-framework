@@ -102,7 +102,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
     @Override
     public Result<? extends Entity> fetch(Query query) {
-        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+        List<Field> fieldList = generateFieldsForMaterialization();
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
@@ -110,6 +110,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         }
 
         return entities;
+    }
+
+    public List<Field> generateFieldsForMaterialization() {
+        return ClassUtils.getAllFields(getEntityType());
     }
 
 
