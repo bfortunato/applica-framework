@@ -13,7 +13,11 @@
         <version>1.4.2.RELEASE</version>
     </parent>
 
-    <url>http://www.applicaframework.com</url>
+    <scm>
+        <url>https://github.com/bfortunato/applica-framework</url>
+    </scm>
+
+    <url>http://www.applica.guru</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
