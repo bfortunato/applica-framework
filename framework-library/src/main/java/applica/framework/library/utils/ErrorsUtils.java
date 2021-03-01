@@ -1,6 +1,7 @@
 package applica.framework.library.utils;
 
 
+import applica.framework.ApplicationContextProvider;
 import applica.framework.library.i18n.Localization;
 import applica.framework.library.validation.ValidationResult;
 import org.springframework.util.StringUtils;
@@ -15,10 +16,7 @@ import java.util.stream.Collectors;
  */
 public class ErrorsUtils {
 
-    // Prevent initialization
-    private ErrorsUtils() { }
-
-    public static String getAllErrorMessages(Errors errors) {
+    public String getAllErrorMessages(Errors errors) {
         String errorMessages = "";
         for(ObjectError error: errors.getAllErrors()) {
             errorMessages = String.format("%s%s: %s<br>",  errorMessages, getMessage(error.getObjectName()), getMessage(error.getDefaultMessage()));
@@ -26,12 +24,16 @@ public class ErrorsUtils {
         return errorMessages;
     }
 
-    public static String getAllErrorMessages(List<ValidationResult.Error> errors) {
+    public static ErrorsUtils getInstance() {
+        return (ErrorsUtils) ApplicationContextProvider.provide().getBean(ErrorsUtils.class);
+    }
+
+    public String getAllErrorMessages(List<ValidationResult.Error> errors) {
 
         return getAllErrorMessages(errors, null);
     }
 
-    public static String getAllErrorMessages(List<ValidationResult.Error> errors, String errorSeparator) {
+    public String getAllErrorMessages(List<ValidationResult.Error> errors, String errorSeparator) {
 
         String errorMessages = "";
         String separator = StringUtils.hasLength(errorSeparator) ? errorSeparator : "";
@@ -41,7 +43,8 @@ public class ErrorsUtils {
         return errorMessages;
     }
 
-    public static String getMessage(String label) {
+
+    public String getMessage(String label) {
         Localization localization = new Localization();
         return localization.getMessage(label);
     }

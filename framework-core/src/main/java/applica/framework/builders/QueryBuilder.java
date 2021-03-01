@@ -7,8 +7,6 @@ import applica.framework.Sort;
 
 public class QueryBuilder extends Query {
 
-
-
     @FunctionalInterface
     public interface ConditionalFilterPredicate {
         boolean check();
@@ -121,13 +119,6 @@ public class QueryBuilder extends Query {
     public QueryBuilder lte(String property, Object value) {
         if(value != null) {
             getFilters().add(new Filter(property, value, Filter.LTE));
-        }
-        return this;
-    }
-
-    public QueryBuilder eqIgnoreCase(String property, Object value) {
-        if(value != null) {
-            getFilters().add(new Filter(property, value, Filter.EQ_IGNORE_CASE));
         }
         return this;
     }

@@ -21,6 +21,7 @@ public class SimpleConstraintsChecker implements ConstraintsChecker {
     private ApplicationContext applicationContext;
 
     private List<Constraint> constraints;
+    private List<DeleteConstraint> deleteConstraints;
     private List<ReferencedConstraint> referencedConstraints;
 
     private List<Constraint> loadConstraints(Class<? extends Entity> type) {
@@ -29,6 +30,14 @@ public class SimpleConstraintsChecker implements ConstraintsChecker {
         }
 
         return constraints.stream().filter(c -> c.getType().equals(type)).collect(Collectors.toList());
+    }
+
+    private List<DeleteConstraint> loadDeleteConstraints(Class<? extends Entity> type) {
+        if (deleteConstraints == null) {
+            deleteConstraints = new ArrayList<DeleteConstraint>(applicationContext.getBeansOfType(DeleteConstraint.class).values());
+        }
+
+        return deleteConstraints.stream().filter(c -> c.getType().equals(type)).collect(Collectors.toList());
     }
 
     private List<ReferencedConstraint> loadPrimaryConstraints(Class<? extends Entity> type) {
@@ -63,5 +72,11 @@ public class SimpleConstraintsChecker implements ConstraintsChecker {
     public void checkForeign(Entity entity) {
         Objects.requireNonNull(entity, "Entity cannot be null");
         loadForeignConstraints(entity.getClass()).forEach(c -> c.checkForeign(entity));
+    }
+
+    @Override
+    public void checkDelete(Entity entity) {
+        Objects.requireNonNull(entity, "Entity cannot be null");
+        loadDeleteConstraints(entity.getClass()).forEach(c -> c.check(entity));
     }
 }

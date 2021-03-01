@@ -1,6 +1,8 @@
 package applica.framework.library.dynaobject;
 
-public class Property {
+import applica.framework.Persistable;
+
+public class Property implements Persistable {
     private String key;
     private Object value;
 

@@ -9,4 +9,5 @@ public interface SaveOperation {
     Class<? extends Entity> getEntityType();
     Entity save(ObjectNode data) throws OperationException, ValidationException;
 
+    void persist(Entity entity) throws OperationException;
 }

@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
@@ -257,6 +258,16 @@ public class AuthTest {
 
         @Override
         public <T> T getBean(Class<T> aClass, Object... objects) throws BeansException {
+            return null;
+        }
+
+        @Override
+        public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass) {
+            return null;
+        }
+
+        @Override
+        public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
             return null;
         }
 

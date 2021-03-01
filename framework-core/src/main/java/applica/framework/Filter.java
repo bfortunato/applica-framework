@@ -1,5 +1,7 @@
 package applica.framework;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.collections.MapUtils;
 
 import java.util.ArrayList;
@@ -10,39 +12,38 @@ import java.util.Map.Entry;
 /**
  * Describe a filter
  */
-public class Filter{
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Filter {
 
-    public static final String LIKE = "like";
-    public static final String GT = "gt";
-    public static final String NE = "ne";
-    public static final String GTE = "gte";
-    public static final String LT = "lt";
-    public static final String LTE = "lte";
-    public static final String EQ = "eq";
-    public static final String EQ_IGNORE_CASE = "eq_ignorecase";
-    public static final String IN = "in";
-    public static final String LIN = "lin";
-    public static final String NIN = "nin";
-    public static final String LNIN = "lnin";
-    public static final String ID = "id";
-    public static final String OR = "or";
-    public static final String AND = "and";
-    public static final String CUSTOM = "custom";
-    public static final String RANGE = "range";
-    public static final String EXISTS = "exists";
-    public static final String EXACT = "exact";
-    public static final String ELEM_MATCH =     "elemMatch";
+    @JsonIgnore public static final String LIKE = "like";
+    @JsonIgnore public static final String GT = "gt";
+    @JsonIgnore public static final String NE = "ne";
+    @JsonIgnore public static final String GTE = "gte";
+    @JsonIgnore public static final String LT = "lt";
+    @JsonIgnore public static final String LTE = "lte";
+    @JsonIgnore public static final String EQ = "eq";
+    @JsonIgnore public static final String IN = "in";
+    @JsonIgnore public static final String LIN = "lin";
+    @JsonIgnore public static final String NIN = "nin";
+    @JsonIgnore public static final String LNIN = "lnin";
+    @JsonIgnore public static final String ID = "id";
+    @JsonIgnore public static final String OR = "or";
+    @JsonIgnore public static final String AND = "and";
+    @JsonIgnore public static final String CUSTOM = "custom";
+    @JsonIgnore public static final String RANGE = "range";
+    @JsonIgnore public static final String EXISTS = "exists";
+    @JsonIgnore public static final String EXACT = "exact";
 
     //GEO-FILTERS: used to apply geometric relationships between geographical coordinates
-    public static final String GEO = "geo";
-    public static final String GEO_CONTAINS =   "geocontains";
-    public static final String GEO_EQ =         "geoequals";
-    public static final String GEO_DISJOINT =   "geodisjoint";
-    public static final String GEO_INTERSECTS = "geointersects";
-    public static final String GEO_TOUCHES =    "geotouches";
-    public static final String GEO_CROSSES =    "geocrosses";
-    public static final String GEO_WITHIN =     "geowithin";
-    public static final String GEO_OVERLAPS =   "geooverlaps";
+    @JsonIgnore public static final String GEO_CONTAINS =   "geocontains";
+    @JsonIgnore public static final String GEO_EQ =         "geoequals";
+    @JsonIgnore public static final String GEO_DISJOINT =   "geodisjoint";
+    @JsonIgnore public static final String GEO_INTERSECTS = "geointersects";
+    @JsonIgnore public static final String GEO_TOUCHES =    "geotouches";
+    @JsonIgnore public static final String GEO_CROSSES =    "geocrosses";
+    @JsonIgnore public static final String GEO_WITHIN =     "geowithin";
+    @JsonIgnore public static final String GEO_OVERLAPS =   "geooverlaps";
+    @JsonIgnore public static final String GEO_WHITHIN =   "geo_near";
 
     private String property;
     private Object value;
@@ -84,6 +85,7 @@ public class Filter{
         return type;
     }
 
+    @JsonIgnore
     public List<Filter> getChildren() {
         if (!OR.equals(type) && !AND.equals(type)) {
             throw new RuntimeException("Requesting getChildren on non boolean filter");

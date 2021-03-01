@@ -36,7 +36,7 @@ public class LuceneTest {
             }
         };
 
-        indexService.init();
+        indexService.afterPropertiesSet();
 
         for (int i = 0; i < 50; i++) {
             Calendar calendar = Calendar.getInstance();

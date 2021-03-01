@@ -1,8 +1,13 @@
 package applica.framework.library.tests;
 
 import applica.framework.library.options.PropertiesOptionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
+import org.junit.Test;
 
+import java.io.*;
+import java.util.Dictionary;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -13,8 +18,11 @@ import java.util.Properties;
  */
 public class OptionsTest {
 
-    //@Test
-    public void options() {
+
+    @Test
+    public void options() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
         PropertiesOptionManager options = new PropertiesOptionManager();
         Properties properties = new Properties();
 

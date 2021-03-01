@@ -22,9 +22,9 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class LuceneIndexService implements IndexService {
+public class LuceneIndexService implements IndexService, InitializingBean {
 
     public static final String KEY_FIELD = "__id";
 
@@ -66,8 +66,8 @@ public class LuceneIndexService implements IndexService {
         return path;
     }
 
-    @PostConstruct
-    public void init() throws IOException, URISyntaxException {
+    @Override
+    public void afterPropertiesSet() throws IOException, URISyntaxException {
         String path = getPath();
 
         analyzer = new StandardAnalyzer();

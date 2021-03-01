@@ -1,0 +1,6 @@
+<ruleset>
+    <ignoreVersions>
+        <ignoreVersion type="regex">.*-beta.</ignoreVersion>
+        <ignoreVersion type="regex">.*_ALPHA</ignoreVersion>
+    </ignoreVersions>
+</ruleset>

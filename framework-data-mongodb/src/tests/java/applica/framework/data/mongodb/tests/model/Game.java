@@ -1,8 +1,8 @@
 package applica.framework.data.mongodb.tests.model;
 
-import applica.framework.annotations.ManyToMany;
-import applica.framework.annotations.ManyToOne;
-import applica.framework.annotations.OneToMany;
+import applica.framework.cli.annotations.ManyToMany;
+import applica.framework.cli.annotations.ManyToOne;
+import applica.framework.cli.annotations.OneToMany;
 import applica.framework.SEntity;
 import org.bson.types.ObjectId;
 

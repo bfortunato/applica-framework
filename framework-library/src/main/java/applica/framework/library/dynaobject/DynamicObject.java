@@ -9,5 +9,6 @@ public interface DynamicObject {
     void setProperty(String key, Object value);
     void removeProperty(String key);
     void clearProperties();
+    <T> T get(String key);
 
 }

@@ -17,6 +17,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
 
+import java.util.List;
+
 /**
  * Applica (www.applica.guru)
  * User: bimbobruno
@@ -83,6 +85,18 @@ public class Security {
         }
 
         return userDetails;
+    }
+
+    public boolean isPermittedOne(List<String> permissions, Object... params) {
+        return permissions.stream().anyMatch((p) -> {
+            return this.isPermitted(p, params);
+        });
+    }
+
+    public boolean isPermittedAll(List<String> permissions, Object... params) {
+        return permissions.stream().allMatch((p) -> {
+            return this.isPermitted(p, params);
+        });
     }
 
     protected static AuthorizationService getAuthorizationService() {

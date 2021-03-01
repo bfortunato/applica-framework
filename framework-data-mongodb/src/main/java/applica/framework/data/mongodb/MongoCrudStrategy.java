@@ -32,7 +32,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         if(id != null) {
             BasicDBObject document = (BasicDBObject) mongoRepository.getCollection().findOne(MongoQuery.mk().id(String.valueOf(id)));
             if(document != null) {
-                entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), null);
+                entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), mongoRepository.getMappingContext());
             }
         }
 
@@ -84,8 +84,8 @@ public class MongoCrudStrategy implements CrudStrategy {
         return response;
     }
 
-    private MongoMapper.MappingConfig generateMappingConfigFromQuery(Query loadRequest) {
-        MongoMapper.MappingConfig config = new MongoMapper.MappingConfig();
+    private MappingContext generateMappingConfigFromQuery(Query loadRequest) {
+        MappingContext config = new MappingContext();
         config.setAlwaysIgnoreNestedReferences(loadRequest.isIgnoreNestedReferences());
         return config;
     }
@@ -113,7 +113,10 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         if(id != null) {
             if (constraintsChecker != null) {
-                repository.get(id).ifPresent(constraintsChecker::checkPrimary);
+                repository.get(id).ifPresent(entity -> {
+                    constraintsChecker.checkPrimary(entity);
+                    constraintsChecker.checkDelete(entity);
+                });
             }
 
             mongoRepository.getCollection().remove(MongoQuery.mk().id(String.valueOf(id)));

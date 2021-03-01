@@ -2,6 +2,7 @@ package applica.framework.data.mongodb;
 
 import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
+import applica.framework.library.utils.Nulls;
 import applica.framework.library.utils.Strings;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -10,15 +11,15 @@ import com.mongodb.DBObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class MongoRepository<T extends Entity> implements Repository<T> {
+public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
 	
 	@Autowired
 	private MongoHelper mongoHelper;
@@ -29,6 +30,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	private Log logger = LogFactory.getLog(getClass());
 
     private DB db;
+    private MappingContext mappingContext;
 
     public void init() {
         if (db == null) {
@@ -38,9 +40,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             }
         }
 	}
-	
-	@PreDestroy
-	protected void destroy() {
+
+	@Override
+	public void destroy() {
 		mongoHelper.close(getDataSource());
 	}
 
@@ -61,6 +63,21 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		
 		return Optional.ofNullable(entity);
 	}
+
+    public Optional<T> get(Object id, MappingContext mappingContext) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
+
+        this.mappingContext = mappingContext;
+        T entity = crudStrategy.get(id, this);
+        this.mappingContext = null;
+
+        return Optional.ofNullable(entity);
+    }
 
 	@Override
 	public Result find(applica.framework.Query query) {
@@ -102,9 +119,6 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             case Filter.EQ:
                 mongoQuery.eq(filter.getProperty(), filter.getValue());
                 break;
-            case Filter.EQ_IGNORE_CASE:
-                mongoQuery.eq(filter.getProperty(), filter.getValue(), true);
-                break;
             case Filter.NE:
                 mongoQuery.ne(filter.getProperty(), filter.getValue());
                 break;
@@ -133,7 +147,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 allOrs.add(generateMongoQueryWithOr(ors));
                 mongoQuery.and(allOrs);
                 break;
-            case Filter.GEO:
+            case Filter.GEO_WHITHIN:
                 mongoQuery.geo(filter.getProperty(), (GeoFilter) filter.getValue());
                 break;
             case Filter.AND:
@@ -144,10 +158,6 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                     return q;
                 }).collect(Collectors.toList()));
                 break;
-            case Filter.ELEM_MATCH:
-                Query elemMatchs = (Query) filter.getValue();
-                mongoQuery.elemMatch(filter.getProperty(), createQuery(elemMatchs));
-                break;
         }
     }
 
@@ -155,10 +165,6 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
-            if (filter.getValue() == null) {
-                continue;
-            }
-
             pushFilter(mongoQuery, filter);
         }
         return mongoQuery;
@@ -233,5 +239,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return q;
         }).collect(Collectors.toList()));
         return query;
+    }
+
+    public MappingContext getMappingContext() {
+        return mappingContext;
     }
 }

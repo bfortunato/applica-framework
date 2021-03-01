@@ -32,21 +32,21 @@ public class Encryptor {
         }
     }
 
-    public String encrypt(String text) throws EncryptorException {
+    public byte[] encrypt(byte[] data) throws EncryptorException {
         init();
         try {
             cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-            return toHexString(cipher.doFinal(text.getBytes()));
+            return cipher.doFinal(data);
         } catch (Exception e) {
             throw new EncryptorException(e);
         }
     }
 
-    public String decrypt(String text) throws EncryptorException {
+    public byte[] decrypt(byte[] data) throws EncryptorException {
         init();
         try {
             cipher.init(Cipher.DECRYPT_MODE, aesKey);
-            return new String(cipher.doFinal(toByteArray(text)));
+            return cipher.doFinal(data);
         } catch (Exception e) {
             throw new EncryptorException(e);
         }
@@ -54,13 +54,5 @@ public class Encryptor {
 
     private String getNormalizedKey() {
         return String.format("%16s", key).replace(' ', '*');
-    }
-
-    public static String toHexString(byte[] array) {
-        return Base64.getEncoder().encodeToString(array);
-    }
-
-    public static byte[] toByteArray(String s) {
-        return Base64.getDecoder().decode(s);
     }
 }

@@ -33,14 +33,17 @@ public class BaseAuthorizationService implements AuthorizationService {
 
         Boolean authorized = false;
         //first of all, check if user has permission
-        if ((user.getRoles() != null && user.getRoles().stream().anyMatch((r) -> r.getPermissions() != null && r.getPermissions().stream().anyMatch((p) ->p.equals(SUPERUSER_PERMISSION) || p.equals(permission))))) {
+        if ((user.getRoles() != null && user.getRoles().stream().anyMatch((r) -> r.getPermissions() != null && r.getPermissions().stream().anyMatch((p) ->p.equals(permission))))) {
             //se il permesso da controllare è statico ed è stato trovato tra quelli associati all'utente corrente, l'autorizzazione è fornita...
             authorized = true;
         }
         //altrimenti, se non trova il permesso tra quelli statici controlla tra quelli dinamici
-        if (! authorized) {
+        if (!authorized) {
             String[] elements = permission.split(":");
-            Assert.isTrue(elements.length >= 2, "Bad permission format: " + permission);
+            if (elements.length != 2)
+                throw new AuthorizationException();
+
+            //Assert.isTrue(elements.length >= 2, "Bad permission format: " + permission);
 
             //if there is an implementation of the method in some context, call the method
             Optional<Method> method = Permissions.instance().getMethod(permission);

@@ -1,7 +1,6 @@
 package applica.framework.data.mongodb.tests;
 
 import applica.framework.Entity;
-import applica.framework.data.mongodb.constraints.ConstraintException;
 import applica.framework.data.mongodb.constraints.ReferencedConstraint;
 import applica.framework.data.mongodb.tests.data.MockBrandsRepository;
 import applica.framework.data.mongodb.tests.data.MockGamesRepository;

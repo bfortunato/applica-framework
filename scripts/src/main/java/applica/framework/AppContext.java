@@ -1,5 +1,6 @@
 package applica.framework;
 
+import applica.framework.cli.SystemUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,8 +38,18 @@ public class AppContext {
     private String archetype;
     Document document;
 
+    public static void initFromAppDir(String appDir) {
+        s_current = new AppContext();
+        s_current.init(appDir);
+
+    }
+
     private void init() {
-        appDir = Paths.get("").toAbsolutePath().toString();
+        init(Paths.get("").toAbsolutePath().toString());
+    }
+
+    private void init(String appDir) {
+        this.appDir = appDir;
         File manifest = new File(appPath("app.manifest"));
         if (manifest.exists()) {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

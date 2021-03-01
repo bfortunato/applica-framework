@@ -1,13 +1,15 @@
 package applica.framework.modules;
 
 import applica.framework.AppContext;
-import applica.framework.SystemUtils;
-import applica.framework.annotations.Action;
+import applica.framework.cli.Module;
+import applica.framework.cli.Modules;
+import applica.framework.cli.SystemUtils;
+import applica.framework.cli.annotations.Action;
 import applica.framework.data.hibernate.annotations.IgnoreMapping;
+import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.library.utils.FileWalker;
 import applica.framework.library.utils.FileWalkerListener;
 import applica.framework.library.utils.TypeUtils;
-import applica.framework.library.utils.ClassHierarchy;
 import applica.framework.modules.hibernate.Mapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
  * Time: 19:02
  */
 
-@applica.framework.annotations.Module("hibernate")
+@applica.framework.cli.annotations.Module("hibernate")
 public class HibernateModule implements Module {
 
     void p(String message, Object... params) {
@@ -176,13 +178,13 @@ public class HibernateModule implements Module {
                 Class c = classLoader.loadClass(className);
 
                 if (c.getAnnotation(IgnoreMapping.class) == null) {
-                    if (TypeUtils.isEntity(c)) {
+                    if (TypeUtils.isPersistable(c)) {
                         entities.add(c);
                     }
                 }
 
             } catch (Throwable e) {
-                e.printStackTrace();
+               // e.printStackTrace();
             }
         }
 
@@ -215,7 +217,7 @@ public class HibernateModule implements Module {
     public static boolean isMappedEntitySubclass(Class type, List<Class> allEntities) {
         return (
                 allEntities.stream().anyMatch(e -> e.equals(type.getSuperclass())) &&
-                TypeUtils.isEntity(type.getSuperclass()) &&
+                TypeUtils.isPersistable(type.getSuperclass()) &&
                 type.getSuperclass().getAnnotation(IgnoreMapping.class) == null
         );
     }
@@ -226,6 +228,10 @@ public class HibernateModule implements Module {
             if (!properties.containsKey("no-rebuild")) {
                 Modules.instance().call("project:clean", new Properties());
                 Modules.instance().call("project:build", new Properties());
+            }
+
+            if (properties.containsKey("appDir")) {
+               AppContext.initFromAppDir(properties.getProperty("appDir"));
             }
 
             List<String> webAppPaths = getWebAppPaths();

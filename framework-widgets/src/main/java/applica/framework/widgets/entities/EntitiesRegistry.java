@@ -72,4 +72,8 @@ public class EntitiesRegistry implements EntitiesScanner.ScanHandler {
             logger.info("Definition added for entity " + definition.getId());
         }
     }
+
+    public List<EntityDefinition> getDefinitions() {
+        return definitions;
+    }
 }

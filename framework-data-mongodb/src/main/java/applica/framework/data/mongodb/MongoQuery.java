@@ -41,15 +41,7 @@ public class MongoQuery extends BasicDBObject {
 	 * Use eq for "equal"
 	 */
 	public MongoQuery eq(String key, Object value) {
-		return eq(key, value, false);
-	}
-
-	public MongoQuery eq(String key, Object value, boolean ignoreCase) {
-		if (ignoreCase)
-			this.put(key, Pattern.compile("^(?)" + Pattern.quote(value.toString()) , Pattern.CASE_INSENSITIVE ));
-		else
-			this.put(key, value);
-
+		this.put(key, value);		
 		return this;
 	}
 	
@@ -100,14 +92,14 @@ public class MongoQuery extends BasicDBObject {
 		boolean valid = false;
 		if (ranges != null && ranges.size() == 2) {
 			BasicDBObject obj = new BasicDBObject();
-			if (!Objects.equals(ranges.get(0), "*")) {
+			if (ranges.get(0) != null && !Objects.equals(ranges.get(0), "*")) {
 				Object left = ranges.get(0) instanceof Date ? ranges.get(0) : Double.parseDouble(String.valueOf(ranges.get(0)));
-				obj.append("$gt", left);
+				obj.append("$gte", left);
 				valid = true;
 			}
 
-			if (!Objects.equals(ranges.get(0), "*")) {
-				Object right = ranges.get(0) instanceof Date ? ranges.get(1) : Double.parseDouble(String.valueOf(ranges.get(1)));
+			if (ranges.get(1) != null && !Objects.equals(ranges.get(1), "*")) {
+				Object right = ranges.get(1) instanceof Date ? ranges.get(1) : Double.parseDouble(String.valueOf(ranges.get(1)));
 				obj.append("$lte", right);
 				valid = true;
 			}
@@ -190,7 +182,6 @@ public class MongoQuery extends BasicDBObject {
 		return this;
 	}
 
-
 	public abstract class BinaryExpression {
 		protected MongoQuery parent;
 		protected List<MongoQuery> expressions = new ArrayList<>();
@@ -245,10 +236,6 @@ public class MongoQuery extends BasicDBObject {
 		protected void flushParent() {
 			parent.or(expressions);
 		}		
-	}
-
-	public void elemMatch(String property, MongoQuery elemMatchs) {
-		this.put(property, new BasicDBObject("$elemMatch", elemMatchs));
 	}
 	
 }

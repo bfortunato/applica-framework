@@ -5,9 +5,6 @@ import org.springframework.util.StringUtils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -99,7 +96,7 @@ public class DateUtils {
     }
 
     public static boolean isInCurrentDay(Date date) {
-        return getDateWithOnlyDay(date).equals(getDateWithOnlyDay(new Date()));
+        return getBeginOfTheDay(date).equals(getBeginOfTheDay(new Date()));
 
     }
     /**
@@ -114,33 +111,25 @@ public class DateUtils {
         return calendar;
     }
 
-    public static Date getDateWithOnlyDay(Date date) {
-        Calendar calendar = getCalendarInstance(date);
+
+    public static Date getEndOfTheDay(Date day) {
+        Calendar toDate = GregorianCalendar.getInstance();
+        toDate.setTime(day);
+        toDate.set(GregorianCalendar.HOUR_OF_DAY, 23);
+        toDate.set(GregorianCalendar.MINUTE, 59);
+        toDate.set(GregorianCalendar.SECOND, 59);
+
+        return toDate.getTime();
+    }
+
+    public static Date getBeginOfTheDay(Date day) {
+
+        Calendar calendar = getCalendarInstance(day);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
-    }
-
-    public static Date getBeginOfTheDay(Date date) {
-        LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime startOfDay = localDateTime.with(LocalTime.MIN);
-        return localDateTimeToDate(startOfDay);
-    }
-
-    public static Date getEndOfTheDay(Date date) {
-        LocalDateTime localDateTime = dateToLocalDateTime(date);
-        LocalDateTime endOfDay = localDateTime.with(LocalTime.MAX);
-        return localDateTimeToDate(endOfDay);
-    }
-
-    private static LocalDateTime dateToLocalDateTime(Date date) {
-        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-    }
-
-    private static Date localDateTimeToDate(LocalDateTime localDateTime) {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
 
@@ -858,13 +847,12 @@ public class DateUtils {
     public static List<Date> getAllMonthStartDatesInRange(Date startDate, Date endDate) {
         List<Date> dates = new ArrayList<>();
         if (startDate.compareTo(endDate) < 0) {
-            Calendar end = getCalendarInstance(endDate);
+            Calendar end = getCalendarInstance(getEndOfTheDay(endDate));
             Calendar date = getCalendarInstance(startDate);
-            do {
+            while (end.getTime().getTime() >= date.getTime().getTime()) {
                 dates.add(getMonthStartDate(date.getTime()));
                 date.add(Calendar.MONTH, 1);
-
-            } while (date.get(Calendar.MONTH) <= end.get(Calendar.MONTH));
+            }
         }
         return dates;
     }
@@ -872,10 +860,12 @@ public class DateUtils {
     //Condizione 1: la data iniziale dell'entità da cercare è compresa nell'intervallo startDate-endDate
     //Condizione 2: la data finale dell'entità è compresa nell'intervallo startDate-endDate
     //Condizione 3: data iniziale e finale dell'entità includono interamente l'intervallo startDate-endDate
+    //Condizione 4: data iniziale e finale dell'entità sono incluse interamente interamente l'intervallo startDate-endDate
     public static boolean areRangesOverlapped(Date start1, Date end1, Date start2, Date end2) {
         return (start1.compareTo(start2) >= 0 && (start1.compareTo(end2) <= 0) ||
                 (end1.compareTo(start2) >= 0 && end1.compareTo(end2) <= 0) ||
-                (start1.compareTo(start2) <= 0 && end1.compareTo(end2) >= 0));
+                (start1.compareTo(start2) <= 0 && end1.compareTo(end2) >= 0) ||
+                (start2.compareTo(start1) <= 0 && end2.compareTo(end1) >= 0));
     }
 }
 

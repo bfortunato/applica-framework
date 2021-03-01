@@ -1,40 +1,31 @@
 package applica.framework;
 
-import applica.framework.modules.CommandLineParser;
-import applica.framework.modules.Modules;
+import applica.framework.cli.CommandLineParser;
+import applica.framework.cli.Modules;
+import applica.framework.modules.HibernateModule;
+import applica.framework.modules.ProjectModule;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.util.Properties;
 
 public class Applica {
 
-    public static final String VERSION = "2.1.3-RELEASE";
+    public static final String VERSION = "master";
+    public static final String FRAMEWORK_ARCHETYPES_REPOSITORY_URL = "https://github.com/bfortunato/applica-framework-archetype-{archetype}.git";
 
-    public static String frameworkHome = null;
     public static String javaHome = null;
-    public static String mavenHome = null;
 
     public static void main(String[] args) {
-        frameworkHome = System.getenv("APPLICAFRAMEWORK_HOME");
-        if (!StringUtils.hasLength(frameworkHome)) {
-            System.err.println("Please set APPLICAFRAMEWORK_HOME environment variable");
-            System.exit(1);
-            return;
-        }
-
         javaHome = System.getenv("JAVA_HOME");
-        if (!StringUtils.hasLength(frameworkHome)) {
-            System.err.println("Please set JAVA_HOME environment variable");
-            System.exit(1);
-            return;
-        }
+//        if (!StringUtils.hasLength(javaHome)) {
+//            System.err.println("Please set JAVA_HOME environment variable");
+//            System.exit(1);
+//            return;
+//        }
 
-        mavenHome = System.getenv("M2_HOME");
-        if (!StringUtils.hasLength(mavenHome)) {
-            System.err.println("Please set M2_HOME environment variable");
-            System.exit(1);
-            return;
-        }
-
-        Modules.instance().scan();
+        Modules.instance().scan(Applica.class.getPackage());
 
         CommandLineParser parser = new CommandLineParser();
         try {

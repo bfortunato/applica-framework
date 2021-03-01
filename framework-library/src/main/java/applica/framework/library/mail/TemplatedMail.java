@@ -1,6 +1,7 @@
 package applica.framework.library.mail;
 
 import applica.framework.library.options.OptionsManager;
+import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.library.velocity.VelocityBuilderProvider;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
@@ -38,14 +39,15 @@ public class TemplatedMail {
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
-    private boolean debug;
 
-    public boolean isDebug() {
-        return debug;
+    private String mailText;
+
+    public String getMailText() {
+        return mailText;
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setMailText(String mailText) {
+        this.mailText = mailText;
     }
 
     private class ByteAttachmentData {
@@ -145,7 +147,6 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
-        session.getProperties().setProperty("mail.debug", String.valueOf(debug));
         session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
         session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
@@ -215,6 +216,10 @@ public class TemplatedMail {
         if (StringUtils.hasLength(returnReceipt)) {
             message.setHeader("Return-Receipt-To:",String.format("<%s>", returnReceipt));
         }
+
+
+        if (SystemOptionsUtils.isEnabled("log.email"))
+            this.mailText = bodyWriter.toString();
 
         Transport.send(message);
     }

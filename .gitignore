@@ -2,9 +2,12 @@
 .idea
 *.iml
 target
-/.idea/
 .DS_Store
 archetypes/.DS_Store
-archetypes/client/platforms/web/assets/js/app.js
-archetypes/client/platforms/web/resources/css/
+archetypes/client/_APPNAME_/platforms/web/bower_components/
+archetypes/client/_APPNAME_/platforms/web/node_modules/
+archetypes/client/_APPNAME_/node_modules/
+archetypes/client/_APPNAME_/platforms/web/resources/images/
+archetypes/client/_APPNAME_/platforms/web/resources/css/
+archetypes/client/_APPNAME_/platforms/web/assets/app.js
 

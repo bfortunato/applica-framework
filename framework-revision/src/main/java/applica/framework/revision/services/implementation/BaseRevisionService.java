@@ -6,6 +6,7 @@ import applica.framework.Repo;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
+import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.revision.model.*;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.revisions.AvoidRevision;
@@ -13,9 +14,14 @@ import applica.framework.revisions.RevisionId;
 import applica.framework.security.User;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityUtils;
+import applica.framework.widgets.factory.OperationsFactory;
+import applica.framework.widgets.operations.OperationException;
 import org.jsoup.helper.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -23,28 +29,36 @@ import java.util.stream.Collectors;
 
 public class BaseRevisionService implements RevisionService {
 
+    @Autowired
+    private OperationsFactory operationsFactory;
+
     private static final ThreadLocal<Boolean> enabled = ThreadLocal.withInitial(() -> true);
 
     @Override
-    public RevisionSettings getCurrentSettings() {
-        RevisionSettings s = Repo.of(RevisionSettings.class).find(Query.build().rowsPerPage(1).page(1)).findFirst().orElse(null);
-        if (s == null)
-            s = createNewSettings();
-        return s;
-    }
-
-    @Override
     public boolean isRevisionEnabled(String entity) {
-        return enabled.get() != null && enabled.get() && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(entity);
+        return SystemOptionsUtils.isEnabled("revisions") && enabled.get() != null && enabled.get() && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(entity);
     }
 
     @Override
     public Revision createAndSaveRevision(User user, Entity entity, Entity previousEntity) {
         Revision revision = createRevision(user, entity, previousEntity);
         if (!revision.getType().equals(RevisionType.EDIT) || (revision.getDifferences().size() > 0))
-            Repo.of(Revision.class).save(revision);
+            persistRevision(revision);
 
         return revision;
+    }
+
+    private void persistRevision(Revision revision) {
+        try {
+            operationsFactory.createSave(getRevisionClass()).persist(revision);
+        } catch (OperationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Class<? extends Revision> getRevisionClass() {
+        return Revision.class;
     }
 
     @Override
@@ -58,7 +72,6 @@ public class BaseRevisionService implements RevisionService {
         if (entityId != null && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(EntityUtils.getEntityIdAnnotation(entityClass)))
             revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
-
     }
 
     private Class<? extends Entity> generateEntityClass(Entity entity, Entity previousEntity) {
@@ -78,10 +91,10 @@ public class BaseRevisionService implements RevisionService {
     }
 
     private Revision createNewRevision(User user, String type, Class<? extends Entity> entityClass, String entityId, Entity entity, Entity previousEntity) {
-        Revision revision = new Revision();
+        Revision revision = createNewRevisionInstance();
         revision.setType(type);
         revision.setEntityId(entityId);
-        revision.setEntity(EntityUtils.getEntityIdAnnotation(entityClass));
+        EntitiesRegistry.instance().get(entityClass).ifPresent(e -> revision.setEntity(e.getId()));
         revision.setDate(new Date());
 
         if (user != null) {
@@ -89,7 +102,7 @@ public class BaseRevisionService implements RevisionService {
             revision.setCreator(user.toString());
         }
 
-        getAllFields(entityClass).stream().filter(f -> f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || entity == null  || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
+        getAllFields(entityClass).stream().filter(f -> !isTransient(f) && f.getAnnotation(AvoidRevision.class) == null && (previousEntity == null || entity == null  || hasChanged(user, f, entity, previousEntity))).forEach(f -> {
                     try {
                         revision.getDifferences().addAll(createNewAttributeDifferences(user, f, entity, previousEntity));
                     } catch (Exception e) {
@@ -98,6 +111,22 @@ public class BaseRevisionService implements RevisionService {
         );
 
         return revision;
+    }
+
+    private Revision createNewRevisionInstance() {
+        Constructor constr2 = null;
+        try {
+            constr2 = getRevisionClass().getConstructor();
+            return (Revision) constr2.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    private boolean isTransient(Field field) {
+        return Modifier.isTransient(field.getModifiers());
     }
 
 
@@ -200,7 +229,7 @@ public class BaseRevisionService implements RevisionService {
 
     @Override
     public List<Revision> getRevisionsForEntity(Entity entity) {
-        return Repo.of(Revision.class).find(Query.build().eq("entityId", entity.getId()).eq("entity", entity).sort("date", true)).getRows();
+        return (List<Revision>) Repo.of(getRevisionClass()).find(Query.build().eq("entityId", entity.getId()).eq("entity", entity).sort("date", true)).getRows();
     }
 
     private List<Field> getAllFields(Class<? extends Object> type) {
@@ -260,19 +289,12 @@ public class BaseRevisionService implements RevisionService {
         }
     }
 
-
+    @Override
     public long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity) {
-        Revision last = Repo.of(Revision.class).find(Query.build().eq("entityId", entityId).eq("entity", EntityUtils.getEntityIdAnnotation(entity)).sort("date", true).page(1).rowsPerPage(1)).findFirst().orElse(null);
+        Revision last = Repo.of(getRevisionClass()).find(Query.build().sort("date", true).page(1).rowsPerPage(1)).findFirst().orElse(null);
         return last != null ? last.getCode() + 1 : 1;
     }
 
-    private RevisionSettings createNewSettings() {
-        RevisionSettings settings = new RevisionSettings();
-        disableRevisionForCurrentThread();
-        Repo.of(RevisionSettings.class).save(settings);
-        enableRevisionForCurrentThread();
-        return settings;
-    }
 
     @Override
     public void enableRevisionForCurrentThread() {

@@ -26,6 +26,7 @@ import java.util.Optional;
 /**
  * Created by bimbobruno on 06/12/2016.
  */
+@Deprecated //questo controller è nell'archetype web; non viene utilizzato più
 @RestController
 @RequestMapping("/entities/{entity}")
 public class EntitiesController {

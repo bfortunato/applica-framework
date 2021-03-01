@@ -1,6 +1,7 @@
 package applica.framework.licensing;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
@@ -53,35 +54,30 @@ public class License {
         Objects.requireNonNull(validity);
 
         StringBuilder builder = new StringBuilder();
-        builder.append("applicaframework16$");
+        builder.append("applicaframework22$");
         builder.append(user);
         builder.append("$");
         builder.append(String.format("%d", validity.getTime()));
 
         Encryptor encryptor = new Encryptor(user);
-        String encrypted = null;
+        byte[] encrypted = null;
         try {
-            encrypted = encryptor.encrypt(builder.toString());
+            encrypted = encryptor.encrypt(builder.toString().getBytes(StandardCharsets.UTF_8));
         } catch (EncryptorException e) {
             throw new LicenseGenerationException("Error encrypting license", e);
         }
 
-        try {
-            bytes = Base64.getEncoder().encode(encrypted.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new LicenseGenerationException("Unsupported encoding", e);
-        }
+        bytes = encrypted;
     }
 
     public void validate() throws InvalidLicenseException {
         Objects.requireNonNull(user);
         Objects.requireNonNull(bytes);
 
-        byte[] decodedBytes = Base64.getDecoder().decode(bytes);
         try {
             Encryptor encryptor = new Encryptor(user);
-            String crypted = new String(decodedBytes, "UTF-8");
-            String licenseString = encryptor.decrypt(crypted);
+            byte[] licenseData = encryptor.decrypt(bytes);
+            String licenseString = new String(licenseData, StandardCharsets.UTF_8);
             String[] split = licenseString.split("\\$");
             if (split.length != 3) {
                 throw new InvalidLicenseException("format");
@@ -92,7 +88,7 @@ public class License {
             String timeString = split[2];
             long time = Long.parseLong(timeString);
 
-            if (!version.equals("applicaframework16")) {
+            if (!version.equals("applicaframework22")) {
                 throw new InvalidLicenseException("version");
             }
 
@@ -104,8 +100,6 @@ public class License {
             if (time < now) {
                 throw new InvalidLicenseException("time");
             }
-        } catch (UnsupportedEncodingException e) {
-            throw new InvalidLicenseException("Unsupported encoding", e);
         } catch (EncryptorException e) {
             throw new InvalidLicenseException("Error decrypting license", e);
         }

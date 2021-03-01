@@ -30,6 +30,10 @@ public class Response {
         this.message = message;
     }
 
+    public static Response ok() {
+        return new Response(OK);
+    }
+
     public int getResponseCode() {
         return responseCode;
     }

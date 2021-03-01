@@ -1,6 +1,7 @@
 package applica.framework.library.utils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Created by antoniolovicario on 30/03/16.
@@ -38,5 +39,21 @@ public class NumberUtils {
 
     public static double getNumberNullSafe(Double hours) {
         return hours != null? hours : 0;
+    }
+
+    /**
+     * Approssima per eccesso
+     * @param value
+     * @param places
+     * @return
+     */
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+        if (Double.isNaN(value) || value == 0) return 0;
+        if (Double.isInfinite(value)) return value;
+
+        BigDecimal bd = BigDecimal.valueOf(value);
+        bd = bd.setScale(places, RoundingMode.HALF_DOWN);
+        return bd.doubleValue();
     }
 }

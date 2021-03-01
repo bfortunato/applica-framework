@@ -8,15 +8,18 @@ import applica.framework.security.User;
 import java.util.List;
 
 public interface RevisionService {
-    RevisionSettings getCurrentSettings();
 
     boolean isRevisionEnabled(String entity);
 
     Revision createAndSaveRevision(User user, Entity entity, Entity previousEntity);
 
+    Class<? extends Revision> getRevisionClass();
+
     Revision createRevision(User user, Entity entity, Entity previousEntity);
 
     List<Revision> getRevisionsForEntity(Entity entity);
+
+    long getLastCodeForEntityRevision(String entityId, Class<? extends Entity> entity);
 
     void enableRevisionForCurrentThread();
 
