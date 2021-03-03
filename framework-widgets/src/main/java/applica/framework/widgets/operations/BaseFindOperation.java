@@ -133,7 +133,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
     private boolean isNumber(Class c) {
-        return c == int.class || c == long.class || c == double.class || c == float.class;
+        return c == int.class || c == long.class || c == double.class || c == float.class || c == Integer.class || c == Double.class || c == Float.class || c == Long.class;
     }
 
 
