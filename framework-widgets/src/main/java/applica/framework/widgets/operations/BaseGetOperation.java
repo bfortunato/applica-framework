@@ -9,6 +9,7 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.Image;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -95,7 +96,11 @@ public class BaseGetOperation implements GetOperation {
 
 
     protected void finishNode(Entity entity, ObjectNode node) throws OperationException {
-
+        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+        fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+            EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+            mapper.imageToDataUrl(entity, node, f.getAnnotation(Image.class).entityProperty(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
+        });
     }
 
     protected EntityMapper map() {
