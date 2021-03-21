@@ -50,5 +50,7 @@ public @interface Validation {
     String rangeOtherValue() default "";
 
 
+    //Nome della funzione che verrà usata per capire se innescare o meno il controllo di validità
+    String validationFunction() default "";
 
 }

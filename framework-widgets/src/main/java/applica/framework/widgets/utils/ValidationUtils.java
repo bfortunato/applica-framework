@@ -10,11 +10,30 @@ import applica.framework.widgets.annotations.Validation;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class ValidationUtils {
+
+    public static boolean canValidate(Entity entity, Validation annotation, Field field) {
+
+        try {
+            String functionName = annotation.validationFunction();
+            if (StringUtils.hasLength(functionName)) {
+                Method method = entity.getClass().getMethod(functionName);
+                method.setAccessible(true);
+                Boolean result = (Boolean) method.invoke(entity, new Object[] {});
+                return result != null? result : false;
+            }
+        } catch (Exception e) {
+
+        }
+
+        return true;
+    }
 
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
         try {
@@ -23,6 +42,9 @@ public class ValidationUtils {
                 try {
                     Object value = field.get(entity);
                     Validation annotation = field.getAnnotation(Validation.class);
+
+                    if (!canValidate(entity, annotation, field))
+                        return ;
 
                     //Validazione "required": il campo deve essere presente e valorizato
                     if (annotation.required() && (Objects.isNull(value) || (value instanceof String && value.equals("")) || (value instanceof List && ((List) value).size() == 0))) {
