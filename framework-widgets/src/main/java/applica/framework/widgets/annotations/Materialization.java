@@ -15,5 +15,5 @@ public @interface Materialization {
     Class entityClass();
 
     //Se true in fase di saveOperation imposta il valore della property da materializzare in base a quella materializzata
-    boolean reverseMaterialization() default true;
+    boolean reverseMaterialization() default false;
  }
