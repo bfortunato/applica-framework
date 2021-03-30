@@ -12,6 +12,7 @@ public interface Repository<T extends Entity> {
     Result<T> find(Query request);
     void save(T entity);
     void delete(Object id);
+    void deleteMany(Query request);
     Class<T> getEntityType();
     Query keywordQuery(Query initialQuery);
 

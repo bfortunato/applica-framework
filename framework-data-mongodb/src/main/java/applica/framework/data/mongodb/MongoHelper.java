@@ -3,6 +3,7 @@ package applica.framework.data.mongodb;
 import applica.framework.library.options.OptionsManager;
 import com.mongodb.*;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -10,6 +11,10 @@ import org.springframework.util.Assert;
 import java.util.*;
 
 public class MongoHelper {
+
+	public MongoCollection getMongoCollection(MongoRepository mongoRepository) {
+		return getMongo(mongoRepository.getDataSource()).getDatabase(getDbName(mongoRepository.getDataSource())).getCollection(mongoRepository.getCollectionName());
+	}
 
 	class MongoDataSource {
 		MongoClient mongo;

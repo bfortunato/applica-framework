@@ -59,6 +59,14 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
+    public void deleteMany(Query request) {
+        concreteRepository.find(request).getRows().forEach(c -> {
+            cache.invalidate(c.getId().toString());
+        });
+        concreteRepository.deleteMany(request);
+    }
+
+    @Override
     public Class<T> getEntityType() {
         return concreteRepository.getEntityType();
     }

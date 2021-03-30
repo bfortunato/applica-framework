@@ -145,5 +145,11 @@ public class HibernateCrudStrategy implements CrudStrategy {
         }
     }
 
-
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        if (query != null && query.getFilters().size() > 0)
+            repository.find(query).getRows().forEach(q -> {
+                repository.delete(q.getId());
+            });
+    }
 }

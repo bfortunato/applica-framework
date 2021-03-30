@@ -5,6 +5,8 @@ import applica.framework.data.mongodb.constraints.ConstraintsChecker;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -18,6 +20,9 @@ public class MongoCrudStrategy implements CrudStrategy {
 
     @Autowired
     private MongoMapper mongoMapper;
+
+    @Autowired
+    private MongoHelper mongoHelper;
 
     @Autowired(required = false)
     private ConstraintsChecker constraintsChecker;
@@ -102,7 +107,6 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         BasicDBObject document = mongoMapper.loadBasicDBObject(entity, null);
         mongoRepository.getCollection().save(document);
-
         entity.setId(document.getString("_id"));
     }
 
@@ -120,6 +124,18 @@ public class MongoCrudStrategy implements CrudStrategy {
             }
 
             mongoRepository.getCollection().remove(MongoQuery.mk().id(String.valueOf(id)));
+        }
+    }
+
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+        Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+
+        if(query != null && query.getFilters().size() > 0) {
+            MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+
+            collection.deleteMany(mongoRepository.createQuery(query));
         }
     }
 

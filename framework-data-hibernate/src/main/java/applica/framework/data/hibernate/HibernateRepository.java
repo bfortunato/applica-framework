@@ -520,6 +520,11 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         crudStrategy.delete(id, this);
     }
 
+    @Override
+    public void deleteMany(Query request) {
+        crudStrategy.deleteMany(request, this);
+    }
+
     public String getDataSource() {
         return "default";
     }

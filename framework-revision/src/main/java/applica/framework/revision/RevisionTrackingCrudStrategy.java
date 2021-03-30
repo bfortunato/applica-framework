@@ -1,14 +1,14 @@
 package applica.framework.revision;
 
-import applica.framework.ChainedCrudStrategy;
-import applica.framework.Entity;
-import applica.framework.Repository;
+import applica.framework.*;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.security.Security;
 import applica.framework.security.User;
 import applica.framework.widgets.entities.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
+
+import java.util.List;
 
 public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
@@ -36,6 +36,23 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
             executeRevisionAction(runnable);
         }
 
+    }
+
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        List<Entity> previous = (List<Entity>) repository.find(query).getRows();
+        super.deleteMany(query, repository);
+        if (previous.size() > 0) {
+            String entityName = EntityUtils.getEntityIdAnnotation(previous.get(0).getClass());
+            if (entityRevisionService.isRevisionEnabled(entityName)) {
+                User user = Security.withMe().getLoggedUser();
+                previous.forEach(p -> {
+                    Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, null, p);
+                    executeRevisionAction(runnable);
+                });
+
+            }
+        }
     }
 
     @Override

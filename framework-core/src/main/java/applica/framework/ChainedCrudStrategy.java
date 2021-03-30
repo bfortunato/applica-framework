@@ -53,4 +53,11 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
             parent.delete(id, repository);
         }
     }
+
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        if (parent != null) {
+            parent.deleteMany(query, repository);
+        }
+    }
 }

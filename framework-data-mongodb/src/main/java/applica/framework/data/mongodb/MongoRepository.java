@@ -170,7 +170,19 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return mongoQuery;
 	}
 
-	@Override
+
+    @Override
+    public void deleteMany(Query request) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
+        crudStrategy.deleteMany(request, this);
+    }
+
+    @Override
 	public void delete(Object id) {
         init();
 
@@ -207,6 +219,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     public DBCollection getCollection() {
+        return db.getCollection(getCollectionName());
+    }
+
+    public DBCollection get() {
         return db.getCollection(getCollectionName());
     }
 
