@@ -126,8 +126,13 @@ public class ValidationUtils {
 
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
         validate(entity, result, new ArrayList<>());
-        if (considerStandaloneValidator)
-            applica.framework.library.validation.Validation.validate(entity);
+        if (considerStandaloneValidator) {
+            ValidationResult standaloneResult = applica.framework.library.validation.Validation.getValidationResult(entity);
+            result.getErrors().addAll(standaloneResult.getErrors());
+        }
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
     }
 
     public static boolean isValid(Entity entity, boolean considerStandaloneValidator, List<String> excludedProperties) {
