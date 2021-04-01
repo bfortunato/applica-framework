@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.*;
+import applica.framework.data.Keyword;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
@@ -152,7 +153,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         if (StringUtils.hasLength(query.getKeyword())) {
             Disjunction disjunction = new Disjunction();
 
-            disjunction.setChildren(fieldList.stream().filter(f -> f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
+            disjunction.setChildren(fieldList.stream().filter(f -> (f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()) || f.getAnnotation(Keyword.class) != null).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
 
             manageKeywordDisjunction(query, disjunction);
 
