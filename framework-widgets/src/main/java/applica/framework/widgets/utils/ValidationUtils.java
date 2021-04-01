@@ -57,6 +57,17 @@ public class ValidationUtils {
                         result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
                     }
 
+                    if (annotation.validateSubObject() && !Objects.isNull(value) && value instanceof Entity) {
+                        ValidationResult subValidationResult = new ValidationResult();
+                        try {
+                            validate(((Entity)value), subValidationResult, true);
+                        } catch (ValidationException e) {
+                            e.getValidationResult().getErrors().forEach(subError -> {
+                                result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage());
+                            });
+                        }
+                    }
+
                     //Validazione greaterThanZero: il campo deve essere maggiore STRETTO di zero
                     if (annotation.greaterThanZero() && Double.valueOf(String.valueOf(field.get(entity))).compareTo(0D) <= 0)
                         result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getLocalizedMessage("validation.field.greaterThan"), "0"));
