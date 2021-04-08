@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ValidationUtils {
 
@@ -57,15 +58,28 @@ public class ValidationUtils {
                         result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
                     }
 
-                    if (annotation.validateSubObject() && !Objects.isNull(value) && value instanceof Entity) {
+                    if (annotation.validateSubObject() && !Objects.isNull(value)) {
                         ValidationResult subValidationResult = new ValidationResult();
-                        try {
-                            validate(((Entity)value), subValidationResult, true);
-                        } catch (ValidationException e) {
-                            e.getValidationResult().getErrors().forEach(subError -> {
-                                result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage());
+                        if (value instanceof Entity) {
+                            try {
+                                validate(((Entity)value), subValidationResult, true);
+                            } catch (ValidationException e) {
+                                e.getValidationResult().getErrors().forEach(subError -> {
+                                    result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage());
+                                });
+                            }
+                        } else if (List.class.isAssignableFrom(value.getClass())) {
+                            AtomicInteger i = new AtomicInteger(0);
+                            ((List) value).forEach(v -> {
+                                try {
+                                    validate(((Entity)v), subValidationResult, true);
+                                } catch (ValidationException e) {
+                                    e.getValidationResult().getErrors().forEach(subError -> result.reject(String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty()), subError.getMessage()));
+                                }
+                                i.incrementAndGet();
                             });
                         }
+
                     }
 
                     //Validazione greaterThanZero: il campo deve essere maggiore STRETTO di zero
