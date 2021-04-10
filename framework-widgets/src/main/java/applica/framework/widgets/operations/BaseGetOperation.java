@@ -72,9 +72,13 @@ public class BaseGetOperation implements GetOperation {
     public Entity fetch(Object id) throws OperationException {
 
         Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
-        materializeFields(e,entityService);
+        materialize(e);
 
         return e;
+    }
+
+    public void materialize(Entity e) {
+        materializeFields(e,entityService);
     }
 
     public static void materializeFields(Entity e, EntityService entityService) {

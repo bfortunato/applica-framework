@@ -107,10 +107,14 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
-            materializeFields(entities.getRows(), entityService, fieldList);
+           materialize(entities.getRows(), fieldList);
         }
 
         return entities;
+    }
+
+    public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
+        materializeFields(rows, entityService, fieldList);
     }
 
     public List<Field> generateFieldsForMaterialization() {
