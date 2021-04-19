@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MongoQuery extends BasicDBObject {
 
@@ -126,7 +127,12 @@ public class MongoQuery extends BasicDBObject {
 	 * Use in to find elements in values list
 	 */
 	public MongoQuery in(String key, List<?> values) {
-		this.put(key, new BasicDBObject("$in", values));		
+		if (key.equals("id")) {
+			this.put("_id", new BasicDBObject("$in", values.stream().map(v -> new ObjectId(v.toString())).collect(Collectors.toList())));
+		} else {
+			this.put(key, new BasicDBObject("$in", values));
+		}
+
 		return this;
 	}
 
@@ -136,7 +142,12 @@ public class MongoQuery extends BasicDBObject {
      * Use in to find elements not in values list
      */
     public MongoQuery nin(String key, List<?> values) {
-        this.put(key, new BasicDBObject("$nin", values));
+		if (key.equals("id")) {
+			this.put("_id", new BasicDBObject("$nin", values.stream().map(v -> new ObjectId(v.toString())).collect(Collectors.toList())));
+		} else {
+			this.put(key, new BasicDBObject("$nin", values));
+		}
+
         return this;
     }
 
