@@ -130,7 +130,7 @@ public class BaseSaveOperation implements SaveOperation {
         });
 
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
-            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getAnnotation(Image.class).entityProperty(), f.getAnnotation(Image.class).path());
+            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
         });
 
         if (codeGeneratorService != null) {

@@ -38,8 +38,6 @@ public class LocalFileserver implements FileServer {
 
     private LocalFilesService filesService;
 
-    private LocalImagesService imagesService;
-
     private String baseUrl;
 
     @PostConstruct
@@ -47,8 +45,6 @@ public class LocalFileserver implements FileServer {
         baseUrl = options.get("fileserver.base.internal");
         filesService = new LocalFilesService();
         filesService.init(options);
-        imagesService = new LocalImagesService();
-        imagesService.init(options);
     }
 
     @Override
@@ -72,10 +68,7 @@ public class LocalFileserver implements FileServer {
 
     private String saveToServer(InputStream fileStream, String filename, String path, boolean image) throws IOException {
         String s = String.format("%s/%s", path, filename);
-        if (image)
-            imagesService.doPost(fileStream, s, true);
-        else
-            filesService.doPost(fileStream, s, true);
+        filesService.doPost(fileStream, s, true);
         return s;
     }
 
@@ -86,7 +79,7 @@ public class LocalFileserver implements FileServer {
 
     @Override
     public InputStream getImage(String path, String size) throws IOException {
-       return imagesService.doGet(path, null);
+        return filesService.doGet(path);
     }
 
     @Override

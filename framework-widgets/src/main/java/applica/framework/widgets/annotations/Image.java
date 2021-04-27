@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Image {
-    String entityProperty();
     String nodeProperty();
     String size() default "";
     String path();

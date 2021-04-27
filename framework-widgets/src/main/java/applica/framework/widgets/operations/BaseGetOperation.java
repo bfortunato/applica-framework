@@ -103,7 +103,7 @@ public class BaseGetOperation implements GetOperation {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
             EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
-            mapper.imageToDataUrl(entity, node, f.getAnnotation(Image.class).entityProperty(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
+            mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
         });
     }
 
