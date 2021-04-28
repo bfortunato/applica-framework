@@ -1,5 +1,7 @@
 package applica.framework.security.token;
 
+import applica.framework.security.User;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
@@ -17,51 +19,49 @@ public class DefaultAuthTokenDataExtractor implements AuthTokenDataExtractor {
         }
 
         BasicTextEncryptor encryptor = new BasicTextEncryptor();
-        encryptor.setPassword(split[0]);
+        encryptor.setPassword(DefaultAuthTokenGenerator.USERNAME_ENCRYPTION_PASSWORD);
+        String username = encryptor.decrypt(split[0]);
+
+        String encryptionPassword = DigestUtils.md5Hex(username);
+        encryptor = new BasicTextEncryptor();
+        encryptor.setPassword(encryptionPassword);
         String data = encryptor.decrypt(split[1]);
         return data;
     }
 
     @Override
     public String getUsername(String token) throws TokenFormatException {
-        String[] split = getData(token).split(":");
-        if(split.length < 3) {
+        String[] split = token.split(":");
+        if(split.length < 2) {
             throw new TokenFormatException("invalid token 1");
         }
 
-        String username = split[0];
+        BasicTextEncryptor encryptor = new BasicTextEncryptor();
+        encryptor.setPassword(DefaultAuthTokenGenerator.USERNAME_ENCRYPTION_PASSWORD);
+        String username = encryptor.decrypt(split[0]);
 
         return username;
     }
 
     public String getPassword(String token) throws TokenFormatException {
         String[] split = getData(token).split(":");
-        if(split.length < 3) {
+        if(split.length < 2) {
             throw new TokenFormatException("invalid token 1");
         }
 
-        String password = split[1];
+        String password = split[0];
 
         return password;
-    }
-
-    public String getEncryptorPassword(String token) throws TokenFormatException {
-        String[] split = token.split(":");
-        if (split.length < 2) {
-            throw new TokenFormatException("invalid token 1");
-        }
-
-        return split[0];
     }
 
     @Override
     public long getExpiration(String token) throws TokenFormatException {
         String[] split = getData(token).split(":");
-        if(split.length < 3) {
+        if(split.length < 2) {
             throw new TokenFormatException("invalid token 1");
         }
 
-        long expiration = Long.parseLong(split[2]);
+        long expiration = Long.parseLong(split[1]);
 
         if(expiration == 0) {
             throw new TokenFormatException("invalid token 2");

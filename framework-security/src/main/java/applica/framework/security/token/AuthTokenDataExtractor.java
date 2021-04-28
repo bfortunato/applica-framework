@@ -1,5 +1,7 @@
 package applica.framework.security.token;
 
+import applica.framework.security.User;
+
 /**
  * Applica (www.applicamobile.com)
  * User: bimbobruno
@@ -9,6 +11,5 @@ package applica.framework.security.token;
 public interface AuthTokenDataExtractor {
     String getUsername(String token) throws TokenFormatException;
     String getPassword(String token) throws TokenFormatException;
-    String getEncryptorPassword(String token) throws TokenFormatException;
     long getExpiration(String token) throws TokenFormatException;
 }
