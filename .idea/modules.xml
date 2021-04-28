@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/applica-framework.iml" filepath="$PROJECT_DIR$/.idea/applica-framework.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework.iml" filepath="$PROJECT_DIR$/framework.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-core/framework-core.iml" filepath="$PROJECT_DIR$/framework-core/framework-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-data/framework-data.iml" filepath="$PROJECT_DIR$/framework-data/framework-data.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" filepath="$PROJECT_DIR$/framework-data-hibernate/framework-data-hibernate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" filepath="$PROJECT_DIR$/framework-data-mongodb/framework-data-mongodb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-data-security/framework-data-security.iml" filepath="$PROJECT_DIR$/framework-data-security/framework-data-security.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-fileserver/framework-fileserver.iml" filepath="$PROJECT_DIR$/framework-fileserver/framework-fileserver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-indexing/framework-indexing.iml" filepath="$PROJECT_DIR$/framework-indexing/framework-indexing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-library/framework-library.iml" filepath="$PROJECT_DIR$/framework-library/framework-library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-licensing/framework-licensing.iml" filepath="$PROJECT_DIR$/framework-licensing/framework-licensing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-resources/framework-resources.iml" filepath="$PROJECT_DIR$/framework-resources/framework-resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-revision/framework-revision.iml" filepath="$PROJECT_DIR$/framework-revision/framework-revision.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-security/framework-security.iml" filepath="$PROJECT_DIR$/framework-security/framework-security.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-tracking/framework-tracking.iml" filepath="$PROJECT_DIR$/framework-tracking/framework-tracking.iml" />
+      <module fileurl="file://$PROJECT_DIR$/framework-widgets/framework-widgets.iml" filepath="$PROJECT_DIR$/framework-widgets/framework-widgets.iml" />
+      <module fileurl="file://$PROJECT_DIR$/scripts/scripts.iml" filepath="$PROJECT_DIR$/scripts/scripts.iml" />
+    </modules>
+  </component>
+</project>
