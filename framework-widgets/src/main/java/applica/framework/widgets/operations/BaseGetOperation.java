@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -87,10 +88,25 @@ public class BaseGetOperation implements GetOperation {
         List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
         if (entityService != null && fieldList != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                Class fieldClass = fieldList.stream().filter(field -> Objects.equals(f.getAnnotation(Materialization.class).entityField(), field.getName())).findFirst().get().getType();
+                Class fieldClass = getFieldMaterializationEntityType(fieldList, f);;
                 entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), fieldClass);
             });
         }
+    }
+
+    private static Class getFieldMaterializationEntityType(List<Field> fieldList, Field field) {
+
+
+        Field fieldToMaterialize = fieldList.stream().filter(f -> Objects.equals(field.getAnnotation(Materialization.class).entityField(), f.getName())).findFirst().get();
+
+        if (List.class.isAssignableFrom(fieldToMaterialize.getType())) {
+            ParameterizedType integerListType = (ParameterizedType) field.getGenericType();
+            return (Class) integerListType.getActualTypeArguments()[0];
+        } else
+            return fieldToMaterialize.getClass();
+
+
+
     }
 
     public static void materializeFields(Entity e) {
