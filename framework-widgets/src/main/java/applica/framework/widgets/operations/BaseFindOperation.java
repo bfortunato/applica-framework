@@ -131,8 +131,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             return;
         fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
         if (entityService != null && fieldList != null) {
+            List<Field> finalFieldList = fieldList;
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId(rows, f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
+                Class fieldClass = finalFieldList.stream().filter(field -> Objects.equals(f.getAnnotation(Materialization.class).entityField(), field.getName())).findFirst().get().getType();
+                entityService.materializePropertyFromId(rows, f.getName(), f.getAnnotation(Materialization.class).entityField(), fieldClass);
             });
         }
     }

@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Materialization {
     String entityField();
-    Class entityClass();
+    Class entityClass() default Object.class;
 
     //Se true in fase di saveOperation imposta il valore della property da materializzare in base a quella materializzata
     boolean reverseMaterialization() default false;
