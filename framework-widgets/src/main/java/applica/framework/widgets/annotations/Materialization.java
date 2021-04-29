@@ -17,6 +17,7 @@ public @interface Materialization {
     Class entityClass() default Object.class;
 
     //TODO: generare l'entityClass tramite un metodo (vedi l'utilizzo della validationFunction nella classe @Validation)
+    String generateEntityClass() default "";
 
     //Se true in fase di saveOperation imposta il valore della property da materializzare in base a quella materializzata
     boolean reverseMaterialization() default false;

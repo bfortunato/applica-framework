@@ -88,25 +88,11 @@ public class BaseGetOperation implements GetOperation {
         List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
         if (entityService != null && fieldList != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                Class fieldClass = getFieldMaterializationEntityType(fieldList, f);;
-                entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), fieldClass);
+                entityService.materializePropertyFromId(Arrays.asList(e), f.getName());
             });
         }
     }
 
-    //TODO: spostarlo in qualche classe di utils
-    public static Class getFieldMaterializationEntityType(List<Field> fieldList, Field field) {
-
-
-        Field fieldToMaterialize = fieldList.stream().filter(f -> Objects.equals(field.getAnnotation(Materialization.class).entityField(), f.getName())).findFirst().get();
-
-        if (List.class.isAssignableFrom(fieldToMaterialize.getType())) {
-            ParameterizedType integerListType = (ParameterizedType) fieldToMaterialize.getGenericType();
-            return (Class) integerListType.getActualTypeArguments()[0];
-        } else
-            return fieldToMaterialize.getType();
-
-    }
 
     public static void materializeFields(Entity e) {
 
