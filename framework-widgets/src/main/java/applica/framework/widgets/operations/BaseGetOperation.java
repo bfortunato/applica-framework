@@ -100,7 +100,7 @@ public class BaseGetOperation implements GetOperation {
         Field fieldToMaterialize = fieldList.stream().filter(f -> Objects.equals(field.getAnnotation(Materialization.class).entityField(), f.getName())).findFirst().get();
 
         if (List.class.isAssignableFrom(fieldToMaterialize.getType())) {
-            ParameterizedType integerListType = (ParameterizedType) field.getGenericType();
+            ParameterizedType integerListType = (ParameterizedType) fieldToMaterialize.getGenericType();
             return (Class) integerListType.getActualTypeArguments()[0];
         } else
             return fieldToMaterialize.getClass();
