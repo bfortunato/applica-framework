@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static applica.framework.widgets.operations.BaseGetOperation.getFieldMaterializationEntityType;
+
 public class BaseFindOperation implements FindOperation, ResultSerializerListener {
     private ThreadLocal<Boolean> materializationDisabled = new ThreadLocal<>();
 
@@ -132,8 +134,9 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
         if (entityService != null && fieldList != null) {
             List<Field> finalFieldList = fieldList;
+            List<Field> finalFieldList1 = fieldList;
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                Class fieldClass = finalFieldList.stream().filter(field -> Objects.equals(f.getAnnotation(Materialization.class).entityField(), field.getName())).findFirst().get().getType();
+                Class fieldClass = getFieldMaterializationEntityType(finalFieldList1, f);;
                 entityService.materializePropertyFromId(rows, f.getName(), f.getAnnotation(Materialization.class).entityField(), fieldClass);
             });
         }

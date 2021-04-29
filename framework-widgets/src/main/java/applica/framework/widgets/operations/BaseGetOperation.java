@@ -94,7 +94,8 @@ public class BaseGetOperation implements GetOperation {
         }
     }
 
-    private static Class getFieldMaterializationEntityType(List<Field> fieldList, Field field) {
+    //TODO: spostarlo in qualche classe di utils
+    public static Class getFieldMaterializationEntityType(List<Field> fieldList, Field field) {
 
 
         Field fieldToMaterialize = fieldList.stream().filter(f -> Objects.equals(field.getAnnotation(Materialization.class).entityField(), f.getName())).findFirst().get();
@@ -103,9 +104,7 @@ public class BaseGetOperation implements GetOperation {
             ParameterizedType integerListType = (ParameterizedType) fieldToMaterialize.getGenericType();
             return (Class) integerListType.getActualTypeArguments()[0];
         } else
-            return fieldToMaterialize.getClass();
-
-
+            return fieldToMaterialize.getType();
 
     }
 
