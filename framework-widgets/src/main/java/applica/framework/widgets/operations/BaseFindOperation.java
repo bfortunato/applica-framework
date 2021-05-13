@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -102,7 +101,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
     @Override
-    public Result<? extends Entity> fetch(Query query) {
+    public Result<? extends Entity> fetch(Query query) throws OperationException {
         List<Field> fieldList = generateFieldsForMaterialization();
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 

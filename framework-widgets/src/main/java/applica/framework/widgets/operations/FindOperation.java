@@ -1,6 +1,8 @@
 package applica.framework.widgets.operations;
 
-import applica.framework.*;
+import applica.framework.Entity;
+import applica.framework.Query;
+import applica.framework.Result;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public interface FindOperation {
@@ -9,6 +11,6 @@ public interface FindOperation {
     void enableAutomaticMaterialization();
     ObjectNode find(Query query) throws OperationException;
     Class<? extends Entity> getEntityType();
-    Result<? extends Entity> fetch(Query query);
+    Result<? extends Entity> fetch(Query query) throws OperationException;
 
 }
