@@ -60,4 +60,13 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
             parent.deleteMany(query, repository);
         }
     }
+
+    @Override
+    public <T extends Entity> Object sum(Query request, String field, Repository<T> repository) {
+        if (parent != null) {
+            return parent.sum(request, field, repository);
+        }
+
+        return null;
+    }
 }

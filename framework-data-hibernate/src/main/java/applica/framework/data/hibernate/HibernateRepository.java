@@ -534,4 +534,9 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         new KeywordQueryBuilder(getEntityType()).build(query);
         return query;
     }
+
+    @Override
+    public Object sum(Query request, String value) throws Exception {
+        throw new Exception("Not implemented (yet)");
+    }
 }

@@ -152,4 +152,10 @@ public class HibernateCrudStrategy implements CrudStrategy {
                 repository.delete(q.getId());
             });
     }
+
+    @Override
+    public <T extends Entity> Object sum(Query request, String field, Repository<T> repository) {
+        //TODO
+        throw new RuntimeException("Not implemented (yet)");
+    }
 }

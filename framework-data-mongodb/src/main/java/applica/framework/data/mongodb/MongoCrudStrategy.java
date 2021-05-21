@@ -2,6 +2,7 @@ package applica.framework.data.mongodb;
 
 import applica.framework.*;
 import applica.framework.data.mongodb.constraints.ConstraintsChecker;
+import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -137,6 +139,28 @@ public class MongoCrudStrategy implements CrudStrategy {
 
             collection.deleteMany(mongoRepository.createQuery(query));
         }
+    }
+
+    @Override
+    public <T extends Entity> Object sum(Query request, String field, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+        Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+
+        BasicDBObject match = new BasicDBObject(
+                "$match", mongoRepository.createQuery(request)
+        );
+
+        BasicDBObject group = new BasicDBObject(
+                "$group", new BasicDBObject("_id", null).append(
+                "sum", new BasicDBObject( "$sum", field )
+        )
+        );
+        MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+
+        Object output = collection.aggregate(Arrays.asList(match, group));
+
+        return output;
+
     }
 
 }
