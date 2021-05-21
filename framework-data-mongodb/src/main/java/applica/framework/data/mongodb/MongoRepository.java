@@ -183,7 +183,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     @Override
-    public Object sum(Query request, String field) throws Exception {
+    public Object sum(Query request, String field) {
         init();
 
         if(db == null) {
