@@ -70,6 +70,8 @@ public class BaseSaveOperation implements SaveOperation {
 
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
+
+            beforeSerialize(data);
             Entity entity = serializer.deserialize(data);
 
             finishEntity(data, entity);
@@ -88,6 +90,10 @@ public class BaseSaveOperation implements SaveOperation {
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
+    }
+
+    public void beforeSerialize(ObjectNode data) {
+
     }
 
     public void authorize(Entity entity) throws AuthorizationException {
