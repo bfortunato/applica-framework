@@ -8,6 +8,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -144,23 +145,26 @@ public class MongoCrudStrategy implements CrudStrategy {
     @Override
     public <T extends Entity> Object sum(Query request, String field, Repository<T> repository) {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
-        Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+        BasicDBObject match = new BasicDBObject("$match", mongoRepository.createQuery(request));
 
-        BasicDBObject match = new BasicDBObject(
-                "$match", mongoRepository.createQuery(request)
-        );
 
-        BasicDBObject group = new BasicDBObject(
-                "$group", new BasicDBObject("_id", null).append(
-                "sum", new BasicDBObject( "$sum", field )
-        )
-        );
+
+        BasicDBObject group = new BasicDBObject("$group", (new BasicDBObject("_id", null)).append("sum", new BasicDBObject("$sum", String.format("$%s", field))));
         MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
 
-        Object output = collection.aggregate(Arrays.asList(match, group));
+        Object sum = 0D;
+        try {
+            Iterable output = collection.aggregate(Arrays.asList(match, group));
+            if (output.iterator().hasNext()) {
+                sum = ((Document) output.iterator().next()).get("sum", sum);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
 
-        return output;
+        }
 
+        return sum;
     }
+
 
 }
