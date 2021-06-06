@@ -27,6 +27,8 @@ public @interface Validation {
     boolean unique() default false;
     //Se la classe sulla quale fare il controllo di univocità è diversa da quella della entità corrente
     Class<? extends Entity>[] uniqueClass() default {};
+    //Query per generare una query in base alla quale fare il controllo univocità
+    String uniqueQueryFunction() default "";
 
     //> 0
     boolean greaterThanZero() default false;

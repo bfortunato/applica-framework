@@ -2,6 +2,7 @@ package applica.framework.widgets.utils;
 
 import applica.framework.ApplicationContextProvider;
 import applica.framework.Entity;
+import applica.framework.Query;
 import applica.framework.library.i18n.LocalizationUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResult;
@@ -36,6 +37,23 @@ public class ValidationUtils {
         return true;
     }
 
+    public static Query generateUniqueQuery(Entity entity, Validation annotation) {
+
+        try {
+            String functionName = annotation.uniqueQueryFunction();
+            if (StringUtils.hasLength(functionName)) {
+                Method method = entity.getClass().getMethod(functionName);
+                method.setAccessible(true);
+                Query result = (Query) method.invoke(entity, new Object[] {});
+                return result != null? result : null;
+            }
+        } catch (Exception e) {
+
+        }
+
+        return null;
+    }
+
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
         try {
             EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
@@ -54,8 +72,10 @@ public class ValidationUtils {
 
                     //VAlidazione "unique": il campo non deve essere presente su altre entità del sistema
                     //TODO: togliere il campo field value che tanto viene preso direttamente dall'entityService
-                    if (annotation.unique() && !entityService.isUnique(annotation.uniqueClass().length > 0 ? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), null, entity)) {
-                        result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
+                    if (annotation.unique()) {
+                        Query uniqueQuery = generateUniqueQuery(entity, annotation);
+                        if (!entityService.isUnique(annotation.uniqueClass().length > 0 ? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), null, entity, uniqueQuery))
+                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
                     }
 
                     if (annotation.validateSubObject() && !Objects.isNull(value)) {
