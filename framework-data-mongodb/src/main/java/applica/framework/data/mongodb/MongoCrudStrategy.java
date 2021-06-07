@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * Created by bimbobruno on 17/09/15.
  */
+
 public class MongoCrudStrategy implements CrudStrategy {
 
     @Autowired
