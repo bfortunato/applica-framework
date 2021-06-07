@@ -111,6 +111,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         BasicDBObject document = mongoMapper.loadBasicDBObject(entity, null);
         mongoRepository.getCollection().save(document);
         entity.setId(document.getString("_id"));
+
     }
 
     @Override
