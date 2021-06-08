@@ -539,4 +539,9 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     public Object sum(Query request, String value)  {
         throw new RuntimeException("Not implemented (yet)");
     }
+
+    @Override
+    public Object avg(Query request, String value)  {
+        throw new RuntimeException("Not implemented (yet)");
+    }
 }

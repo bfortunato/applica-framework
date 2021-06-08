@@ -194,6 +194,17 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     @Override
+    public Object avg(Query request, String field) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
+        return crudStrategy.avg(request, field, this);
+    }
+
+    @Override
 	public void delete(Object id) {
         init();
 

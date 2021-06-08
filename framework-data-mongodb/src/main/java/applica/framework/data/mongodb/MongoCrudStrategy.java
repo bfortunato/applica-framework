@@ -169,4 +169,28 @@ public class MongoCrudStrategy implements CrudStrategy {
     }
 
 
+    @Override
+    public <T extends Entity> Object avg(Query request, String field, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+        BasicDBObject match = new BasicDBObject("$match", mongoRepository.createQuery(request));
+
+
+
+        BasicDBObject group = new BasicDBObject("$group", (new BasicDBObject("_id", null)).append("avg", new BasicDBObject("$avg", String.format("$%s", field))));
+        MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+
+        Object avg = 0D;
+        try {
+            Iterable output = collection.aggregate(Arrays.asList(match, group));
+            if (output.iterator().hasNext()) {
+                avg = ((Document) output.iterator().next()).get("avg", avg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+        return avg;
+    }
+
 }

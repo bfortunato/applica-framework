@@ -69,4 +69,13 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
 
         return null;
     }
+
+    @Override
+    public <T extends Entity> Object avg(Query request, String field, Repository<T> repository) {
+        if (parent != null) {
+            return parent.avg(request, field, repository);
+        }
+
+        return null;
+    }
 }

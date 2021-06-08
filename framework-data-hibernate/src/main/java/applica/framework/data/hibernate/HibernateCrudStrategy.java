@@ -158,4 +158,10 @@ public class HibernateCrudStrategy implements CrudStrategy {
         //TODO
         throw new RuntimeException("Not implemented (yet)");
     }
+
+    @Override
+    public <T extends Entity> Object avg(Query request, String field, Repository<T> repository) {
+        //TODO
+        throw new RuntimeException("Not implemented (yet)");
+    }
 }

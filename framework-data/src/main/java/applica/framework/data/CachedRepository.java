@@ -57,6 +57,11 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
+    public Object avg(Query request, String value) {
+        return concreteRepository.avg(request, value);
+    }
+
+    @Override
     public void delete(Object id) {
         cache.invalidate(id.toString());
 
