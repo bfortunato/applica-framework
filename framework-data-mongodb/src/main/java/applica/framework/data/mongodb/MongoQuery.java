@@ -3,13 +3,14 @@ package applica.framework.data.mongodb;
 import applica.framework.GeoFilter;
 import applica.framework.library.utils.ProgramException;
 import com.mongodb.BasicDBObject;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class MongoQuery extends BasicDBObject {
+public class MongoQuery extends Document {
 
 	public static MongoQuery mk() { return new MongoQuery(); }
 	
