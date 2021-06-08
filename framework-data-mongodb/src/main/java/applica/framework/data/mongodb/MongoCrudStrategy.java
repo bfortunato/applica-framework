@@ -30,6 +30,7 @@ public class MongoCrudStrategy implements CrudStrategy {
     @Autowired(required = false)
     private ConstraintsChecker constraintsChecker;
 
+
     @Override
     public <T extends Entity> T get(Object id, Repository<T> repository) {
         T entity = null;
