@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.*;
+import applica.framework.data.Keyword;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -101,15 +101,19 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
     @Override
-    public Result<? extends Entity> fetch(Query query) {
+    public Result<? extends Entity> fetch(Query query) throws OperationException {
         List<Field> fieldList = generateFieldsForMaterialization();
         Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
-            materializeFields(entities.getRows(), entityService, fieldList);
+           materialize(entities.getRows(), fieldList);
         }
 
         return entities;
+    }
+
+    public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
+        materializeFields(rows, entityService, fieldList);
     }
 
     public List<Field> generateFieldsForMaterialization() {
@@ -127,13 +131,13 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
         if (entityService != null && fieldList != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId(rows, f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
+                entityService.materializePropertyFromId(rows, f.getName());
             });
         }
     }
 
     private boolean isNumber(Class c) {
-        return c == int.class || c == long.class || c == double.class || c == float.class;
+        return c == int.class || c == long.class || c == double.class || c == float.class || c == Integer.class || c == Double.class || c == Float.class || c == Long.class;
     }
 
 
@@ -152,7 +156,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         if (StringUtils.hasLength(query.getKeyword())) {
             Disjunction disjunction = new Disjunction();
 
-            disjunction.setChildren(fieldList.stream().filter(f -> f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
+            disjunction.setChildren(fieldList.stream().filter(f -> (f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()) || f.getAnnotation(Keyword.class) != null).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
 
             manageKeywordDisjunction(query, disjunction);
 

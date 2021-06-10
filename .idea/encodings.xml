@@ -2,6 +2,7 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/framework-cli/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-core" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-data" charset="UTF-8" />
@@ -20,6 +21,7 @@
     <file url="file://$PROJECT_DIR$/framework-library/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-licensing" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-licensing/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/framework-notifications/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-resources/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/framework-revision" charset="UTF-8" />

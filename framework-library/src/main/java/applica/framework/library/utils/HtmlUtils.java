@@ -4,6 +4,7 @@ package applica.framework.library.utils;
  * Created by antoniolovicario on 04/01/16.
  */
 
+import org.jsoup.Jsoup;
 import org.springframework.util.StringUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -26,7 +27,7 @@ import java.util.regex.Pattern;
  * this program code.
  */
 
-public class HtmlEscapeUtils {
+public class HtmlUtils {
     public static final String URL_REGEX = "^((https?|ftp)://|(www|ftp)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
     private static char[] hex={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
@@ -264,5 +265,11 @@ public class HtmlEscapeUtils {
             }
         }
         return video_id;
+    }
+
+    public static String extractTextFromHtml(String html) {
+        if (StringUtils.hasLength(html))
+            return Jsoup.parse(html).text();
+        return null;
     }
 }

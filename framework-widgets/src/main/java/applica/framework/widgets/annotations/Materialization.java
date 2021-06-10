@@ -12,9 +12,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Materialization {
     String entityField();
-    Class entityClass();
+
+    @Deprecated
+    Class entityClass() default Object.class;
+
+    //TODO: generare l'entityClass tramite un metodo (vedi l'utilizzo della validationFunction nella classe @Validation)
+    String generateEntityClass() default "";
 
     //Se true in fase di saveOperation imposta il valore della property da materializzare in base a quella materializzata
-    boolean reverseMaterialization() default true;
+    boolean reverseMaterialization() default false;
+
     boolean indexEnabled() default false;
-}
+
+
+ }

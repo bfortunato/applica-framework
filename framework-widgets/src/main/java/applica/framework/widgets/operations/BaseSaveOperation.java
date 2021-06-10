@@ -15,6 +15,7 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.Image;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityId;
@@ -69,6 +70,8 @@ public class BaseSaveOperation implements SaveOperation {
 
         EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
+
+            beforeSerialize(data);
             Entity entity = serializer.deserialize(data);
 
             finishEntity(data, entity);
@@ -87,6 +90,10 @@ public class BaseSaveOperation implements SaveOperation {
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
+    }
+
+    public void beforeSerialize(ObjectNode data) {
+
     }
 
     public void authorize(Entity entity) throws AuthorizationException {
@@ -128,9 +135,13 @@ public class BaseSaveOperation implements SaveOperation {
             }
         });
 
+        fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
+        });
+
         if (codeGeneratorService != null) {
             if(entity instanceof NumericCodedEntity && (entity.getId() == null || ((NumericCodedEntity) entity).getCode() == 0) && isCodeAutoGenerationEnabled()) {
-                ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType()));
+                ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType(), ((NumericCodedEntity) entity).generateQueryForCodeProgressive()));
             }
         }
     }

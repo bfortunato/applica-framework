@@ -145,5 +145,23 @@ public class HibernateCrudStrategy implements CrudStrategy {
         }
     }
 
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        if (query != null && query.getFilters().size() > 0)
+            repository.find(query).getRows().forEach(q -> {
+                repository.delete(q.getId());
+            });
+    }
 
+    @Override
+    public <T extends Entity> Object sum(Query request, String field, Repository<T> repository) {
+        //TODO
+        throw new RuntimeException("Not implemented (yet)");
+    }
+
+    @Override
+    public <T extends Entity> Object avg(Query request, String field, Repository<T> repository) {
+        //TODO
+        throw new RuntimeException("Not implemented (yet)");
+    }
 }

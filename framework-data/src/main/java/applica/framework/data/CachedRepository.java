@@ -52,10 +52,28 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
+    public Object sum(Query request, String value) {
+        return concreteRepository.sum(request, value);
+    }
+
+    @Override
+    public Object avg(Query request, String value) {
+        return concreteRepository.avg(request, value);
+    }
+
+    @Override
     public void delete(Object id) {
         cache.invalidate(id.toString());
 
         concreteRepository.delete(id);
+    }
+
+    @Override
+    public void deleteMany(Query request) {
+        concreteRepository.find(request).getRows().forEach(c -> {
+            cache.invalidate(c.getId().toString());
+        });
+        concreteRepository.deleteMany(request);
     }
 
     @Override

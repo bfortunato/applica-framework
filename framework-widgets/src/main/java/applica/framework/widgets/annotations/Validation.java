@@ -22,11 +22,16 @@ public @interface Validation {
 
     //Campo da rifiutare
     String rejectField() default "";
+
     boolean required() default false;
+    //Nome della funzione che verrà usata per capire se innescare o meno il controllo required; richiede comunque che required sia true
+    String validationFunction() default "";
 
     boolean unique() default false;
     //Se la classe sulla quale fare il controllo di univocità è diversa da quella della entità corrente
     Class<? extends Entity>[] uniqueClass() default {};
+    //Query per generare una query in base alla quale fare il controllo univocità
+    String uniqueQueryFunction() default "";
 
     //> 0
     boolean greaterThanZero() default false;
@@ -50,5 +55,9 @@ public @interface Validation {
     String rangeOtherValue() default "";
 
 
+
+
+    //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
+    boolean validateSubObject() default false;
 
 }

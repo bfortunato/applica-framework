@@ -2,6 +2,7 @@ package applica.framework;
 
 public class Sort {
     private String property;
+    private Object value;
     private boolean descending;
 
     public Sort() {
@@ -27,5 +28,13 @@ public class Sort {
 
     public void setDescending(boolean descending) {
         this.descending = descending;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }

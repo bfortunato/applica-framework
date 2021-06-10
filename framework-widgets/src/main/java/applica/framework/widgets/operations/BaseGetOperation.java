@@ -9,6 +9,7 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.Image;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -71,9 +73,13 @@ public class BaseGetOperation implements GetOperation {
     public Entity fetch(Object id) throws OperationException {
 
         Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
-        materializeFields(e,entityService);
+        materialize(e);
 
         return e;
+    }
+
+    public void materialize(Entity e) {
+        materializeFields(e,entityService);
     }
 
     public static void materializeFields(Entity e, EntityService entityService) {
@@ -82,10 +88,11 @@ public class BaseGetOperation implements GetOperation {
         List<Field> fieldList = ClassUtils.getAllFields(e.getClass());
         if (entityService != null && fieldList != null) {
             fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId(Arrays.asList(e), f.getName(), f.getAnnotation(Materialization.class).entityField(), f.getAnnotation(Materialization.class).entityClass());
+                entityService.materializePropertyFromId(Arrays.asList(e), f.getName());
             });
         }
     }
+
 
     public static void materializeFields(Entity e) {
 
@@ -95,7 +102,11 @@ public class BaseGetOperation implements GetOperation {
 
 
     protected void finishNode(Entity entity, ObjectNode node) throws OperationException {
-
+        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+        fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+            EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+            mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
+        });
     }
 
     protected EntityMapper map() {

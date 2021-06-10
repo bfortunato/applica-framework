@@ -2,15 +2,16 @@ package applica.framework.data.mongodb;
 
 import applica.framework.*;
 import applica.framework.data.KeywordQueryBuilder;
-import applica.framework.library.utils.Nulls;
 import applica.framework.library.utils.Strings;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bson.Document;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,12 +30,12 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	
 	private Log logger = LogFactory.getLog(getClass());
 
-    private DB db;
+    private MongoDatabase db;
     private MappingContext mappingContext;
 
     public void init() {
         if (db == null) {
-            db = mongoHelper.getDB(getDataSource());
+            db = mongoHelper.getDatabase(getDataSource());
             if (db == null) {
                 logger.warn("Mongo DB is null");
             }
@@ -170,7 +171,41 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return mongoQuery;
 	}
 
-	@Override
+
+    @Override
+    public void deleteMany(Query request) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
+        crudStrategy.deleteMany(request, this);
+    }
+
+    @Override
+    public Object sum(Query request, String field) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
+        return crudStrategy.sum(request, field, this);
+    }
+
+    @Override
+    public Object avg(Query request, String field) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
+        return crudStrategy.avg(request, field, this);
+    }
+
+    @Override
 	public void delete(Object id) {
         init();
 
@@ -206,7 +241,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return "default";
     }
 
-    public DBCollection getCollection() {
+    public MongoCollection<Document> getCollection() {
+        return db.getCollection(getCollectionName());
+    }
+
+    public MongoCollection<Document> get() {
         return db.getCollection(getCollectionName());
     }
 
@@ -217,9 +256,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return query;
     }
 
-    public DBObject createProjection(Query loadRequest) {
+    public Document createProjection(Query loadRequest) {
         if (loadRequest.getProjections() != null && (loadRequest.getProjections().size() > 0)) {
-            BasicDBObject proj = new BasicDBObject();
+            Document proj = new Document();
 
             for (Projection projection : loadRequest.getProjections()) {
                 proj.put(projection.getProperty(), projection.isVisible());

@@ -1,6 +1,9 @@
 package applica.framework.security;
 
 import applica.framework.Entity;
+import applica.framework.Query;
+
+import java.lang.reflect.Field;
 import java.util.List;
 
 public interface EntityService {
@@ -15,5 +18,8 @@ public interface EntityService {
     boolean isUnique(Class<? extends Entity> entityClass, String fieldName, Object fieldValue, Entity entity);
 
 
-    void materializePropertyFromId(List<? extends Entity> rows, String idProperty, String entityProperty, Class entityClass);
+    boolean isUnique(Class<? extends Entity> entityClass, String fieldName, Object fieldValue, Entity entity, Query query);
+
+
+    void materializePropertyFromId(List<? extends Entity> rows, String idProperty);
 }

@@ -2,6 +2,7 @@ package applica.framework.widgets.utils;
 
 import applica.framework.ApplicationContextProvider;
 import applica.framework.Entity;
+import applica.framework.Query;
 import applica.framework.library.i18n.LocalizationUtils;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResult;
@@ -10,11 +11,48 @@ import applica.framework.widgets.annotations.Validation;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ValidationUtils {
+
+    public static boolean canValidate(Entity entity, Validation annotation, Field field) {
+
+        try {
+            String functionName = annotation.validationFunction();
+            if (StringUtils.hasLength(functionName)) {
+                Method method = entity.getClass().getMethod(functionName);
+                method.setAccessible(true);
+                Boolean result = (Boolean) method.invoke(entity, new Object[] {});
+                return result != null? result : false;
+            }
+        } catch (Exception e) {
+
+        }
+
+        return true;
+    }
+
+    public static Query generateUniqueQuery(Entity entity, Validation annotation) {
+
+        try {
+            String functionName = annotation.uniqueQueryFunction();
+            if (StringUtils.hasLength(functionName)) {
+                Method method = entity.getClass().getMethod(functionName);
+                method.setAccessible(true);
+                Query result = (Query) method.invoke(entity, new Object[] {});
+                return result != null? result : null;
+            }
+        } catch (Exception e) {
+
+        }
+
+        return null;
+    }
 
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
         try {
@@ -24,6 +62,9 @@ public class ValidationUtils {
                     Object value = field.get(entity);
                     Validation annotation = field.getAnnotation(Validation.class);
 
+                    if (!canValidate(entity, annotation, field))
+                        return ;
+
                     //Validazione "required": il campo deve essere presente e valorizato
                     if (annotation.required() && (Objects.isNull(value) || (value instanceof String && value.equals("")) || (value instanceof List && ((List) value).size() == 0))) {
                         result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  "validation.field.required");
@@ -31,8 +72,34 @@ public class ValidationUtils {
 
                     //VAlidazione "unique": il campo non deve essere presente su altre entità del sistema
                     //TODO: togliere il campo field value che tanto viene preso direttamente dall'entityService
-                    if (annotation.unique() && !entityService.isUnique(annotation.uniqueClass().length > 0 ? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), null, entity)) {
-                        result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
+                    if (annotation.unique()) {
+                        Query uniqueQuery = generateUniqueQuery(entity, annotation);
+                        if (!entityService.isUnique(annotation.uniqueClass().length > 0 ? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), null, entity, uniqueQuery))
+                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
+                    }
+
+                    if (annotation.validateSubObject() && !Objects.isNull(value)) {
+                        ValidationResult subValidationResult = new ValidationResult();
+                        if (value instanceof Entity) {
+                            try {
+                                validate(((Entity)value), subValidationResult, true);
+                            } catch (ValidationException e) {
+                                e.getValidationResult().getErrors().forEach(subError -> {
+                                    result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage());
+                                });
+                            }
+                        } else if (List.class.isAssignableFrom(value.getClass())) {
+                            AtomicInteger i = new AtomicInteger(0);
+                            ((List) value).forEach(v -> {
+                                try {
+                                    validate(((Entity)v), subValidationResult, true);
+                                } catch (ValidationException e) {
+                                    e.getValidationResult().getErrors().forEach(subError -> result.reject(String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty()), subError.getMessage()));
+                                }
+                                i.incrementAndGet();
+                            });
+                        }
+
                     }
 
                     //Validazione greaterThanZero: il campo deve essere maggiore STRETTO di zero
@@ -93,8 +160,13 @@ public class ValidationUtils {
 
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
         validate(entity, result, new ArrayList<>());
-        if (considerStandaloneValidator)
-            applica.framework.library.validation.Validation.validate(entity);
+        if (considerStandaloneValidator) {
+            ValidationResult standaloneResult = applica.framework.library.validation.Validation.getValidationResult(entity);
+            result.getErrors().addAll(standaloneResult.getErrors());
+        }
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
     }
 
     public static boolean isValid(Entity entity, boolean considerStandaloneValidator, List<String> excludedProperties) {

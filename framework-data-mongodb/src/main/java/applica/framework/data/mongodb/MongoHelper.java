@@ -1,19 +1,36 @@
 package applica.framework.data.mongodb;
 
 import applica.framework.library.options.OptionsManager;
-import com.mongodb.*;
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class MongoHelper {
 
+	private Log logger = LogFactory.getLog(getClass());
+
+	public MongoCollection<Document> getMongoCollection(MongoRepository mongoRepository) {
+		return getDatabase(getDbName(mongoRepository.getDataSource())).getCollection(mongoRepository.getCollectionName());
+
+	}
+
 	class MongoDataSource {
 		MongoClient mongo;
-		DB db;
+		MongoDatabase db;
 	}
 
 	private Map<String, MongoDataSource> sources = new HashMap<>();
@@ -21,16 +38,21 @@ public class MongoHelper {
 	@Autowired
 	private OptionsManager options;
 	
-	public DB getDB(String dataSource) {
+	public MongoDatabase getDatabase(String dataSource) {
 		MongoDataSource ds = getDataSource(dataSource);
 		if(ds.db == null) {
 			ds.mongo = getMongo(dataSource);
 			if(ds.mongo != null) {
-				ds.db = ds.mongo.getDB(getDbName(dataSource));
+				ds.db = ds.mongo.getDatabase(getDbName(dataSource));
 			}
 		}
 		
 		return ds.db;
+	}
+
+	@Deprecated
+	public MongoDatabase getDB(String dataSource) {
+		return getDatabase(dataSource);
 	}
 
 	private MongoDataSource getDataSource(String dataSource) {
@@ -68,50 +90,47 @@ public class MongoHelper {
 		MongoDataSource ds = getDataSource(dataSource);
 
 		if(ds.mongo == null) {
-			try {
-                String username = options.get(String.format("applica.framework.data.mongodb.%s.username", dataSource));
-                String password = options.get(String.format("applica.framework.data.mongodb.%s.password", dataSource));
-                String db = getDbName(dataSource);
-                String host = options.get(String.format("applica.framework.data.mongodb.%s.host", dataSource));
-				Integer port = Integer.parseInt(options.get(String.format("applica.framework.data.mongodb.%s.port", dataSource)));
-                if (StringUtils.isNotEmpty(username)) {
-					ds.mongo = new MongoClient(
-                            new ServerAddress(host, port != null ? port : 27017),
-                            Arrays.asList(createMongoCredential(dataSource, username, password, db))
-                    );
-                } else {
-					ds.mongo = new MongoClient(new ServerAddress(host, port != null ? port : 27017));
-                }
-			} catch (MongoException e) {
-				e.printStackTrace();
+			int retries = 5;
+			while (retries-- > 0) {
+				try {
+					String connectionString = options.get(String.format("applica.framework.data.mongodb.%s.connectionString", dataSource));
+					if (StringUtils.isEmpty(connectionString)) {
+						String username = options.get(String.format("applica.framework.data.mongodb.%s.username", dataSource));
+
+						String password = options.get(String.format("applica.framework.data.mongodb.%s.password", dataSource));
+						String db = getDbName(dataSource);
+						String host = options.get(String.format("applica.framework.data.mongodb.%s.host", dataSource));
+						Integer port = Integer.parseInt(options.get(String.format("applica.framework.data.mongodb.%s.port", dataSource)));
+						if (StringUtils.isNotEmpty(username)) {
+							connectionString = String.format("mongodb://%s:%s@%s:%d/%s", username, password, host, port, db);
+						} else {
+							connectionString = String.format("mongodb://%s:%d/%s", host, port, db);
+						}
+					}
+
+					logger.info(String.format("Connecting (try %d) to mongodb server: %s", 3 - retries, connectionString));
+
+					ds.mongo = MongoClients.create(connectionString);
+					//LangUtils.unchecked(() -> Thread.sleep(1000));
+					var dbs = ds.mongo.listDatabaseNames();
+
+					logger.info("Databases on mongo cluster: ");
+					dbs.forEach((Consumer<? super String>) d -> {
+						logger.info("\t - " + d);
+					});
+
+					break;
+				} catch (MongoException e) {
+					logger.error("Cannot connect to mongo db: " + e.getMessage());
+
+					if (ds.mongo != null) {
+						ds.mongo.close();
+						ds.mongo = null;
+					}
+				}
 			}
 		}
 		return ds.mongo;
-	}
-
-	/**
-	 * Istanzia la classe MongoCredential in base al meccanismo di autenticazione eventualmente settato
-	 * @param datasource
-	 * @param username
-	 * @param password
-	 * @param db
-	 * @return
-	 */
-	private MongoCredential createMongoCredential(String datasource, String username, String password, String db) {
-		MongoCredential mongoCredential;
-		String authMechanism = options.get(String.format("applica.framework.data.mongodb.%s.authMechanism", datasource));
-
-		if (StringUtils.isNotEmpty(authMechanism) && authMechanism.equals(MongoAuthenticationMechanism.SCRAM_SHA_1.getDescription())) {
-			mongoCredential = MongoCredential.createScramSha1Credential(username,
-					db,
-					password.toCharArray());
-		} else {
-			//default
-			mongoCredential = MongoCredential.createMongoCRCredential(username, db, password.toCharArray());
-		}
-
-		return mongoCredential;
-
 	}
 
 	public void close(String dataSource) {

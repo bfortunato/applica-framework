@@ -520,6 +520,11 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         crudStrategy.delete(id, this);
     }
 
+    @Override
+    public void deleteMany(Query request) {
+        crudStrategy.deleteMany(request, this);
+    }
+
     public String getDataSource() {
         return "default";
     }
@@ -528,5 +533,15 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     public Query keywordQuery(Query query) {
         new KeywordQueryBuilder(getEntityType()).build(query);
         return query;
+    }
+
+    @Override
+    public Object sum(Query request, String value)  {
+        throw new RuntimeException("Not implemented (yet)");
+    }
+
+    @Override
+    public Object avg(Query request, String value)  {
+        throw new RuntimeException("Not implemented (yet)");
     }
 }

@@ -5,7 +5,9 @@ import applica.framework.data.security.LoggedUserIdOwnerProvider;
 import applica.framework.data.security.OwnerProvider;
 import applica.framework.data.security.SecureCrudStrategy;
 import applica.framework.data.security.SecureEntity;
+import applica.framework.library.utils.SystemOptionsUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 import java.util.Optional;
 
@@ -59,11 +61,24 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         checkAttributes();
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
-            Optional<T> entity = super.find(Query.build().eq(getOwnerPropertyName(), getOwnerId()).id(id), repository).findFirst();
+            Query q =  Query.build().id(id);
+            Object ownerId = getOwnerId();
+            Disjunction disjunction = new Disjunction();
+            if (ownerId == null || isCrossOrganizationEntity(repository)) {
+                disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
+            } else {
+
+            }
+            disjunction.getChildren().add(new Filter(getOwnerPropertyName(), ownerId));
+            Optional<T> entity = super.find(q, repository).findFirst();
             return entity.orElse(null);
         } else {
             return super.get(id, repository);
         }
+    }
+
+    public <T extends Entity> boolean isCrossOrganizationEntity(Repository<T> repository) {
+        return false;
     }
 
     @Override
@@ -74,7 +89,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
             Object ownerId = getOwnerId();
 
             Disjunction disjunction = new Disjunction();
-            if (ownerId == null) {
+            if (ownerId == null || isCrossOrganizationEntity(repository)) {
                 disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
             } else {
 
