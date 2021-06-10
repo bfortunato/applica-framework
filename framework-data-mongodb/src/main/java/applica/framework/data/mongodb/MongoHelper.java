@@ -24,7 +24,7 @@ public class MongoHelper {
 	private Log logger = LogFactory.getLog(getClass());
 
 	public MongoCollection<Document> getMongoCollection(MongoRepository mongoRepository) {
-		return getDatabase(getDbName(mongoRepository.getDataSource())).getCollection(mongoRepository.getCollectionName());
+		return getDatabase(mongoRepository.getDataSource()).getCollection(mongoRepository.getCollectionName());
 
 	}
 
