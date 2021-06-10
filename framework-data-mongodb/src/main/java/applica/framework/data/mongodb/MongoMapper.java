@@ -13,6 +13,7 @@ import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 import org.apache.commons.logging.Log;
 import org.bson.BasicBSONObject;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -45,12 +46,12 @@ public class MongoMapper {
 		Date.class
 	};
 
-	public BasicDBObject loadBasicDBObject(Persistable source, MappingContext mappingContext) {
+	public Document loadBasicDBObject(Persistable source, MappingContext mappingContext) {
 		if (mappingContext == null) {
 			mappingContext = new MappingContext();
 		}
 
-		BasicDBObject document = new BasicDBObject();
+		Document document = new Document();
 		if (source != null && document != null) {			
 			Class<?> type = source.getClass();
             
@@ -165,7 +166,7 @@ public class MongoMapper {
 		return Geometry.class.isAssignableFrom(aClass);
 	}
 
-	public Object loadObject(BasicDBObject source, Class<?> destinationType, MappingContext mappingContext) {
+	public Object loadObject(Document source, Class<?> destinationType, MappingContext mappingContext) {
 		if (mappingContext == null) {
 			mappingContext = new MappingContext();
 		}
@@ -183,7 +184,7 @@ public class MongoMapper {
 			for(String key : source.keySet()) {
 				if (key.equals("_id")) {
 					if (destination instanceof Entity) {
-						((Entity) destination).setId(source.getString(key));
+						((Entity) destination).setId(source.getObjectId(key).toString());
 					}
 				} else {
 					Field field = null;
@@ -219,14 +220,14 @@ public class MongoMapper {
                                         field.set(destination, value);
                                     }
                                 } else {
-                                    BasicDBObject childDocument = (BasicDBObject)source.get(key);
+									Document childDocument = source.get(key, Document.class);
                                     Object value = loadObject(childDocument, field.getType(), mappingContext);
                                     field.set(destination, value);
                                 }
                             }
 							else if (Geometry.class.isAssignableFrom(field.getType())) {
 
-								field.set(destination, deserializeGeometryPoint(field, ((BasicDBObject) source)));
+								field.set(destination, deserializeGeometryPoint(field, source));
 							}
 
 							else if (field.getType().equals(Key.class)) {
@@ -263,7 +264,7 @@ public class MongoMapper {
                                     List<?> sourceList = (List<?>)source.get(field.getName());
                                     for(Object el : sourceList) {
                                         if (TypeUtils.isPersistable(typeArgument)) {
-                                            values.add(loadObject((BasicDBObject)el, typeArgument, mappingContext));
+                                            values.add(loadObject((Document) el, typeArgument, mappingContext));
                                         } else if (isAllowed(typeArgument)) {
                                             values.add(el);
                                         } else if (Object.class.equals(typeArgument)) {
@@ -297,7 +298,7 @@ public class MongoMapper {
 	}
 
 
-	private boolean firstIsId(BasicDBObject source, Field field) {
+	private boolean firstIsId(Document source, Field field) {
 		if (source == null) {
 			return false;
 		}
@@ -313,7 +314,7 @@ public class MongoMapper {
 		return false;
 	}
 
-	private Geometry deserializeGeometryPoint(Field field, BasicBSONObject o) {
+	private Geometry deserializeGeometryPoint(Field field, Document o) {
 
 		try {
 			if (field.getType().equals(Point.class)) {
@@ -327,7 +328,7 @@ public class MongoMapper {
 		return null;
 	}
 
-	private boolean isId(BasicDBObject source, Field field) {
+	private boolean isId(Document source, Field field) {
 		if (source == null) {
 			return false;
 		}

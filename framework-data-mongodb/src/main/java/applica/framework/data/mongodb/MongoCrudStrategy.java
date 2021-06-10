@@ -6,8 +6,7 @@ import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -30,7 +29,6 @@ public class MongoCrudStrategy implements CrudStrategy {
     @Autowired(required = false)
     private ConstraintsChecker constraintsChecker;
 
-
     @Override
     public <T extends Entity> T get(Object id, Repository<T> repository) {
         T entity = null;
@@ -39,7 +37,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
         if(id != null) {
-            BasicDBObject document = (BasicDBObject) mongoRepository.getCollection().findOne(MongoQuery.mk().id(String.valueOf(id)));
+            Document document = mongoRepository.getCollection().find(MongoQuery.mk().id(String.valueOf(id))).first();
             if(document != null) {
                 entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), mongoRepository.getMappingContext());
             }
@@ -56,32 +54,34 @@ public class MongoCrudStrategy implements CrudStrategy {
         Result<T> response = new Result<T>();
         List<T> entities = new ArrayList<>();
 
-        DBObject query = mongoRepository.createQuery(loadRequest);
-        DBObject projection = mongoRepository.createProjection(loadRequest);
-        long count = mongoRepository.getCollection().count(query);
+        Document query = mongoRepository.createQuery(loadRequest);
+        Document projection = mongoRepository.createProjection(loadRequest);
+
+        long count = mongoRepository.getCollection().countDocuments(query);
         int limit = loadRequest.getRowsPerPage();
         int skip = loadRequest.getRowsPerPage() * (loadRequest.getPage() - 1);
 
-        DBCursor cur = mongoRepository.getCollection().find(query, projection);
-        if (limit != 0) cur.limit(limit);
-        if (skip != 0) cur.skip(skip);
+        var find = mongoRepository.getCollection().find(query).projection(projection);
+        if (limit != 0) find.limit(limit);
+        if (skip != 0) find.skip(skip);
 
         List<Sort> sorts = loadRequest.getSorts();
         if (sorts == null) {
             sorts = ((MongoRepository<T>) repository).getDefaultSorts();
         }
 
-
         if (sorts != null) {
-            BasicDBObject sortObject = new BasicDBObject();
+            Document sortObject = new Document();
             for (Sort sort : sorts) {
                 sortObject.append(sort.getProperty(), sort.isDescending() ? -1 : 1);
             }
-            cur.sort(sortObject);
+            find.sort(sortObject);
         }
 
-        while(cur.hasNext()) {
-            BasicDBObject document = (BasicDBObject)cur.next();
+        var cursor = find.iterator();
+
+        while(cursor.hasNext()) {
+            var document = cursor.next();
 
             T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), generateMappingConfigFromQuery(loadRequest));
             entities.add(entity);
@@ -109,9 +109,15 @@ public class MongoCrudStrategy implements CrudStrategy {
             constraintsChecker.checkForeign(entity);
         }
 
-        BasicDBObject document = mongoMapper.loadBasicDBObject(entity, null);
-        mongoRepository.getCollection().save(document);
-        entity.setId(document.getString("_id"));
+        Document document = mongoMapper.loadBasicDBObject(entity, null);
+        if (document.containsKey("_id")) {
+            var id = document.getObjectId("_id");
+            mongoRepository.getCollection().replaceOne(Filters.eq("_id", id), document);
+        } else {
+            mongoRepository.getCollection().insertOne(document);
+            entity.setId(document.getObjectId("_id").toString());
+        }
+
 
     }
 
@@ -119,6 +125,8 @@ public class MongoCrudStrategy implements CrudStrategy {
     public <T extends Entity> void delete(Object id, Repository<T> repository) {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+
+        mongoRepository.getCollection().find(Filters.eq("ciao", "ciao"));
 
         if(id != null) {
             if (constraintsChecker != null) {
@@ -128,7 +136,7 @@ public class MongoCrudStrategy implements CrudStrategy {
                 });
             }
 
-            mongoRepository.getCollection().remove(MongoQuery.mk().id(String.valueOf(id)));
+            mongoRepository.getCollection().deleteOne(MongoQuery.mk().id(String.valueOf(id)));
         }
     }
 
@@ -138,7 +146,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
         if(query != null && query.getFilters().size() > 0) {
-            MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+            var collection = mongoHelper.getMongoCollection(mongoRepository);
 
             collection.deleteMany(mongoRepository.createQuery(query));
         }
@@ -152,7 +160,7 @@ public class MongoCrudStrategy implements CrudStrategy {
 
 
         BasicDBObject group = new BasicDBObject("$group", (new BasicDBObject("_id", null)).append("sum", new BasicDBObject("$sum", String.format("$%s", field))));
-        MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+        var collection = mongoHelper.getMongoCollection(mongoRepository);
 
         Object sum = 0D;
         try {
@@ -177,7 +185,7 @@ public class MongoCrudStrategy implements CrudStrategy {
 
 
         BasicDBObject group = new BasicDBObject("$group", (new BasicDBObject("_id", null)).append("avg", new BasicDBObject("$avg", String.format("$%s", field))));
-        MongoCollection collection = mongoHelper.getMongoCollection(mongoRepository);
+        var collection = mongoHelper.getMongoCollection(mongoRepository);
 
         Object avg = 0D;
         try {
