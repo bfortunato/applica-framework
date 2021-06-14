@@ -1,9 +1,7 @@
 package applica.framework.data;
 
-import applica.framework.Entity;
-import applica.framework.Query;
-import applica.framework.Repository;
-import applica.framework.Result;
+import applica.framework.*;
+import applica.framework.builders.Statement;
 import applica.framework.library.cache.Cache;
 import applica.framework.library.cache.MemoryCache;
 
@@ -40,6 +38,11 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     @Override
     public Result<T> find(Query request) {
         return concreteRepository.find(request);
+    }
+
+    @Override
+    public Statement<T> find(Filter... filters) {
+        return concreteRepository.find(filters);
     }
 
     @Override

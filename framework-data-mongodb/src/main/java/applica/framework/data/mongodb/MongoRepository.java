@@ -1,11 +1,9 @@
 package applica.framework.data.mongodb;
 
 import applica.framework.*;
+import applica.framework.builders.Statement;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
@@ -99,6 +97,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		
 		return response;
 	}
+
+    @Override
+    public Statement<T> find(Filter... filters) {
+        return new Statement<>(this, filters);
+    }
 
     public void pushFilter(MongoQuery mongoQuery, Filter filter) {
         switch (filter.getType()) {

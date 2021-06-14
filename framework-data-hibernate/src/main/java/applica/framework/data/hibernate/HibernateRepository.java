@@ -1,6 +1,7 @@
 package applica.framework.data.hibernate;
 
 import applica.framework.*;
+import applica.framework.builders.Statement;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.TypeUtils;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -66,7 +67,12 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         return response;
     }
 
-//    private Object checkedValue(Filter filter) {
+    @Override
+    public Statement<T> find(Filter... filters) {
+        return new Statement<>(this, filters);
+    }
+
+    //    private Object checkedValue(Filter filter) {
 //        try {
 //            //the property can be null in case of id filter type
 //            if (StringUtils.isNotEmpty(filter.getProperty())) {
