@@ -46,6 +46,29 @@ public class ProjectModule implements Module {
         String repositoryUrl;
         destination = destination != null? destination: String.format("./%s", appName);
 
+        var existentDestination = false;
+
+        if (new File(destination).exists()) {
+            existentDestination = true;
+            String choose = null;
+
+            while (choose == null || (!choose.toLowerCase().equals("n") && !choose.toLowerCase().equals("y"))) {
+                System.out.print("Destination directory already exists, continue? [Y, n]: ");
+                choose = System.console().readLine();
+            }
+
+            if (!choose.equals("y")) {
+                return;
+            }
+        }
+
+        String userDestination = destination;
+        if (existentDestination) {
+            var destFile = File.createTempFile("applica", "");
+            destFile.delete();
+            destination = destFile.getAbsolutePath();
+        }
+
         if (archetype.startsWith("http:\\") || archetype.startsWith("https://")) {
             repositoryUrl = archetype;
 
@@ -69,7 +92,11 @@ public class ProjectModule implements Module {
 
         FileUtils.deleteDirectory(new File(String.format("%s/.git", destination)));
 
-        p("Project %s created into %s", archetype, destination);
+        if (!destination.equals(userDestination)) {
+            FileUtils.copyDirectory(new File(destination), new File(userDestination));
+        }
+
+        p("Project %s created into %s", archetype, userDestination);
     }
 
 }
