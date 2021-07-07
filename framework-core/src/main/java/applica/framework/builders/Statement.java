@@ -15,6 +15,7 @@ public class Statement<T extends Entity> {
 
     public Statement(Repository<T> repository, Filter[] filters) {
         this.repository = repository;
+        query.setFilters(Arrays.asList(filters));
     }
 
     public Statement<T> keyword(String keyword) {
