@@ -183,8 +183,6 @@ public class MongoCrudStrategy implements CrudStrategy {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
         BasicDBObject match = new BasicDBObject("$match", mongoRepository.createQuery(request));
 
-
-
         BasicDBObject group = new BasicDBObject("$group", (new BasicDBObject("_id", null)).append("avg", new BasicDBObject("$avg", String.format("$%s", field))));
         var collection = mongoHelper.getMongoCollection(mongoRepository);
 
