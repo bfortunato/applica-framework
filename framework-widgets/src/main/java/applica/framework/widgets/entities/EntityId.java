@@ -14,4 +14,23 @@ public @interface EntityId {
     String value();
     boolean allowRevision() default false;
     boolean automaticCodeGeneration() default false;
+
+
+    //Ruoli associati a tutti i crudPermission
+    String [] completePermissionsRoles() default {};
+
+    //Ruoli associati al permesso di salvataggio entità
+    String [] savePermissionsRoles() default {};
+
+    //Ruoli associati al permesso di visualizzazione entità
+    String [] viewPermissionsRoles() default {};
+
+    //Ruoli associati al permesso di eliminazione entità
+    String [] deletePermissionsRoles() default {};
+
+    //Ruoli associati al permesso di list entità
+    String [] listPermissionsRoles() default {};
+
+    //Ruoli associati al permesso di creazione entità
+    String [] creationPermissionsRoles() default {};
 }
