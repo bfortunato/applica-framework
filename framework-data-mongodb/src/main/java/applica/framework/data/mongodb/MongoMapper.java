@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -111,7 +112,8 @@ public class MongoMapper {
 									}
 									document.put(field.getName(), values);
 								}
-							} else if (!mappingConfig.isIgnoringNestedReferences() && field.getAnnotation(ManyToOne.class) != null) {
+							} else if (field.getAnnotation(ManyToOne.class) != null &&
+									(!mappingConfig.isIgnoringNestedReferences() || field.getAnnotation(ManyToOne.class).forceIfIgnoreNestedReferences())) {
 								Object fieldSourceValue = field.get(source);
 								if (fieldSourceValue != null && TypeUtils.isEntity(fieldSourceValue.getClass())) {
 									Entity fieldSourceEntity = ((Entity) fieldSourceValue);
@@ -145,7 +147,6 @@ public class MongoMapper {
 
 		return document;
 	}
-
 
 	private Object convertToBasicDBObjectValue(Object source, MappingConfig mappingConfig) {
 		Object value = null;

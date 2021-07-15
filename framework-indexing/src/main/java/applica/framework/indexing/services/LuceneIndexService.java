@@ -322,20 +322,23 @@ public class LuceneIndexService implements IndexService {
 
         for (IndexableField indexableField : document.getFields()) {
             IndexedFieldMetadata fieldMetadata = metadata.get(indexableField.name());
-
-            if (Integer.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
-            } else if (Double.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
-            } else if (Float.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
-            } else if (Long.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
-            } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue() > 0);
-            } else if (Date.class.equals(fieldMetadata.getFieldType())) {
-                dynamicObject.setProperty(indexableField.name(), DateUtils.stringToDate(indexableField.stringValue()));
-            } else {
+            try {
+                if (Integer.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue());
+                } else if (Double.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().doubleValue());
+                } else if (Float.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().floatValue());
+                } else if (Long.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().longValue());
+                } else if (Boolean.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.numericValue().intValue() > 0);
+                } else if (Date.class.equals(fieldMetadata.getFieldType())) {
+                    dynamicObject.setProperty(indexableField.name(), DateUtils.stringToDate(indexableField.stringValue()));
+                } else {
+                    dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
+                }
+            }catch (Exception e) {
                 dynamicObject.setProperty(indexableField.name(), indexableField.stringValue());
             }
 
