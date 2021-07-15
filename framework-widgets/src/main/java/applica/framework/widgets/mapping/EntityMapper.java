@@ -5,6 +5,7 @@ import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
 import applica.framework.library.SimpleItem;
+import applica.framework.library.base64.InvalidDataException;
 import applica.framework.library.base64.URLData;
 import applica.framework.widgets.operations.OperationException;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -288,6 +289,11 @@ public class EntityMapper {
         }
     }
 
+    public String generatePathFromImageData(String imageData, String path) throws InvalidDataException, IOException {
+        URLData urlData = URLData.parse(imageData);
+        return fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+    }
+
     public void dataUrlToImage(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
@@ -308,8 +314,8 @@ public class EntityMapper {
 
         if (StringUtils.isNotEmpty(imageData)) {
             try {
-                URLData urlData = URLData.parse(imageData);
-                String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+                String imagePath = generatePathFromImageData(imageData, path);
+
                 PropertyUtils.setProperty(destination, destinationProperty, imagePath);
             } catch (IOException e) {
                 unchecked(() -> PropertyUtils.setProperty(destination, destinationProperty, null));

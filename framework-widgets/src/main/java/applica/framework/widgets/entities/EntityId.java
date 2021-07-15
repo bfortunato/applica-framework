@@ -12,9 +12,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EntityId {
     String value();
-    boolean allowRevision() default false;
-    boolean automaticCodeGeneration() default false;
 
+    boolean allowRevision() default false;
+
+    boolean automaticCodeGeneration() default false;
 
     //Ruoli associati a tutti i crudPermission
     String [] completePermissionsRoles() default {};

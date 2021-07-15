@@ -67,14 +67,10 @@ public class BaseSaveOperation implements SaveOperation {
     @Override
     public Entity save(ObjectNode data) throws OperationException, ValidationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
-
-        EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
         try {
 
             beforeSerialize(data);
-            Entity entity = serializer.deserialize(data);
-
-            finishEntity(data, entity);
+            Entity entity = generateEntity(data);
 
             authorize(entity);
 
@@ -90,6 +86,16 @@ public class BaseSaveOperation implements SaveOperation {
         } catch (AuthorizationException e) {
             throw new OperationException(Response.UNAUTHORIZED, e.getMessage());
         }
+    }
+
+    public Entity generateEntity(ObjectNode data) throws SerializationException, OperationException {
+
+        EntitySerializer serializer = new DefaultEntitySerializer(getEntityType());
+        Entity entity =serializer.deserialize(data);
+
+        finishEntity(data, entity);
+
+        return entity;
     }
 
     public void beforeSerialize(ObjectNode data) {
