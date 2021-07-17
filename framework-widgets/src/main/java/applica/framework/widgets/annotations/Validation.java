@@ -11,9 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Validation {
 
-    public static final String RANGE_MIN = "MIN_VALUE";
-    public static final String RANGE_MAX = "MAX_VALUE";
-
     public static final String GT = "gt";
     public static final String GTE = "gte";
     public static final String LT = "lt";
@@ -44,18 +41,14 @@ public @interface Validation {
 
     /*
     * ESEMPIO:
-    @Validation(rangeType = Validation.RANGE_MIN, rangeOtherValue = "max", rangeOperator = Validation.LTE)
+    @Validation(rangeOtherValue = "max", rangeOperator = Validation.LTE)
     private Double min;
 
-    @Validation(rangeType = Validation.RANGE_MAX, rangeOtherValue = "min", rangeOperator = Validation.GTE)
+    @Validation(rangeOtherValue = "min", rangeOperator = Validation.GTE)
     private Double max;
     * */
-    String rangeType() default "";
     String rangeOperator() default "";
     String rangeOtherValue() default "";
-
-
-
 
     //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
     boolean validateSubObject() default false;

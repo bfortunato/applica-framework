@@ -57,7 +57,8 @@ public class ValidationUtils {
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
         try {
             EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
-            ClassUtils.getAllFields(entity.getClass()).stream().filter(f -> (excludedProperties == null || !excludedProperties.contains(f.getName())) && f.getAnnotation(Validation.class) != null).forEach(field -> {
+            List<Field> allFields = ClassUtils.getAllFields(entity.getClass());
+            allFields.stream().filter(f -> (excludedProperties == null || !excludedProperties.contains(f.getName())) && f.getAnnotation(Validation.class) != null).forEach(field -> {
                 try {
                     Object value = field.get(entity);
                     Validation annotation = field.getAnnotation(Validation.class);
@@ -112,28 +113,30 @@ public class ValidationUtils {
 
                     //Validazione "range":
 
-                    if (StringUtils.hasLength(annotation.rangeType())) {
+                    if (StringUtils.hasLength(annotation.rangeOperator())) {
                         try {
                             Object otherValue = PropertyUtils.getProperty(entity, annotation.rangeOtherValue());
+                            Field otherValueField = allFields.stream().filter(f -> f.getName().equals(annotation.rangeOtherValue())).findFirst().get();
                             if (otherValue != null && value != null) {
                                 switch (annotation.rangeOperator()) {
+                                    //attualmente non esiste un modo per differenioare i custom rejectMessage ed è stato disattivato per i range. Bisogna trovare una soluzione
                                     case Validation.GT:
                                         if (((Comparable<Object>) value).compareTo(otherValue) <= 0)
-                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThan"), otherValue.toString()));
+                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), false && StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThan"), LocalizationUtils.getInstance().getMessage(otherValueField.getName())));
                                         break;
                                     case Validation.GTE:
                                         if (((Comparable<Object>) value).compareTo(otherValue) < 0)
-                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThanOrEqual"), otherValue.toString()));
+                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), false && StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThanOrEqual"), LocalizationUtils.getInstance().getMessage(otherValueField.getName())));
 
                                         break;
                                     case Validation.LT:
                                         if (((Comparable<Object>) value).compareTo(otherValue) >= 0)
-                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThanOrEqual"), otherValue.toString()));
+                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), false && StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): String.format(LocalizationUtils.getInstance().getMessage("validation.field.greaterThanOrEqual"), LocalizationUtils.getInstance().getMessage(otherValueField.getName())));
 
                                         break;
                                     case Validation.LTE:
                                         if (((Comparable<Object>) value).compareTo(otherValue) > 0)
-                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(),StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getLocalizedMessage("validation.field.lowerThanOrEqual"), otherValue.toString()));
+                                            result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), false && StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getLocalizedMessage("validation.field.lowerThanOrEqual"), LocalizationUtils.getInstance().getMessage(otherValueField.getName())));
                                         break;
                                 }
                             }
