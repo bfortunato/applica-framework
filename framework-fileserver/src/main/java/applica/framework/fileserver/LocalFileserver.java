@@ -19,6 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
@@ -146,11 +149,39 @@ public class LocalFileserver implements FileServer {
         String basePath = options.get("applica.framework.fileserver.basePath");
         Date oldestAllowedFileDate = DateUtils.addDays(new Date(), days * (-1)); //minus days from current date
         File targetDir = new File(String.format("%s/%s", basePath, directoryPath));
-        Iterator<File> filesToDelete = FileUtils.iterateFiles(targetDir, new AgeFileFilter(oldestAllowedFileDate), null);
-        //if deleting subdirs, replace null above with TrueFileFilter.INSTANCE
-        while (filesToDelete.hasNext()) {
-            FileUtils.deleteQuietly(filesToDelete.next());
-        }  //I don't want an exception if a file is not deleted. Otherwise use filesToDelete.next().delete() in a try/catch
+
+        try {
+            Files.walk(Paths.get(String.format("%s/%s", basePath, directoryPath))).filter(f -> !f.toAbsolutePath().toString().equals(targetDir.getAbsolutePath())).forEach(f -> {
+                File file = f.toFile();
+                try {
+                    BasicFileAttributes attr = Files.readAttributes(Paths.get(file.getAbsolutePath()), BasicFileAttributes.class);
+                    if (attr.lastModifiedTime().toMillis() < oldestAllowedFileDate.getTime()) {
+                        deleteFile(file);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteFile(File file) {
+        if (file.isDirectory()) {
+            try {
+                FileUtils.deleteDirectory(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        else
+            try {
+                FileUtils.deleteQuietly(file);
+            } catch (Exception e) {
+
+            }
     }
 
     @Override

@@ -2,13 +2,11 @@ package applica.framework.widgets.annotations;
 
 import applica.framework.Entity;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@Repeatable(Validations.class)
 public @interface Validation {
 
     public static final String GT = "gt";
