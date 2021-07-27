@@ -215,7 +215,7 @@ public class MongoMapper {
 								if ((isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
 									Entity value = null;
 									String sourceId = (String) source.get(field.getName());
-									if (!mappingConfig.isIgnoringNestedReferences()) {
+									if (!mappingConfig.isIgnoringNestedReferences() || field.getAnnotation(ManyToOne.class).forceIfIgnoreNestedReferences()) {
 										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
 										Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
 										value = (Entity) repository.get(sourceId).orElse(null);
