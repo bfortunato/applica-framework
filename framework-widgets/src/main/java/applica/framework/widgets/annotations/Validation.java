@@ -51,4 +51,6 @@ public @interface Validation {
     //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
     boolean validateSubObject() default false;
 
+    int maxLength() default -1;
+
 }

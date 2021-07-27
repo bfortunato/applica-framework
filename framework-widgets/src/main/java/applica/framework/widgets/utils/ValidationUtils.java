@@ -53,6 +53,11 @@ public class ValidationUtils {
         return null;
     }
 
+    //TODO: utilizzarla al posto di ogni reject del metodo "validate"
+    public static void reject(ValidationResult validationResult, Validation annotation, Field field, String message) {
+        validationResult.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): message);
+    }
+
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
         try {
             EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
@@ -67,9 +72,21 @@ public class ValidationUtils {
                             if (!canValidate(entity, annotation, field))
                                 return ;
 
+
+                            if (annotation.maxLength() >= 0){
+                                if (String.class.isAssignableFrom(field.getType()) && value != null)
+                                    //TODO attualmente supportato solo per le stringhe, prevedere un futuro le liste
+                                    if (((String) value).length() > annotation.maxLength())
+                                        reject(result, annotation, field, String.format(LocalizationUtils.getInstance().getMessage("validation.field.maxLength"), annotation.maxLength()));
+
+                            }
+
+
                             //Validazione "required": il campo deve essere presente e valorizato
                             if (annotation.required() && (Objects.isNull(value) || (value instanceof String && value.equals("")) || (value instanceof List && ((List) value).size() == 0))) {
                                 result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  "validation.field.required");
+                            } else {
+
                             }
 
                             //VAlidazione "unique": il campo non deve essere presente su altre entità del sistema
