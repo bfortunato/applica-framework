@@ -44,7 +44,7 @@ public class ValidationUtils {
                 Method method = entity.getClass().getMethod(functionName);
                 method.setAccessible(true);
                 Query result = (Query) method.invoke(entity, new Object[] {});
-                return result != null? result : null;
+                return result;
             }
         } catch (Exception e) {
 
