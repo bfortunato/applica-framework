@@ -103,13 +103,17 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     @Override
     public Result<? extends Entity> fetch(Query query) throws OperationException {
         List<Field> fieldList = generateFieldsForMaterialization();
-        Result<? extends Entity> entities = Repo.of(this.getEntityType()).find(generateQuery(query, fieldList));
+        Result<? extends Entity> entities = findByQuery(generateQuery(query, fieldList));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
            materialize(entities.getRows(), fieldList);
         }
 
         return entities;
+    }
+
+    public Result<? extends Entity> findByQuery(Query generateQuery) {
+        return Repo.of(this.getEntityType()).find(generateQuery);
     }
 
     public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
