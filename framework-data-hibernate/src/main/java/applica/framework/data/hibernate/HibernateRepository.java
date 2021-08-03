@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Applica (www.applica.guru)
@@ -550,4 +551,28 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     public Object avg(Query request, String value)  {
         throw new RuntimeException("Not implemented (yet)");
     }
+
+
+    @Override
+    public List<T> get(List<Object> ids) {
+        boolean tested = false;
+
+        if (!tested)
+            throw new RuntimeException("Not implemented (yet)");
+
+        ids = new ArrayList<>(ids);
+        ids.removeIf(id ->  id == null || !org.springframework.util.StringUtils.hasLength(id.toString()));
+
+        if (ids.size() == 0)
+            return new ArrayList<>();
+
+        Query query = Query.build();
+        query.getFilters().add(new Filter("id",  ids, Filter.IN));
+
+
+        Result response = crudStrategy.find(query, this);
+
+        return response.getRows();
+    }
+
 }

@@ -4,11 +4,44 @@ import applica.framework.library.i18n.LocalizationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ValidationResult {
 
+
+    public void setOnTheFly(boolean onTheFly) {
+        this.onTheFly = onTheFly;
+    }
+
+    public interface ValidateCallback {
+        boolean isValid();
+    }
+
+    private boolean onTheFly; //se false esclude dalla validazione i campi
+
     List<Error> errors = new ArrayList<>();
 
+    //Se presenti validerà soltanto i field presenti qui utilizzando il metodo "validate"
+    List<String> allowedFields;
+
+
+    public void validate(String field, ValidateCallback validateCallback, String rejectMessage) {
+
+        validate(field, validateCallback, rejectMessage, false);
+    }
+
+    public void validate(String field, ValidateCallback validateCallback, String rejectMessage, boolean onlyOnTheFly) {
+        if (allowedFields == null || allowedFields.contains(field) && (!onlyOnTheFly ||  this.onTheFly)) {
+            if (!validateCallback.isValid())
+                this.reject(field, rejectMessage);
+        }
+    }
+
+    /**
+     * Bisogna usare la nuova funzione validate per tenere in considerazione il contenuto della lista allowedFields
+     * @param property
+     * @param message
+     */
     public void reject(String property, String message) {
         errors.add(new Error(property, LocalizationUtils.getInstance().getMessage(message)));
     }
@@ -39,6 +72,18 @@ public class ValidationResult {
         }
 
         return null;
+    }
+
+    public List<String> getAllowedFields() {
+        return allowedFields;
+    }
+
+    public void setAllowedFields(List<String> allowedFields) {
+        this.allowedFields = allowedFields;
+    }
+
+    public boolean isOnTheFly() {
+        return onTheFly;
     }
 
     public class Error {

@@ -53,4 +53,6 @@ public @interface Validation {
 
     int maxLength() default -1;
 
+    boolean isOnlyOnTheFly() default false;
+
 }

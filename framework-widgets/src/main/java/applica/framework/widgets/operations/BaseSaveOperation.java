@@ -44,9 +44,12 @@ public class BaseSaveOperation implements SaveOperation {
     private CodeGeneratorService codeGeneratorService;
 
     public void validate(Entity entity) throws ValidationException {
-        ValidationResult result = Validation.getValidationResult(entity);
+        validate(entity, new ValidationResult());
+    }
 
-        ValidationUtils.validate(entity, result);
+    public void validate(Entity entity, ValidationResult result) throws ValidationException {
+
+        ValidationUtils.validate(entity, result, true);
 
         if (!result.isValid()) {
             throw new ValidationException(result);

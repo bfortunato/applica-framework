@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class ValidationUtils {
 
@@ -66,8 +67,12 @@ public class ValidationUtils {
                 try {
                     Object value = field.get(entity);
                     getValidations(field).forEach(validationAnnotation -> {
+
                         try {
                             Validation annotation = ((Validation) validationAnnotation);
+
+                            if (annotation.isOnlyOnTheFly() && !result.isOnTheFly())
+                                return;
 
                             if (!canValidate(entity, annotation, field))
                                 return ;
@@ -185,11 +190,20 @@ public class ValidationUtils {
     }
 
     public static void validate(Entity entity, ValidationResult result) {
+
         validate(entity, result, new ArrayList<>());
     }
 
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
-        validate(entity, result, new ArrayList<>());
+        List<String> excludedProperties = new ArrayList<>();
+
+        if (result.getAllowedFields() != null && result.getAllowedFields().size() > 0) {
+            List<Field> list = ClassUtils.getAllFields(entity.getClass());
+            excludedProperties.addAll(list.stream().filter(f -> !result.getAllowedFields().contains(f.getName())).map(f -> f.getName()).collect(Collectors.toList()));
+        }
+
+        validate(entity, result, excludedProperties);
+
         if (considerStandaloneValidator) {
             ValidationResult standaloneResult = applica.framework.library.validation.Validation.getValidationResult(entity);
             result.getErrors().addAll(standaloneResult.getErrors());

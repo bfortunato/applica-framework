@@ -5,7 +5,10 @@ import applica.framework.builders.Statement;
 import applica.framework.library.cache.Cache;
 import applica.framework.library.cache.MemoryCache;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by bimbobruno on 27/09/2017.
@@ -38,6 +41,17 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     @Override
     public Result<T> find(Query request) {
         return concreteRepository.find(request);
+    }
+
+    @Override
+    public List<T> get(List<Object> ids) {
+        ids = new ArrayList<>(ids);
+        ids.removeIf(id ->  id == null || !org.springframework.util.StringUtils.hasLength(id.toString()));
+
+        if (ids.size() == 0)
+            return new ArrayList<>();
+
+        return ids.stream().map(id -> this.get(id).orElse(null)).collect(Collectors.toList());
     }
 
     @Override
