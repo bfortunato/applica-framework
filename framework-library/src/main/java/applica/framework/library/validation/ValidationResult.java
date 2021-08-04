@@ -30,10 +30,9 @@ public class ValidationResult {
 
 
     public void validate(String field, ValidateCallback validateCallback, String rejectMessage, boolean onlyWarning) {
-        if (allowedProperties == null || allowedProperties.contains(field) && (!onlyWarning ||  this.onTheFly)) {
-            if (!validateCallback.isValid())
-                this.reject(field, rejectMessage, onlyWarning);
-        }
+        if (!validateCallback.isValid())
+            this.reject(field, rejectMessage, onlyWarning);
+
     }
 
 
@@ -42,22 +41,20 @@ public class ValidationResult {
     }
 
 
-
     public void reject(String property, String message) {
-        if (allowedProperties == null || allowedProperties.contains(property)) {
-            reject(property, message, false);
-        }
-
+        reject(property, message, false);
     }
 
     public void reject(String property, String message, boolean onlyWarning) {
-        Error error = new Error(property, LocalizationUtils.getInstance().getMessage(message));
-        error.setWarning(onlyWarning);
-        errors.add(error);
+        if (allowedProperties == null || allowedProperties.contains(property) && (!onlyWarning || this.onTheFly)) {
+            Error error = new Error(property, LocalizationUtils.getInstance().getMessage(message));
+            error.setWarning(onlyWarning);
+            errors.add(error);
+        }
     }
 
     public boolean isValid() {
-        return errors != null && errors.stream().filter(error -> (!error.isWarning() || this.onTheFly) ).count() == 0;
+        return errors != null && errors.stream().filter(error -> (!error.isWarning() || this.onTheFly)).count() == 0;
     }
 
     public List<Error> getErrors() {
@@ -65,8 +62,8 @@ public class ValidationResult {
     }
 
     public boolean isValid(String property) {
-        for(Error error : errors) {
-            if(error.getProperty().equals(property) && (!error.isWarning() || this.onTheFly)) {
+        for (Error error : errors) {
+            if (error.getProperty().equals(property) && (!error.isWarning() || this.onTheFly)) {
                 return false;
             }
         }
@@ -74,8 +71,8 @@ public class ValidationResult {
     }
 
     public String getErrorMessage(String property) {
-        for(Error error : errors) {
-            if(error.getProperty().equals(property)) {
+        for (Error error : errors) {
+            if (error.getProperty().equals(property)) {
                 return error.getMessage();
             }
         }
