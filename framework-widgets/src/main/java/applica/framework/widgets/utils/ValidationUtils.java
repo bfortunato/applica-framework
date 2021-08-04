@@ -197,9 +197,9 @@ public class ValidationUtils {
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
         List<String> excludedProperties = new ArrayList<>();
 
-        if (result.getAllowedFields() != null && result.getAllowedFields().size() > 0) {
+        if (result.getAllowedProperties() != null && result.getAllowedProperties().size() > 0) {
             List<Field> list = ClassUtils.getAllFields(entity.getClass());
-            excludedProperties.addAll(list.stream().filter(f -> !result.getAllowedFields().contains(f.getName())).map(f -> f.getName()).collect(Collectors.toList()));
+            excludedProperties.addAll(list.stream().filter(f -> !result.getAllowedProperties().contains(f.getName())).map(f -> f.getName()).collect(Collectors.toList()));
         }
 
         validate(entity, result, excludedProperties);
