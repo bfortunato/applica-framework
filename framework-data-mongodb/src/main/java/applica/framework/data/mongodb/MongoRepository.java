@@ -304,7 +304,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return new ArrayList<>();
 
         Query query = Query.build();
-        query.getFilters().add(new Filter("_id",  ids.stream().map(id -> new ObjectId(id.toString())).collect(Collectors.toList())));
+        query.getFilters().add(new Filter("_id",  ids.stream().map(id -> new ObjectId(id.toString())).collect(Collectors.toList()), Filter.IN));
 
 
         Result response = crudStrategy.find(query, this);
