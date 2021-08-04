@@ -17,7 +17,8 @@ public class ValidationResult {
         boolean isValid();
     }
 
-    private boolean onTheFly; //se false esclude dalla validazione i campi
+    //Rappresenta la richiesta di validazione "al volo"; se true eseguirà la valdiate solo tramite il metodo validate() con il parametro onlyOnTheFly a true
+    private boolean onTheFly;
 
     List<Error> errors = new ArrayList<>();
 
@@ -33,7 +34,7 @@ public class ValidationResult {
     public void validate(String field, ValidateCallback validateCallback, String rejectMessage, boolean onlyOnTheFly) {
         if (allowedFields == null || allowedFields.contains(field) && (!onlyOnTheFly ||  this.onTheFly)) {
             if (!validateCallback.isValid())
-                this.reject(field, rejectMessage);
+                this.reject(field, rejectMessage, onlyOnTheFly);
         }
     }
 
@@ -43,7 +44,13 @@ public class ValidationResult {
      * @param message
      */
     public void reject(String property, String message) {
-        errors.add(new Error(property, LocalizationUtils.getInstance().getMessage(message)));
+        reject(property, message, false);
+    }
+
+    public void reject(String property, String message, boolean onlyOnTheFly) {
+        Error error = new Error(property, LocalizationUtils.getInstance().getMessage(message));
+        error.setOnlyOnTheFly(onlyOnTheFly);
+        errors.add(error);
     }
 
     public boolean isValid() {
@@ -89,6 +96,7 @@ public class ValidationResult {
     public class Error {
         private String property;
         private String message;
+        private boolean onlyOnTheFly;
 
         public Error(String property, String message) {
             super();
@@ -112,5 +120,12 @@ public class ValidationResult {
             this.message = message;
         }
 
+        public boolean isOnlyOnTheFly() {
+            return onlyOnTheFly;
+        }
+
+        public void setOnlyOnTheFly(boolean onlyOnTheFly) {
+            this.onlyOnTheFly = onlyOnTheFly;
+        }
     }
 }
