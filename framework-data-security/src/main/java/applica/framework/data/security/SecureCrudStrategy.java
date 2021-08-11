@@ -59,22 +59,12 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     @Override
     public <T extends Entity> T get(Object id, Repository<T> repository) {
         checkAttributes();
+        Query q =  Query.build().id(id);
 
-        if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
-            Query q =  Query.build().id(id);
-            Object ownerId = getOwnerId();
-            Disjunction disjunction = new Disjunction();
-            if (ownerId == null || isCrossOrganizationEntity(repository)) {
-                disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
-            } else {
+        manageOwnerPropertyFilter(q, repository);
 
-            }
-            disjunction.getChildren().add(new Filter(getOwnerPropertyName(), ownerId));
-            Optional<T> entity = super.find(q, repository).findFirst();
-            return entity.orElse(null);
-        } else {
-            return super.get(id, repository);
-        }
+        Optional<T> entity = super.find(q, repository).findFirst();
+        return entity.orElse(null);
     }
 
     public <T extends Entity> boolean isCrossOrganizationEntity(Repository<T> repository) {
@@ -85,10 +75,19 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     public <T extends Entity> Result<T> find(Query query, Repository<T> repository) {
         checkAttributes();
 
+
+        manageOwnerPropertyFilter(query, repository);
+
+        return super.find(query, repository);
+    }
+
+    private <T extends Entity> void manageOwnerPropertyFilter(Query query, Repository<T> repository) {
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
+
             Object ownerId = getOwnerId();
 
             Disjunction disjunction = new Disjunction();
+            disjunction.setProperty(getOwnerPropertyName());
             if (ownerId == null || isCrossOrganizationEntity(repository)) {
                 disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
             } else {
@@ -97,8 +96,6 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
             disjunction.getChildren().add(new Filter(getOwnerPropertyName(), ownerId));
             query.getFilters().add(disjunction);
         }
-
-        return super.find(query, repository);
     }
 
     @Override
@@ -121,5 +118,11 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         checkAttributes();
 
         super.delete(id, repository);
+    }
+
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        manageOwnerPropertyFilter(query, repository);
+        super.deleteMany(query, repository);
     }
 }
