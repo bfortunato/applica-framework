@@ -4,6 +4,9 @@ import applica.framework.Disjunction;
 import applica.framework.Filter;
 import applica.framework.Query;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 public class FilterUtils {
 
     public static void addBooleanFilter(String filterName, Query query) {
@@ -80,5 +83,31 @@ public class FilterUtils {
             query.getFilters().add(newFilter);
 
         }
+    }
+
+    public static void addNumberFilter(String name, Class<? extends Number> numberClass, Query query) {
+        if (query.hasFilter(name)) {
+            Filter newFilter = new Filter(name, generateNumberValue(numberClass, query.getFilterValue(name).toString()), query.getFilterType(name));
+            query.popFilter(name);
+            query.getFilters().add(newFilter);
+
+        }
+    }
+
+    private static Number generateNumberValue(Class<? extends Number> numberClass, String toString) {
+        if (Arrays.asList(Integer.class, int.class).contains(numberClass))
+            return Integer.parseInt(toString);
+
+        if (Arrays.asList(Float.class, float.class).contains(numberClass))
+            return Float.parseFloat(toString);
+
+        if (Arrays.asList(Long.class, long.class).contains(numberClass))
+            return Long.parseLong(toString);
+
+        if (Arrays.asList(Double.class, double.class).contains(numberClass))
+            return Double.parseDouble(toString);
+
+
+        return null;
     }
 }

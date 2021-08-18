@@ -153,7 +153,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         });
 
         fieldList.stream().filter(f -> isNumber(f.getType())).forEach(field -> {
-            FilterUtils.addNumberFilter(field.getName(), query);
+            FilterUtils.addNumberFilter(field.getName(), (Class<? extends Number>) field.getType(), query);
         });
 
         //Preparo la keyword query in base ai campi che ho annotato come "keyword" sul dominio
