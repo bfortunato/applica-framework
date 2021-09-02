@@ -4,6 +4,7 @@ import applica.framework.AEntity;
 import applica.framework.Entity;
 import applica.framework.Repo;
 import applica.framework.fileserver.FileServer;
+import applica.framework.fileserver.MimeUtils;
 import applica.framework.library.SimpleItem;
 import applica.framework.library.base64.InvalidDataException;
 import applica.framework.library.base64.URLData;
@@ -289,10 +290,40 @@ public class EntityMapper {
         }
     }
 
+    public void fileToDataUrl(Entity source, ObjectNode destination, String sourceProperty, String destinationProperty) {
+        Objects.requireNonNull(fileServer, "Fileserver not injected");
+        Objects.requireNonNull(source, "Cannot convert entity to image: entity is null");
+        Objects.requireNonNull(destination, "Cannot convert entity to image: node is null");
+
+        String fileUrl = null;
+        try {
+            fileUrl = (String) PropertyUtils.getProperty(source, sourceProperty);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (StringUtils.isNotEmpty(fileUrl)) {
+            InputStream in = null;
+            try {
+                in = fileServer.getFile(fileUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (in != null) {
+
+                URLData urlData = new URLData(MimeUtils.getMimeType(fileUrl), in);
+                destination.put(destinationProperty, urlData.write());
+            } else {
+                destination.put(destinationProperty, "");
+            }
+        }
+    }
+
     public String generatePathFromImageData(String imageData, String path) throws InvalidDataException, IOException {
         URLData urlData = URLData.parse(imageData);
         return fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
     }
+
 
     public void dataUrlToImage(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");

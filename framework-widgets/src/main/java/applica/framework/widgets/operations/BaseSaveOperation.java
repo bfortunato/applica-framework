@@ -15,6 +15,7 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.File;
 import applica.framework.widgets.annotations.Image;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.entities.EntitiesRegistry;
@@ -146,6 +147,10 @@ public class BaseSaveOperation implements SaveOperation {
 
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
             entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
+        });
+
+        fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
+            entityMapper.dataUrlToFile(node, entity, f.getAnnotation(File.class).nodeProperty(),  f.getName(), f.getAnnotation(File.class).path());
         });
 
         if (codeGeneratorService != null) {

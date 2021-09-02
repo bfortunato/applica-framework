@@ -167,7 +167,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             if (disjunction.getChildren().size() > 0) {
                 query.getFilters().add(disjunction);
 
-                //evito di accavallarmi ad eventuali logiche gestite nel repository
+                //evito di accavallarmi ad ewventuali logiche gestite nel repository
                 query.setKeyword(null);
             }
         }
