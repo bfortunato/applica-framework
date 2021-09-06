@@ -205,8 +205,7 @@ public class ValidationUtils {
         validate(entity, result, excludedProperties);
 
         if (considerStandaloneValidator) {
-            ValidationResult standaloneResult = applica.framework.library.validation.Validation.getValidationResult(entity, result);
-            result.getErrors().addAll(standaloneResult.getErrors());
+            applica.framework.library.validation.Validation.getValidationResult(entity, result);
         }
         if (!result.isValid()) {
             throw new ValidationException(result);
