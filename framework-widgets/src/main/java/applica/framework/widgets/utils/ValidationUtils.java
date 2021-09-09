@@ -122,7 +122,7 @@ public class ValidationUtils {
 
                                                 String property = null;
                                                 if (annotation.subObjectSimplifiedErrorMessages()) {
-                                                    property = String.format("%s %s, %s", LocalizationUtils.getInstance().getMessage("row"), i.get() + 1, subError.getProperty());
+                                                    property = String.format("%s %s, %s", LocalizationUtils.getInstance().getMessage("row"), i.get() + 1, LocalizationUtils.getInstance().getMessage(subError.getProperty()));
                                                 } else
                                                     property = String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty());
 
