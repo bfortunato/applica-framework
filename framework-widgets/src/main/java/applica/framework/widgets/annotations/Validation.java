@@ -48,11 +48,16 @@ public @interface Validation {
     String rangeOperator() default "";
     String rangeOtherValue() default "";
 
-    //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
-    boolean validateSubObject() default false;
 
     int maxLength() default -1;
 
     boolean isOnlyOnTheFly() default false;
+
+    //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
+    boolean validateSubObject() default false;
+
+    //Se validateSubObject()  == true , la modalità di messaggi di errore semplificata restituisce una stringa del tipo Riga [Numero riga], [Nome campo]: [Errore di validazione];
+    //IN caso contrario restituisce qualcosa del tipo rows[Numero Riga]_[nomecampo]: [Errore di valdiazione] (destinato ad uso descriptor nell'entity form)
+    boolean subObjectSimplifiedErrorMessages() default false;
 
 }

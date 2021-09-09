@@ -118,7 +118,16 @@ public class ValidationUtils {
                                         try {
                                             validate(((Entity)v), subValidationResult, true);
                                         } catch (ValidationException e) {
-                                            e.getValidationResult().getErrors().forEach(subError -> result.reject(String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty()), subError.getMessage()));
+                                            e.getValidationResult().getErrors().forEach(subError -> {
+
+                                                String property = null;
+                                                if (annotation.subObjectSimplifiedErrorMessages()) {
+                                                    property = String.format("%s %s, %s", LocalizationUtils.getInstance().getMessage("row"), i.get() + 1, subError.getProperty());
+                                                } else
+                                                    property = String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty());
+
+                                                result.reject(property, subError.getMessage());
+                                            });
                                         }
                                         i.incrementAndGet();
                                     });
