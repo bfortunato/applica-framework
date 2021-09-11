@@ -60,4 +60,9 @@ public @interface Validation {
     //IN caso contrario restituisce qualcosa del tipo rows[Numero Riga]_[nomecampo]: [Errore di valdiazione] (destinato ad uso descriptor nell'entity form)
     boolean subObjectSimplifiedErrorMessages() default false;
 
+
+
+
+    //Validazione custom tramite funzione ad hoc; se va in eccezione usa il messaggio come errore di validazione
+    String customValidationFunction() default "";
 }

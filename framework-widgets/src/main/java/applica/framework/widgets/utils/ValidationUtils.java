@@ -8,6 +8,7 @@ import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResult;
 import applica.framework.security.EntityService;
 import applica.framework.widgets.annotations.Validation;
+import applica.framework.widgets.exceptions.CustomValidationException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.util.StringUtils;
 
@@ -83,6 +84,17 @@ public class ValidationUtils {
                                     //TODO attualmente supportato solo per le stringhe, prevedere un futuro le liste
                                     if (((String) value).length() > annotation.maxLength())
                                         reject(result, annotation, field, String.format(LocalizationUtils.getInstance().getMessage("validation.field.maxLength"), annotation.maxLength()));
+
+                            }
+
+                            if (StringUtils.hasLength(((Validation) validationAnnotation).customValidationFunction())) {
+
+                                try {
+                                    ClassUtils.invokeMethodOnObject(entity, annotation.customValidationFunction());
+                                }  catch (Exception e) {
+                                    if (e instanceof CustomValidationException)
+                                        reject(result, annotation, field, e.getMessage());
+                                }
 
                             }
 
