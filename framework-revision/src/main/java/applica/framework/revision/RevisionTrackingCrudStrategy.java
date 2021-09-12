@@ -24,15 +24,20 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
             return;
         }
 
+        boolean revisionEnabled = entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(entity.getClass()));
+
 
         boolean creation = entity.getId() == null;
-        Entity previousEntity = !creation ? repository.get(entity.getId()).get() : null;
+        Entity previousEntity = null;
+        if (revisionEnabled)
+            previousEntity = !creation ? repository.get(entity.getId()).get() : null;
 
         super.save(entity, repository);
 
-        if (entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(entity.getClass()))) {
+        if (revisionEnabled) {
             User user = Security.withMe().getLoggedUser();
-            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, entity, previousEntity);
+            Entity finalPreviousEntity = previousEntity;
+            Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, entity, finalPreviousEntity);
             executeRevisionAction(runnable);
         }
 
