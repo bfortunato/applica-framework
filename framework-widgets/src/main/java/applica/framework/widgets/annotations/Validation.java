@@ -63,6 +63,6 @@ public @interface Validation {
 
 
 
-    //Validazione custom tramite funzione ad hoc; se va in eccezione usa il messaggio come errore di validazione
+    //Validazione custom tramite funzione ad hoc; se lancia una CustomValidationException usa il messaggio come errore di validazione
     String customValidationFunction() default "";
 }
