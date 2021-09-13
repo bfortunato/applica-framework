@@ -2,17 +2,12 @@ package applica.framework.widgets.annotations;
 
 import applica.framework.Entity;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@Repeatable(Validations.class)
 public @interface Validation {
-
-    public static final String RANGE_MIN = "MIN_VALUE";
-    public static final String RANGE_MAX = "MAX_VALUE";
 
     public static final String GT = "gt";
     public static final String GTE = "gte";
@@ -22,11 +17,16 @@ public @interface Validation {
 
     //Campo da rifiutare
     String rejectField() default "";
+
     boolean required() default false;
+    //Nome della funzione che verrà usata per capire se innescare o meno il controllo required; richiede comunque che required sia true
+    String validationFunction() default "";
 
     boolean unique() default false;
     //Se la classe sulla quale fare il controllo di univocità è diversa da quella della entità corrente
     Class<? extends Entity>[] uniqueClass() default {};
+    //Query per generare una query in base alla quale fare il controllo univocità
+    String uniqueQueryFunction() default "";
 
     //> 0
     boolean greaterThanZero() default false;
@@ -39,16 +39,30 @@ public @interface Validation {
 
     /*
     * ESEMPIO:
-    @Validation(rangeType = Validation.RANGE_MIN, rangeOtherValue = "max", rangeOperator = Validation.LTE)
+    @Validation(rangeOtherValue = "max", rangeOperator = Validation.LTE)
     private Double min;
 
-    @Validation(rangeType = Validation.RANGE_MAX, rangeOtherValue = "min", rangeOperator = Validation.GTE)
+    @Validation(rangeOtherValue = "min", rangeOperator = Validation.GTE)
     private Double max;
     * */
-    String rangeType() default "";
     String rangeOperator() default "";
     String rangeOtherValue() default "";
 
 
+    int maxLength() default -1;
 
+    boolean isOnlyOnTheFly() default false;
+
+    //Se true ed il field di riferimento è un'altra entity applica la validzione anche ad esso; se il field è nullo il controllo non viene eseguito
+    boolean validateSubObject() default false;
+
+    //Se validateSubObject()  == true , la modalità di messaggi di errore semplificata restituisce una stringa del tipo Riga [Numero riga], [Nome campo]: [Errore di validazione];
+    //IN caso contrario restituisce qualcosa del tipo rows[Numero Riga]_[nomecampo]: [Errore di valdiazione] (destinato ad uso descriptor nell'entity form)
+    boolean subObjectSimplifiedErrorMessages() default false;
+
+
+
+
+    //Validazione custom tramite funzione ad hoc; se va in eccezione usa il messaggio come errore di validazione
+    String customValidationFunction() default "";
 }
