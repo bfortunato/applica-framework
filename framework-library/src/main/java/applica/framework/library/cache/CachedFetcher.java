@@ -26,6 +26,12 @@ public class CachedFetcher<K, T> {
         return value;
     }
 
+    public void put(K key, T value) {
+        if (get(key) == null) {
+            cache.put(key, value);
+        }
+    }
+
     public static <K, T> CachedFetcher<K, T> create(Function<K, T> fetcher) {
         return new CachedFetcher<>(fetcher);
     }
