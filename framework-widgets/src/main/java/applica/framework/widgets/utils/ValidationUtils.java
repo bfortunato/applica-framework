@@ -72,6 +72,8 @@ public class ValidationUtils {
                         try {
                             Validation annotation = ((Validation) validationAnnotation);
 
+                            if (annotation.isOnlyOnTheFly() && !result.isOnTheFly())
+                                return;
 
                             if (!canValidate(entity, annotation, field))
                                 return ;
@@ -214,9 +216,21 @@ public class ValidationUtils {
     }
 
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
-        validate(entity, result, new ArrayList<>());
-        if (considerStandaloneValidator)
-            applica.framework.library.validation.Validation.validate(entity);
+        List<String> excludedProperties = new ArrayList<>();
+
+        if (result.getAllowedProperties() != null && result.getAllowedProperties().size() > 0) {
+            List<Field> list = ClassUtils.getAllFields(entity.getClass());
+            excludedProperties.addAll(list.stream().filter(f -> !result.getAllowedProperties().contains(f.getName())).map(f -> f.getName()).collect(Collectors.toList()));
+        }
+
+        validate(entity, result, excludedProperties);
+
+        if (considerStandaloneValidator) {
+            applica.framework.library.validation.Validation.getValidationResult(entity, result);
+        }
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
     }
 
     public static boolean isValid(Entity entity, boolean considerStandaloneValidator, List<String> excludedProperties) {

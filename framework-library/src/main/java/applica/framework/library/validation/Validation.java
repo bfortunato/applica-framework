@@ -11,8 +11,12 @@ import java.util.Map;
 public class Validation {
 
     public static <T extends Entity> ValidationResult getValidationResult(T entity) {
+        return getValidationResult(entity, new ValidationResult());
+    }
+
+
+    public static <T extends Entity> ValidationResult getValidationResult(T entity, ValidationResult result) {
         Map<String, Validator> validators = ApplicationContextProvider.provide().getBeansOfType(Validator.class);
-        ValidationResult result = new ValidationResult();
         for (Validator validator : validators.values()) {
             if (validator.getEntityType().equals(entity.getClass())) {
                 validator.validate(entity, result);
@@ -21,6 +25,7 @@ public class Validation {
 
         return result;
     }
+
 
     public static <T extends Entity> void validate(T entity) throws ValidationException {
         ValidationResult result = getValidationResult(entity);
