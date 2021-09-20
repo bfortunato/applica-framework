@@ -176,7 +176,7 @@ public class EntityMapper {
 
         String id = source.get(sourceProperty) != null ? source.get(sourceProperty).asText() : null;
         if (!StringUtils.isEmpty(id)) {
-            Optional<? extends Entity> relatedEntity = Repo.of(relatedType).get(id);
+            Optional<? extends Entity> relatedEntity = Repo.of(relatedType).getMultiple(id);
             if (!relatedEntity.isPresent()) {
                 throw new RuntimeException(String.format("%s: %s", sourceProperty, id));
             }
@@ -208,7 +208,7 @@ public class EntityMapper {
         if (id == null) {
             destination.set(destinationProperty, NullNode.getInstance());
         } else {
-            Entity relatedEntity = Repo.of(relatedType).get(id).orElse(null);
+            Entity relatedEntity = Repo.of(relatedType).getMultiple(id).orElse(null);
             if (relatedEntity == null) {
                 destination.set(destinationProperty, NullNode.getInstance());
             } else {
@@ -726,7 +726,7 @@ public class EntityMapper {
         }
         if (ids != null) {
             for (String entityId : ids) {
-                entities.add(Repo.of(propertyClass).get(entityId).get());
+                entities.add(Repo.of(propertyClass).getMultiple(entityId).get());
             }
         }
 

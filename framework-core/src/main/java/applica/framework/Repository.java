@@ -11,11 +11,11 @@ import java.util.Optional;
  */
 public interface Repository<T extends Entity> {
 
-    Optional<T> get(Object id);
+    Optional<T> getMultiple(Object id);
     Object sum(Query request, String value);
     Object avg(Query request, String value);
     Result<T> find(Query request);
-    List<T> get(List<Object> ids);
+    List<T> getMultiple(List<Object> ids);
     Statement<T> find(Filter... filters);
     void save(T entity);
     void delete(Object id);

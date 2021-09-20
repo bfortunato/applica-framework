@@ -23,12 +23,12 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
-    public Optional<T> get(Object id) {
+    public Optional<T> getMultiple(Object id) {
         T entity = ((T) cache.get(id.toString()));
         if (entity != null) {
             return Optional.of(entity);
         } else {
-            entity = concreteRepository.get(id).orElse(null);
+            entity = concreteRepository.getMultiple(id).orElse(null);
             if (entity != null) {
                 cache.put(id.toString(), entity);
                 return Optional.of(entity);
@@ -44,14 +44,14 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
-    public List<T> get(List<Object> ids) {
+    public List<T> getMultiple(List<Object> ids) {
         ids = new ArrayList<>(ids);
         ids.removeIf(id ->  id == null || !org.springframework.util.StringUtils.hasLength(id.toString()));
 
         if (ids.size() == 0)
             return new ArrayList<>();
 
-        return ids.stream().map(id -> this.get(id).orElse(null)).collect(Collectors.toList());
+        return ids.stream().map(id -> this.getMultiple(id).orElse(null)).collect(Collectors.toList());
     }
 
     @Override

@@ -139,7 +139,7 @@ public class FirebaseNotificationService implements NotificationService, Initial
                 .filter(i -> inbox.getReadNotificationIds().stream().noneMatch(r -> r.equals(i)))
                 .skip((page - 1) * rowsPerPage)
                 .limit(rowsPerPage)
-                .map(i -> Repo.of(Notification.class).get(i))
+                .map(i -> Repo.of(Notification.class).getMultiple(i))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());

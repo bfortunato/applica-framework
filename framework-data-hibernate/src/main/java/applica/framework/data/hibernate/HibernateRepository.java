@@ -49,7 +49,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     private CrudStrategy crudStrategy;
 
     @Override
-    public Optional<T> get(Object id) {
+    public Optional<T> getMultiple(Object id) {
         T entity = crudStrategy.get(id, this);
 
         return Optional.ofNullable(entity);
@@ -554,7 +554,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
 
 
     @Override
-    public List<T> get(List<Object> ids) {
+    public List<T> getMultiple(List<Object> ids) {
         boolean tested = false;
 
         if (!tested)

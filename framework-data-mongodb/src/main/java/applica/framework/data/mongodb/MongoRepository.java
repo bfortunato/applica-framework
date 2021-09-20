@@ -20,13 +20,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
-	
+
 	@Autowired
 	private MongoHelper mongoHelper;
 
     @Autowired
     private CrudStrategy crudStrategy;
-	
+
 	private Log logger = LogFactory.getLog(getClass());
 
     private MongoDatabase db;
@@ -49,9 +49,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     public String getCollectionName() {
         return Strings.pluralize(StringUtils.uncapitalize(getEntityType().getSimpleName()));
     }
-	
+
 	@Override
-	public Optional<T> get(Object id) {
+	public Optional<T> getMultiple(Object id) {
         init();
 
 		if(db == null) {
@@ -60,11 +60,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		}
 
 		T entity = crudStrategy.get(id, this);
-		
+
 		return Optional.ofNullable(entity);
 	}
 
-    public Optional<T> get(Object id, MappingContext mappingContext) {
+    public Optional<T> getMultiple(Object id, MappingContext mappingContext) {
         init();
 
         if(db == null) {
@@ -87,7 +87,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return null;
         }
-		
+
 		if(query == null) query = new applica.framework.Query();
 
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
@@ -95,7 +95,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
 		Result response = crudStrategy.find(query, this);
-		
+
 		return response;
 	}
 
@@ -217,7 +217,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return;
         }
-		
+
 		crudStrategy.delete(id, this);
 	}
 
@@ -249,7 +249,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return db.getCollection(getCollectionName());
     }
 
-    public MongoCollection<Document> get() {
+    public MongoCollection<Document> getMultiple() {
         return db.getCollection(getCollectionName());
     }
 
@@ -289,7 +289,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     @Override
-    public List<T> get(List<Object> ids) {
+    public List<T> getMultiple(List<Object> ids) {
         init();
 
         if(db == null) {

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -73,7 +72,7 @@ public class BaseGetOperation implements GetOperation {
     @Override
     public Entity fetch(Object id) throws OperationException {
 
-        Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
+        Entity e = Repo.of(this.getEntityType()).getMultiple(id).orElse(null);
         materialize(e);
 
         return e;
