@@ -23,12 +23,12 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
-    public Optional<T> getMultiple(Object id) {
+    public Optional<T> get(Object id) {
         T entity = ((T) cache.get(id.toString()));
         if (entity != null) {
             return Optional.of(entity);
         } else {
-            entity = concreteRepository.getMultiple(id).orElse(null);
+            entity = concreteRepository.get(id).orElse(null);
             if (entity != null) {
                 cache.put(id.toString(), entity);
                 return Optional.of(entity);
@@ -51,7 +51,7 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
         if (ids.size() == 0)
             return new ArrayList<>();
 
-        return ids.stream().map(id -> this.getMultiple(id).orElse(null)).collect(Collectors.toList());
+        return ids.stream().map(id -> this.get(id).orElse(null)).collect(Collectors.toList());
     }
 
     @Override

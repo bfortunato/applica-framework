@@ -12,6 +12,7 @@ import com.mongodb.client.model.geojson.Geometry;
 import com.mongodb.client.model.geojson.Point;
 import com.mongodb.client.model.geojson.Position;
 import org.apache.commons.logging.Log;
+import org.bson.BasicBSONObject;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +33,8 @@ public class MongoMapper {
     private RepositoriesFactory repositoriesFactory;
 
 	private static Log logger = org.apache.commons.logging.LogFactory.getLog(MongoMapper.class);
-
-	private static final Class<?>[] ALLOWED_TYPES = new Class<?>[] {
+	
+	private static final Class<?>[] ALLOWED_TYPES = new Class<?>[] { 
 		String.class,
 		Integer.class,
 		Float.class,
@@ -51,9 +52,9 @@ public class MongoMapper {
 		}
 
 		Document document = new Document();
-		if (source != null && document != null) {
+		if (source != null && document != null) {			
 			Class<?> type = source.getClass();
-
+            
             //put entity id in document
 			if (source instanceof Entity) {
 				Entity psource = (Entity) source;
@@ -65,13 +66,13 @@ public class MongoMapper {
 					}
 				}
 			}
-
+            
 			//logger.warn("Converting " + type.getSimpleName());
 			for(Field field : TypeUtils.getAllFields(type)) {
 				if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
 					//logger.warn(" --- field: " + field.getName());
 					field.setAccessible(true);
-
+									
 					if (field.getName().equals("id")) {
 						continue;
 					} else {
@@ -123,13 +124,13 @@ public class MongoMapper {
 					}
 				}
 			}
-		}
-
+		} 
+		
 		return document;
 	}
-
-
-
+	
+	
+	
 	private Object convertToBasicDBObjectValue(Object source, MappingContext mappingContext) {
 		Object value = null;
 		if (TypeUtils.isPersistable(source.getClass())) {
@@ -138,11 +139,11 @@ public class MongoMapper {
 				value = loadBasicDBObject((Persistable) source, mappingContext);
 			} catch (Exception e) {
 				e.printStackTrace();
-			}
+			}	
 		} else if (source.getClass().equals(Key.class)) {
             value = ((Key) source).getValue();
-        } else if (isAllowed(source.getClass())) {
-            value = source;
+        } else if (isAllowed(source.getClass())) {	
+            value = source;	
 		} else if (TypeUtils.isList(source.getClass())) {
 			try {
 				List<?> list = (List<?>) source;
@@ -157,7 +158,7 @@ public class MongoMapper {
 			}
 		} else if (isGeometry(source.getClass()))
 			value = source;
-
+		
 		return value;
 	}
 
@@ -177,7 +178,7 @@ public class MongoMapper {
 			e.printStackTrace();
 			return null;
 		}
-
+		
 		if (source != null) {
 			Class<?> type = destination.getClass();
 			for(String key : source.keySet()) {
@@ -209,9 +210,9 @@ public class MongoMapper {
 										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
 										Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
 										if (repository instanceof MongoRepository) {
-											value = (Entity) ((MongoRepository) repository).getMultiple(sourceId, mappingContext).orElse(null);
+											value = (Entity) ((MongoRepository) repository).get(sourceId, mappingContext).orElse(null);
 										} else{
-											value = (Entity) repository.getMultiple(sourceId).orElse(null);
+											value = (Entity) repository.get(sourceId).orElse(null);
 										}
 										mappingContext.putInCache(value);
 									}
@@ -245,9 +246,9 @@ public class MongoMapper {
 										Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
 										if (value == null) {
 											if (repository instanceof MongoRepository) {
-												value = (Entity) ((MongoRepository) repository).getMultiple(el, mappingContext).orElse(null);
+												value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
 											} else{
-												value = (Entity) repository.getMultiple(el).orElse(null);
+												value = (Entity) repository.get(el).orElse(null);
 											}
 											mappingContext.putInCache(value);
 										}
@@ -275,11 +276,11 @@ public class MongoMapper {
 							} else if (Objects.equals(field.getType(), Object.class)) {
 								field.set(destination, source.get(key));
 							}
-
+												
 						}
 					} catch(NoSuchFieldException e) {
 						logger.warn("Field in database " + key + " isn't available on class");
-					} catch (Exception e) {
+					} catch (Exception e) {	
 						logger.warn("Error in field " + key);
 						e.printStackTrace();
 					} finally {
@@ -292,7 +293,7 @@ public class MongoMapper {
 				}
 			}
 		}
-
+		
 		return destination;
 	}
 
@@ -341,11 +342,11 @@ public class MongoMapper {
 
 	private static boolean isAllowed(Class<?> type) {
 		if (type.isPrimitive()) return true;
-
+		
 		for(Class<?> allowedType : ALLOWED_TYPES) {
 			if (type.equals(allowedType)) return true;
 		}
-
+			
 		return false;
 	}
 

@@ -51,7 +51,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
 	@Override
-	public Optional<T> getMultiple(Object id) {
+	public Optional<T> get(Object id) {
         init();
 
 		if(db == null) {
@@ -64,7 +64,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		return Optional.ofNullable(entity);
 	}
 
-    public Optional<T> getMultiple(Object id, MappingContext mappingContext) {
+    public Optional<T> get(Object id, MappingContext mappingContext) {
         init();
 
         if(db == null) {
@@ -249,7 +249,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return db.getCollection(getCollectionName());
     }
 
-    public MongoCollection<Document> getMultiple() {
+    public MongoCollection<Document> get() {
         return db.getCollection(getCollectionName());
     }
 

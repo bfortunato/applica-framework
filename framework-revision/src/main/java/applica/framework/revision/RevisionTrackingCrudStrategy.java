@@ -30,7 +30,7 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
         boolean creation = entity.getId() == null;
         Entity previousEntity = null;
         if (revisionEnabled)
-            previousEntity = !creation ? repository.getMultiple(entity.getId()).get() : null;
+            previousEntity = !creation ? repository.get(entity.getId()).get() : null;
 
         super.save(entity, repository);
 
@@ -62,7 +62,7 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
     @Override
     public <T extends Entity> void delete(Object id, Repository<T> repository) {
-        Entity previousEntity = repository.getMultiple(id).get();
+        Entity previousEntity = repository.get(id).get();
         super.delete(id, repository);
         String entityName = EntityUtils.getEntityIdAnnotation(previousEntity.getClass());
         if (entityRevisionService.isRevisionEnabled(entityName)) {

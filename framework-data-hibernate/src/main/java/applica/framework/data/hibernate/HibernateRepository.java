@@ -49,7 +49,7 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
     private CrudStrategy crudStrategy;
 
     @Override
-    public Optional<T> getMultiple(Object id) {
+    public Optional<T> get(Object id) {
         T entity = crudStrategy.get(id, this);
 
         return Optional.ofNullable(entity);

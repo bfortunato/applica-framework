@@ -147,7 +147,7 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
                         List<? extends Entity> list = (List) foreignValue;
                         for (Entity el : list) {
-                            repository.getMultiple(el.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
+                            repository.get(el.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                         }
                     } else if (String.class.equals(listGenericType) ||
                             Integer.class.equals(listGenericType) ||
@@ -157,14 +157,14 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         List<?> list = (List) foreignValue;
                         for (Object possibleId : list) {
                             Object id = Key.class.equals(listGenericType) ? ((Key) possibleId).getValue() : possibleId;
-                            repository.getMultiple(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
+                            repository.get(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                         }
                     }
                 } else if (getPrimaryType().equals(foreignValueField.getType())) {
                     Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
                     Entity value = ((Entity) foreignValue);
                     if (value != null) {
-                        repository.getMultiple(value.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
+                        repository.get(value.getId()).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                     }
                 } else if (String.class.equals(foreignValueField.getType()) ||
                         Integer.class.equals(foreignValueField.getType()) ||
@@ -172,7 +172,7 @@ public abstract class ForeignKeyConstraint<T1 extends Entity, T2 extends Entity>
                         Key.class.equals(foreignValueField.getType())) {
                     Object id = Key.class.equals(foreignValueField.getType()) ? ((Key) foreignValue).getValue() : foreignValue;
                     Repository<? extends Entity> repository = repositoriesFactory.createForEntity(getPrimaryType());
-                    repository.getMultiple(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
+                    repository.get(id).orElseThrow(() -> new ConstraintException(ConstraintException.Type.FOREIGN, getPrimaryType(), getForeignProperty()));
                 }
             }
 

@@ -219,7 +219,7 @@ public class BaseRevisionService implements RevisionService {
         if (previousEntity != null) {
             try {
                 previousValue = f.get(previousEntity);
-                previousValue = isRevisionId && previousValue != null ? Repo.of(f.getAnnotation(RevisionId.class).value()).getMultiple(previousValue).orElse(null) : previousValue;
+                previousValue = isRevisionId && previousValue != null ? Repo.of(f.getAnnotation(RevisionId.class).value()).get(previousValue).orElse(null) : previousValue;
             } catch (IllegalAccessException e) {
             }
         }
