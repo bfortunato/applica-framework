@@ -14,6 +14,7 @@ import java.util.List;
 public class SimpleItem {
     private String label;
     private String value;
+    private String extra;
 
     public SimpleItem() {
         super();
@@ -66,5 +67,13 @@ public class SimpleItem {
             }
         }
         return items;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 }
