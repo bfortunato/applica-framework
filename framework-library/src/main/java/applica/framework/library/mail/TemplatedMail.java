@@ -8,6 +8,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
+import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
+import org.apache.velocity.runtime.resource.util.StringResourceRepository;
 import org.springframework.util.StringUtils;
 
 import javax.activation.DataHandler;
@@ -20,6 +22,7 @@ import javax.mail.util.ByteArrayDataSource;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TemplatedMail {
 
@@ -31,6 +34,7 @@ public class TemplatedMail {
 
     private VelocityContext context;
     private String templatePath;
+    private String source;
     private String from;
     private String returnReceipt;
     private List<Recipient> recipients = new ArrayList<>();
@@ -80,6 +84,14 @@ public class TemplatedMail {
 
     public void setTemplatePath(String templatePath) {
         this.templatePath = templatePath;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getFrom() {
@@ -171,7 +183,16 @@ public class TemplatedMail {
 
         message.setSubject(subject);
 
-        Template template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, "UTF-8");
+        Template template = null;
+        if (StringUtils.hasLength(source)) {
+            var templateName = UUID.randomUUID().toString();
+            StringResourceRepository repo = (StringResourceRepository) VelocityBuilderProvider.provide().engine().getApplicationAttribute(StringResourceLoader.REPOSITORY_NAME_DEFAULT);
+            repo.putStringResource(templateName, source);
+            template = VelocityBuilderProvider.provide().engine().getTemplate(templateName, "UTF-8");
+        } else {
+            template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, "UTF-8");
+        }
+
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
