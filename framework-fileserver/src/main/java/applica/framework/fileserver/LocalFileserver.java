@@ -63,7 +63,7 @@ public class LocalFileserver implements FileServer {
 
     @Override
     public long getFileSize(String path) {
-        File file = new File( baseUrl.concat(path));
+        File file = new File(options.get("applica.framework.fileserver.basePath").concat(path));
         if (file.exists())
             return file.length();
         return 0;
