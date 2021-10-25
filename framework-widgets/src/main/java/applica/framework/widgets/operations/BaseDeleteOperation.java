@@ -1,9 +1,7 @@
 package applica.framework.widgets.operations;
 
-import applica.framework.Entity;
-import applica.framework.Repo;
-import applica.framework.RepositoriesFactory;
-import applica.framework.Repository;
+import applica.framework.*;
+import applica.framework.fileserver.FileServer;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
@@ -11,8 +9,14 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.File;
+import applica.framework.widgets.annotations.Image;
+import applica.framework.widgets.mapping.EntityMapper;
+import applica.framework.widgets.utils.ClassUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +24,9 @@ import java.util.Optional;
 public class BaseDeleteOperation implements DeleteOperation {
 
     private Class<? extends Entity> entityType;
+
+    @Autowired
+    private FileServer fileServer;
 
     @Override
     public void delete(String id) throws OperationException {
@@ -43,6 +50,19 @@ public class BaseDeleteOperation implements DeleteOperation {
 
     public void afterDelete(Entity deletedEntity) throws OperationException {
 
+        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+
+        fieldList.stream().filter(f -> (f.getAnnotation(Image.class) != null || f.getAnnotation(File.class) != null)).forEach(f -> {
+            try {
+                String value = (String) f.get(deletedEntity);
+                if (StringUtils.hasLength(value)) {
+                    fileServer.deleteFile(value);
+                }
+
+            } catch (Exception e) {
+
+            }
+        });
     }
 
     public void beforeDelete(Entity entityToDelete) throws OperationException {
