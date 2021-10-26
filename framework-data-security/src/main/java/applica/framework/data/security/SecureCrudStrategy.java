@@ -9,6 +9,7 @@ import applica.framework.library.utils.SystemOptionsUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -17,6 +18,8 @@ import java.util.Optional;
 public class SecureCrudStrategy extends ChainedCrudStrategy {
 
     private static final ThreadLocal<OwnerProvider> ownerProvider = ThreadLocal.withInitial(() -> null);
+
+    private static final ThreadLocal<Boolean> disableSecureStrategy = ThreadLocal.withInitial(() -> false);
 
     private String ownerPropertyName = "ownerId";
 
@@ -82,7 +85,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     }
 
     private <T extends Entity> void manageOwnerPropertyFilter(Query query, Repository<T> repository) {
-        if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
+        if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
 
             Object ownerId = getOwnerId();
 
@@ -102,7 +105,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     public <T extends Entity> void save(T entity, Repository<T> repository) {
         checkAttributes();
 
-        if (SecureEntity.class.isAssignableFrom(repository.getEntityType())) {
+        if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
             SecureEntity se = (SecureEntity) entity;
 
             if (se.getOwnerId() == null) {
@@ -117,8 +120,32 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     public <T extends Entity> void delete(Object id, Repository<T> repository) {
         checkAttributes();
 
-        super.delete(id, repository);
+
+        boolean canDelete = true;
+
+        if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
+            Entity entity = get(id, repository);
+            canDelete = Objects.equals(((SecureEntity) entity).getOwnerId(), getOwnerId());
+        }
+
+        if (canDelete) {
+            super.delete(id, repository);
+        }
+
     }
+
+    public boolean isSecureStrategyEnabled() {
+        return !disableSecureStrategy.get();
+    }
+
+    public void disableSecureStrategy() {
+        disableSecureStrategy.set(true);
+    }
+
+    public void enableSecureStrategy() {
+        disableSecureStrategy.set(false);
+    }
+
 
     @Override
     public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
