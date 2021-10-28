@@ -50,19 +50,25 @@ public class BaseDeleteOperation implements DeleteOperation {
 
     public void afterDelete(Entity deletedEntity) throws OperationException {
 
-        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+        //Controllo che l'entità sia stata davvero eliminata (in alcuni casi la deleteOperation viene utilizzata per le disattivazioni logiche e l'entità è ancora presente)
 
-        fieldList.stream().filter(f -> (f.getAnnotation(Image.class) != null || f.getAnnotation(File.class) != null)).forEach(f -> {
-            try {
-                String value = (String) f.get(deletedEntity);
-                if (StringUtils.hasLength(value)) {
-                    fileServer.deleteFile(value);
+        if (Repo.of(getEntityType()).get(deletedEntity.getId()).orElse(null ) == null) {
+            List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+
+            fieldList.stream().filter(f -> (f.getAnnotation(Image.class) != null || f.getAnnotation(File.class) != null)).forEach(f -> {
+                try {
+                    String value = (String) f.get(deletedEntity);
+                    if (StringUtils.hasLength(value)) {
+                        fileServer.deleteFile(value);
+                    }
+
+                } catch (Exception e) {
+
                 }
+            });
+        }
 
-            } catch (Exception e) {
 
-            }
-        });
     }
 
     public void beforeDelete(Entity entityToDelete) throws OperationException {
