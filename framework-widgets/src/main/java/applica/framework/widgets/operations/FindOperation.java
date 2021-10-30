@@ -11,6 +11,11 @@ public interface FindOperation {
     void enableAutomaticMaterialization();
     ObjectNode find(Query query) throws OperationException;
     Class<? extends Entity> getEntityType();
+
+    ObjectNode serialize(Result<? extends Entity> result) throws OperationException;
+
     Result<? extends Entity> fetch(Query query) throws OperationException;
+
+
 
 }

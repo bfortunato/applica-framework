@@ -80,6 +80,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
 
+    @Override
     public ObjectNode serialize(Result<? extends Entity> result) throws OperationException {
         ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
         try {
