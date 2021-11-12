@@ -10,6 +10,8 @@ import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
+import applica.framework.widgets.annotations.File;
+import applica.framework.widgets.annotations.Image;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.annotations.Search;
 import applica.framework.widgets.mapping.EntityMapper;
@@ -92,7 +94,31 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
     @Override
     public void onSerializeEntity(ObjectNode node, Entity entity) {
+        List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
 
+        if (isImageMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+                EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+                mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
+            });
+        }
+
+        if (isFileMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
+                EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+                mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
+            });
+        }
+
+
+    }
+
+    public boolean isFileMaterializationEnabled() {
+        return true;
+    }
+
+    public boolean isImageMaterializationEnabled() {
+        return true;
     }
 
     protected EntityMapper map() {
@@ -120,6 +146,8 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
         materializeFields(rows, entityService, fieldList);
     }
+
+
 
     public List<Field> generateFieldsForMaterialization() {
         return ClassUtils.getAllFields(getEntityType());
