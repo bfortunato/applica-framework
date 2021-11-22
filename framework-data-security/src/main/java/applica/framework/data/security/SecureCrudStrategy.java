@@ -125,7 +125,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
 
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
             Entity entity = get(id, repository);
-            canDelete = Objects.equals(((SecureEntity) entity).getOwnerId(), getOwnerId());
+            canDelete = entity != null && Objects.equals(((SecureEntity) entity).getOwnerId(), getOwnerId());
         }
 
         if (canDelete) {
