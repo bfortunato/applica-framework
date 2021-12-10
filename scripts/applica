@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 if [ -z "$JAVA_HOME" ]; then
     echo "Please set JAVA_HOME"

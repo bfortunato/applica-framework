@@ -1,6 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.Entity;
+import applica.framework.Query;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -8,6 +9,5 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public interface ResultSerializerListener {
 
-    void onSerializeEntity(ObjectNode node, Entity entity);
-
+    void onSerializeEntity(ObjectNode node, Entity entity, Object ... params);
 }

@@ -24,6 +24,7 @@ public class Query {
     private List<Sort> sorts = new ArrayList<>();
     private List<Filter> filters = new ArrayList<>();
     private List<Projection> projections = new ArrayList<>();
+    private Object extra;
 
     public static QueryBuilder build(Query initialQuery) {
         return new QueryBuilder(initialQuery);
@@ -209,5 +210,13 @@ public class Query {
 
     public void setIgnoreNestedReferences(boolean ignoreNestedReferences) {
         this.ignoreNestedReferences = ignoreNestedReferences;
+    }
+
+    public Object getExtra() {
+        return extra;
+    }
+
+    public void setExtra(Object extra) {
+        this.extra = extra;
     }
 }

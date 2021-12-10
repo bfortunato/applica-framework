@@ -1,6 +1,7 @@
 package applica.framework.widgets.serialization;
 
 import applica.framework.Entity;
+import applica.framework.Query;
 import applica.framework.Result;
 import applica.framework.widgets.operations.ResultSerializerListener;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -24,7 +25,7 @@ public class DefaultResultSerializer implements ResultSerializer {
     }
 
     @Override
-    public ObjectNode serialize(Result<? extends Entity> result) throws SerializationException {
+    public ObjectNode serialize(Result<? extends Entity> result, Object... params) throws SerializationException {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
@@ -46,7 +47,7 @@ public class DefaultResultSerializer implements ResultSerializer {
             mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
             for (Entity entity : result.getRows()) {
-                JsonNode node = serializeEntity(mapper, entity);
+                JsonNode node = serializeEntity(mapper, entity, params);
                 arrayNode.add(node);
             }
 
@@ -58,11 +59,11 @@ public class DefaultResultSerializer implements ResultSerializer {
         }
     }
 
-    protected JsonNode serializeEntity(ObjectMapper mapper, Entity entity) {
+    protected JsonNode serializeEntity(ObjectMapper mapper, Entity entity, Object ... params) {
         JsonNode node = mapper.valueToTree(entity);
 
         if (listener != null) {
-            listener.onSerializeEntity((ObjectNode) node, entity);
+            listener.onSerializeEntity((ObjectNode) node, entity, params);
         }
 
         return node;

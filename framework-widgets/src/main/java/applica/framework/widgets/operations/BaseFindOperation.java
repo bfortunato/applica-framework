@@ -70,7 +70,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         }
 
         Result<? extends Entity> result = fetch(query);
-        ObjectNode node = serialize(result);
+        ObjectNode node = serialize(result, query);
 
         return node;
     }
@@ -83,17 +83,17 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
 
     @Override
-    public ObjectNode serialize(Result<? extends Entity> result) throws OperationException {
+    public ObjectNode serialize(Result<? extends Entity> result, Query query) throws OperationException {
         ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
         try {
-            return serializer.serialize(result);
+            return serializer.serialize(result, query);
         } catch (SerializationException e) {
             throw new OperationException(Response.ERROR_SERIALIZATION, e);
         }
     }
 
     @Override
-    public void onSerializeEntity(ObjectNode node, Entity entity) {
+    public void onSerializeEntity(ObjectNode node, Entity entity, Object ... params) {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
 
         if (isImageMaterializationEnabled()) {
