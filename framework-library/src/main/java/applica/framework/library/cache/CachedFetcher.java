@@ -1,7 +1,9 @@
 package applica.framework.library.cache;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 public class CachedFetcher<K, T> {
@@ -30,6 +32,10 @@ public class CachedFetcher<K, T> {
         if (get(key) == null) {
             cache.put(key, value);
         }
+    }
+
+    public Set<Map.Entry<K,T>> entrySet() {
+        return cache.entrySet();
     }
 
     public static <K, T> CachedFetcher<K, T> create(Function<K, T> fetcher) {
