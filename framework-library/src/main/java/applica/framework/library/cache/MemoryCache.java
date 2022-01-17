@@ -143,6 +143,6 @@ public class MemoryCache extends Cache {
             }
         }
 
-        return String.join("," , dump);
+        return String.join("\n" , dump);
     }
 }
