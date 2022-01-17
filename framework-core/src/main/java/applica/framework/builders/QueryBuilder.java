@@ -19,6 +19,7 @@ public class QueryBuilder extends Query {
     }
 
     public QueryBuilder(Query initialQuery) {
+
         if (initialQuery != null) {
             setFilters(initialQuery.getFilters());
             setKeyword(initialQuery.getKeyword());

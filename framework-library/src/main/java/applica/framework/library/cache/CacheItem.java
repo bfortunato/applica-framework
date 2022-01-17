@@ -34,4 +34,12 @@ public class CacheItem implements Serializable {
     public void setValue(Object value) {
         this.value = value;
     }
+
+    public boolean isExpired() {
+        return getExpiringTime() <= System.currentTimeMillis();
+    }
+
+    public String dump() {
+        return String.format("%s - %s", path, value != null? value.toString() : null);
+    }
 }

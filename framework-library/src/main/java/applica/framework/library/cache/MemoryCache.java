@@ -40,7 +40,7 @@ public class MemoryCache extends Cache {
 
         if (item != null) {
             if (item.getExpiringTime() != TIME_INFINITE) {
-                if (item.getExpiringTime() <= System.currentTimeMillis()) {
+                if (item.isExpired()) {
                     invalidate(item.getPath());
                     return null;
                 } else {
@@ -101,7 +101,7 @@ public class MemoryCache extends Cache {
         synchronized (data) {
             for (CacheItem item: data) {
                 if (item.getExpiringTime() != TIME_INFINITE) {
-                    if (item.getExpiringTime() <= System.currentTimeMillis()) {
+                    if (item.isExpired()) {
                         toRemove.add(item);
                     }
                 }
@@ -131,5 +131,18 @@ public class MemoryCache extends Cache {
         }
 
 
+    }
+
+    @Override
+    public String dump() {
+        List<String> dump = new ArrayList<>();
+        synchronized (data) {
+            for (CacheItem item: data) {
+                if (!item.isExpired())
+                    dump.add(item.dump());
+            }
+        }
+
+        return String.join("," , dump);
     }
 }
