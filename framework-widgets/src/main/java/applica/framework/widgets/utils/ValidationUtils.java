@@ -90,10 +90,15 @@ public class ValidationUtils {
                             if (StringUtils.hasLength(((Validation) validationAnnotation).customValidationFunction())) {
 
                                 try {
-                                    ClassUtils.invokeMethodOnObject(entity, annotation.customValidationFunction());
+                                    ClassUtils.invokeMethodOnObjectWithCatchOptions(entity, annotation.customValidationFunction(), false);
                                 }  catch (Exception e) {
-                                    if (e instanceof CustomValidationException)
-                                        reject(result, annotation, field, e.getMessage());
+                                    CustomValidationException validationException = null;
+                                    if (e instanceof CustomValidationException )
+                                        validationException = ((CustomValidationException) e);
+                                    else if (e.getCause() != null && e.getCause() instanceof CustomValidationException)
+                                        validationException = ((CustomValidationException) e.getCause());
+                                    if (validationException != null)
+                                        reject(result, annotation, field, validationException.getMessage());
                                 }
 
                             }

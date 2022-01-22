@@ -1,6 +1,7 @@
 package applica.framework.widgets.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class ClassUtils {
         return fields;
     }
 
-    public static Object invokeMethodOnObject(Object entity, String method, Object... params) {
+    public static Object invokeMethodOnObjectWithCatchOptions(Object entity, String method, boolean catchException, Object... params) throws Exception {
         try {
 
             for (Method declaredMethod : entity.getClass().getMethods()) {
@@ -32,10 +33,22 @@ public class ClassUtils {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (catchException)
+                e.printStackTrace();
+            else
+                throw e;
 
         }
         return null;
+    }
+
+    public static Object invokeMethodOnObject(Object entity, String method, Object... params) {
+
+        try {
+            return invokeMethodOnObjectWithCatchOptions(entity, method, true, params);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 
