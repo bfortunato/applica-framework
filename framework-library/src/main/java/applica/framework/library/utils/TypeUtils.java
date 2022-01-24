@@ -5,7 +5,6 @@ import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.Entity;
-import com.vividsolutions.jts.geom.*;
 import org.apache.commons.beanutils.ConvertUtils;
 
 import java.lang.annotation.Annotation;
@@ -26,16 +25,7 @@ public class TypeUtils {
             Byte.class,
             Short.class,
             Long.class,
-            Date.class,
-
-            //Geometry section
-            Point.class,
-            MultiPoint.class,
-            Polygon.class,
-            MultiPolygon.class,
-            LineString.class,
-            MultiLineString.class,
-            Geometry.class
+            Date.class
     };
 
     public static boolean isEntity(Class<?> type) {

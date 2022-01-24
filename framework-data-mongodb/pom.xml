@@ -3,7 +3,7 @@
     <parent>
         <artifactId>framework</artifactId>
         <groupId>applica.framework</groupId>
-        <version>2.3.2</version>
+        <version>2.4.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,37 +18,49 @@
         <dependency>
             <groupId>applica.framework</groupId>
             <artifactId>framework-core</artifactId>
-            <version>2.3.2</version>
+            <version>${applica.framework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>applica.framework</groupId>
             <artifactId>framework-library</artifactId>
-            <version>2.3.2</version>
+            <version>${applica.framework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>applica.framework</groupId>
             <artifactId>framework-data</artifactId>
-            <version>2.3.2</version>
+            <version>${applica.framework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.10.1</version>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>${mongo.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>de.flapdoodle.embed</groupId>
-            <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>2.2.0</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>${mongo.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-legacy</artifactId>
+            <version>${mongo.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>${mongo.version}</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

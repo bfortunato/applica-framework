@@ -2,9 +2,9 @@ package applica.framework.library.mail;
 
 import applica.framework.library.options.OptionsManager;
 
-import javax.mail.PasswordAuthentication;
+import jakarta.mail.PasswordAuthentication;
 
-public class OptionsMailAuthenticator extends javax.mail.Authenticator {
+public class OptionsMailAuthenticator extends jakarta.mail.Authenticator {
     private PasswordAuthentication authentication;
 
     public OptionsMailAuthenticator(OptionsManager options) {

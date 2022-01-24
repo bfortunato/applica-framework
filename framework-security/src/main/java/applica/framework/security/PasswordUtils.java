@@ -1,7 +1,6 @@
 package applica.framework.security;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.helper.StringUtil;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;

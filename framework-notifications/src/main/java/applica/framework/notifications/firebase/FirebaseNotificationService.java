@@ -113,7 +113,10 @@ public class FirebaseNotificationService implements NotificationService, Initial
     }
 
     private com.google.firebase.messaging.Notification toFirebase(Notification notification) {
-        return new com.google.firebase.messaging.Notification(notification.getTitle(), notification.getBody());
+        return com.google.firebase.messaging.Notification.builder()
+                .setBody(notification.getBody())
+                .setTitle(notification.getTitle())
+                .build();
     }
 
     @Override

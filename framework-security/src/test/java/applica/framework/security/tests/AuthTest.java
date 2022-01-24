@@ -181,7 +181,22 @@ public class AuthTest {
         }
 
         @Override
+        public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass, boolean b) {
+            return null;
+        }
+
+        @Override
+        public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType, boolean b) {
+            return null;
+        }
+
+        @Override
         public String[] getBeanNamesForType(ResolvableType resolvableType) {
+            return new String[0];
+        }
+
+        @Override
+        public String[] getBeanNamesForType(ResolvableType resolvableType, boolean b, boolean b1) {
             return new String[0];
         }
 
@@ -217,6 +232,11 @@ public class AuthTest {
 
         @Override
         public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass) throws NoSuchBeanDefinitionException {
+            return null;
+        }
+
+        @Override
+        public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass, boolean b) throws NoSuchBeanDefinitionException {
             return null;
         }
 
@@ -298,6 +318,11 @@ public class AuthTest {
 
         @Override
         public Class<?> getType(String s) throws NoSuchBeanDefinitionException {
+            return null;
+        }
+
+        @Override
+        public Class<?> getType(String s, boolean b) throws NoSuchBeanDefinitionException {
             return null;
         }
 

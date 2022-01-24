@@ -7,7 +7,10 @@ import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;
 import applica.framework.library.utils.SystemOptionsUtils;
-import applica.framework.revision.model.*;
+import applica.framework.revision.model.AttributeDifference;
+import applica.framework.revision.model.Diff;
+import applica.framework.revision.model.Revision;
+import applica.framework.revision.model.RevisionType;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.revisions.AvoidRevision;
 import applica.framework.revisions.RevisionId;
@@ -16,7 +19,6 @@ import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityUtils;
 import applica.framework.widgets.factory.OperationsFactory;
 import applica.framework.widgets.operations.OperationException;
-import org.jsoup.helper.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Constructor;
@@ -172,10 +174,10 @@ public class BaseRevisionService implements RevisionService {
             if (hasRelationsAnnotation(f) || !isEntity) {
                 String previousListValue = null, previousListDescription = null, currentListValue = null, currentListDescription = null;
 
-                previousListValue = StringUtil.join((Collection) ((List) previousValue).stream().map(a -> isEntity ? ((Entity) a).getId() : a).collect(Collectors.toList()), ",");
-                previousListDescription = isEntity ? StringUtil.join((Collection) ((List) previousValue).stream().map(a -> ((Entity) a).toString()).collect(Collectors.toList()), ",") : null;
-                currentListValue = StringUtil.join((Collection) ((List) currentValue).stream().map(a -> isEntity ? ((Entity) a).getId() : a).collect(Collectors.toList()), ",");
-                currentListDescription = isEntity ? StringUtil.join((Collection) ((List) currentValue).stream().map(a -> ((Entity) a).toString()).collect(Collectors.toList()), ",") : null;
+                previousListValue = String.join(", ", (Collection) ((List) previousValue).stream().map(a -> isEntity ? ((Entity) a).getId() : a).collect(Collectors.toList()));
+                previousListDescription = isEntity ? String.join(", ", (Collection) ((List) previousValue).stream().map(a -> ((Entity) a).toString()).collect(Collectors.toList())) : null;
+                currentListValue = String.join(", ", (Collection) ((List) currentValue).stream().map(a -> isEntity ? ((Entity) a).getId() : a).collect(Collectors.toList()));
+                currentListDescription = isEntity ? String.join(", ", (Collection) ((List) currentValue).stream().map(a -> ((Entity) a).toString()).collect(Collectors.toList())) : null;
                 listToReturn.add(new AttributeDifference(f, previousListValue, currentListValue, previousListDescription, currentListDescription));
 
             } else {

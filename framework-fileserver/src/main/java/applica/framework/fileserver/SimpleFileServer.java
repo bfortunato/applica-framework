@@ -1,7 +1,7 @@
 package applica.framework.fileserver;
 
 import applica.framework.library.options.OptionsManager;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import org.apache.commons.io.FileUtils;

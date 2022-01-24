@@ -1,11 +1,11 @@
 package applica.framework.library.mail;
 
 import applica.framework.library.options.OptionsManager;
+import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import org.springframework.util.StringUtils;
 
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.util.Properties;
 
 public class MailUtils {
@@ -28,8 +28,8 @@ public class MailUtils {
             if (!hasNameAndDomain(mail)) {
                 result = false;
             }
-        } catch (AddressException ex) {
-            result = false;
+        } catch (AddressException e) {
+            e.printStackTrace();
         }
         return result;
     }

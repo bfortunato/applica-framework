@@ -1,7 +1,5 @@
 package applica.framework.security;
 
-import applica.framework.Query;
-import applica.framework.Repo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 

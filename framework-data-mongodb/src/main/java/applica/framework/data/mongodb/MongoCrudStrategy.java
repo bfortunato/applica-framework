@@ -2,10 +2,7 @@ package applica.framework.data.mongodb;
 
 import applica.framework.*;
 import applica.framework.data.mongodb.constraints.ConstraintsChecker;
-import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;

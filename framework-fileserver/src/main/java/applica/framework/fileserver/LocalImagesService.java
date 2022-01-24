@@ -1,11 +1,8 @@
 package applica.framework.fileserver;
 
-import applica.framework.fileserver.BadImageException;
-import applica.framework.fileserver.ImagesService;
 import applica.framework.library.options.OptionsManager;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;

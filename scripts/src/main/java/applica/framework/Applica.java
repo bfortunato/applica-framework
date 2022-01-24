@@ -12,7 +12,7 @@ import java.util.Properties;
 
 public class Applica {
 
-    public static final String VERSION = "2.3.2";
+    public static final String VERSION = "2.4.0";
     public static final String FRAMEWORK_ARCHETYPES_REPOSITORY_URL = "https://github.com/bfortunato/applica-framework-archetype-{archetype}.git";
 
     public static String javaHome = null;

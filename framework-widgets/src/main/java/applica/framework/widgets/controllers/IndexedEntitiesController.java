@@ -1,30 +1,23 @@
 package applica.framework.widgets.controllers;
 
-import applica.framework.Entity;
 import applica.framework.Query;
-import applica.framework.data.ConstraintException;
 import applica.framework.indexing.core.IndexedResult;
 import applica.framework.indexing.services.IndexService;
 import applica.framework.library.responses.Response;
 import applica.framework.library.responses.ValueResponse;
 import applica.framework.library.utils.ObjectUtils;
-import applica.framework.library.validation.ValidationException;
-import applica.framework.library.validation.ValidationResponse;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityDefinition;
-import applica.framework.widgets.factory.OperationsFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

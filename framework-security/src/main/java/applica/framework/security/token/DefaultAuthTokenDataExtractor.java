@@ -1,6 +1,5 @@
 package applica.framework.security.token;
 
-import applica.framework.security.User;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 

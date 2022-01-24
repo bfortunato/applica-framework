@@ -139,7 +139,7 @@ public class LuceneIndexService implements IndexService, InitializingBean {
         TopDocs search = searcher.search(new TermQuery(new Term(KEY_FIELD, uniqueId)), 1);
         searcherManager.release(searcher);
 
-        return search.totalHits > 0;
+        return search.totalHits.value > 0;
     }
 
     private Document createDocument(IndexedMetadata metadata, IndexedObject indexedObject) {
@@ -244,9 +244,9 @@ public class LuceneIndexService implements IndexService, InitializingBean {
             TopDocsCollector collector;
 
             if (luceneSort.getSort().length == 0) {
-                collector = TopScoreDocCollector.create(this.maxHits);
+                collector = TopScoreDocCollector.create(this.maxHits, this.maxHits);
             } else {
-                collector = TopFieldCollector.create(luceneSort, this.maxHits, null, true, true, true, true);
+                collector = TopFieldCollector.create(luceneSort, this.maxHits, this.maxHits);
             }
 
             searcher.search(luceneQuery, collector);
@@ -282,21 +282,19 @@ public class LuceneIndexService implements IndexService, InitializingBean {
     }
 
     private <T extends Entity> Sort buildLuceneSort(IndexedMetadata<T> metadata, Query query) {
-        Sort sort = new Sort();
-
         List<SortField> sortFields = new ArrayList<>();
         for (applica.framework.Sort frameworkSort : query.getSorts()) {
             IndexedFieldMetadata fieldMetadata = metadata.get(frameworkSort.getProperty());
             sortFields.add(createSortField(fieldMetadata, frameworkSort));
         }
 
-        if (sortFields.size() > 0) {
-            SortField[] arr = new SortField[sortFields.size()];
-            sortFields.toArray(arr);
-            sort.setSort(arr);
+        SortField[] arr = new SortField[sortFields.size()];
+        sortFields.toArray(arr);
+        if (arr.length > 0) {
+            return new Sort(arr);
+        } else {
+            return new Sort();
         }
-
-        return sort;
     }
 
     private SortField createSortField(IndexedFieldMetadata fieldMetadata, applica.framework.Sort frameworkSort) {
