@@ -24,6 +24,10 @@ import java.io.IOException;
  */
 public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
+    public TokenAuthenticationFilter() {
+        super("/**");
+    }
+
     protected TokenAuthenticationFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
     }
