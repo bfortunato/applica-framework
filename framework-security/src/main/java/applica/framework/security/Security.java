@@ -158,48 +158,56 @@ public class Security {
         tokenLogin(token, null);
     }
 
+    public static Authentication tokenAuthentication(String token, Boolean noCache) throws AuthenticationException {
+        Assert.hasLength(token);
 
-    public static void tokenLogin(String token, Boolean noCache) throws AuthenticationException {
-        if ((noCache != null && noCache) || !tryToLoginByTokenInCache(token)) {
+        Authentication authentication = null;
+        if ((noCache != null && noCache)) {
+            authentication = getCachedAuthentication(token);
+        }
+
+        if (authentication == null) {
             SecurityContextHolder.getContext().setAuthentication(null);
 
-            Assert.hasLength(token);
 
             ByTokenAuthenticationToken byTokenAuthenticationToken = new ByTokenAuthenticationToken(token);
-            Authentication authentication = getAuthenticationManager().authenticate(byTokenAuthenticationToken);
+            authentication = getAuthenticationManager().authenticate(byTokenAuthenticationToken);
 
             if (authentication != null) {
                 cache.put(token, Cache.TIME_ONE_MINUTE, authentication);
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 logger.info("User authenticated: " + authentication.getName());
             } else {
                 throw new AuthenticationException("bad username or password");
             }
         }
+
+        return authentication;
     }
 
-    private static boolean tryToLoginByTokenInCache(String token) {
+    public static void tokenLogin(String token, Boolean noCache) throws AuthenticationException {
+        Authentication authentication = tokenAuthentication(token, noCache);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private static Authentication getCachedAuthentication(String token) {
         AuthTokenValidator validator = new DefaultAuthTokenValidator();
         try {
             if (validator.isExpiring(token)) {
                 cache.invalidate(token);
-                return false;
+                return null;
             }
         } catch (Exception e) {
             cache.invalidate(token);
-            return false;
+            return null;
         }
 
         Authentication authentication = ((Authentication) cache.get(token));
         if (authentication != null) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
             logger.info("User authenticated by cache: " + authentication.getName());
         }
 
-        return authentication != null;
+        return authentication;
     }
 
     public static void manualLogin(String username, String password) throws AuthenticationException {
