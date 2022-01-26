@@ -18,4 +18,7 @@ public interface CrudStrategy {
     <T extends Entity> Object sum(Query request, String field, Repository<T> repository);
 
     <T extends Entity> Object avg(Query request, String field, Repository<T> repository);
+
+    <T extends Entity> long count(Query query, Repository<T> repository);
+
 }

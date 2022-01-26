@@ -22,5 +22,6 @@ public interface Repository<T extends Entity> {
     void deleteMany(Query request);
     Class<T> getEntityType();
     Query keywordQuery(Query initialQuery);
+    long count(Query request);
 
 }

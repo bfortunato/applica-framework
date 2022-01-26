@@ -1,9 +1,6 @@
 package applica.framework.data.listening;
 
-import applica.framework.AEntity;
-import applica.framework.ChainedCrudStrategy;
-import applica.framework.Entity;
-import applica.framework.Repository;
+import applica.framework.*;
 import org.springframework.util.Assert;
 
 import java.util.Date;
@@ -33,5 +30,10 @@ public class ListenerCrudStrategy extends ChainedCrudStrategy {
         super.delete(id, repository);
 
         RepositoryEventManager.instance().onDelete(new RepositoryEvent(RepositoryEvent.Type.BeforeSave, repository.getEntityType()), id);
+    }
+
+    @Override
+    public <T extends Entity> long count(Query query, Repository<T> repository) {
+        return super.count(query, repository);
     }
 }

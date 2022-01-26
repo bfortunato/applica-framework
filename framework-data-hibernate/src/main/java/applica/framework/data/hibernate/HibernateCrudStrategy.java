@@ -92,6 +92,33 @@ public class HibernateCrudStrategy implements CrudStrategy {
     }
 
     @Override
+    public <T extends Entity> long count(Query query, Repository<T> repository) {
+        HibernateRepository<T> hibernateRepository = ((HibernateRepository<T>) repository);
+        Assert.notNull(hibernateRepository, "Specified repository is not HibernateRepository");
+
+        long count = 0;
+
+        Session session = hibernateRepository.getSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Criteria countCriteria = hibernateRepository.createCriteria(session, query);
+            Criteria criteria = hibernateRepository.createCriteria(session, query);
+
+            Object countObject = countCriteria.setProjection(Projections.rowCount()).uniqueResult();
+            count = countObject != null ? (Long) countObject : 0;
+
+            transaction.commit();
+        } catch(Exception e) {
+            transaction.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+
+        return count;
+    }
+
+    @Override
     public <T extends Entity> void save(T entity, Repository<T> repository) {
         HibernateRepository<T> hibernateRepository = ((HibernateRepository<T>) repository);
         Assert.notNull(hibernateRepository, "Specified repository is not HibernateRepository");

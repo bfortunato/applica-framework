@@ -44,6 +44,11 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
+    public long count(Query request) {
+        return concreteRepository.count(request);
+    }
+
+    @Override
     public List<T> getMultiple(List<Object> ids) {
         ids = new ArrayList<>(ids);
         ids.removeIf(id ->  id == null || !org.springframework.util.StringUtils.hasLength(id.toString()));

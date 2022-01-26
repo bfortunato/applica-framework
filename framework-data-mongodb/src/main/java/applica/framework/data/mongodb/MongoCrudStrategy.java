@@ -91,6 +91,17 @@ public class MongoCrudStrategy implements CrudStrategy {
         return response;
     }
 
+    @Override
+    public <T extends Entity> long count(Query request, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+        Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+
+        Document query = mongoRepository.createQuery(request);
+        long count = mongoRepository.getCollection().countDocuments(query);
+
+        return count;
+    }
+
     private MappingContext generateMappingConfigFromQuery(Query loadRequest) {
         MappingContext config = new MappingContext();
         config.setAlwaysIgnoreNestedReferences(loadRequest.isIgnoreNestedReferences());

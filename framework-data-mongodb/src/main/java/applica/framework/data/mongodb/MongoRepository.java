@@ -100,6 +100,24 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 	}
 
     @Override
+    public long count(applica.framework.Query query) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return 0;
+        }
+
+        if(query == null) query = new applica.framework.Query();
+
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
+            query = this.keywordQuery(query);
+        }
+
+        return crudStrategy.count(query, this);
+    }
+
+    @Override
     public Statement<T> find(Filter... filters) {
         return new Statement<>(this, filters);
     }

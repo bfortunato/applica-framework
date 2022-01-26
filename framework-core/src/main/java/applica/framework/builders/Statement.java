@@ -37,6 +37,8 @@ public class Statement<T extends Entity> {
         return repository.find(query);
     }
 
+    public long count() { return repository.count(query); }
+
     public List<T> getRows() {
         if (this.result == null) {
             this.result = execute();

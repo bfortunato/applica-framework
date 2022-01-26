@@ -41,6 +41,15 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
     }
 
     @Override
+    public <T extends Entity> long count(Query query, Repository<T> repository) {
+        if (parent != null) {
+            return parent.count(query, repository);
+        }
+
+        return 0;
+    }
+
+    @Override
     public <T extends Entity> void save(T entity, Repository<T> repository) {
         if (parent != null) {
             parent.save(entity, repository);
