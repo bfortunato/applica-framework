@@ -162,7 +162,7 @@ public class Security {
         Assert.hasLength(token);
 
         Authentication authentication = null;
-        if ((noCache != null && noCache)) {
+        if ((noCache == null || !noCache)) {
             authentication = getCachedAuthentication(token);
         }
 

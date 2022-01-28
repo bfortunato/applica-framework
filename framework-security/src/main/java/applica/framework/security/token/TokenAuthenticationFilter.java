@@ -3,10 +3,7 @@ package applica.framework.security.token;
 import applica.framework.security.AuthenticationException;
 import applica.framework.security.Security;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -22,30 +19,12 @@ import java.io.IOException;
  * Date: 11/12/14
  * Time: 18:23
  */
-public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    public TokenAuthenticationFilter() {
-        super("/**");
-    }
-
-    protected TokenAuthenticationFilter(String defaultFilterProcessesUrl) {
-        super(defaultFilterProcessesUrl);
-    }
-
-    protected TokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
-        super(requiresAuthenticationRequestMatcher);
-    }
-
-    protected TokenAuthenticationFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
-        super(defaultFilterProcessesUrl, authenticationManager);
-    }
-
-    protected TokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher, AuthenticationManager authenticationManager) {
-        super(requiresAuthenticationRequestMatcher, authenticationManager);
-    }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws org.springframework.security.core.AuthenticationException, IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse, FilterChain filterChain) throws ServletException, IOException {
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
         String token = request.getHeader("token");
         Boolean noCache = Boolean.parseBoolean(request.getHeader("no-cache"));
 
@@ -68,13 +47,13 @@ public class TokenAuthenticationFilter extends AbstractAuthenticationProcessingF
 
         if (StringUtils.isNotEmpty(token)) {
             try {
-                return Security.tokenAuthentication(token, noCache);
+                Security.tokenLogin(token, noCache);
             } catch (AuthenticationException e) {
-                logger.warn("Token login failed in filter");
+                logger.warn("Authentication failure with token " + token);
             }
         }
 
-        return null;
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 
 }
