@@ -3,13 +3,6 @@ package applica.framework.library.mail;
 import applica.framework.library.options.OptionsManager;
 import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.library.velocity.VelocityBuilderProvider;
-
-import jakarta.activation.DataHandler;
-import jakarta.activation.DataSource;
-import jakarta.activation.FileDataSource;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
-import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +45,14 @@ public class TemplatedMail {
 
     public void setMailText(String mailText) {
         this.mailText = mailText;
+    }
+
+    public boolean isTls() {
+        return tls;
+    }
+
+    public void setTls(boolean tls) {
+        this.tls = tls;
     }
 
     private class ByteAttachmentData {
@@ -150,7 +151,7 @@ public class TemplatedMail {
         bytesAttachments.add(new ByteAttachmentData(data, type, name));
     }
 
-    public void send() throws MailException, MessagingException {
+    public void send() throws MailException, AddressException, MessagingException {
         if (options == null) throw new MailException("options not setted");
         if (!StringUtils.hasLength(from)) throw new MailException("from not setted");
         if (recipients.isEmpty()) throw new MailException("to or recipients not setted");
@@ -159,8 +160,12 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
-        session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
-        session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+
+        if (tls) {
+            session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
+            session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+
+        }
 
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
@@ -169,13 +174,13 @@ public class TemplatedMail {
             for(Recipient r : recipients){
                 switch (r.getRecipientType()){
                     case Recipient.TYPE_TO:
-                        message.addRecipient(Message.RecipientType.TO, new InternetAddress(r.getRecipient()));
+                        message.addRecipient(RecipientType.TO, new InternetAddress(r.getRecipient()));
                         break;
                     case Recipient.TYPE_CC:
-                        message.addRecipient(Message.RecipientType.CC, new InternetAddress(r.getRecipient()));
+                        message.addRecipient(RecipientType.CC, new InternetAddress(r.getRecipient()));
                         break;
                     case Recipient.TYPE_CCN:
-                        message.addRecipient(Message.RecipientType.BCC, new InternetAddress(r.getRecipient()));
+                        message.addRecipient(RecipientType.BCC, new InternetAddress(r.getRecipient()));
                         break;
                 }
             }
@@ -246,7 +251,7 @@ public class TemplatedMail {
     }
 
     private void addByteAttachment(Multipart multipart, ByteAttachmentData data) throws MessagingException {
-        ByteArrayDataSource source = new ByteArrayDataSource(data.bytes, data.type);
+        DataSource source = new ByteArrayDataSource(data.bytes, data.type);
         BodyPart messageBodyPart = new MimeBodyPart();
         messageBodyPart.setDataHandler(new DataHandler(source));
         messageBodyPart.setFileName(data.name);
