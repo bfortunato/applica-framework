@@ -6,6 +6,7 @@ import applica.framework.Repository;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.library.utils.TypeUtils;
 import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResult;
@@ -17,6 +18,7 @@ import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.annotations.File;
 import applica.framework.widgets.annotations.Image;
+import applica.framework.widgets.annotations.JsonMaterialization;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityId;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -158,6 +161,54 @@ public class BaseSaveOperation implements SaveOperation {
                 ((NumericCodedEntity) entity).setCode(codeGeneratorService.getFirstAvailableCode((Class<? extends NumericCodedEntity>) getEntityType(), ((NumericCodedEntity) entity).generateQueryForCodeProgressive()));
             }
         }
+
+    }
+
+    protected void materializeJson(List<Field> fields, Entity entity, ObjectNode node) {
+        try {
+            for (var field : fields) {
+                var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
+                if (jsonMaterialization != null) {
+                    if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.GET) && jsonMaterialization.reverse()) {
+                        if (field.getName().equals(jsonMaterialization.destination())) {
+                            var source = field.get(entity);
+                            if (source != null) {
+                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                    map().entitiesToIds(node, entity, jsonMaterialization.destination(), field.getName(), true);
+                                } else if (TypeUtils.isEntity(field.getType())) {
+                                    map().entityToId(node, entity, jsonMaterialization.destination(), field.getName());
+                                } else if (source instanceof List) {
+                                    map().idsToEntities(node, entity, jsonMaterialization.destination(), field.getName(), jsonMaterialization.entityType());
+                                } else {
+                                    map().idToEntity(node, entity, jsonMaterialization.entityType(), jsonMaterialization.destination(), field.getName());
+                                }
+                            }
+                        }
+                    } else if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.SAVE)) {
+                        if (field.getName().equals(jsonMaterialization.destination())) {
+                            var source = field.get(entity);
+                            if (source != null) {
+                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                    map().entitiesToIds(node, entity, field.getName(), jsonMaterialization.destination(), true);
+                                } else if (TypeUtils.isEntity(field.getType())) {
+                                    map().entityToId(node, entity, field.getName(), jsonMaterialization.destination());
+                                } else if (source instanceof List) {
+                                    map().idsToEntities(node, entity, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                                } else {
+                                    map().idToEntity(node, entity, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void materializeJson(Entity entity, ObjectNode node) {
+        materializeJson(ClassUtils.getAllFields(getEntityType()), entity, node);
     }
 
     private Object getMaterializedPropertyId(Field f, Entity entity) {

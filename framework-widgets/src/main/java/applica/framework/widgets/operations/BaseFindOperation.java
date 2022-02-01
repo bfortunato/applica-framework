@@ -5,15 +5,13 @@ import applica.framework.data.Keyword;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.library.utils.TypeUtils;
 import applica.framework.security.EntityService;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
 import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
-import applica.framework.widgets.annotations.File;
-import applica.framework.widgets.annotations.Image;
-import applica.framework.widgets.annotations.Materialization;
-import applica.framework.widgets.annotations.Search;
+import applica.framework.widgets.annotations.*;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultResultSerializer;
 import applica.framework.widgets.serialization.ResultSerializer;
@@ -25,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -110,7 +109,39 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             });
         }
 
+        materializeJson(fieldList, entity, node);
+    }
 
+    protected void materializeJson(List<Field> fields, Entity entity, ObjectNode node) {
+        try {
+            for (var field : fields) {
+                var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
+                if (jsonMaterialization != null) {
+                    if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.FIND)) {
+                        if (field.getName().equals(field.getName())) {
+                            var source = field.get(entity);
+                            if (source != null) {
+                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                    map().entitiesToIds(entity, node, field.getName(), jsonMaterialization.destination());
+                                } else if (TypeUtils.isEntity(field.getType())) {
+                                    map().entityToId(entity, node, field.getName(), jsonMaterialization.destination());
+                                } else if (source instanceof List) {
+                                    map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                                } else {
+                                    map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void materializeJson(Entity entity, ObjectNode node) {
+        materializeJson(ClassUtils.getAllFields(getEntityType()), entity, node);
     }
 
     public boolean isFileMaterializationEnabled() {

@@ -4,6 +4,7 @@ import applica.framework.*;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
+import applica.framework.library.utils.TypeUtils;
 import applica.framework.security.EntityService;
 import applica.framework.security.Security;
 import applica.framework.security.authorization.AuthorizationException;
@@ -11,6 +12,7 @@ import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.annotations.File;
 import applica.framework.widgets.annotations.Image;
+import applica.framework.widgets.annotations.JsonMaterialization;
 import applica.framework.widgets.annotations.Materialization;
 import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.serialization.DefaultEntitySerializer;
@@ -30,6 +32,7 @@ public class BaseGetOperation implements GetOperation {
 
     @Autowired(required = false)
     private EntityMapper entityMapper;
+
     private Class<? extends Entity> entityType;
 
     @Autowired(required = false)
@@ -96,7 +99,6 @@ public class BaseGetOperation implements GetOperation {
 
 
     public static void materializeFields(Entity e) {
-
         EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
         materializeFields(e, entityService);
     }
@@ -104,6 +106,9 @@ public class BaseGetOperation implements GetOperation {
 
     protected void finishNode(Entity entity, ObjectNode node) throws OperationException {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
+
+        materializeJson(fieldList, entity, node);
+
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
             EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
             mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
@@ -113,6 +118,38 @@ public class BaseGetOperation implements GetOperation {
             EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
             mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
         });
+    }
+
+    protected void materializeJson(List<Field> fields, Entity entity, ObjectNode node) {
+        try {
+            for (var field : fields) {
+                var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
+                if (jsonMaterialization != null) {
+                    if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.GET)) {
+                        if (field.getName().equals(field.getName())) {
+                            var source = field.get(entity);
+                            if (source != null) {
+                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                    map().entitiesToIds(entity, node, field.getName(), jsonMaterialization.destination());
+                                } else if (TypeUtils.isEntity(field.getType())) {
+                                    map().entityToId(entity, node, field.getName(), jsonMaterialization.destination());
+                                } else if (source instanceof List) {
+                                    map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                                } else {
+                                    map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void materializeJson(Entity entity, ObjectNode node) {
+        materializeJson(ClassUtils.getAllFields(getEntityType()), entity, node);
     }
 
     protected EntityMapper map() {

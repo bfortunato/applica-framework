@@ -21,6 +21,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static applica.framework.builders.QueryExpressions.in;
 import static applica.framework.library.utils.LangUtils.unchecked;
 
 /**
@@ -704,6 +706,29 @@ public class EntityMapper {
         }
     }
 
+    public void idsToEntities (ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, Class<? extends Entity> propertyClass) {
+        Objects.requireNonNull(destination, "Cannot convert id to entity: entity is null");
+        Objects.requireNonNull(source, "Cannot convert id to entity: node is null");
+        Assert.isTrue(source.get(sourceProperty).isArray(), "Json node " + sourceProperty + " is null");
+
+        var ids = source.get(sourceProperty);
+        var idsList = new ArrayList<Object>();
+        for (int i = 0; i < ids.size(); i++) {
+            String id = source.get(sourceProperty).get(i) != null ? source.get(sourceProperty).get(i).asText() : null;
+            if (!StringUtils.isEmpty(id)) {
+                idsList.add(id);
+            }
+        }
+
+        var entities = Repo.of(propertyClass).find(in("id", idsList));
+
+        try {
+            PropertyUtils.setProperty(destination, destinationProperty, entities);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void entitiesToIds(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, boolean setNullIfEmpty) {
         Objects.requireNonNull(source, "Cannot convert entity to id: entity is null");
         Objects.requireNonNull(destination, "Cannot convert entity to id: node is null");
@@ -725,9 +750,7 @@ public class EntityMapper {
             e.printStackTrace();
         }
         if (ids != null) {
-            for (String entityId : ids) {
-                entities.add(Repo.of(propertyClass).get(entityId).get());
-            }
+            entities.addAll(Repo.of(propertyClass).find(in("id", ids)).getRows());
         }
 
         return entities;
