@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface Image {
     String nodeProperty();
     String size() default "";
-    String path();
+    String directory();
  }

@@ -3,7 +3,8 @@ package applica.framework.widgets.mapping;
 import applica.framework.AEntity;
 import applica.framework.Entity;
 import applica.framework.Repo;
-import applica.framework.fileserver.FileServer;
+import applica.framework.fileserver.FilenameGenerator;
+import applica.framework.fileserver.FsClient;
 import applica.framework.fileserver.MimeUtils;
 import applica.framework.library.SimpleItem;
 import applica.framework.library.base64.InvalidDataException;
@@ -42,7 +43,7 @@ import static applica.framework.library.utils.LangUtils.unchecked;
 public class EntityMapper {
 
     @Autowired(required = false)
-    private FileServer fileServer;
+    private FsClient fileServer;
 
     @FunctionalInterface
     public interface Setter<T extends Entity> {
@@ -321,9 +322,11 @@ public class EntityMapper {
         }
     }
 
-    public String generatePathFromImageData(String imageData, String path) throws InvalidDataException, IOException {
+    public String generatePathFromImageData(String imageData, String directory) throws InvalidDataException, IOException {
         URLData urlData = URLData.parse(imageData);
-        return fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
+        var generatedPath = FilenameGenerator.generate(directory, urlData.getMimeType().getSubtype());
+        fileServer.saveImage(generatedPath, new ByteArrayInputStream(urlData.getBytes()), true);
+        return generatedPath;
     }
 
 
@@ -376,7 +379,7 @@ public class EntityMapper {
 
     }
 
-    public void dataUrlToFile(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+    public void dataUrlToFile(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String directory) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(destination, "Cannot convert entity to file: entity is null");
         Objects.requireNonNull(source, "Cannot convert entity to file: node is null");
@@ -397,8 +400,9 @@ public class EntityMapper {
         if (StringUtils.isNotEmpty(fileData)) {
             try {
                 URLData urlData = URLData.parse(fileData);
-                String filePath = fileServer.saveFile(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
-                PropertyUtils.setProperty(destination, destinationProperty, filePath);
+                var generatedPath = FilenameGenerator.generate(directory, urlData.getMimeType().getSubtype());
+                fileServer.saveFile(generatedPath, new ByteArrayInputStream(urlData.getBytes()), true);
+                PropertyUtils.setProperty(destination, destinationProperty, generatedPath);
 
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -487,8 +491,9 @@ public class EntityMapper {
                 try {
 
                     URLData urlData = URLData.parse(imageData);
-                    String imagePath = fileServer.saveImage(path, urlData.getMimeType().getSubtype(), new ByteArrayInputStream(urlData.getBytes()));
-                    imagesUrls.add(imagePath);
+                    var generatedPath = FilenameGenerator.generate(path, urlData.getMimeType().getSubtype());
+                    fileServer.saveImage(generatedPath, new ByteArrayInputStream(urlData.getBytes()), true);
+                    imagesUrls.add(generatedPath);
 
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -591,7 +596,7 @@ public class EntityMapper {
         }
     }
 
-    public void dataUrlToAttachments(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String path) {
+    public void dataUrlToAttachments(ObjectNode source, Entity destination, String sourceProperty, String destinationProperty, String directory) {
         Objects.requireNonNull(fileServer, "Fileserver not injected");
         Objects.requireNonNull(destination, "Cannot convert entity to image: entity is null");
         Objects.requireNonNull(source, "Cannot convert entity to image: node is null");
@@ -615,7 +620,8 @@ public class EntityMapper {
                     String filePath;
                     if (fileData.isBase64()) {
                         URLData urlData = URLData.parse(fileData.getData());
-                        filePath = fileServer.saveFile(path, FilenameUtils.getExtension(fileData.getFilename()), new ByteArrayInputStream(urlData.getBytes()));
+                        filePath = FilenameGenerator.generate(directory, urlData.getMimeType().getSubtype());
+                        fileServer.saveFile(filePath, new ByteArrayInputStream(urlData.getBytes()), true);
                     } else {
                         filePath = fileData.getData();
                     }
@@ -671,8 +677,8 @@ public class EntityMapper {
                 String filePath;
                 if (fileData.isBase64()) {
                     URLData urlData = URLData.parse(fileData.getData());
-                    filePath = fileServer.saveFile(path, FilenameUtils.getExtension(fileData.getFilename()), new ByteArrayInputStream(urlData.getBytes()));
-
+                    filePath = FilenameGenerator.generate(path, FilenameUtils.getExtension(fileData.getFilename()));
+                    fileServer.saveFile(filePath, new ByteArrayInputStream(urlData.getBytes()), true);
                 } else {
                     filePath = fileData.getData();
                 }

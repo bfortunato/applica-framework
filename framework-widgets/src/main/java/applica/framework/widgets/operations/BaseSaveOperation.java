@@ -7,7 +7,6 @@ import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
 import applica.framework.library.utils.TypeUtils;
-import applica.framework.library.validation.Validation;
 import applica.framework.library.validation.ValidationException;
 import applica.framework.library.validation.ValidationResult;
 import applica.framework.security.CodeGeneratorService;
@@ -149,11 +148,11 @@ public class BaseSaveOperation implements SaveOperation {
         });
 
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
-            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
+            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(), f.getName(), f.getAnnotation(Image.class).directory());
         });
 
         fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
-            entityMapper.dataUrlToFile(node, entity, f.getAnnotation(File.class).nodeProperty(),  f.getName(), f.getAnnotation(File.class).path());
+            entityMapper.dataUrlToFile(node, entity, f.getAnnotation(File.class).nodeProperty(), f.getName(), f.getAnnotation(File.class).directory());
         });
 
         if (codeGeneratorService != null) {

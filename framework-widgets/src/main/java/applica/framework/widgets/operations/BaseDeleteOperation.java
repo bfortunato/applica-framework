@@ -1,7 +1,7 @@
 package applica.framework.widgets.operations;
 
 import applica.framework.*;
-import applica.framework.fileserver.FileServer;
+import applica.framework.fileserver.FsClient;
 import applica.framework.library.responses.Response;
 import applica.framework.library.utils.ProgramException;
 import applica.framework.library.utils.SystemOptionsUtils;
@@ -11,7 +11,6 @@ import applica.framework.security.utils.PermissionUtils;
 import applica.framework.widgets.acl.CrudPermission;
 import applica.framework.widgets.annotations.File;
 import applica.framework.widgets.annotations.Image;
-import applica.framework.widgets.mapping.EntityMapper;
 import applica.framework.widgets.utils.ClassUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -19,14 +18,13 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class BaseDeleteOperation implements DeleteOperation {
 
     private Class<? extends Entity> entityType;
 
     @Autowired
-    private FileServer fileServer;
+    private FsClient fileServer;
 
     @Override
     public void delete(String id) throws OperationException {

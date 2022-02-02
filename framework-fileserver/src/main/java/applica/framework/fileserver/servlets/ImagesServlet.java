@@ -29,25 +29,8 @@ public class ImagesServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         ApplicationContext context = ApplicationContextProvider.provide();
-        String basePath = null;
-        String maxSize = null;
 
-        if (context != null) {
-            OptionsManager options = context.getBean(OptionsManager.class);
-            basePath = options.get("applica.framework.fileserver.basePath");
-            maxSize = options.get("applica.framework.fileserver.images.maxSize");
-        }
-
-        if (StringUtils.isEmpty(basePath)) {
-            basePath = config.getInitParameter("basePath");
-            maxSize = config.getInitParameter("maxSize");
-        }
-
-        if (StringUtils.isEmpty(basePath)) {
-            throw new RuntimeException("Could not determine fileserver base");
-        }
-
-        imagesService = new ImagesService(basePath, maxSize);
+        imagesService = context.getBean(ImagesService.class);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package applica.framework.fileserver.facade;
 
-import applica.framework.fileserver.FileServer;
+import applica.framework.fileserver.FilenameGenerator;
+import applica.framework.fileserver.FsClient;
 import applica.framework.fileserver.viewmodel.UIFileUpload;
 import applica.framework.fileserver.viewmodel.UIImageUpload;
 import org.apache.commons.io.FilenameUtils;
@@ -18,7 +19,7 @@ import java.io.IOException;
 public class UploadFacade {
 
     @Autowired
-    private FileServer fileServer;
+    private FsClient fileServer;
 
     /**
      * Uploads a generic image to images server
@@ -32,14 +33,13 @@ public class UploadFacade {
             throw new EmptyFileException();
         }
 
-        String extension = FilenameUtils.getExtension(data.getImage().getOriginalFilename());
-
         if(data.getPath().startsWith("/")) {
             data.setPath(data.getPath().substring(1));
         }
-        String path = "";
 
-        path = fileServer.saveImage("images/".concat(data.getPath()), extension, data.getImage().getInputStream());
+        var path = FilenameGenerator.generate("images/".concat(data.getPath()));
+        fileServer.saveImage(path, data.getImage().getInputStream(), true);
+
         return path;
     }
 
@@ -54,17 +54,16 @@ public class UploadFacade {
             data.setPath(data.getPath().substring(1));
         }
 
-        String extension = FilenameUtils.getExtension(data.getFile().getOriginalFilename());
-
         String path = "files/".concat(data.getPath());
 
         if(data.getPath().startsWith("/")) {
             data.setPath(data.getPath().substring(1));
         }
 
+        var generatedPath = FilenameGenerator.generate(path);
+        fileServer.saveFile(generatedPath, data.getFile().getInputStream(), true);
 
-        return fileServer.saveFile(path,extension, data.getFile().getInputStream());
-
+        return generatedPath;
     }
 
 }

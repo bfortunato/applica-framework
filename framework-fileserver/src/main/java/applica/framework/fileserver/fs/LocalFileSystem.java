@@ -1,11 +1,8 @@
-package applica.framework.fileserver;
+package applica.framework.fileserver.fs;
 
-import applica.framework.library.options.OptionsManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
 
 import java.io.*;
 
@@ -15,21 +12,12 @@ import java.io.*;
  * Date: 4/22/13
  * Time: 12:03 PM
  */
-public class LocalFilesService implements FilesService, InitializingBean {
+public class LocalFileSystem implements FileSystem {
 
     private String basePath = null;
 
-    private final OptionsManager options;
-
-    public LocalFilesService(OptionsManager options) {
-        this.options = options;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        this.basePath = options.get("applica.framework.fileserver.basePath");
-
-        Assert.hasLength(basePath, "Please set applica.framework.fileserver.basePath options");;
+    public LocalFileSystem(String basePath) {
+        this.basePath = basePath;
     }
 
     @Override
@@ -61,17 +49,8 @@ public class LocalFilesService implements FilesService, InitializingBean {
         return file.exists();
     }
 
-    @Override
-    public long size(String path) {
-        if (exists(path)) {
-            return new File(getLocalPath(path)).length();
-        }
-
-        return 0;
-    }
-
     public String getLocalPath(String path) {
-        return FilenameUtils.concat(basePath, path);
+        return basePath.concat(path).replace("//", "/");
     }
 
     private void createFolderIfNotExists(String localPath) {
@@ -82,4 +61,5 @@ public class LocalFilesService implements FilesService, InitializingBean {
             throw new RuntimeException("Cannot create folder " + folder, e);
         }
     }
+
 }
