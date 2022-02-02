@@ -43,6 +43,7 @@ public class TemplatedMail {
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
     private OptionsManager options;
     private int mailFormat;
+    private boolean tls = true;
 
     private String mailText;
 
@@ -52,6 +53,14 @@ public class TemplatedMail {
 
     public void setMailText(String mailText) {
         this.mailText = mailText;
+    }
+
+    public boolean isTls() {
+        return tls;
+    }
+
+    public void setTls(boolean tls) {
+        this.tls = tls;
     }
 
     private class ByteAttachmentData {
@@ -159,8 +168,11 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
-        session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
-        session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+
+        if (tls) {
+            session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
+            session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        }
 
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
