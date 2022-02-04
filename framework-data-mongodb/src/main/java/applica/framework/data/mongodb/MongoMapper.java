@@ -167,134 +167,146 @@ public class MongoMapper {
 	}
 
 	public Object loadObject(Document source, Class<?> destinationType, MappingContext mappingContext) {
+		return loadObject(source, destinationType, mappingContext, null);
+	}
+	public Object loadObject(Document source, Class<?> destinationType, MappingContext mappingContext, RelationsLoader relationsLoader) {
 		if (mappingContext == null) {
 			mappingContext = new MappingContext();
 		}
 
-		Persistable destination;
 		try {
-			destination = (Persistable)destinationType.getConstructor().newInstance();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-		if (source != null) {
-			Class<?> type = destination.getClass();
-			for(String key : source.keySet()) {
-				if (key.equals("_id")) {
-					if (destination instanceof Entity) {
-						((Entity) destination).setId(source.getObjectId(key).toString());
-					}
-				} else {
-					Field field = null;
+			mappingContext.incLevel();
 
-					try {
-						field = TypeUtils.getField(type, key);
+			Persistable destination;
+			try {
+				destination = (Persistable) destinationType.getConstructor().newInstance();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
 
-						if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-							mappingContext.pushIgnoreNestedReferences();
+			if (source != null) {
+				Class<?> type = destination.getClass();
+				for (String key : source.keySet()) {
+					if (key.equals("_id")) {
+						if (destination instanceof Entity) {
+							((Entity) destination).setId(source.getObjectId(key).toString());
 						}
+					} else {
+						Field field = null;
 
-						if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
-							field.setAccessible(true);
+						try {
+							field = TypeUtils.getField(type, key);
 
-							if (key.endsWith("Id") && field.getType().equals(Object.class)) {
-								field.set(destination, source.get(field.getName()));
-							} else if (TypeUtils.isPersistable(field.getType())) {
-								if ((!mappingContext.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
-                                    Entity value = null;
-                                    String sourceId = (String) source.get(field.getName());
-									value = mappingContext.getCached((Class<? extends Entity>) field.getType(), sourceId);
-									if (value == null) {
-										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
-										Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
-										if (repository instanceof MongoRepository) {
-											value = (Entity) ((MongoRepository) repository).get(sourceId, mappingContext).orElse(null);
-										} else{
-											value = (Entity) repository.get(sourceId).orElse(null);
-										}
-										mappingContext.putInCache(value);
-									}
-                                    if (value != null) {
-                                        field.set(destination, value);
-                                    }
-                                } else {
-									Document childDocument = source.get(key, Document.class);
-                                    Object value = loadObject(childDocument, field.getType(), mappingContext);
-                                    field.set(destination, value);
-                                }
-                            }
-							else if (Geometry.class.isAssignableFrom(field.getType())) {
-
-								field.set(destination, deserializeGeometryPoint(field, source));
-							}
-
-							else if (field.getType().equals(Key.class)) {
-                                field.set(destination, new Key(source.get(key)));
-                            } else if (isAllowed(field.getType())) {
-								field.set(destination, source.get(key));
-							} else if (TypeUtils.isList(field.getType())) {
-                                if ((!mappingContext.isIgnoringNestedReferences() && firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
-                                    ArrayList<Object> values = new ArrayList<Object>();
-                                    Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
-                                    Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());
-                                    List<?> sourceList = (List<?>)source.get(field.getName());
-                                    Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) typeArgument);
-                                    Objects.requireNonNull(repository, "Repository for class not found: " + typeArgument.toString());
-                                    for(Object el : sourceList) {
-										Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
-										if (value == null) {
-											if (repository instanceof MongoRepository) {
-												value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
-											} else{
-												value = (Entity) repository.get(el).orElse(null);
-											}
-											mappingContext.putInCache(value);
-										}
-
-										if (value != null) {
-											values.add(value);
-										}
-                                    }
-                                    field.set(destination, values);
-                                } else {
-                                    ArrayList<Object> values = new ArrayList<Object>();
-                                    Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
-                                    List<?> sourceList = (List<?>)source.get(field.getName());
-                                    for(Object el : sourceList) {
-                                        if (TypeUtils.isPersistable(typeArgument)) {
-                                            values.add(loadObject((Document) el, typeArgument, mappingContext));
-                                        } else if (isAllowed(typeArgument)) {
-                                            values.add(el);
-                                        } else if (Object.class.equals(typeArgument)) {
-                                        	values.add(el);
-										}
-                                    }
-                                    field.set(destination, values);
-                                }
-							} else if (Objects.equals(field.getType(), Object.class)) {
-								field.set(destination, source.get(key));
-							}
-												
-						}
-					} catch(NoSuchFieldException e) {
-						logger.warn("Field in database " + key + " isn't available on class");
-					} catch (Exception e) {	
-						logger.warn("Error in field " + key);
-						e.printStackTrace();
-					} finally {
-						if (field != null) {
 							if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
-								mappingContext.popIgnoreNestedReferences();
+								mappingContext.pushIgnoreNestedReferences();
+							}
+
+							if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
+								field.setAccessible(true);
+
+								if (key.endsWith("Id") && field.getType().equals(Object.class)) {
+									field.set(destination, source.get(field.getName()));
+								} else if (TypeUtils.isPersistable(field.getType())) {
+									if ((!mappingContext.isIgnoringNestedReferences() && isId(source, field)) && field.getAnnotation(ManyToOne.class) != null) {
+										Entity value = null;
+										String sourceId = (String) source.get(field.getName());
+										value = mappingContext.getCached((Class<? extends Entity>) field.getType(), sourceId);
+										if (value == null) {
+											Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) field.getType());
+											Objects.requireNonNull(repository, "Repository for class not found: " + field.getType().toString());
+
+											if (relationsLoader == null) {
+												if (repository instanceof MongoRepository) {
+													value = (Entity) ((MongoRepository) repository).get(sourceId, mappingContext).orElse(null);
+												} else {
+													value = (Entity) repository.get(sourceId).orElse(null);
+												}
+												mappingContext.putInCache(value);
+											} else {
+												relationsLoader.addManyToOne(destination, field, sourceId, repository);
+											}
+										}
+										if (value != null) {
+											field.set(destination, value);
+										}
+									} else {
+										Document childDocument = source.get(key, Document.class);
+										Object value = loadObject(childDocument, field.getType(), mappingContext);
+										field.set(destination, value);
+									}
+								} else if (Geometry.class.isAssignableFrom(field.getType())) {
+
+									field.set(destination, deserializeGeometryPoint(field, source));
+								} else if (field.getType().equals(Key.class)) {
+									field.set(destination, new Key(source.get(key)));
+								} else if (isAllowed(field.getType())) {
+									field.set(destination, source.get(key));
+								} else if (TypeUtils.isList(field.getType())) {
+									if ((!mappingContext.isIgnoringNestedReferences() && firstIsId(source, field)) && (field.getAnnotation(ManyToMany.class) != null || field.getAnnotation(OneToMany.class) != null)) {
+										ArrayList<Object> values = new ArrayList<Object>();
+										Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
+										Assert.isTrue(TypeUtils.isEntity(typeArgument), "ManyToMany not allowed for non-entity types: " + field.getName());
+										List<?> sourceList = (List<?>) source.get(field.getName());
+										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) typeArgument);
+										Objects.requireNonNull(repository, "Repository for class not found: " + typeArgument.toString());
+										for (Object el : sourceList) {
+											Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
+											if (value == null) {
+												if (repository instanceof MongoRepository) {
+													value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
+												} else {
+													value = (Entity) repository.get(el).orElse(null);
+												}
+												mappingContext.putInCache(value);
+											}
+
+											if (value != null) {
+												values.add(value);
+											}
+										}
+										field.set(destination, values);
+									} else {
+										ArrayList<Object> values = new ArrayList<Object>();
+										Class<?> typeArgument = TypeUtils.getFirstGenericArgumentType((ParameterizedType) field.getGenericType());
+										List<?> sourceList = (List<?>) source.get(field.getName());
+										for (Object el : sourceList) {
+											if (TypeUtils.isPersistable(typeArgument)) {
+												values.add(loadObject((Document) el, typeArgument, mappingContext));
+											} else if (isAllowed(typeArgument)) {
+												values.add(el);
+											} else if (Object.class.equals(typeArgument)) {
+												values.add(el);
+											}
+										}
+										field.set(destination, values);
+									}
+								} else if (Objects.equals(field.getType(), Object.class)) {
+									field.set(destination, source.get(key));
+								}
+
+							}
+						} catch (NoSuchFieldException e) {
+							logger.warn("Field in database " + key + " isn't available on class");
+						} catch (Exception e) {
+							logger.warn("Error in field " + key);
+							e.printStackTrace();
+						} finally {
+							if (field != null) {
+								if (field.getAnnotation(IgnoreNestedReferences.class) != null) {
+									mappingContext.popIgnoreNestedReferences();
+								}
 							}
 						}
 					}
 				}
 			}
+
+			return destination;
 		}
-		
-		return destination;
+		finally {
+			mappingContext.decLevel();
+		}
 	}
 
 

@@ -8,6 +8,19 @@ import java.util.Objects;
 
 public class MappingContext {
 
+    private int level;
+
+    public void incLevel() {
+        level++;
+    }
+
+    public void decLevel() {
+        level--;
+        if (level < 0) {
+            throw new RuntimeException("Level decreased in a bad place");
+        }
+    }
+
     class CacheItem {
         private Class<? extends Entity> entityType;
         private Object id;

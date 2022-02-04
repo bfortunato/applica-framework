@@ -184,18 +184,16 @@ public class BaseSaveOperation implements SaveOperation {
                             }
                         }
                     } else if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.SAVE)) {
-                        if (field.getName().equals(jsonMaterialization.destination())) {
-                            var source = field.get(entity);
-                            if (source != null) {
-                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
-                                    map().entitiesToIds(node, entity, field.getName(), jsonMaterialization.destination(), true);
-                                } else if (TypeUtils.isEntity(field.getType())) {
-                                    map().entityToId(node, entity, field.getName(), jsonMaterialization.destination());
-                                } else if (source instanceof List) {
-                                    map().idsToEntities(node, entity, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
-                                } else {
-                                    map().idToEntity(node, entity, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
-                                }
+                        var source = field.get(entity);
+                        if (source != null) {
+                            if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                map().entitiesToIds(node, entity, field.getName(), jsonMaterialization.destination(), true);
+                            } else if (TypeUtils.isEntity(field.getType())) {
+                                map().entityToId(node, entity, field.getName(), jsonMaterialization.destination());
+                            } else if (source instanceof List) {
+                                map().idsToEntities(node, entity, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                            } else {
+                                map().idToEntity(node, entity, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
                             }
                         }
                     }

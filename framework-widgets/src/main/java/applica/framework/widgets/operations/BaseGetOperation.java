@@ -126,18 +126,16 @@ public class BaseGetOperation implements GetOperation {
                 var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
                 if (jsonMaterialization != null) {
                     if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.GET)) {
-                        if (field.getName().equals(field.getName())) {
-                            var source = field.get(entity);
-                            if (source != null) {
-                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
-                                    map().entitiesToIds(entity, node, field.getName(), jsonMaterialization.destination());
-                                } else if (TypeUtils.isEntity(field.getType())) {
-                                    map().entityToId(entity, node, field.getName(), jsonMaterialization.destination());
-                                } else if (source instanceof List) {
-                                    map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
-                                } else {
-                                    map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
-                                }
+                        var source = field.get(entity);
+                        if (source != null) {
+                            if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                                map().entitiesToIds(entity, node, field.getName(), jsonMaterialization.destination());
+                            } else if (TypeUtils.isEntity(field.getType())) {
+                                map().entityToId(entity, node, field.getName(), jsonMaterialization.destination());
+                            } else if (source instanceof List) {
+                                map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                            } else {
+                                map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
                             }
                         }
                     }

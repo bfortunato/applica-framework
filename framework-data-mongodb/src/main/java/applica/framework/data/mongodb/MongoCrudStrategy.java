@@ -77,13 +77,16 @@ public class MongoCrudStrategy implements CrudStrategy {
         }
 
         var cursor = find.iterator();
+        var relationsLoader = new RelationsLoader();
 
         while(cursor.hasNext()) {
             var document = cursor.next();
 
-            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), generateMappingConfigFromQuery(loadRequest));
+            T entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), generateMappingConfigFromQuery(loadRequest), relationsLoader);
             entities.add(entity);
         }
+
+        relationsLoader.load();
 
         response.setRows(entities);
         response.setTotalRows(count);
