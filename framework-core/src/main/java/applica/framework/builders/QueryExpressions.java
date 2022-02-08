@@ -89,7 +89,7 @@ public class QueryExpressions {
     }
 
     public static Filter[] nullCheck(Filter... filters) {
-        return (Filter[]) Arrays.stream(filters).filter(f -> f.getValue() != null).toArray();
+        return Arrays.stream(filters).filter(f -> f.getValue() != null).toArray(Filter[]::new);
     }
 }
 
