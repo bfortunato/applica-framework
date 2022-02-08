@@ -87,5 +87,9 @@ public class QueryExpressions {
     public static Projection exclude(String property) {
         return new Projection(property, false);
     }
+
+    public static Filter[] nullCheck(Filter... filters) {
+        return (Filter[]) Arrays.stream(filters).filter(f -> f.getValue() != null).toArray();
+    }
 }
 
