@@ -147,6 +147,8 @@ public class BaseSaveOperation implements SaveOperation {
             }
         });
 
+        materializeJson(fieldList, entity, node);
+
         fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
             entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(), f.getName(), f.getAnnotation(Image.class).directory());
         });
@@ -161,6 +163,7 @@ public class BaseSaveOperation implements SaveOperation {
             }
         }
 
+        
     }
 
     protected void materializeJson(List<Field> fields, Entity entity, ObjectNode node) {
@@ -169,19 +172,14 @@ public class BaseSaveOperation implements SaveOperation {
                 var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
                 if (jsonMaterialization != null) {
                     if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.GET) && jsonMaterialization.reverse()) {
-                        if (field.getName().equals(jsonMaterialization.destination())) {
-                            var source = field.get(entity);
-                            if (source != null) {
-                                if (TypeUtils.isListOfEntities(field.getGenericType())) {
-                                    map().entitiesToIds(node, entity, jsonMaterialization.destination(), field.getName(), true);
-                                } else if (TypeUtils.isEntity(field.getType())) {
-                                    map().entityToId(node, entity, jsonMaterialization.destination(), field.getName());
-                                } else if (source instanceof List) {
-                                    map().idsToEntities(node, entity, jsonMaterialization.destination(), field.getName(), jsonMaterialization.entityType());
-                                } else {
-                                    map().idToEntity(node, entity, jsonMaterialization.entityType(), jsonMaterialization.destination(), field.getName());
-                                }
-                            }
+                        if (TypeUtils.isListOfEntities(field.getGenericType())) {
+                            map().idsToEntities(node, entity, jsonMaterialization.destination(), field.getName(), jsonMaterialization.entityType());
+                        } else if (TypeUtils.isEntity(field.getType())) {
+                            map().idToEntity(node, entity, jsonMaterialization.entityType(), jsonMaterialization.destination(), field.getName());
+                        } else if (TypeUtils.isList(field.getType())) {
+                            map().entitiesToIds(node, entity, jsonMaterialization.destination(), field.getName(), true);
+                        } else {
+                            map().entityToId(node, entity, jsonMaterialization.destination(), field.getName());
                         }
                     } else if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.SAVE)) {
                         var source = field.get(entity);
