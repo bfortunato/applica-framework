@@ -23,12 +23,64 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static applica.framework.builders.QueryExpressions.in;
+
 public class BaseFindOperation implements FindOperation, ResultSerializerListener {
+
+    public enum SourceType {
+        LIST_OF_ENTITY,
+        ENTITY,
+        IDS,
+        ID
+    }
+
+    public record JsonRelation(SourceType sourceType, ObjectNode destination, String destinationProperty, Object sourceValue, Repository<? extends Entity> repository) {}
+
+    public class JsonRelationsLoader {
+        private List<JsonRelation> relations;
+
+        void addRelation(JsonRelation relation) {
+            if (relations == null) {
+                relations = new ArrayList<>();
+            }
+            relations.add(relation);
+        }
+
+        public List<JsonRelation> getRelations() {
+            return relations;
+        }
+
+        public void load() {
+            if (relations != null) {
+                relations.stream().collect(Collectors.groupingBy(JsonRelation::repository)).forEach((repository, rs) -> {
+                    var ids = new ArrayList<Object>();
+                    rs.forEach(r -> {
+                        switch (r.sourceType) {
+                            case IDS -> ids.addAll((List<Object>)r.sourceValue);
+                            case ID -> ids.add(r.sourceValue);
+                        }
+                    });
+
+                    var rows = repository.find(in("id", ids)).getRows();
+                    rs.forEach(r -> {
+                        switch (r.sourceType) {
+                            case IDS -> r.destination.putPOJO(r.destinationProperty, ((List<Object>)r.sourceValue).stream().map(id -> rows.stream().filter(row -> Objects.equals(row.getId(), id)).findFirst().orElseThrow()).toList());
+                            case ID -> r.destination.putPOJO(r.destinationProperty, rows.stream().filter(row -> Objects.equals(row.getId(), r.sourceValue)).findFirst().orElseThrow());
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+
     private ThreadLocal<Boolean> materializationDisabled = new ThreadLocal<>();
 
     @Autowired(required = false)
@@ -80,19 +132,25 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         }
     }
 
-
-    @Override
-    public ObjectNode serialize(Result<? extends Entity> result, Query query) throws OperationException {
+    protected ObjectNode serialize(Result<? extends Entity> result, Query query, JsonRelationsLoader relationsLoader) throws OperationException {
         ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
         try {
-            return serializer.serialize(result, query);
+            return serializer.serialize(result, query, relationsLoader);
         } catch (SerializationException e) {
             throw new OperationException(Response.ERROR_SERIALIZATION, e);
         }
     }
 
     @Override
-    public void onSerializeEntity(ObjectNode node, Entity entity, Object ... params) {
+    public ObjectNode serialize(Result<? extends Entity> result, Query query) throws OperationException {
+        var relationLoader = new JsonRelationsLoader();
+        var ret = serialize(result, query, relationLoader);
+        relationLoader.load();
+        return ret;
+    }
+
+    @Override
+    public void onSerializeEntity(ObjectNode node, Entity entity, Object... params) {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
 
         if (isImageMaterializationEnabled()) {
@@ -109,25 +167,32 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             });
         }
 
-        materializeJson(fieldList, entity, node);
+        JsonRelationsLoader relationsLoader = ((JsonRelationsLoader) params[1]);
+        if (relationsLoader == null) {
+            throw new RuntimeException("relationsLoader not provided");
+        }
+
+        appendJsonMaterialization(fieldList, entity, node, relationsLoader);
     }
 
-    protected void materializeJson(List<Field> fields, Entity entity, ObjectNode node) {
+    protected void appendJsonMaterialization(List<Field> fields, Entity entity, ObjectNode node, JsonRelationsLoader relationsLoader) {
         try {
             for (var field : fields) {
                 var jsonMaterialization = field.getAnnotation(JsonMaterialization.class);
                 if (jsonMaterialization != null) {
                     if (Arrays.asList(jsonMaterialization.operations()).contains(Operations.FIND)) {
-                        var source = field.get(entity);
-                        if (source != null) {
+                        var sourceValue = field.get(entity);
+                        if (sourceValue != null) {
                             if (TypeUtils.isListOfEntities(field.getGenericType())) {
                                 map().entitiesToIds(entity, node, field.getName(), jsonMaterialization.destination());
                             } else if (TypeUtils.isEntity(field.getType())) {
                                 map().entityToId(entity, node, field.getName(), jsonMaterialization.destination());
-                            } else if (source instanceof List) {
-                                map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
+                            } else if (sourceValue instanceof List) {
+                                relationsLoader.addRelation(new JsonRelation(SourceType.IDS, node, jsonMaterialization.destination(), sourceValue, Repo.of(jsonMaterialization.entityType())));
+                                //map().idsToEntities(entity, node, field.getName(), jsonMaterialization.destination(), jsonMaterialization.entityType());
                             } else {
-                                map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
+                                relationsLoader.addRelation(new JsonRelation(SourceType.ID, node, jsonMaterialization.destination(),  sourceValue, Repo.of(jsonMaterialization.entityType())));
+                                //map().idToEntity(entity, node, jsonMaterialization.entityType(), field.getName(), jsonMaterialization.destination());
                             }
                         }
                     }
@@ -136,10 +201,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    protected void materializeJson(Entity entity, ObjectNode node) {
-        materializeJson(ClassUtils.getAllFields(getEntityType()), entity, node);
     }
 
     public boolean isFileMaterializationEnabled() {

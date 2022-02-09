@@ -1,8 +1,8 @@
 package applica.framework.widgets.serialization;
 
 import applica.framework.Entity;
-import applica.framework.Query;
 import applica.framework.Result;
+import applica.framework.widgets.operations.BaseFindOperation;
 import applica.framework.widgets.operations.ResultSerializerListener;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,7 +51,7 @@ public class DefaultResultSerializer implements ResultSerializer {
                 arrayNode.add(node);
             }
 
-            objectNode.put("rows", arrayNode);
+            objectNode.set("rows", arrayNode);
 
             return objectNode;
         } catch (Exception ex) {
