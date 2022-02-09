@@ -1,4 +1,4 @@
-package applica.framework.data.mongodb.constraints;
+package applica.framework.data.constraints;
 
 import applica.framework.Entity;
 import applica.framework.data.ConstraintException;
@@ -15,7 +15,6 @@ public interface ReferencedConstraint<T1 extends Entity, T2 extends Entity> {
     //String getPrimaryProperty();
     Class<T2> getForeignType();
     String getForeignProperty();
-    void checkPrimary(T1 entity) throws ConstraintException;
-    void checkForeign(T2 foreignEntity) throws ConstraintException;
+    void check(T1 primaryEntity) throws ConstraintException;
 
 }

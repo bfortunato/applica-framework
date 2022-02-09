@@ -1,7 +1,7 @@
 package applica.framework.data.mongodb;
 
 import applica.framework.*;
-import applica.framework.data.mongodb.constraints.ConstraintsChecker;
+import applica.framework.data.constraints.ConstraintsChecker;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -118,7 +118,7 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         if (constraintsChecker != null) {
             constraintsChecker.check(entity);
-            constraintsChecker.checkForeign(entity);
+            //constraintsChecker.checkForeign(entity);
         }
 
         Document document = mongoMapper.loadBasicDBObject(entity, null);

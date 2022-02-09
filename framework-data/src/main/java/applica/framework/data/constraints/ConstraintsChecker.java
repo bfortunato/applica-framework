@@ -1,5 +1,6 @@
-package applica.framework.data.mongodb.constraints;
+package applica.framework.data.constraints;
 
+import applica.framework.EntitiesScanner;
 import applica.framework.Entity;
 
 /**
@@ -12,7 +13,6 @@ public interface ConstraintsChecker {
 
     void check(Entity entity);
     void checkPrimary(Entity entity);
-    void checkForeign(Entity entity);
     void checkDelete(Entity entity);
 
 }
