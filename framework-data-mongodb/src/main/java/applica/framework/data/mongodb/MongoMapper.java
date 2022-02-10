@@ -55,14 +55,14 @@ public class MongoMapper {
 		if (source != null && document != null) {			
 			Class<?> type = source.getClass();
             
-            //put entity id in document
+            //put entity sourceValue in document
 			if (source instanceof Entity) {
 				Entity psource = (Entity) source;
 				if (psource.getId() != null) {
 					try {
 						document.put("_id", new ObjectId(String.valueOf(psource.getId())));
 					} catch (Exception e) {
-						//logger.warn(String.format("invalid id for entity %s: %s", type.getName(), source.getId()));
+						//logger.warn(String.format("invalid sourceValue for entity %s: %s", type.getName(), source.getId()));
 					}
 				}
 			}
@@ -251,18 +251,22 @@ public class MongoMapper {
 										Repository repository = repositoriesFactory.createForEntity((Class<? extends Entity>) typeArgument);
 										Objects.requireNonNull(repository, "Repository for class not found: " + typeArgument.toString());
 										for (Object el : sourceList) {
-											Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
-											if (value == null) {
-												if (repository instanceof MongoRepository) {
-													value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
-												} else {
-													value = (Entity) repository.get(el).orElse(null);
+											if (relationsLoader == null) {
+												Entity value = mappingContext.getCached((Class<? extends Entity>) typeArgument, el);
+												if (value == null) {
+													if (repository instanceof MongoRepository) {
+														value = (Entity) ((MongoRepository) repository).get(el, mappingContext).orElse(null);
+													} else {
+														value = (Entity) repository.get(el).orElse(null);
+													}
+													mappingContext.putInCache(value);
 												}
-												mappingContext.putInCache(value);
-											}
 
-											if (value != null) {
-												values.add(value);
+												if (value != null) {
+													values.add(value);
+												}
+											} else {
+												relationsLoader.addManyToMany(destination, field, sourceList, repository);
 											}
 										}
 										field.set(destination, values);

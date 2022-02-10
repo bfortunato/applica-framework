@@ -35,10 +35,12 @@ public class MongoCrudStrategy implements CrudStrategy {
         Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
 
         if(id != null) {
+            var relationsLoader = new RelationsLoader();
             Document document = mongoRepository.getCollection().find(MongoQuery.mk().id(String.valueOf(id))).first();
             if(document != null) {
-                entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), mongoRepository.getMappingContext());
+                entity = (T) mongoMapper.loadObject(document, repository.getEntityType(), mongoRepository.getMappingContext(), relationsLoader);
             }
+            relationsLoader.load();
         }
 
         return entity;

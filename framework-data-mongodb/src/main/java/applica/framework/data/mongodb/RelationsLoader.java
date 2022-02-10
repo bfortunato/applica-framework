@@ -17,11 +17,14 @@ public class RelationsLoader {
 
     private Log logger = LogFactory.getLog(getClass());
 
+
+
     public enum RelationType {
-        MANY_TO_ONE
+        MANY_TO_ONE,
+        MANY_TO_MANY
     }
 
-    private record Relation(RelationType relationType, Persistable destination, Field field, Object id, Repository<? extends Entity> repository) {}
+    private record Relation(RelationType relationType, Persistable destination, Field field, Object sourceValue, Repository<? extends Entity> repository) {}
 
     private List<Relation> relations;
 
@@ -36,18 +39,40 @@ public class RelationsLoader {
         var relation = new Relation(RelationType.MANY_TO_ONE, destination, field, id, repository);
         relations.add(relation);
 
-        logger.debug("New relation added for in loading list: " + relation);
+        logger.debug("New n*1 relation added for in loading list: " + relation);
+    }
+
+    public void addManyToMany(Persistable destination, Field field, List<?> sourceList, Repository repository) {
+        if (relations == null) {
+            relations = new ArrayList<>();
+        }
+
+        var relation = new Relation(RelationType.MANY_TO_MANY, destination, field, sourceList, repository);
+        relations.add(relation);
+
+        logger.debug("New n*m relation added for in loading list: " + relation);
     }
 
     public void load() {
         if (relations != null) {
             relations.stream().collect(Collectors.groupingBy(Relation::repository)).forEach((repository, rs) -> {
-                var ids = rs.stream().map(Relation::id).toList();
+                var ids = new ArrayList<>();
+                rs.forEach(r -> {
+                    if (r.relationType.equals(RelationType.MANY_TO_MANY)) {
+                        ids.addAll(((List) r.sourceValue));
+                    } else if (r.relationType.equals(RelationType.MANY_TO_ONE)) {
+                        ids.add(r.sourceValue);
+                    }
+                });
                 if (ids.size() > 0) {
                     var rows = repository.find(in("id", ids)).getRows();
                     rs.forEach(r -> {
                         try {
-                            r.field().set(r.destination(), rows.stream().filter(e -> e.getId().equals(r.id())).findFirst().orElse(null));
+                            if (r.relationType.equals(RelationType.MANY_TO_MANY)) {
+                                r.field().set(r.destination(), rows.stream().filter(e -> ((List)r.sourceValue).contains(e.getId())).toList());
+                            } else if (r.relationType.equals(RelationType.MANY_TO_ONE)) {
+                                r.field().set(r.destination(), rows.stream().filter(e -> e.getId().equals(r.sourceValue())).findFirst().orElse(null));
+                            }
                         } catch (IllegalAccessException e) {
                             logger.warn("cannot set related entity", e);
                         }

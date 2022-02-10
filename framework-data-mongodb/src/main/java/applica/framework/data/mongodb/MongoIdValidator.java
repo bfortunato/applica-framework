@@ -16,7 +16,7 @@ public class MongoIdValidator implements IdValidator {
 
     @Override
     public Object newInstance(Object source) {
-        if (!isValid(source)) { throw new RuntimeException("id not valid"); }
+        if (!isValid(source)) { throw new RuntimeException("sourceValue not valid"); }
         return new ObjectId(source.toString());
     }
 }
