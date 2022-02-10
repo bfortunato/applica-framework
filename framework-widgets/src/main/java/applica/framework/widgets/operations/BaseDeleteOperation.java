@@ -18,6 +18,9 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BaseDeleteOperation implements DeleteOperation {
 
@@ -30,6 +33,9 @@ public class BaseDeleteOperation implements DeleteOperation {
     public void delete(String id) throws OperationException {
         delete(Arrays.asList(id));
     }
+
+    @Autowired(required = false)
+    private OperationsRouter router;
 
     @Override
     public void delete(List<String> ids) throws OperationException {
@@ -86,7 +92,12 @@ public class BaseDeleteOperation implements DeleteOperation {
     }
 
     public void performRemove(Entity entity) {
-        Repo.of(getEntityType()).delete(entity.getId());
+        Consumer<Object> fn;
+        if (router != null && (fn = router.getRemoveRoute(entityType).orElse(null)) != null) {
+            fn.accept(entity);
+        } else {
+            Repo.of(getEntityType()).delete(entity.getId());
+        }
     }
 
     public void authorize(Entity entity) throws AuthorizationException {

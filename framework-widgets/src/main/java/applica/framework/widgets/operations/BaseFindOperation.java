@@ -23,16 +23,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static applica.framework.builders.QueryExpressions.in;
 
 public class BaseFindOperation implements FindOperation, ResultSerializerListener {
+
+    @Autowired(required = false)
+    private OperationsRouter router;
 
     public enum SourceType {
         LIST_OF_ENTITY,
@@ -230,7 +231,12 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
     public Result<? extends Entity> findByQuery(Query generateQuery) {
-        return Repo.of(this.getEntityType()).find(generateQuery);
+        Function<Query, Result<? extends Entity>> fn;
+        if (router != null && (fn = router.getFetchListRoute(entityType).orElse(null)) != null) {
+            return fn.apply(generateQuery);
+        } else {
+            return Repo.of(getEntityType()).find(generateQuery);
+        }
     }
 
     public void materialize(List<? extends Entity> rows, List<Field> fieldList) {

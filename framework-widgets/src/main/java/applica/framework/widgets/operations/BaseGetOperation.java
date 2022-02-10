@@ -27,11 +27,16 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class BaseGetOperation implements GetOperation {
 
     @Autowired(required = false)
     private EntityMapper entityMapper;
+
+    @Autowired(required = false)
+    private OperationsRouter router;
 
     private Class<? extends Entity> entityType;
 
@@ -75,8 +80,14 @@ public class BaseGetOperation implements GetOperation {
 
     @Override
     public Entity fetch(Object id) throws OperationException {
+        Function<Object, ? extends Entity> fn;
+        Entity e;
+        if (router != null && (fn = router.getFetchOneRoute(entityType).orElse(null)) != null) {
+            e = fn.apply(id);
+        } else {
+            e = Repo.of(getEntityType()).get(id).orElse(null);
+        }
 
-        Entity e = Repo.of(this.getEntityType()).get(id).orElse(null);
         materialize(e);
 
         return e;

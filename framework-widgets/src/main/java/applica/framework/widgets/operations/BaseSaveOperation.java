@@ -36,6 +36,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BaseSaveOperation implements SaveOperation {
@@ -45,6 +48,9 @@ public class BaseSaveOperation implements SaveOperation {
 
     @Autowired(required = false)
     private CodeGeneratorService codeGeneratorService;
+
+    @Autowired(required = false)
+    private OperationsRouter router;
 
     public void validate(Entity entity) throws ValidationException {
         validate(entity, new ValidationResult());
@@ -121,7 +127,14 @@ public class BaseSaveOperation implements SaveOperation {
 
     @Override
     public void persist(Entity entity) throws OperationException {
-        ((Repository) Repo.of(getEntityType())).save(entity);
+        if (entity != null) {
+            Consumer<Entity> fn;
+            if (router != null && (fn = (Consumer<Entity>) router.getPersistRoute(entityType).orElse(null)) != null) {
+                fn.accept(entity);
+            } else {
+                ((Repository) Repo.of(getEntityType())).save(entity);
+            }
+        }
     }
 
     protected void afterSave(ObjectNode node, Entity entity) throws OperationException {

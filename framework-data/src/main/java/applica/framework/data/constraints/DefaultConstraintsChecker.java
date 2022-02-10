@@ -2,12 +2,6 @@ package applica.framework.data.constraints;
 
 import applica.framework.Entity;
 import applica.framework.data.constraints.annotations.AnnotadedConstraintsRegistry;
-import applica.framework.data.constraints.annotations.ForeignKey;
-import applica.framework.data.constraints.annotations.Unique;
-import applica.framework.library.utils.ArrayUtils;
-import applica.framework.library.utils.TypeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -16,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SimpleConstraintsChecker implements ConstraintsChecker {
+public class DefaultConstraintsChecker implements ConstraintsChecker {
 
 
     @Autowired
