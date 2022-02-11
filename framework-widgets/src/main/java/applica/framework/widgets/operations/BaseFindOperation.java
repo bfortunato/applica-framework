@@ -38,7 +38,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     @Autowired(required = false)
     private EntityService entityService;
 
-
     private Class<? extends Entity> entityType;
 
     public Class<? extends Entity> getEntityType() {
@@ -81,7 +80,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         }
     }
 
-
     @Override
     public ObjectNode serialize(Result<? extends Entity> result, Query query) throws OperationException {
         ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
@@ -109,8 +107,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
                 mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
             });
         }
-
-
     }
 
     public boolean isFileMaterializationEnabled() {
@@ -146,13 +142,9 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         materializeFields(rows);
     }
 
-
-
     public List<Field> generateFieldsForMaterialization() {
         return ClassUtils.getAllFields(getEntityType());
     }
-
-
 
     public static void materializeFields(List<? extends Entity> rows) {
         if (rows == null || rows.size() == 0)
