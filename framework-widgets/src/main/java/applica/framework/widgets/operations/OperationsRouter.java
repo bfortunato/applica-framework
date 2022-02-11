@@ -15,6 +15,7 @@ public interface OperationsRouter {
     <T extends Entity> void registerPersistRoute(Class<T> entityType, Consumer<T> fn);
     <T extends Entity> void registerRemoveRoute(Class<T> entityType, Consumer<Object> fn);
 
+    void scan(Package... packages);
 
     Optional<Function<Query, Result<? extends Entity>>> getFetchListRoute(Class<? extends Entity> entityType);
     Optional<Function<Object, ? extends Entity>> getFetchOneRoute(Class<? extends Entity> entityType);
