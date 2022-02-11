@@ -129,11 +129,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
     @Override
     public Result<? extends Entity> fetch(Query query) throws OperationException {
-        List<Field> fieldList = generateFieldsForMaterialization();
-        Result<? extends Entity> entities = findByQuery(generateQuery(query, fieldList));
+        Result<? extends Entity> entities = findByQuery(generateQuery(query));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
-           materialize(entities.getRows(), fieldList);
+           materialize(entities.getRows());
         }
 
         return entities;
@@ -143,8 +142,8 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return Repo.of(this.getEntityType()).find(generateQuery);
     }
 
-    public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
-        materializeFields(rows, entityService, fieldList);
+    public void materialize(List<? extends Entity> rows) {
+        materializeFields(rows);
     }
 
 
@@ -154,19 +153,24 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
 
-    public static void materializeFields(List<? extends Entity> rows) {
-        materializeFields(rows, ApplicationContextProvider.provide().getBean(EntityService.class), null);
-    }
 
-    public static void materializeFields(List<? extends Entity> rows, EntityService entityService, List<Field> fieldList) {
+    public static void materializeFields(List<? extends Entity> rows) {
         if (rows == null || rows.size() == 0)
             return;
-        fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
-        if (entityService != null && fieldList != null) {
-            fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId(rows, f.getName());
-            });
-        }
+
+        EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
+
+        //grazie a questo groupBy rendo la materializzazione attiva anche su liste di oggetti non omogenei ed eseguo la materializzazione sulle sottoliste di oggetti omogenei
+        rows.stream().collect(Collectors.groupingBy(i -> i.getClass())).forEach((entityClass, list) -> {
+            List<Field> fields = ClassUtils.getAllFields(list.get(0).getClass());
+            if (entityService != null) {
+                fields.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
+                    entityService.materializePropertyFromId(list, f.getName());
+                });
+            }
+        });
+
+
     }
 
     private boolean isNumber(Class c) {
@@ -174,8 +178,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
 
-    public Query generateQuery(Query query, List<Field> fieldList) {
+    public Query generateQuery(Query query) {
         //adeguo tutti i filtri per i campi "boolean"
+
+        List<Field> fieldList = generateFieldsForMaterialization();;
 
         fieldList.stream().filter(f -> f.getType().equals(boolean.class) || f.getType().equals(Boolean.class)).forEach(field -> {
             FilterUtils.addBooleanFilter(field.getName(), query);
