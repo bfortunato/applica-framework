@@ -30,6 +30,7 @@
         <apache.velocity.version>2.0</apache.velocity.version>
         <apache.poi.version>5.2.0</apache.poi.version>
         <apache.tika.version>2.2.1</apache.tika.version>
+        <apache.commons.imaging.version>1.0-alpha2</apache.commons.imaging.version>
         <jackson.version>2.13.1</jackson.version>
         <hibernate.version>5.6.4.Final</hibernate.version>
         <mongo.version>4.4.1</mongo.version>

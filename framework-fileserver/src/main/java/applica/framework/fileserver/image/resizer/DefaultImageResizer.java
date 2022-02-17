@@ -1,6 +1,15 @@
 package applica.framework.fileserver.image.resizer;
 
 import applica.framework.fileserver.ImageSize;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImageWriteException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+import org.apache.commons.io.IOUtils;
 import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
@@ -11,6 +20,18 @@ public class DefaultImageResizer implements ImageResizer {
 
     @Override
     public void resize(InputStream imageData, String format, String size, OutputStream output) throws IOException {
+        byte[] data = imageData.readAllBytes();
+
+        TiffImageMetadata metadata = null;
+        try {
+            metadata = readExifMetadata(data);
+        } catch (Exception e) {
+            //impossibile
+            e.printStackTrace();
+        }
+
+        imageData.reset();
+
         BufferedImage defaultImage = ImageIO.read(imageData);
         ImageSize imageSize = new ImageSize(size);
         imageSize.computeAutoSizes(defaultImage.getWidth(), defaultImage.getHeight());
@@ -18,7 +39,18 @@ public class DefaultImageResizer implements ImageResizer {
         BufferedImage croppedImage = createCroppedImage(defaultImage, imageSize);
         BufferedImage scaledImage = Scalr.resize(croppedImage, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_EXACT, imageSize.width, imageSize.height);
 
-        ImageIO.write(scaledImage, format, output);
+        if (metadata != null) {
+            var bout = new ByteArrayOutputStream();
+            ImageIO.write(scaledImage, format, bout);
+            data = bout.toByteArray();
+            try {
+                writeExifMetadata(metadata, data, output);
+            } catch (ImageReadException | ImageWriteException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            ImageIO.write(scaledImage, format, output);
+        }
     }
 
     private BufferedImage createCroppedImage(BufferedImage image, ImageSize imageSize) {
@@ -42,5 +74,19 @@ public class DefaultImageResizer implements ImageResizer {
         }
 
         return Scalr.crop(image, cropX, cropY, cropWidth, cropHeigth);
+    }
+
+    private TiffImageMetadata readExifMetadata(byte[] jpegData) throws ImageReadException, IOException {
+        ImageMetadata imageMetadata = Imaging.getMetadata(jpegData);
+        if (imageMetadata == null) {
+            return null;
+        }
+        JpegImageMetadata jpegMetadata = (JpegImageMetadata) imageMetadata;
+        return jpegMetadata.getExif();
+    }
+
+    private void writeExifMetadata(TiffImageMetadata metadata, byte[] jpegData, OutputStream out)
+            throws ImageReadException, ImageWriteException, IOException {
+        new ExifRewriter().updateExifMetadataLossless(jpegData, out, metadata.getOutputSet());
     }
 }
