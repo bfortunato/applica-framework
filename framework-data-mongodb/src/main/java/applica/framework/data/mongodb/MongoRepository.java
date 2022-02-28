@@ -4,6 +4,7 @@ import applica.framework.*;
 import applica.framework.builders.Statement;
 import applica.framework.data.KeywordQueryBuilder;
 import applica.framework.library.utils.Strings;
+import applica.framework.library.utils.SystemOptionsUtils;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang.StringUtils;
@@ -32,6 +33,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     private MongoDatabase db;
     private MappingContext mappingContext;
 
+    private boolean repositoryLogEnabled;
+
     public void init() {
         if (db == null) {
             db = mongoHelper.getDatabase(getDataSource());
@@ -39,7 +42,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 logger.warn("Mongo DB is null");
             }
         }
+
+        repositoryLogEnabled = SystemOptionsUtils.isEnabled("log.repository");
 	}
+
 
 	@Override
 	public void destroy() {
@@ -61,6 +67,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
 		T entity = crudStrategy.get(id, this);
 
+		if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - GET - ID: %s - ENTITY: %s", id, entity));
+        }
+
 		return Optional.ofNullable(entity);
 	}
 
@@ -75,6 +85,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         this.mappingContext = mappingContext;
         T entity = crudStrategy.get(id, this);
         this.mappingContext = null;
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - GET - ID: %s - ENTITY: %s", id, entity));
+        }
 
         return Optional.ofNullable(entity);
     }
@@ -95,6 +109,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
 		Result response = crudStrategy.find(query, this);
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - FIND - QUERY: %s", query.toString()));
+        }
 
 		return response;
 	}
@@ -185,6 +203,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return;
         }
         crudStrategy.deleteMany(request, this);
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - DELETE MANY - QUERY: %s", request.toString()));
+        }
     }
 
     @Override
@@ -195,6 +217,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return null;
         }
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - SUM - QUERY: %s, FIELD: %s", request.toString(), field));
+        }
+
         return crudStrategy.sum(request, field, this);
     }
 
@@ -206,6 +232,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return null;
         }
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - AVERAGE - QUERY: %s, FIELD: %s", request.toString(), field));
+        }
+
         return crudStrategy.avg(request, field, this);
     }
 
@@ -218,11 +249,17 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return;
         }
 
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - DELETE - ID: %s", id));
+        }
+
 		crudStrategy.delete(id, this);
 	}
 
 	@Override
 	public void save(T entity) {
+        boolean create = entity.getId() == null;
+
         init();
 
         if(db == null) {
@@ -231,6 +268,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
         crudStrategy.save(entity, this);
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - %s - ID: %s ENTITY: %s", create? "CREATE" : "SAVE", entity.getId(), entity.toString()));
+        }
 	}
 
     public List<Sort> getDefaultSorts() {
@@ -308,6 +349,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
 
         Result response = crudStrategy.find(query, this);
+
+        if (repositoryLogEnabled) {
+            logger.info(String.format("REPOSITORY - GET MULTIPLE - ID: %s", ids.stream().map(Object::toString).collect(Collectors.joining(", "))));
+        }
 
         return response.getRows();
     }
