@@ -52,6 +52,9 @@ public class DefaultResultSerializer implements ResultSerializer {
             }
 
             objectNode.put("rows", arrayNode);
+            objectNode.put("page", result.getPage());
+            objectNode.put("rowsPerPage", result.getRowsPerPage());
+            objectNode.put("hasMore", result.isHasMore());
 
             return objectNode;
         } catch (Exception ex) {
