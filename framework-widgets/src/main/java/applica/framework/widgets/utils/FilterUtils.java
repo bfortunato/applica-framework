@@ -6,6 +6,7 @@ import applica.framework.Query;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Locale;
 
 public class FilterUtils {
 
@@ -109,5 +110,20 @@ public class FilterUtils {
 
 
         return null;
+    }
+
+    public static void manageEqualIgnoreCaseFilter(Query q, String filter, boolean like) {
+        if (q.hasFilter(filter)) {
+            String value = q.popFilter(filter).get().getValue().toString();
+
+            Disjunction disjunction = new Disjunction();
+            disjunction.getChildren().add(new Filter(filter, value));
+            disjunction.getChildren().add(new Filter(filter, value.toLowerCase(Locale.ROOT)));
+            disjunction.getChildren().add(new Filter(filter, value.toUpperCase(Locale.ROOT)));
+            if (like) {
+                disjunction.getChildren().add(new Filter(filter, value, Filter.LIKE));
+            }
+            q.getFilters().add(disjunction);
+        }
     }
 }

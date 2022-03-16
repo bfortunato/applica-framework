@@ -199,6 +199,12 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
             }
         }
 
+        fieldList.stream().filter(f -> f.getAnnotation(Search.class) != null).forEach(field -> {
+            Search searchAnnotation = field.getAnnotation(Search.class);
+            if (searchAnnotation.equalIgnoreCase() || searchAnnotation.equalIgnoreCaseWithLike())
+                FilterUtils.manageEqualIgnoreCaseFilter(query, field.getName(), searchAnnotation.equalIgnoreCaseWithLike());
+        });
+
         //Todo gestisco le date in overlapp
 
         return query;
