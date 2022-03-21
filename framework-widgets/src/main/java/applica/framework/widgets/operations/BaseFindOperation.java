@@ -47,7 +47,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public class JsonRelationsLoader {
         private List<JsonRelation> relations;
 
-        void addRelation(JsonRelation relation) {
+        public void addRelation(JsonRelation relation) {
             if (relations == null) {
                 relations = new ArrayList<>();
             }
