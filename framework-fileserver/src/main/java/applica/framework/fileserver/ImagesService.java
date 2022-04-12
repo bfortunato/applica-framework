@@ -5,6 +5,8 @@ import applica.framework.fileserver.image.resizer.ImageResizer;
 import applica.framework.library.options.OptionsManager;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,8 @@ public class ImagesService implements InitializingBean {
     @Autowired(required = false)
     private ImageResizer imageResizer;
 
+    private Log logger = LogFactory.getLog(getClass());
+
     public ImagesService(FilesService filesService, OptionsManager options) {
         this.filesService = filesService;
         this.options = options;
@@ -48,7 +52,7 @@ public class ImagesService implements InitializingBean {
         Assert.hasLength(basePath, "Please set applica.framework.fileserver.basePath options");
         Assert.hasLength(maxSize, "Please set applica.framework.fileserver.maxSize options");
 
-        this.maxSize = new ImageSize(maxSize);
+        this.maxSize = new ImageSize(maxSize, false);
     }
 
     public void save(String path, InputStream inputStream, boolean overwrite) throws IOException, BadImageException {
@@ -80,9 +84,29 @@ public class ImagesService implements InitializingBean {
         filesService.delete(path);
     }
 
+    private String getSizedPath(String path, String size) {
+        if (org.apache.commons.lang.StringUtils.isNotEmpty(size)) {
+            if (size.equals("default")) {
+                return path;
+            } else {
+                var extension = FilenameUtils.getExtension(path);
+                return String.format("%s-cache/%s.%s", path, size.replace("*", "_"), extension);
+            }
+        } else {
+            return path;
+        }
+    }
+
     public InputStream get(String path, String size) throws FileNotFoundException, IOException {
         if(!StringUtils.hasLength(size)) {
             size = "default";
+        }
+
+        if (!size.equals("default")) {
+            if (filesService.exists(getSizedPath(path, size))) {
+                logger.info("Image getted from cache: " + path + " (" + size + ")");
+                return filesService.get(getSizedPath(path, size));
+            }
         }
 
         if (!filesService.exists(path)) {
@@ -98,7 +122,12 @@ public class ImagesService implements InitializingBean {
             var output = new ByteArrayOutputStream();
             imageResizer.resize(imageData, format, size, output);
 
-            return new ByteArrayInputStream(output.toByteArray());
+            var data = output.toByteArray();
+
+            filesService.save(getSizedPath(path, size), new ByteArrayInputStream(data), true);
+            logger.info("Image cached: " + path + " (" + size + ")");
+
+            return new ByteArrayInputStream(data);
         }
     }
 

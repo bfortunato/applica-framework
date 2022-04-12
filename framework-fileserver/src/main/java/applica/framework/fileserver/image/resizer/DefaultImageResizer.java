@@ -23,8 +23,14 @@ public class DefaultImageResizer implements ImageResizer {
         byte[] data = imageData.readAllBytes();
 
         TiffImageMetadata metadata = null;
+        boolean swapSize = false;
         try {
             metadata = readExifMetadata(data);
+            var orientation = (short) metadata.getFieldValue(TiffTagConstants.TIFF_TAG_ORIENTATION);
+            if (orientation == 8 || orientation == 6 || orientation == 5 || orientation == 7) {
+                swapSize = true;
+            }
+
         } catch (Exception e) {
             //impossibile
             e.printStackTrace();
@@ -33,7 +39,7 @@ public class DefaultImageResizer implements ImageResizer {
         imageData.reset();
 
         BufferedImage defaultImage = ImageIO.read(imageData);
-        ImageSize imageSize = new ImageSize(size);
+        ImageSize imageSize = new ImageSize(size, swapSize);
         imageSize.computeAutoSizes(defaultImage.getWidth(), defaultImage.getHeight());
 
         BufferedImage croppedImage = createCroppedImage(defaultImage, imageSize);

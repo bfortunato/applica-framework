@@ -5,7 +5,7 @@ import org.springframework.util.Assert;
 public class ImageSize {
     public static final int AUTO = 0;
 
-    public ImageSize(String size) {
+    public ImageSize(String size, boolean swapSize) {
         Assert.hasLength(size, "size cannot be null");
         String[] split = size.split("x");
         Assert.isTrue(split.length == 2, "invalid size format. use 300x200 for example");
@@ -21,6 +21,12 @@ public class ImageSize {
         } else {
             height = Integer.parseInt(sheight);
         }
+
+        if (swapSize) {
+            var temp = height;
+            height = width;
+            width = temp;
+        }
     }
 
     private ImageSize() {}
@@ -30,10 +36,10 @@ public class ImageSize {
 
     public void computeAutoSizes(int defaultWidth, int defaultHeight) {
         if(width == AUTO) {
-            float ratio = defaultHeight / height;
+            float ratio = (float) defaultHeight / (float) height;
             width = (int)((float)defaultWidth / ratio);
         } else if(height == AUTO) {
-            float ratio = defaultWidth / width;
+            float ratio = (float) defaultWidth / (float) width;
             height = (int)((float)defaultHeight / ratio);
         }
     }

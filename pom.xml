@@ -28,7 +28,7 @@
         <apache.httpclient.version>4.5.13</apache.httpclient.version>
         <apache.lucene.version>9.0.0</apache.lucene.version>
         <apache.velocity.version>2.0</apache.velocity.version>
-        <apache.poi.version>5.2.0</apache.poi.version>
+        <apache.poi.version>5.2.2</apache.poi.version>
         <apache.tika.version>2.2.1</apache.tika.version>
         <apache.commons.imaging.version>1.0-alpha2</apache.commons.imaging.version>
         <jackson.version>2.13.1</jackson.version>
