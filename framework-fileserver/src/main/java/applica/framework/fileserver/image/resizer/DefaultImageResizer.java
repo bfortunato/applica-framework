@@ -26,11 +26,12 @@ public class DefaultImageResizer implements ImageResizer {
         boolean swapSize = false;
         try {
             metadata = readExifMetadata(data);
-            var orientation = (short) metadata.getFieldValue(TiffTagConstants.TIFF_TAG_ORIENTATION);
-            if (orientation == 8 || orientation == 6 || orientation == 5 || orientation == 7) {
-                swapSize = true;
+            if (metadata != null) {
+                var orientation = (short) metadata.getFieldValue(TiffTagConstants.TIFF_TAG_ORIENTATION);
+                if (orientation == 8 || orientation == 6 || orientation == 5 || orientation == 7) {
+                    swapSize = true;
+                }
             }
-
         } catch (Exception e) {
             //impossibile
             e.printStackTrace();
