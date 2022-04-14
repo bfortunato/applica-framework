@@ -175,11 +175,16 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 break;
             case Filter.AND:
                 List<Filter> ands = (List<Filter>) filter.getValue();
-                mongoQuery.and(ands.stream().map((f) -> {
+
+                List<MongoQuery> allAnds = mongoQuery.get("$and") != null? (List<MongoQuery>) mongoQuery.get("$and") : new ArrayList<>();
+
+                allAnds.addAll(ands.stream().map((f) -> {
                     MongoQuery q = query();
                     pushFilter(q, f);
                     return q;
                 }).collect(Collectors.toList()));
+
+                mongoQuery.and(allAnds);
                 break;
         }
     }
