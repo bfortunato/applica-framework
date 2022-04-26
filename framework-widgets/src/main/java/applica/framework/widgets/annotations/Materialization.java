@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Materialization {
-    String entityField();Te
+    String entityField();
     Class entityClass();
 
     //Se true in fase di saveOperation imposta il valore della property da materializzare in base a quella materializzata
