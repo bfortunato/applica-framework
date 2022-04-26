@@ -26,7 +26,7 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
 
         boolean creation = entity.getId() == null;
-        Entity previousEntity = !creation ? repository.get(entity.getId()).get() : null;
+        Entity previousEntity = !creation ? repository.get(entity.getId()).orElse(null) : null;
 
         super.save(entity, repository);
 
