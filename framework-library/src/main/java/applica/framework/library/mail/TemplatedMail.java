@@ -12,13 +12,13 @@ import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
 import org.apache.velocity.runtime.resource.util.StringResourceRepository;
 import org.springframework.util.StringUtils;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.mail.*;
-import javax.mail.internet.*;
-import javax.mail.internet.MimeMessage.RecipientType;
-import javax.mail.util.ByteArrayDataSource;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
+import jakarta.mail.internet.MimeMessage.RecipientType;
+import jakarta.mail.util.ByteArrayDataSource;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,8 +159,15 @@ public class TemplatedMail {
         }
 
         Session session = MailUtils.getMailSession(options);
-        session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
-        session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        String tslEnable = options.get("smtp.tsl.enable");
+        if (!StringUtils.hasLength(tslEnable)) {
+            tslEnable = "true";
+        }
+
+        if ("true".equals(tslEnable)) {
+            session.getProperties().setProperty("mail.smtp.starttls.enable", "true");
+            session.getProperties().setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        }
 
         MimeMessage message = new MimeMessage(session);
         message.addFrom(new InternetAddress[]{new InternetAddress(from)});
