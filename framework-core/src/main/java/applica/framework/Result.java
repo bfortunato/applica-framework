@@ -11,6 +11,8 @@ public class Result<T extends Entity> {
 
     private List<T> rows = new ArrayList<>();
     private long totalRows;
+    private long page;
+    private long rowsPerPage;
 
     @SuppressWarnings("unchecked")
     @Deprecated
@@ -55,5 +57,30 @@ public class Result<T extends Entity> {
         mapped.setRows(this.getRows().stream().map(mapper).collect(Collectors.toList()));
 
         return mapped;
+    }
+
+    public long getPage() {
+        return page;
+    }
+
+    public void setPage(long page) {
+        this.page = page;
+    }
+
+    public long getRowsPerPage() {
+        return rowsPerPage;
+    }
+
+    public void setRowsPerPage(long rowsPerPage) {
+        this.rowsPerPage = rowsPerPage;
+    }
+
+    public boolean isHasMore() {
+        if (rowsPerPage > 0) {
+            double totalPages = Math.ceil((double) this.totalRows / (double) this.rowsPerPage);
+            return page < totalPages;
+        }
+
+        return false;
     }
 }

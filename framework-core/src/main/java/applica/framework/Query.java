@@ -34,8 +34,14 @@ public class Query {
     }
 
     public QueryBuilder builder() {
-        return new QueryBuilder(this);
+        QueryBuilder builder = new QueryBuilder(this);
+        if (this instanceof QueryBuilder) {
+            builder.from((QueryBuilder) this);
+        }
+        return builder;
     }
+
+
 
     public int getPage() {
         return page;

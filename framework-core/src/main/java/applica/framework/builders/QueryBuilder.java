@@ -9,6 +9,10 @@ public class QueryBuilder extends Query {
 
     private boolean nullCheck = true;
 
+    public void from(QueryBuilder originalQueryBuilder) {
+        setNullCheck(originalQueryBuilder.isNullCheck());
+    }
+
     @FunctionalInterface
     public interface ConditionalFilterPredicate {
         boolean check();
@@ -218,7 +222,11 @@ public class QueryBuilder extends Query {
     }
 
 
+    public boolean isNullCheck() {
+        return nullCheck;
+    }
 
-
-
+    public void setNullCheck(boolean nullCheck) {
+        this.nullCheck = nullCheck;
+    }
 }

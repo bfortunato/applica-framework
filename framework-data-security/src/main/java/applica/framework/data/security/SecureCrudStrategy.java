@@ -108,6 +108,8 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
             SecureEntity se = (SecureEntity) entity;
 
+            checkOwnership((SecureEntity) entity);
+
             if (se.getOwnerId() == null) {
                 se.setOwnerId(getOwnerId());
             }
@@ -120,17 +122,15 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
     public <T extends Entity> void delete(Object id, Repository<T> repository) {
         checkAttributes();
 
-
-        boolean canDelete = true;
-
         if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
             Entity entity = get(id, repository);
-            canDelete = entity != null && Objects.equals(((SecureEntity) entity).getOwnerId(), getOwnerId());
+            checkOwnership((SecureEntity) entity);
         }
 
-        if (canDelete) {
-            super.delete(id, repository);
-        }
+        super.delete(id, repository);
+    }
+
+    public void checkOwnership(SecureEntity entity) {
 
     }
 

@@ -38,7 +38,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     @Autowired(required = false)
     private EntityService entityService;
 
-
     private Class<? extends Entity> entityType;
 
     public Class<? extends Entity> getEntityType() {
@@ -81,7 +80,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         }
     }
 
-
     @Override
     public ObjectNode serialize(Result<? extends Entity> result, Query query) throws OperationException {
         ResultSerializer serializer = new DefaultResultSerializer(getEntityType(), this);
@@ -109,8 +107,6 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
                 mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
             });
         }
-
-
     }
 
     public boolean isFileMaterializationEnabled() {
@@ -129,11 +125,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
 
     @Override
     public Result<? extends Entity> fetch(Query query) throws OperationException {
-        List<Field> fieldList = generateFieldsForMaterialization();
-        Result<? extends Entity> entities = findByQuery(generateQuery(query, fieldList));
+        Result<? extends Entity> entities = findByQuery(generateQuery(query));
 
         if (!(materializationDisabled.get() != null  && materializationDisabled.get())) {
-           materialize(entities.getRows(), fieldList);
+           materialize(entities.getRows());
         }
 
         return entities;
@@ -143,30 +138,31 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return Repo.of(this.getEntityType()).find(generateQuery);
     }
 
-    public void materialize(List<? extends Entity> rows, List<Field> fieldList) {
-        materializeFields(rows, entityService, fieldList);
+    public void materialize(List<? extends Entity> rows) {
+        materializeFields(rows);
     }
-
-
 
     public List<Field> generateFieldsForMaterialization() {
         return ClassUtils.getAllFields(getEntityType());
     }
 
-
     public static void materializeFields(List<? extends Entity> rows) {
-        materializeFields(rows, ApplicationContextProvider.provide().getBean(EntityService.class), null);
-    }
-
-    public static void materializeFields(List<? extends Entity> rows, EntityService entityService, List<Field> fieldList) {
         if (rows == null || rows.size() == 0)
             return;
-        fieldList = fieldList == null && rows != null && rows.size() > 0 ? ClassUtils.getAllFields(rows.get(0).getClass()): fieldList;
-        if (entityService != null && fieldList != null) {
-            fieldList.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
-                entityService.materializePropertyFromId(rows, f.getName());
-            });
-        }
+
+        EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
+
+        //grazie a questo groupBy rendo la materializzazione attiva anche su liste di oggetti non omogenei ed eseguo la materializzazione sulle sottoliste di oggetti omogenei
+        rows.stream().collect(Collectors.groupingBy(i -> i.getClass())).forEach((entityClass, list) -> {
+            List<Field> fields = ClassUtils.getAllFields(list.get(0).getClass());
+            if (entityService != null) {
+                fields.stream().filter(f -> f.getAnnotation(Materialization.class) != null).forEach(f -> {
+                    entityService.materializePropertyFromId(list, f.getName());
+                });
+            }
+        });
+
+
     }
 
     private boolean isNumber(Class c) {
@@ -174,8 +170,10 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
 
-    public Query generateQuery(Query query, List<Field> fieldList) {
+    public Query generateQuery(Query query) {
         //adeguo tutti i filtri per i campi "boolean"
+
+        List<Field> fieldList = generateFieldsForMaterialization();;
 
         fieldList.stream().filter(f -> f.getType().equals(boolean.class) || f.getType().equals(Boolean.class)).forEach(field -> {
             FilterUtils.addBooleanFilter(field.getName(), query);
@@ -200,6 +198,12 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
                 query.setKeyword(null);
             }
         }
+
+        fieldList.stream().filter(f -> f.getAnnotation(Search.class) != null).forEach(field -> {
+            Search searchAnnotation = field.getAnnotation(Search.class);
+            if (searchAnnotation.equalIgnoreCase() || searchAnnotation.equalIgnoreCaseWithLike())
+                FilterUtils.manageEqualIgnoreCaseFilter(query, field.getName(), searchAnnotation.equalIgnoreCaseWithLike());
+        });
 
         //Todo gestisco le date in overlapp
 

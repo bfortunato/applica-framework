@@ -90,6 +90,8 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         response.setRows(entities);
         response.setTotalRows(count);
+        response.setPage(loadRequest.getPage());
+        response.setRowsPerPage(loadRequest.getRowsPerPage());
 
         return response;
     }
