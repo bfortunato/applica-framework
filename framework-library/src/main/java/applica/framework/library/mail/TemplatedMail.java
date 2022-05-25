@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.apache.commons.codec.CharEncoding.ISO_8859_1;
+
 public class TemplatedMail {
 
     private Log logger = LogFactory.getLog(getClass());
@@ -188,18 +190,16 @@ public class TemplatedMail {
             }
         }
 
-        message.setSubject(subject);
+        message.setSubject(subject, ISO_8859_1);
 
         Template template = null;
         if (StringUtils.hasLength(source)) {
             var templateName = UUID.randomUUID().toString();
             StringResourceRepository repo = (StringResourceRepository) VelocityBuilderProvider.provide().engine().getApplicationAttribute(StringResourceLoader.REPOSITORY_NAME_DEFAULT);
             repo.putStringResource(templateName, source);
-            template = VelocityBuilderProvider.provide().engine().getTemplate(templateName, "UTF-8");
-        } else {
-            template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, "UTF-8");
         }
 
+        template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, ISO_8859_1);
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
