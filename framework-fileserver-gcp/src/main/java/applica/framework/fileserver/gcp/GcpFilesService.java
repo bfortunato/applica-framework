@@ -52,7 +52,7 @@ public class GcpFilesService implements FilesService, InitializingBean {
     public void save(String path, InputStream inputStream, boolean overwrite) throws IOException {
         BlobId blobId = BlobId.of(bucketName, path);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-        storage.create(blobInfo, inputStream.readAllBytes());
+        storage.createFrom(blobInfo, inputStream);
 
         logger.info(String.format("File %s saved to GCP bucket %s", path, blobInfo.toString()));
     }
