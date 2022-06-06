@@ -3,6 +3,7 @@ package applica.framework.fileserver.gcp;
 import applica.framework.fileserver.FilesService;
 import applica.framework.library.options.OptionsManager;
 import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.Channel;
+import java.nio.channels.Channels;
 
 public class GcpFilesService implements FilesService, InitializingBean {
 
@@ -68,15 +71,14 @@ public class GcpFilesService implements FilesService, InitializingBean {
 
     @Override
     public InputStream get(String path) throws FileNotFoundException {
-        Blob blob = storage.get(BlobId.of(bucketName, path));
-        if (blob == null || !blob.exists()) {
+        var reader = storage.reader(BlobId.of(bucketName, path));
+        if (!reader.isOpen()) {
             throw new FileNotFoundException(path);
         }
-        var result = new ByteArrayInputStream(blob.getContent());
 
-        logger.info(String.format("File %s loaded from GCP bucket %s", path, blob));
+        logger.info(String.format("File %s loaded from GCP bucket", path));
 
-        return result;
+        return Channels.newInputStream(reader);
     }
 
     @Override
