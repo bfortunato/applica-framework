@@ -37,9 +37,7 @@ public class DefaultImageResizer implements ImageResizer {
             e.printStackTrace();
         }
 
-        imageData.reset();
-
-        BufferedImage defaultImage = ImageIO.read(imageData);
+        BufferedImage defaultImage = ImageIO.read(new ByteArrayInputStream(data));
         ImageSize imageSize = new ImageSize(size, swapSize);
         imageSize.computeAutoSizes(defaultImage.getWidth(), defaultImage.getHeight());
 
