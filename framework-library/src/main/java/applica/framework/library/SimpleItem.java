@@ -15,6 +15,8 @@ public class SimpleItem {
     private String label;
     private String value;
 
+    private String extra;
+
     public SimpleItem() {
         super();
     }
@@ -22,6 +24,11 @@ public class SimpleItem {
     public SimpleItem(String label, String value) {
         this.label = label;
         this.value = value;
+    }
+
+    public SimpleItem(String label, String value, String extra) {
+        this(label, value);
+        this.extra = extra;
     }
 
     public String getLabel() {
@@ -66,5 +73,13 @@ public class SimpleItem {
             }
         }
         return items;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 }
