@@ -37,7 +37,7 @@ public class MongoHelper {
 
 	@Autowired
 	private OptionsManager options;
-	
+
 	public MongoDatabase getDatabase(String dataSource) {
 		MongoDataSource ds = getDataSource(dataSource);
 		if(ds.db == null) {
@@ -46,7 +46,6 @@ public class MongoHelper {
 				ds.db = ds.mongo.getDatabase(getDbName(dataSource));
 			}
 		}
-		
 		return ds.db;
 	}
 
@@ -85,7 +84,7 @@ public class MongoHelper {
 		Assert.notNull(dbName, "Please set db name for dataSource " + dataSource);
 		return dbName;
 	}
-	
+
 	public MongoClient getMongo(String dataSource) {
 		MongoDataSource ds = getDataSource(dataSource);
 
@@ -137,5 +136,5 @@ public class MongoHelper {
 		MongoDataSource ds = getDataSource(dataSource);
 		if(ds.mongo != null) ds.mongo.close();
 	}
-	
+
 }
