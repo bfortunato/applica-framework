@@ -11,10 +11,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Materialization {
-    String entityField();
+    String entityField(); //field della classe corrente in cui verrà materializzata l'entità materializzata
 
     @Deprecated
     Class entityClass() default Object.class;
+
+
+
+    String generateEntityId() default ""; //field che verrà usato come "id" per cercare le entity da materializzare
 
 
     /**
