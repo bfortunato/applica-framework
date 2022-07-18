@@ -170,7 +170,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     }
 
 
-    public Query generateQuery(Query query) {
+    public Query generateQuery(Query query) throws OperationException {
         //adeguo tutti i filtri per i campi "boolean"
 
         List<Field> fieldList = generateFieldsForMaterialization();;
