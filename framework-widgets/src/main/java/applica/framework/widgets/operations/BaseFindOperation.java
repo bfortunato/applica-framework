@@ -187,6 +187,9 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         if (StringUtils.hasLength(query.getKeyword())) {
             Disjunction disjunction = new Disjunction();
 
+            if (query.getKeyword().trim().length() > 1)
+                query.setKeyword(query.getKeyword().trim());
+
             disjunction.setChildren(fieldList.stream().filter(f -> (f.getAnnotation(Search.class) != null && f.getAnnotation(Search.class).includeInKeyword()) || f.getAnnotation(Keyword.class) != null).map(f -> new Filter(f.getName(), query.getKeyword(), Filter.LIKE)).collect(Collectors.toList()));
 
             manageKeywordDisjunction(query, disjunction);
