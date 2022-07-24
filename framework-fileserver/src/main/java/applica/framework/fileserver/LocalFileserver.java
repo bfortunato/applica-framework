@@ -58,7 +58,11 @@ public class LocalFileserver implements FileServer {
 
         logger.info(String.format("Saving file on path %s", path + generatedName));
 
-        return saveToServer(fileStream, generatedName, path, false);
+        return saveToServer(fileStream, generatedName, managePathBeforeSave(path), false);
+    }
+
+    public String managePathBeforeSave(String path) {
+        return path;
     }
 
     @Override
@@ -98,7 +102,7 @@ public class LocalFileserver implements FileServer {
 
         logger.info(String.format("Saving file on path %s", path + generatedName));
 
-        return saveToServer(imageStream, generatedName, path, true);
+        return saveToServer(imageStream, generatedName,  managePathBeforeSave(path), true);
     }
 
     private NormalizedUrl normalizeUrl(String url) {
