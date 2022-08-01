@@ -78,11 +78,19 @@ public class MemoryCache extends Cache {
         synchronized (data) {
             List<CacheItem> invalid = new ArrayList<>();
             for (CacheItem item : data) {
-                if (path.endsWith("*")) {
+                if (path.startsWith("*") && path.endsWith("*")) {
+                    if (item.getPath().contains(path.substring(1, path.length() - 2))) {
+                        invalid.add(item);
+                    }
+                } else if (path.endsWith("*")) {
                     if (item.getPath().startsWith(path.substring(0, path.length() - 2))) {
                         invalid.add(item);
                     }
-                } else {
+                } else if (path.startsWith("*")) {
+                    if (item.getPath().endsWith(path.substring(1, path.length() - 1))) {
+                        invalid.add(item);
+                    }
+                }else {
                     if (item.getPath().equals(path)) {
                         invalid.add(item);
                     }
@@ -129,7 +137,18 @@ public class MemoryCache extends Cache {
                 }
             }
         }
+    }
 
+    @Override
+    public String dump() {
+        List<String> dump = new ArrayList<>();
+        synchronized (data) {
+            for (CacheItem item: data) {
+                if (!item.isExpired())
+                    dump.add(item.dump());
+            }
+        }
 
+        return String.join("\n" , dump);
     }
 }

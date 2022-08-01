@@ -59,4 +59,6 @@ public abstract class Cache {
      * Delete ALL cache values
      */
     public abstract void forceClear();
+
+    public abstract String dump();
 }
