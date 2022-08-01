@@ -118,7 +118,7 @@ public class Query {
 
     public String getFilterType(String property) {
         if (this.hasFilter(property)) {
-            return this.getFilters().stream().filter(f -> f.getProperty().equals(property)).findFirst().get().getType();
+            return this.getFilters().stream().filter(f -> Objects.equals(f.getProperty(), property)).findFirst().get().getType();
         } else {
             return null;
         }
