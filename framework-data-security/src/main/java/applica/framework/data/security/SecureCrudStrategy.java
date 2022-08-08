@@ -142,4 +142,9 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
         disableSecureStrategy.set(false);
     }
 
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        manageOwnerPropertyFilter(query, repository);
+        super.deleteMany(query, repository);
+    }
 }

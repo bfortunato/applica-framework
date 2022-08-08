@@ -34,7 +34,7 @@ public class MemoryCache extends Cache {
 
     @Override
     public Object get(final String path) {
-        clean();
+        clear();
 
         CacheItem item = findItemByPath(path);
 
@@ -54,13 +54,7 @@ public class MemoryCache extends Cache {
         return null;
     }
 
-    public void clean() {
-        synchronized (data) {
-            data.removeIf(item -> item.getExpiringTime() != TIME_INFINITE && item.getExpiringTime() <= System.currentTimeMillis());
-        }
-    }
-
-    private CacheItem findItemByPath(final String path) {
+    public CacheItem findItemByPath(final String path) {
         synchronized (data) {
             CacheItem item = ((CacheItem) CollectionUtils.find(data, new Predicate() {
                 @Override
@@ -76,26 +70,7 @@ public class MemoryCache extends Cache {
     @Override
     public void invalidate(final String path) {
         synchronized (data) {
-            List<CacheItem> invalid = new ArrayList<>();
-            for (CacheItem item : data) {
-                if (path.startsWith("*") && path.endsWith("*")) {
-                    if (item.getPath().contains(path.substring(1, path.length() - 2))) {
-                        invalid.add(item);
-                    }
-                } else if (path.endsWith("*")) {
-                    if (item.getPath().startsWith(path.substring(0, path.length() - 2))) {
-                        invalid.add(item);
-                    }
-                } else if (path.startsWith("*")) {
-                    if (item.getPath().endsWith(path.substring(1, path.length() - 1))) {
-                        invalid.add(item);
-                    }
-                }else {
-                    if (item.getPath().equals(path)) {
-                        invalid.add(item);
-                    }
-                }
-            }
+            List<CacheItem> invalid = generateItemsToInvalidate(data, path);;
 
             for (CacheItem item : invalid) {
                 data.remove(item);
@@ -103,25 +78,28 @@ public class MemoryCache extends Cache {
         }
     }
 
+    public List<CacheItem> generateItemsToInvalidate(List<CacheItem> data, String path) {
+        List<CacheItem> invalid = new ArrayList<>();
+        data.removeIf(item -> {
+            if (path.startsWith("*") && path.endsWith("*")) {
+                return item.getPath().contains(path.substring(1, path.length() - 2));
+            } else if (path.endsWith("*")) {
+                return item.getPath().startsWith(path.substring(0, path.length() - 2));
+            } else if (path.startsWith("*")) {
+                return item.getPath().endsWith(path.substring(1, path.length() - 1));
+            }else {
+                return item.getPath().equals(path);
+            }
+        });
+
+        return invalid;
+    }
+
     @Override
     public void clear() {
-        List<CacheItem> toRemove = new ArrayList<>();
         synchronized (data) {
-            for (CacheItem item: data) {
-                if (item.getExpiringTime() != TIME_INFINITE) {
-                    if (item.getExpiringTime() <= System.currentTimeMillis()) {
-                        toRemove.add(item);
-                    }
-                }
-            }
-            if (toRemove.size() > 0) {
-                for (CacheItem item: toRemove) {
-                    data.remove(item);
-                }
-            }
+            data.removeIf(item -> item.getExpiringTime() != TIME_INFINITE && item.getExpiringTime() <= System.currentTimeMillis());
         }
-
-
     }
 
     @Override

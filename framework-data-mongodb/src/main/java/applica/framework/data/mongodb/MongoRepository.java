@@ -20,13 +20,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
-	
+
 	@Autowired
 	private MongoHelper mongoHelper;
 
     @Autowired
     private CrudStrategy crudStrategy;
-	
+
 	private Log logger = LogFactory.getLog(getClass());
 
     private DB db;
@@ -49,7 +49,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     public String getCollectionName() {
         return Strings.pluralize(StringUtils.uncapitalize(getEntityType().getSimpleName()));
     }
-	
+
 	@Override
 	public Optional<T> get(Object id) {
         init();
@@ -60,7 +60,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 		}
 
 		T entity = crudStrategy.get(id, this);
-		
+
 		return Optional.ofNullable(entity);
 	}
 
@@ -87,7 +87,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return null;
         }
-		
+
 		if(query == null) query = new applica.framework.Query();
 
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
@@ -95,7 +95,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
 		Result response = crudStrategy.find(query, this);
-		
+
 		return response;
 	}
 
@@ -178,7 +178,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.warn("Mongo DB is null");
             return;
         }
-		
+
 		crudStrategy.delete(id, this);
 	}
 
@@ -243,5 +243,17 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
     public MappingContext getMappingContext() {
         return mappingContext;
+    }
+
+
+    @Override
+    public void deleteMany(Query request) {
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
+        crudStrategy.deleteMany(request, this);
     }
 }

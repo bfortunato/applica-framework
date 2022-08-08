@@ -529,4 +529,10 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         new KeywordQueryBuilder(getEntityType()).build(query);
         return query;
     }
+
+
+    @Override
+    public void deleteMany(Query request) {
+        crudStrategy.deleteMany(request, this);
+    }
 }

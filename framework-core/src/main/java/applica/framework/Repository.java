@@ -14,5 +14,6 @@ public interface Repository<T extends Entity> {
     void delete(Object id);
     Class<T> getEntityType();
     Query keywordQuery(Query initialQuery);
+    void deleteMany(Query request);
 
 }

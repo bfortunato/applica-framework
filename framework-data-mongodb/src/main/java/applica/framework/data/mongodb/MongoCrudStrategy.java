@@ -3,6 +3,7 @@ package applica.framework.data.mongodb;
 import applica.framework.*;
 import applica.framework.data.mongodb.constraints.ConstraintsChecker;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class MongoCrudStrategy implements CrudStrategy {
 
     @Autowired(required = false)
     private ConstraintsChecker constraintsChecker;
+
+    @Autowired
+    private MongoHelper mongoHelper;
 
     @Override
     public <T extends Entity> T get(Object id, Repository<T> repository) {
@@ -122,5 +126,18 @@ public class MongoCrudStrategy implements CrudStrategy {
             mongoRepository.getCollection().remove(MongoQuery.mk().id(String.valueOf(id)));
         }
     }
+
+    @Override
+    public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+        Assert.notNull(mongoRepository, "Specified repository is not a mongo repository");
+
+        if(query != null && query.getFilters().size() > 0) {
+            DBCollection collection = mongoRepository.getCollection();
+
+            collection.remove(mongoRepository.createQuery(query));
+        }
+    }
+
 
 }

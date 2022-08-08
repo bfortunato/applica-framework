@@ -13,15 +13,6 @@ public abstract class Cache {
     public static final long TIME_HALF_HOUR = TIME_ONE_MINUTE * 30;
     public static final long TIME_ONE_HOUR = TIME_ONE_MINUTE * 60;
 
-    private static Cache _instance;
-
-    public static Cache instance() {
-        if (_instance == null) {
-            _instance = new MemoryCache();
-        }
-
-        return _instance;
-    }
 
     /**
      * Puts value into cache

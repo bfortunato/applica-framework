@@ -13,4 +13,5 @@ public interface CrudStrategy {
 
     <T extends Entity> void delete(Object id, Repository<T> repository);
 
+    <T extends Entity> void deleteMany(Query query, Repository<T> repository);
 }
