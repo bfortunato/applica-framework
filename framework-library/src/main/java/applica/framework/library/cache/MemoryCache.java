@@ -5,6 +5,7 @@ import org.apache.commons.collections.Predicate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by bimbobruno on 27/10/2016.
@@ -79,8 +80,7 @@ public class MemoryCache extends Cache {
     }
 
     public List<CacheItem> generateItemsToInvalidate(List<CacheItem> data, String path) {
-        List<CacheItem> invalid = new ArrayList<>();
-        data.removeIf(item -> {
+        return data.stream().filter(item -> {
             if (path.startsWith("*") && path.endsWith("*")) {
                 return item.getPath().contains(path.substring(1, path.length() - 2));
             } else if (path.endsWith("*")) {
@@ -90,11 +90,8 @@ public class MemoryCache extends Cache {
             }else {
                 return item.getPath().equals(path);
             }
-        });
-
-        return invalid;
+        }).collect(Collectors.toList());
     }
-
     @Override
     public void clear() {
         synchronized (data) {
