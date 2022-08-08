@@ -41,4 +41,9 @@ public abstract class MockRepository<T extends Entity> implements Repository<T> 
     public void delete(Object id) {
 
     }
+
+    @Override
+    public void deleteMany(Query request) {
+
+    }
 }
