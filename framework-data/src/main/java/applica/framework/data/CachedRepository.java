@@ -67,4 +67,12 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     public Query keywordQuery(Query initialQuery) {
         return concreteRepository.keywordQuery(initialQuery);
     }
+
+    @Override
+    public void deleteMany(Query request) {
+        concreteRepository.find(request).getRows().forEach(c -> {
+            cache.invalidate(c.getId().toString());
+        });
+        concreteRepository.deleteMany(request);
+    }
 }
