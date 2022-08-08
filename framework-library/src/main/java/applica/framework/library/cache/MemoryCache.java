@@ -1,5 +1,6 @@
 package applica.framework.library.cache;
 
+import applica.framework.Entity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class MemoryCache extends Cache {
 
-    private List<CacheItem> data = new ArrayList<>();
+    private final List<CacheItem> data = new ArrayList<>();
 
     @Override
     public void put(final String path, long validity, Object value) {
@@ -34,7 +35,7 @@ public class MemoryCache extends Cache {
 
     @Override
     public Object get(final String path) {
-        clean();
+        clear();
 
         CacheItem item = findItemByPath(path);
 
@@ -54,40 +55,39 @@ public class MemoryCache extends Cache {
         return null;
     }
 
-    public void clean() {
+    public void clear() {
         synchronized (data) {
-            data.removeIf(item -> item.getExpiringTime() != TIME_INFINITE && item.getExpiringTime() <= System.currentTimeMillis());
+            data.removeIf(CacheItem::isExpired);
         }
     }
 
-    private CacheItem findItemByPath(final String path) {
-        synchronized (data) {
-            CacheItem item = ((CacheItem) CollectionUtils.find(data, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return path.equals(((CacheItem) o).getPath());
-                }
-            }));
+    public List<CacheItem> generateItemsToInvalidate(List<CacheItem> data, String path) {
+        List<CacheItem> invalid = new ArrayList<>();
+        data.removeIf(item -> {
+            if (path.startsWith("*") && path.endsWith("*")) {
+                return item.getPath().contains(path.substring(1, path.length() - 2));
+            } else if (path.endsWith("*")) {
+                return item.getPath().startsWith(path.substring(0, path.length() - 2));
+            } else if (path.startsWith("*")) {
+                return item.getPath().endsWith(path.substring(1, path.length() - 1));
+            }else {
+                return item.getPath().equals(path);
+            }
+        });
 
-            return item;
+        return invalid;
+    }
+
+    public CacheItem findItemByPath(final String path) {
+        synchronized (data) {
+            return data.stream().filter(o -> path.equals(o.getPath())).findFirst().orElse(null);
         }
     }
 
     @Override
     public void invalidate(final String path) {
         synchronized (data) {
-            List<CacheItem> invalid = new ArrayList<>();
-            for (CacheItem item : data) {
-                if (path.endsWith("*")) {
-                    if (item.getPath().startsWith(path.substring(0, path.length() - 2))) {
-                        invalid.add(item);
-                    }
-                } else {
-                    if (item.getPath().equals(path)) {
-                        invalid.add(item);
-                    }
-                }
-            }
+            List<CacheItem> invalid = generateItemsToInvalidate(data, path);;
 
             for (CacheItem item : invalid) {
                 data.remove(item);
@@ -95,42 +95,12 @@ public class MemoryCache extends Cache {
         }
     }
 
-    @Override
-    public void clear() {
-        List<CacheItem> toRemove = new ArrayList<>();
-        synchronized (data) {
-            for (CacheItem item: data) {
-                if (item.getExpiringTime() != TIME_INFINITE) {
-                    if (item.isExpired()) {
-                        toRemove.add(item);
-                    }
-                }
-            }
-            if (toRemove.size() > 0) {
-                for (CacheItem item: toRemove) {
-                    data.remove(item);
-                }
-            }
-        }
-
-
-    }
 
     @Override
     public void forceClear() {
-        List<CacheItem> toRemove = new ArrayList<>();
         synchronized (data) {
-            for (CacheItem item: data) {
-                toRemove.add(item);
-            }
-            if (toRemove.size() > 0) {
-                for (CacheItem item: toRemove) {
-                    data.remove(item);
-                }
-            }
+            data.clear();
         }
-
-
     }
 
     @Override

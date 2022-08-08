@@ -1,11 +1,13 @@
 package applica.framework.library.cache;
 
+import applica.framework.AEntity;
+
 import java.io.Serializable;
 
 /**
  * Created by bimbobruno on 27/10/2016.
  */
-public class CacheItem implements Serializable {
+public class CacheItem extends AEntity implements Serializable {
 
     private String path;
     private long expiringTime;
@@ -36,7 +38,7 @@ public class CacheItem implements Serializable {
     }
 
     public boolean isExpired() {
-        return getExpiringTime() <= System.currentTimeMillis();
+        return expiringTime > 0 && getExpiringTime() <= System.currentTimeMillis();
     }
 
     public String dump() {
