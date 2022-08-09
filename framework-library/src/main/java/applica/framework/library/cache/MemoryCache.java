@@ -63,9 +63,6 @@ public class MemoryCache extends Cache {
         List<CacheItem> invalid = generateItemsToInvalidate(path);;
 
         invalid.forEach(i -> data.remove(i.getPath()));
-        for (CacheItem item : invalid) {
-            data.remove(item);
-        }
     }
 
     public List<CacheItem> generateItemsToInvalidate(String path) {
