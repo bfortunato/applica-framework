@@ -23,6 +23,7 @@ public class MemoryCache extends Cache {
                 data.add(item);
             }
         }
+        item.setValidity(validity);
         item.setExpiringTime(validity != TIME_INFINITE ? System.currentTimeMillis() + validity : TIME_INFINITE);
         item.setPath(path);
         item.setValue(value);

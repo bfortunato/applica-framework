@@ -12,6 +12,7 @@ public class CacheItem extends AEntity implements Serializable {
     private String path;
     private long expiringTime;
     private Object value;
+    private long validity;
 
     public String getPath() {
         return path;
@@ -43,5 +44,13 @@ public class CacheItem extends AEntity implements Serializable {
 
     public String dump() {
         return String.format("%s - %s", path, value != null? value.toString() : null);
+    }
+
+    public long getValidity() {
+        return validity;
+    }
+
+    public void setValidity(long validity) {
+        this.validity = validity;
     }
 }
