@@ -1,8 +1,6 @@
 package applica.framework.library.cache;
 
 import applica.framework.Entity;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,8 @@ public class MemoryCache extends Cache {
                 data.add(item);
             }
         }
-        item.setExpiringTime(validity != TIME_INFINITE ? System.currentTimeMillis() + validity : TIME_INFINITE);
+        item.setValidity(validity);
+        item.start();
         item.setPath(path);
         item.setValue(value);
     }
@@ -62,7 +61,7 @@ public class MemoryCache extends Cache {
         }
     }
 
-    public List<CacheItem> generateItemsToInvalidate(List<CacheItem> data, String path) {
+    public List<CacheItem> filterMatchedItems(List<CacheItem> data, String path) {
         return data.stream().filter(item -> {
             if (path.startsWith("*") && path.endsWith("*")) {
                 return item.getPath().contains(path.substring(1, path.length() - 2));
@@ -70,7 +69,7 @@ public class MemoryCache extends Cache {
                 return item.getPath().startsWith(path.substring(0, path.length() - 2));
             } else if (path.startsWith("*")) {
                 return item.getPath().endsWith(path.substring(1, path.length() - 1));
-            }else {
+            } else {
                 return item.getPath().equals(path);
             }
         }).collect(Collectors.toList());
@@ -85,7 +84,7 @@ public class MemoryCache extends Cache {
     @Override
     public void invalidate(final String path) {
         synchronized (data) {
-            List<CacheItem> invalid = generateItemsToInvalidate(data, path);;
+            List<CacheItem> invalid = filterMatchedItems(data, path);;
 
             for (CacheItem item : invalid) {
                 data.remove(item);
