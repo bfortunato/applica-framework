@@ -5,6 +5,8 @@ import org.apache.commons.collections.Predicate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -12,16 +14,14 @@ import java.util.stream.Collectors;
  */
 public class MemoryCache extends Cache {
 
-    private List<CacheItem> data = new ArrayList<>();
+    private final Map<String, CacheItem> data = new ConcurrentHashMap<>();
 
     @Override
     public void put(final String path, long validity, Object value) {
         CacheItem item = findItemByPath(path);
         if (item == null) {
             item = new CacheItem();
-            synchronized (data) {
-                data.add(item);
-            }
+            data.put(path, item);
         }
         item.setValidity(validity);
         item.setExpiringTime(validity != TIME_INFINITE ? System.currentTimeMillis() + validity : TIME_INFINITE);
@@ -36,8 +36,6 @@ public class MemoryCache extends Cache {
 
     @Override
     public Object get(final String path) {
-        clear();
-
         CacheItem item = findItemByPath(path);
 
         if (item != null) {
@@ -57,74 +55,48 @@ public class MemoryCache extends Cache {
     }
 
     public CacheItem findItemByPath(final String path) {
-        synchronized (data) {
-            CacheItem item = ((CacheItem) CollectionUtils.find(data, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return path.equals(((CacheItem) o).getPath());
-                }
-            }));
-
-            return item;
-        }
+        return data.get(path);
     }
 
     @Override
     public void invalidate(final String path) {
-        synchronized (data) {
-            List<CacheItem> invalid = generateItemsToInvalidate(data, path);;
+        List<CacheItem> invalid = generateItemsToInvalidate(path);;
 
-            for (CacheItem item : invalid) {
-                data.remove(item);
-            }
+        invalid.forEach(i -> data.remove(i.getPath()));
+        for (CacheItem item : invalid) {
+            data.remove(item);
         }
     }
 
-    public List<CacheItem> generateItemsToInvalidate(List<CacheItem> data, String path) {
-        return data.stream().filter(item -> {
+    public List<CacheItem> generateItemsToInvalidate(String path) {
+
+        List<String> keysToInvalidate = data.keySet().stream().filter(key -> {
+
             if (path.startsWith("*") && path.endsWith("*")) {
-                return item.getPath().contains(path.substring(1, path.length() - 2));
+                return key.contains(path.substring(1, path.length() - 2));
             } else if (path.endsWith("*")) {
-                return item.getPath().startsWith(path.substring(0, path.length() - 2));
+                return key.startsWith(path.substring(0, path.length() - 2));
             } else if (path.startsWith("*")) {
-                return item.getPath().endsWith(path.substring(1, path.length() - 1));
+                return key.endsWith(path.substring(1, path.length() - 1));
             }else {
-                return item.getPath().equals(path);
+                return key.equals(path);
             }
         }).collect(Collectors.toList());
+
+        return keysToInvalidate.stream().map(k -> data.get(k)).collect(Collectors.toList());
     }
     @Override
     public void clear() {
-        synchronized (data) {
-            data.removeIf(item -> item.getExpiringTime() != TIME_INFINITE && item.getExpiringTime() <= System.currentTimeMillis());
-        }
+        data.entrySet().removeIf(entries -> entries.getValue().getExpiringTime() != TIME_INFINITE && entries.getValue().getExpiringTime() <= System.currentTimeMillis());
     }
 
     @Override
     public void forceClear() {
-        List<CacheItem> toRemove = new ArrayList<>();
-        synchronized (data) {
-            for (CacheItem item: data) {
-                toRemove.add(item);
-            }
-            if (toRemove.size() > 0) {
-                for (CacheItem item: toRemove) {
-                    data.remove(item);
-                }
-            }
-        }
+        data.clear();
     }
 
     @Override
     public String dump() {
-        List<String> dump = new ArrayList<>();
-        synchronized (data) {
-            for (CacheItem item: data) {
-                if (!item.isExpired())
-                    dump.add(item.dump());
-            }
-        }
-
-        return String.join("\n" , dump);
+        return data.values().stream().map(item -> item.dump()).collect(Collectors.joining(", "));
     }
 }
