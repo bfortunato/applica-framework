@@ -4,6 +4,7 @@ import applica.framework.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -11,16 +12,14 @@ import java.util.stream.Collectors;
  */
 public class MemoryCache extends Cache {
 
-    private final List<CacheItem> data = new ArrayList<>();
+    private final ConcurrentHashMap<String, CacheItem> data = new ConcurrentHashMap<>();
 
     @Override
     public void put(final String path, long validity, Object value) {
         CacheItem item = findItemByPath(path);
         if (item == null) {
             item = new CacheItem();
-            synchronized (data) {
-                data.add(item);
-            }
+            data.put(path, item);
         }
         item.setValidity(validity);
         item.start();
@@ -35,81 +34,59 @@ public class MemoryCache extends Cache {
 
     @Override
     public Object get(final String path) {
-        clear();
-
         CacheItem item = findItemByPath(path);
 
         if (item != null) {
-            if (item.getExpiringTime() != TIME_INFINITE) {
-                if (item.isExpired()) {
-                    invalidate(item.getPath());
-                    return null;
-                } else {
-                    return item.getValue();
-                }
-            } else {
+            if (item.isExpired()) {
+                invalidate(item.getPath());
+                return null;
+            } else
                 return item.getValue();
-            }
         }
 
         return null;
     }
 
     public void clear() {
-        synchronized (data) {
-            data.removeIf(CacheItem::isExpired);
-        }
+        data.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 
-    public List<CacheItem> filterMatchedItems(List<CacheItem> data, String path) {
-        return data.stream().filter(item -> {
+    public List<CacheItem> generateItemsToInvalidate(String path) {
+
+        List<String> keysToInvalidate = data.keySet().stream().filter(key -> {
+
             if (path.startsWith("*") && path.endsWith("*")) {
-                return item.getPath().contains(path.substring(1, path.length() - 2));
+                return key.contains(path.substring(1, path.length() - 2));
             } else if (path.endsWith("*")) {
-                return item.getPath().startsWith(path.substring(0, path.length() - 2));
+                return key.startsWith(path.substring(0, path.length() - 2));
             } else if (path.startsWith("*")) {
-                return item.getPath().endsWith(path.substring(1, path.length() - 1));
-            } else {
-                return item.getPath().equals(path);
+                return key.endsWith(path.substring(1, path.length() - 1));
+            }else {
+                return key.equals(path);
             }
         }).collect(Collectors.toList());
+
+        return keysToInvalidate.stream().map(k -> data.get(k)).collect(Collectors.toList());
     }
 
     public CacheItem findItemByPath(final String path) {
-        synchronized (data) {
-            return data.stream().filter(o -> path.equals(o.getPath())).findFirst().orElse(null);
-        }
+        return data.get(path);
     }
 
     @Override
     public void invalidate(final String path) {
-        synchronized (data) {
-            List<CacheItem> invalid = filterMatchedItems(data, path);;
-
-            for (CacheItem item : invalid) {
-                data.remove(item);
-            }
-        }
+        List<CacheItem> invalid = generateItemsToInvalidate(path);
+        invalid.forEach(i -> data.remove(i.getPath()));
     }
 
 
     @Override
     public void forceClear() {
-        synchronized (data) {
-            data.clear();
-        }
+        data.clear();
     }
 
     @Override
     public String dump() {
-        List<String> dump = new ArrayList<>();
-        synchronized (data) {
-            for (CacheItem item: data) {
-                if (!item.isExpired())
-                    dump.add(item.dump());
-            }
-        }
-
-        return String.join("\n" , dump);
+        return data.values().stream().map(item -> item.dump()).collect(Collectors.joining(", "));
     }
 }

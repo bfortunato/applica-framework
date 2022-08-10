@@ -39,7 +39,7 @@ public class CacheItem extends AEntity implements Serializable {
     }
 
     public boolean isExpired() {
-        return expiringTime > 0 && getExpiringTime() <= System.currentTimeMillis();
+        return validity > 0 && getExpiringTime() <= System.currentTimeMillis();
     }
 
     public String dump() {
