@@ -52,9 +52,15 @@ public class BaseSaveOperation implements SaveOperation {
 
         ValidationUtils.validate(entity, result, true);
 
+        manageValidationResult(entity, result);
+
         if (!result.isValid()) {
             throw new ValidationException(result);
         }
+    }
+
+    public void manageValidationResult(Entity entity, ValidationResult result) {
+
     }
 
     private Class<? extends Entity> entityType;
