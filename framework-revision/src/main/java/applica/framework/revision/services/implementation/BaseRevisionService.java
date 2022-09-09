@@ -16,6 +16,7 @@ import applica.framework.widgets.entities.EntitiesRegistry;
 import applica.framework.widgets.entities.EntityUtils;
 import applica.framework.widgets.factory.OperationsFactory;
 import applica.framework.widgets.operations.OperationException;
+import applica.framework.widgets.utils.ClassUtils.*;
 import org.jsoup.helper.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,6 +26,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static applica.framework.widgets.utils.ClassUtils.isTransient;
 
 
 public class BaseRevisionService implements RevisionService {
@@ -124,11 +127,6 @@ public class BaseRevisionService implements RevisionService {
         }
 
     }
-
-    private boolean isTransient(Field field) {
-        return Modifier.isTransient(field.getModifiers());
-    }
-
 
     private boolean hasRelationsAnnotation(Field f) {
         return f.getAnnotation(ManyToMany.class) != null || f.getAnnotation(ManyToOne.class) != null || f.getAnnotation(OneToMany.class) != null;
