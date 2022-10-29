@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,6 +100,11 @@ public class BaseGetOperation implements GetOperation {
 
         EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
         materializeFields(e, entityService);
+    }
+
+    public static void materializePropertyId(Entity e, String propertyId) {
+        EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
+        entityService.materializePropertyFromId(Collections.singletonList(e), propertyId);
     }
 
 

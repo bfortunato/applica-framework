@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -145,6 +146,12 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
     public List<Field> generateFieldsForMaterialization() {
         return ClassUtils.getAllFields(getEntityType());
     }
+
+    public static void materializePropertyId(List<Entity> e, String propertyId) {
+        EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
+        entityService.materializePropertyFromId(e, propertyId);
+    }
+
 
     public static void materializeFields(List<? extends Entity> rows) {
         if (rows == null || rows.size() == 0)
