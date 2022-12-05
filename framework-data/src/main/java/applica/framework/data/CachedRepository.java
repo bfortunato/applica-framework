@@ -69,6 +69,11 @@ public class CachedRepository<T extends Entity> implements Repository<T> {
     }
 
     @Override
+    public void saveAll(List<T> entity) {
+        entity.forEach(e -> save(e));
+    }
+
+    @Override
     public Object sum(Query request, String value) {
         return concreteRepository.sum(request, value);
     }

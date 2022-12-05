@@ -18,6 +18,7 @@ public interface Repository<T extends Entity> {
     List<T> getMultiple(List<Object> ids);
     Statement<T> find(Filter... filters);
     void save(T entity);
+    void saveAll(List<T> entity);
     void delete(Object id);
     void deleteMany(Query request);
     Class<T> getEntityType();

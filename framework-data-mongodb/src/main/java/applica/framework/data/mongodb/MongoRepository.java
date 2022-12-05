@@ -279,6 +279,19 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 	}
 
+    @Override
+    public void saveAll(List<T> entity) {
+
+        init();
+
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return;
+        }
+
+        crudStrategy.saveAll(entity, this);
+    }
+
     public List<Sort> getDefaultSorts() {
 		return null;
 	}

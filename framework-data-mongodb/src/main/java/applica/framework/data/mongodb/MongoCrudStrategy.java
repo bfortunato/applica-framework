@@ -14,6 +14,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by bimbobruno on 17/09/15.
@@ -122,6 +123,18 @@ public class MongoCrudStrategy implements CrudStrategy {
         }
 
 
+    }
+
+    @Override
+    public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
+        MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
+
+        List<Document> documents = entities.stream().map(p -> mongoMapper.loadBasicDBObject(p, null)).collect(Collectors.toList());
+        mongoRepository.getCollection().insertMany(documents);
+
+        for (int i = 0; i < documents.size(); i++) {
+            entities.get(i).setId(documents.get(i).getObjectId("_id"));
+        }
     }
 
     @Override

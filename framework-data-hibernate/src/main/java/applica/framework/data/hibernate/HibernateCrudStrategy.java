@@ -119,6 +119,11 @@ public class HibernateCrudStrategy implements CrudStrategy {
     }
 
     @Override
+    public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
+        entities.forEach(e -> save(e, repository));
+    }
+
+    @Override
     public <T extends Entity> void delete(Object id, Repository<T> repository) {
         HibernateRepository<T> hibernateRepository = ((HibernateRepository<T>) repository);
         Assert.notNull(hibernateRepository, "Specified repository is not HibernateRepository");

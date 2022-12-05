@@ -575,4 +575,8 @@ public abstract class HibernateRepository<T extends Entity> implements Repositor
         return response.getRows();
     }
 
+    @Override
+    public void saveAll(List<T> entity) {
+        entity.forEach(e -> save(e));
+    }
 }

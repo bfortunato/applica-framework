@@ -9,6 +9,7 @@ import applica.framework.library.utils.SystemOptionsUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -99,6 +100,29 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
             disjunction.getChildren().add(new Filter(getOwnerPropertyName(), ownerId));
             query.getFilters().add(disjunction);
         }
+    }
+
+    @Override
+    public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
+
+        checkAttributes();
+
+        if (SecureEntity.class.isAssignableFrom(repository.getEntityType()) && isSecureStrategyEnabled()) {
+
+            entities.forEach(entity -> {
+                SecureEntity se = (SecureEntity) entity;
+
+                checkOwnership((SecureEntity) entity);
+
+                if (se.getOwnerId() == null) {
+                    se.setOwnerId(getOwnerId());
+                }
+            });
+
+        }
+
+
+        super.saveAll(entities, repository);
     }
 
     @Override

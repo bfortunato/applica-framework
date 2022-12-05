@@ -1,5 +1,7 @@
 package applica.framework;
 
+import java.util.List;
+
 /**
  * Created by bimbobruno on 23/10/15.
  */
@@ -44,6 +46,13 @@ public abstract class ChainedCrudStrategy implements CrudStrategy {
     public <T extends Entity> void save(T entity, Repository<T> repository) {
         if (parent != null) {
             parent.save(entity, repository);
+        }
+    }
+
+    @Override
+    public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
+        if (parent != null) {
+            parent.saveAll(entities, repository);
         }
     }
 
