@@ -129,12 +129,19 @@ public class MongoCrudStrategy implements CrudStrategy {
     public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
         MongoRepository<T> mongoRepository = (MongoRepository<T>) repository;
 
-        List<Document> documents = entities.stream().map(p -> mongoMapper.loadBasicDBObject(p, null)).collect(Collectors.toList());
-        mongoRepository.getCollection().insertMany(documents);
+        List<T> toInsert = entities.stream().filter(e -> e.getId() == null).collect(Collectors.toList());
 
-        for (int i = 0; i < documents.size(); i++) {
-            entities.get(i).setId(documents.get(i).getObjectId("_id"));
+        if (toInsert.size() > 0) {
+            List<Document> documentsToInsert =  toInsert.stream().map(p -> mongoMapper.loadBasicDBObject(p, null)).collect(Collectors.toList());
+            mongoRepository.getCollection().insertMany(documentsToInsert);
+            for (int i = 0; i < documentsToInsert.size(); i++) {
+                toInsert.get(i).setId(documentsToInsert.get(i).getObjectId("_id"));
+            }
         }
+
+        entities.stream().filter(e -> e.getId() != null).forEach(e -> {
+            save(e, repository);
+        });
     }
 
     @Override
