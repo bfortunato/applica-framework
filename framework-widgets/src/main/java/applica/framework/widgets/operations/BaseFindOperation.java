@@ -147,7 +147,7 @@ public class BaseFindOperation implements FindOperation, ResultSerializerListene
         return ClassUtils.getAllFields(getEntityType());
     }
 
-    public static void materializePropertyId(List<Entity> e, String propertyId) {
+    public static void materializePropertyId(List<? extends Entity> e, String propertyId) {
         EntityService entityService = ApplicationContextProvider.provide().getBean(EntityService.class);
         entityService.materializePropertyFromId(e, propertyId);
     }
