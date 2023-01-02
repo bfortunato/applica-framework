@@ -76,6 +76,11 @@ public class BaseSaveOperation implements SaveOperation {
 
     @Override
     public Entity save(ObjectNode data) throws OperationException, ValidationException {
+        return save(data, false);
+    }
+
+    @Override
+    public Entity save(ObjectNode data, boolean skipValidation) throws OperationException, ValidationException {
         if (getEntityType() == null) throw new ProgramException("Entity entityType is null");
         try {
 
@@ -84,7 +89,10 @@ public class BaseSaveOperation implements SaveOperation {
 
             authorize(entity);
 
-            validate(entity);
+            if (!skipValidation) {
+                validate(entity);
+            }
+
             beforeSave(data, entity);
             persist(entity);
             afterSave(data, entity);
