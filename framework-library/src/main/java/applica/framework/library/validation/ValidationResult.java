@@ -127,4 +127,8 @@ public class ValidationResult {
             this.warning = warning;
         }
     }
+
+    public boolean isPropertyAllowed(String property) {
+        return allowedProperties == null || allowedProperties.contains(property);
+    }
 }

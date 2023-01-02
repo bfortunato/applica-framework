@@ -220,6 +220,12 @@ public class ValidationUtils {
         validate(entity, result, new ArrayList<>());
     }
 
+
+    public static List<String> generateAllowedProperties(Entity entity, List<String> excludedProperties) {
+        List<Field> list = ClassUtils.getAllFields(entity.getClass());
+        return list.stream().filter(f -> excludedProperties == null || !excludedProperties.contains(f.getName())).map(f -> f.getName()).collect(Collectors.toList());
+    }
+
     public static void validate(Entity entity, ValidationResult result, boolean considerStandaloneValidator) throws ValidationException {
         List<String> excludedProperties = new ArrayList<>();
 
@@ -242,12 +248,8 @@ public class ValidationUtils {
         ValidationResult result = new ValidationResult();
         validate(entity, result, excludedProperties);
 
-        if (considerStandaloneValidator) {
-            try {
-                applica.framework.library.validation.Validation.validate(entity);
-            } catch (ValidationException e) {
-                return false;
-            }
+        if (considerStandaloneValidator && result.isValid()) {
+            applica.framework.library.validation.Validation.getValidationResult(entity, result);
         }
 
         return result.isValid();
