@@ -7,6 +7,7 @@ import applica.framework.Query;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Objects;
 
 public class FilterUtils {
 
@@ -22,7 +23,7 @@ public class FilterUtils {
             } else {
                 f = createBooleanFalseOrNotExistingFilter(filterName);
             }
-            query.getFilters().removeIf(fi -> fi.getProperty().equals(filterName));
+            query.getFilters().removeIf(fi -> Objects.equals(fi.getProperty(), filterName));
             query.getFilters().add(f);
         }
 
