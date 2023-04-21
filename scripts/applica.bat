@@ -12,7 +12,7 @@
 
 @echo off
 
-set APPLICAFRAMEWORK_VERSION="2.3.2"
+set APPLICAFRAMEWORK_VERSION="2.3.3"
 
 :init
 @REM Decide how to startup depending on the version of windows
