@@ -10,21 +10,17 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
 import org.apache.velocity.runtime.resource.util.StringResourceRepository;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StringUtils;
 
-import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
-import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.apache.commons.codec.CharEncoding.ISO_8859_1;
+import java.util.*;
+import static org.apache.commons.codec.CharEncoding.UTF_8;
 
 public class TemplatedMail {
 
@@ -42,9 +38,13 @@ public class TemplatedMail {
     private List<Recipient> recipients = new ArrayList<>();
     private String subject;
     private List<String> attachments = new ArrayList<>();
+    private HashMap<String, String> inlineAttachments = new HashMap<>();
     private List<ByteAttachmentData> bytesAttachments = new ArrayList<>();
+    private HashMap<String, ByteAttachmentData> inlineBytesAttachments = new HashMap<>();
     private OptionsManager options;
     private int mailFormat;
+
+    private String encoding;
 
     private String mailText;
 
@@ -140,6 +140,14 @@ public class TemplatedMail {
         this.mailFormat = mailFormat;
     }
 
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
     public List<String> getAttachments() {
         return attachments;
     }
@@ -152,12 +160,31 @@ public class TemplatedMail {
         bytesAttachments.add(new ByteAttachmentData(data, type, name));
     }
 
+    public HashMap<String, String> getInlineAttachments() {
+        return inlineAttachments;
+    }
+
+    public void setInlineAttachments(HashMap<String, String> inlineAttachments) {
+        this.inlineAttachments = inlineAttachments;
+    }
+
+    public void addInlineAttachment(String contentId, byte[] data, String type, String name) {
+        this.inlineBytesAttachments.put(contentId, new ByteAttachmentData(data, type, name));
+    }
+
     public void send() throws MailException, AddressException, MessagingException {
-        if (options == null) throw new MailException("options not setted");
-        if (!StringUtils.hasLength(from)) throw new MailException("from not setted");
-        if (recipients.isEmpty()) throw new MailException("to or recipients not setted");
-        if(mailFormat == 0){
-            mailFormat = TEXT;
+        if (options == null) {
+            throw new MailException("options not setted");
+        }
+        if (!StringUtils.hasLength(from)) {
+            throw new MailException("from not setted");
+        }
+        if (recipients.isEmpty()) {
+            throw new MailException("to or recipients not setted");
+        }
+
+        if (this.encoding == null) {
+            this.setEncoding(UTF_8);
         }
 
         Session session = MailUtils.getMailSession(options);
@@ -172,25 +199,32 @@ public class TemplatedMail {
         }
 
         MimeMessage message = new MimeMessage(session);
-        message.addFrom(new InternetAddress[]{new InternetAddress(from)});
+        MimeMessageHelper messageHelper = new MimeMessageHelper(message, mailFormat == HTML, this.encoding);
 
-        if(!recipients.isEmpty()){
-            for(Recipient r : recipients){
-                switch (r.getRecipientType()){
-                    case Recipient.TYPE_TO:
-                        message.addRecipient(RecipientType.TO, new InternetAddress(r.getRecipient()));
-                        break;
-                    case Recipient.TYPE_CC:
-                        message.addRecipient(RecipientType.CC, new InternetAddress(r.getRecipient()));
-                        break;
-                    case Recipient.TYPE_CCN:
-                        message.addRecipient(RecipientType.BCC, new InternetAddress(r.getRecipient()));
-                        break;
-                }
+        messageHelper.setFrom(new InternetAddress(from));
+        List<InternetAddress> toRecipients = new ArrayList<>();
+        List<InternetAddress> ccRecipients = new ArrayList<>();
+        List<InternetAddress> ccnRecipients = new ArrayList<>();
+
+        for (Recipient r : this.recipients) {
+            switch (r.getRecipientType()) {
+                case Recipient.TYPE_TO:
+                    toRecipients.add(new InternetAddress(r.getRecipient()));
+                    break;
+                case Recipient.TYPE_CC:
+                    ccRecipients.add(new InternetAddress(r.getRecipient()));
+                    break;
+                case Recipient.TYPE_CCN:
+                    ccnRecipients.add(new InternetAddress(r.getRecipient()));
+                    break;
             }
         }
 
-        message.setSubject(subject, ISO_8859_1);
+        messageHelper.setTo(toRecipients.toArray(InternetAddress[]::new));
+        messageHelper.setCc(ccRecipients.toArray(InternetAddress[]::new));
+        messageHelper.setBcc(ccnRecipients.toArray(InternetAddress[]::new));
+
+        messageHelper.setSubject(subject);
 
         Template template = null;
         if (StringUtils.hasLength(source)) {
@@ -199,73 +233,59 @@ public class TemplatedMail {
             repo.putStringResource(templateName, source);
         }
 
-        template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, ISO_8859_1);
+        template = VelocityBuilderProvider.provide().engine().getTemplate(templatePath, this.encoding);
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
-        if((attachments != null && !attachments.isEmpty()) || (bytesAttachments != null && !bytesAttachments.isEmpty())){
+        messageHelper.setText(bodyWriter.toString());
 
-            // Create the message part
-            BodyPart messageBodyPart = new MimeBodyPart();
-
-            // Fill the message
-            if(mailFormat == TEXT){
-                messageBodyPart.setText(bodyWriter.toString());
-            } else if (mailFormat == HTML){
-                messageBodyPart.setContent(bodyWriter.toString(), "text/html");
+        if (attachments != null) {
+            for (String attachment : attachments) {
+                String fileName = FilenameUtils.getName(attachment);
+                DataSource source = new FileDataSource(attachment);
+                messageHelper.addAttachment(fileName, source);
             }
-
-            // Create a multipar message
-            Multipart multipart = new MimeMultipart();
-
-            // Set text message part
-            multipart.addBodyPart(messageBodyPart);
-
-            for(String attachment : attachments){
-                addAttachment(multipart, attachment);
-            }
-
-            for (ByteAttachmentData byteAttachmentData: bytesAttachments) {
-                addByteAttachment(multipart, byteAttachmentData);
-            }
-
-            // Send the complete message parts
-            message.setContent(multipart);
-
-
-
-        } else if(mailFormat == TEXT){
-            message.setContent(bodyWriter.toString(),"text/plain" );
-            message.setText(bodyWriter.toString(), "UTF-8");
-        } else if (mailFormat == HTML){
-            message.setContent(bodyWriter.toString(), "text/html");
         }
+
+        if (bytesAttachments != null) {
+            for (TemplatedMail.ByteAttachmentData data : bytesAttachments) {
+                String fileName = FilenameUtils.getName(data.name);
+                DataSource source = new ByteArrayDataSource(data.bytes, data.type);
+                messageHelper.addAttachment(fileName, source);
+            }
+        }
+
+        if (this.inlineAttachments != null) {
+            for (Map.Entry<String, String> entry : this.inlineAttachments.entrySet()) {
+                String contentId = entry.getKey();
+                String attachment = entry.getValue();
+                DataSource source = new FileDataSource(attachment);
+                messageHelper.addInline(contentId, source);
+            }
+        }
+
+        if (this.inlineBytesAttachments != null) {
+            for (Map.Entry<String, ByteAttachmentData> entry: this.inlineBytesAttachments.entrySet()) {
+                String contentId = entry.getKey();
+                ByteAttachmentData byteAttachmentData = entry.getValue();
+                DataSource source = new ByteArrayDataSource(byteAttachmentData.bytes, byteAttachmentData.type);
+                messageHelper.addInline(contentId, source);
+            }
+        }
+
+        message = messageHelper.getMimeMessage();
+
         //gestisci la ricevuta di ritorno, se il suo destinatario è settato
         if (StringUtils.hasLength(returnReceipt)) {
             message.setHeader("Return-Receipt-To:",String.format("<%s>", returnReceipt));
         }
 
 
-        if (SystemOptionsUtils.isEnabled("log.email"))
+        if (SystemOptionsUtils.isEnabled("log.email")) {
             this.mailText = bodyWriter.toString();
+        }
 
         Transport.send(message);
-    }
-
-    private void addByteAttachment(Multipart multipart, ByteAttachmentData data) throws MessagingException {
-        DataSource source = new ByteArrayDataSource(data.bytes, data.type);
-        BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setDataHandler(new DataHandler(source));
-        messageBodyPart.setFileName(data.name);
-        multipart.addBodyPart(messageBodyPart);
-    }
-
-    private static void addAttachment(Multipart multipart, String attachment) throws MessagingException {
-        DataSource source = new FileDataSource(attachment);
-        BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setDataHandler(new DataHandler(source));
-        messageBodyPart.setFileName(FilenameUtils.getName(attachment));
-        multipart.addBodyPart(messageBodyPart);
     }
 
     public String getTo() {
