@@ -237,7 +237,7 @@ public class TemplatedMail {
         StringWriter bodyWriter = new StringWriter();
         template.merge(context, bodyWriter);
 
-        messageHelper.setText(bodyWriter.toString());
+        messageHelper.setText(bodyWriter.toString(), mailFormat == HTML);
 
         if (attachments != null) {
             for (String attachment : attachments) {
