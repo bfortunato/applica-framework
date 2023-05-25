@@ -110,15 +110,21 @@ public class BaseGetOperation implements GetOperation {
 
     protected void finishNode(Entity entity, ObjectNode node) throws OperationException {
         List<Field> fieldList = ClassUtils.getAllFields(getEntityType());
-        fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
-            EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
-            mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
-        });
 
-        fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
-            EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
-            mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
-        });
+        if (isImageMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+                EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+                mapper.imageToDataUrl(entity, node, f.getName(), f.getAnnotation(Image.class).nodeProperty(), f.getAnnotation(Image.class).size());
+            });
+        }
+
+        if (isFileMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
+                EntityMapper mapper = ApplicationContextProvider.provide().getBean(EntityMapper.class);
+                mapper.fileToDataUrl(entity, node, f.getName(), f.getAnnotation(File.class).nodeProperty());
+            });
+        }
+
     }
 
     protected EntityMapper map() {
@@ -143,5 +149,13 @@ public class BaseGetOperation implements GetOperation {
 
     public void setEntityType(Class<? extends Entity> entityType) {
         this.entityType = entityType;
+    }
+
+    public boolean isFileMaterializationEnabled() {
+        return true;
+    }
+
+    public boolean isImageMaterializationEnabled() {
+        return true;
     }
 }
