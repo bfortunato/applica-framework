@@ -159,13 +159,19 @@ public class BaseSaveOperation implements SaveOperation {
             }
         });
 
-        fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
-            entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
-        });
+        if (isImageMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(Image.class) != null).forEach(f -> {
+                entityMapper.dataUrlToImage(node, entity, f.getAnnotation(Image.class).nodeProperty(),  f.getName(), f.getAnnotation(Image.class).path());
+            });
+        }
 
-        fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
-            entityMapper.dataUrlToFile(node, entity, f.getAnnotation(File.class).nodeProperty(),  f.getName(), f.getAnnotation(File.class).path());
-        });
+
+        if (isFileMaterializationEnabled()) {
+            fieldList.stream().filter(f -> f.getAnnotation(File.class) != null).forEach(f -> {
+                entityMapper.dataUrlToFile(node, entity, f.getAnnotation(File.class).nodeProperty(),  f.getName(), f.getAnnotation(File.class).path());
+            });
+        }
+
 
         if (codeGeneratorService != null) {
             if(entity instanceof NumericCodedEntity && (entity.getId() == null || ((NumericCodedEntity) entity).getCode() == 0) && isCodeAutoGenerationEnabled()) {
@@ -193,5 +199,13 @@ public class BaseSaveOperation implements SaveOperation {
 
     private boolean isCodeAutoGenerationEnabled() {
         return EntitiesRegistry.instance().get(getEntityType()).get().getType().getAnnotation(EntityId.class).automaticCodeGeneration();
+    }
+
+    public boolean isFileMaterializationEnabled() {
+        return true;
+    }
+
+    public boolean isImageMaterializationEnabled() {
+        return true;
     }
 }
