@@ -13,12 +13,12 @@ import java.util.stream.Collectors;
 public class MongoQuery extends Document {
 
 	public static MongoQuery mk() { return new MongoQuery(); }
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 4425327108749584645L;
-	
+
 	/**
 	 * MongoQuery by Object ID
 	 * @param id
@@ -28,7 +28,7 @@ public class MongoQuery extends Document {
 		this.put("_id", new ObjectId(id));
 		return this;
 	}
-	
+
 	/**
 	 * MongoQuery by Object ID specifying path
 	 * @param id
@@ -38,44 +38,44 @@ public class MongoQuery extends Document {
 		this.put(path + "._id", new ObjectId(id));
 		return this;
 	}
-	
+
 	/**
 	 * Use eq for "equal"
 	 */
 	public MongoQuery eq(String key, Object value) {
-		this.put(key, value);		
+		this.put(key, value);
 		return this;
 	}
-	
+
 	/**
 	 * Use ne for "not equals"
 	 */
 	public MongoQuery ne(String key, Object value) {
-		this.put(key, new BasicDBObject("$ne", value));		
+		this.put(key, new BasicDBObject("$ne", value));
 		return this;
 	}
-	
+
 	/**
 	 * Use gt for "greater than"
 	 */
 	public MongoQuery gt(String key, Object value) {
-		this.put(key, new BasicDBObject("$gt", value));		
+		this.put(key, new BasicDBObject("$gt", value));
 		return this;
 	}
-	
+
 	/**
 	 * Use gte for "greater than or equals"
 	 */
 	public MongoQuery gte(String key, Object value) {
-		this.put(key, new BasicDBObject("$gte", value));		
+		this.put(key, new BasicDBObject("$gte", value));
 		return this;
 	}
-	
+
 	/**
 	 * Use lt for "less than"
 	 */
 	public MongoQuery lt(String key, Object value) {
-		this.put(key, new BasicDBObject("$lt", value));		
+		this.put(key, new BasicDBObject("$lt", value));
 		return this;
 	}
 
@@ -115,11 +115,13 @@ public class MongoQuery extends Document {
 
 	public MongoQuery geo(String key, GeoFilter value){
 		if ( value != null ){
-			List circle = new ArrayList();
-			circle.add(new double[] { value.getCenterLat(), value.getCenterLng() }); // Centre of circle
-			circle.add(value.getRadius()); // Radius
-			this.put(key, new BasicDBObject("$geoWithin",
-					new BasicDBObject("$centerSphere", circle)));
+			//Rappresenta il centro del cerchio (l'array di double) ed il raggio
+			double longitude = value.getCenterLng();
+			double latitude = value.getCenterLat();
+			double radius = value.getRadius();
+
+
+			this.put(key, new Document("$geoWithin", new Document("$centerSphere", Arrays.asList(Arrays.asList(longitude, latitude), radius))));
 		}
 		return this;
 	}
@@ -156,7 +158,7 @@ public class MongoQuery extends Document {
 		OrExpression or = new OrExpression(this);
 		return or;
 	}
-	
+
 	/**
 	 * Use or to make or logic for queries
 	 * @param ors
@@ -166,7 +168,7 @@ public class MongoQuery extends Document {
 		this.put("$or", ors);
 		return this;
 	}
-	
+
 	/**
 	 * Use and to make and logic for queries
 	 * @param ands
@@ -176,17 +178,17 @@ public class MongoQuery extends Document {
 		this.put("$and", ands);
 		return this;
 	}
-	
+
 	public AndExpression and() {
 		AndExpression and = new AndExpression(this);
 		return and;
 	}
-	
+
 	public MongoQuery like(String key, String search) {
 		this.put(key, Pattern.compile(String.format("%s", search), Pattern.CASE_INSENSITIVE));
 		return this;
 	}
-	
+
 	/**
 	 * Use js to make complex queries using js language
 	 */
@@ -197,19 +199,19 @@ public class MongoQuery extends Document {
 	public abstract class BinaryExpression {
 		protected MongoQuery parent;
 		protected List<MongoQuery> expressions = new ArrayList<>();
-		
+
 		public BinaryExpression(MongoQuery parent) {
 			if(parent == null) throw new ProgramException("missing parent");
 			this.parent = parent;
 		}
-		
+
 		protected abstract void flushParent();
-		
+
 		public BinaryExpression add(MongoQuery mongoQuery) {
 			expressions.add(mongoQuery);
 			return this;
 		}
-		
+
 		public MongoQuery finish() {
             if(expressions.size() == 1) {
 			    parent.putAll((Map)expressions.get(0));
@@ -236,7 +238,7 @@ public class MongoQuery extends Document {
 		@Override
 		protected void flushParent() {
 			parent.and(expressions);
-		}		
+		}
 	}
 
     public class OrExpression extends BinaryExpression {
@@ -247,7 +249,7 @@ public class MongoQuery extends Document {
 		@Override
 		protected void flushParent() {
 			parent.or(expressions);
-		}		
+		}
 	}
-	
+
 }
