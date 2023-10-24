@@ -94,6 +94,7 @@ public class SecureCrudStrategy extends ChainedCrudStrategy {
             disjunction.setProperty(getOwnerPropertyName());
             if (ownerId == null || isCrossOrganizationEntity(repository)) {
                 disjunction.getChildren().add(new Filter(getOwnerPropertyName(), false, Filter.EXISTS));
+                disjunction.getChildren().add(new Filter(getOwnerPropertyName(), null, Filter.EQ));
             } else {
 
             }
