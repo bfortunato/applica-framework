@@ -51,11 +51,10 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
             String entityName = EntityUtils.getEntityIdAnnotation(previous.get(0).getClass());
             if (entityRevisionService.isRevisionEnabled(entityName)) {
                 User user = Security.withMe().getLoggedUser();
-                previous.forEach(p -> {
-                    Runnable runnable = () -> entityRevisionService.createAndSaveRevision(user, null, p);
-                    executeRevisionAction(runnable);
-                });
-
+                Runnable runnable = () -> {
+                    previous.forEach(p ->  entityRevisionService.createAndSaveRevision(user, null, p));
+                };
+                executeRevisionAction(runnable);
             }
         }
     }
