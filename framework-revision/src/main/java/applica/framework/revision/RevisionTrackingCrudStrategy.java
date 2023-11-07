@@ -72,7 +72,7 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
         }
     }
 
-    private void executeRevisionAction(Runnable runnable) {
+    public void executeRevisionAction(Runnable runnable) {
         if (entityRevisionService.executeRevisionInOtherThread()) {
             new Thread(runnable).start();
         } else {
