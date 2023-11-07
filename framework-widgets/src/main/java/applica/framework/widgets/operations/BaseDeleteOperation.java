@@ -42,16 +42,12 @@ public class BaseDeleteOperation implements DeleteOperation {
         for (String id : ids) {
             try {
                 remove(id);
-                this.afterDeleteMultiple(id, integer.incrementAndGet(), ids.size());
             } catch (OperationException e) {
                 throw e;
             } catch (Exception e) {
                 throw new OperationException(Response.ERROR, e);
             }
         }
-    }
-
-    public void afterDeleteMultiple(String currentId, int currentCount, int totalCount) {
     }
 
     public void afterDelete(Entity deletedEntity) throws OperationException {
