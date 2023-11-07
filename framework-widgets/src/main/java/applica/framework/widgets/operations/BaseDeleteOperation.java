@@ -87,7 +87,7 @@ public class BaseDeleteOperation implements DeleteOperation {
         afterDelete(entity);
     }
 
-    public void performRemove(Entity entity) {
+    public void performRemove(Entity entity) throws OperationException {
         Repo.of(getEntityType()).delete(entity.getId());
     }
 
