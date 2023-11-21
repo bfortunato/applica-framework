@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Sorts.*;
+
 /**
  * Created by bimbobruno on 17/09/15.
  */
@@ -73,11 +75,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         }
 
         if (sorts != null) {
-            Document sortObject = new Document();
-            for (Sort sort : sorts) {
-                sortObject.append(sort.getProperty(), sort.isDescending() ? -1 : 1);
-            }
-            find.sort(sortObject);
+            find.sort(orderBy(sorts.stream().map(s -> s.isDescending() ? descending(s.getProperty()) : ascending(s.getProperty())).collect(Collectors.toList())));
         }
 
         var cursor = find.iterator();
