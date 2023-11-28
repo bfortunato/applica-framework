@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
@@ -125,7 +127,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     public void pushFilter(MongoQuery mongoQuery, Filter filter) {
         switch (filter.getType()) {
             case Filter.LIKE:
-                mongoQuery.like(filter.getProperty(), filter.getValue().toString());
+                String value = filter.getValue() != null ? generateRegexFilterValue(filter.getValue().toString()) : null;
+                mongoQuery.like(filter.getProperty(), value);
                 break;
             case Filter.GT:
                 mongoQuery.gt(filter.getProperty(), filter.getValue());
@@ -189,7 +192,13 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
     }
 
-	public MongoQuery createQuery(applica.framework.Query loadRequest) {
+    private String generateRegexFilterValue(String toString) {
+        Pattern p = Pattern.compile("[\\.\\*\\+\\?\\^\\${}\\(\\)|\\]\\[\\\\]");
+        Matcher m = p.matcher(toString);
+        return m.replaceAll("\\\\$0");
+    }
+
+    public MongoQuery createQuery(applica.framework.Query loadRequest) {
 		MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
