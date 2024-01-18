@@ -56,7 +56,7 @@ public class TemplatedMail {
         this.mailText = mailText;
     }
 
-    private class ByteAttachmentData {
+    class ByteAttachmentData {
         byte[] bytes;
         String type;
         String name;
@@ -151,6 +151,8 @@ public class TemplatedMail {
     public void addAttachment(byte[] data, String type, String name) {
         bytesAttachments.add(new ByteAttachmentData(data, type, name));
     }
+    
+    
 
     public void send() throws MailException, AddressException, MessagingException {
         if (options == null) throw new MailException("options not setted");

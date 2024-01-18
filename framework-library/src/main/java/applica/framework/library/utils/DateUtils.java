@@ -560,7 +560,7 @@ public class DateUtils {
     }
 
     //Ottiene il giorno che rappresenta la settimana precedente al giorno corrente, tenendo in considerazione il mese che può "spezzarla"
-    private static Date getPreviousWeekDay(Date date, boolean sameMonth) {
+    public static Date getPreviousWeekDay(Date date, boolean sameMonth) {
         //cicla indietro finchè non trova un giorno di mese diverso oppure di diversa settimana
 
         //Data riferimento
