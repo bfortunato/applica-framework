@@ -348,6 +348,10 @@ public class DateUtils {
         return getWeekMargins(date, true, true);
     }
 
+    public static Date getWeekEndDate(Date date, boolean sameMonth) {
+        return getWeekMargins(date, true, sameMonth);
+    }
+
 
     /**
      * Ottiene gli estremi della settimana (primo o ultimo giorno); è possibile indicare il tipo di settimana (solare o appartenente allo stesso mese)
