@@ -339,6 +339,10 @@ public class DateUtils {
         return getWeekMargins(date, false, true);
     }
 
+    public static Date getWeekStartDate(Date date, boolean sameMonth) {
+        return getWeekMargins(date, false, sameMonth);
+    }
+
     //Ottiene la data di inizio della settimana cche comprende la data corrente; in caso di mese spezzato devo considerare la prima data utile nel mese corrente
     public static Date getWeekEndDate(Date date) {
         return getWeekMargins(date, true, true);
