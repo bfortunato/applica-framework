@@ -1,6 +1,5 @@
 package applica.framework.security.token;
 
-import applica.framework.security.User;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
@@ -12,7 +11,8 @@ import org.jasypt.util.text.BasicTextEncryptor;
  */
 public class DefaultAuthTokenDataExtractor implements AuthTokenDataExtractor {
 
-    private String getData(String token) throws TokenFormatException {
+    @Override
+    public String getData(String token) throws TokenFormatException {
         String[] split = token.split(":");
         if (split.length < 2) {
             throw new TokenFormatException("invalid token 1");
