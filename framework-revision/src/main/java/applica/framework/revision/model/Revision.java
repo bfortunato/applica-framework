@@ -96,4 +96,8 @@ public class Revision extends AEntity {
     public void setCreator(String creator) {
         this.creator = creator;
     }
+
+    public boolean canSave() {
+        return !getType().equals(RevisionType.EDIT) || (getDifferences().size() > 0);
+    }
 }

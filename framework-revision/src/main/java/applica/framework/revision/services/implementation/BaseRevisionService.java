@@ -45,7 +45,7 @@ public class BaseRevisionService implements RevisionService {
     @Override
     public Revision createAndSaveRevision(User user, Entity entity, Entity previousEntity) {
         Revision revision = createRevision(user, entity, previousEntity);
-        if (!revision.getType().equals(RevisionType.EDIT) || (revision.getDifferences().size() > 0))
+        if (revision.canSave())
             persistRevision(revision);
 
         return revision;
@@ -72,8 +72,8 @@ public class BaseRevisionService implements RevisionService {
         Object id = generateEntityId(entity, previousEntity);
         String entityId = id != null? String.valueOf(id) : null;
         Revision revision = createNewRevision(user, type, entityClass, entityId, entity, previousEntity);
-        if (entityId != null && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(EntityUtils.getEntityIdAnnotation(entityClass)))
-            revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
+//        if (entityId != null && EntitiesRegistry.instance().getAllRevisionEnabledEntities().contains(EntityUtils.getEntityIdAnnotation(entityClass)))
+//            revision.setCode(getLastCodeForEntityRevision(entityId, entityClass));
         return revision;
     }
 

@@ -1,6 +1,7 @@
 package applica.framework.revision;
 
 import applica.framework.*;
+import applica.framework.revision.model.Revision;
 import applica.framework.revision.services.RevisionService;
 import applica.framework.security.Security;
 import applica.framework.security.User;
@@ -8,13 +9,52 @@ import applica.framework.widgets.entities.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
     @Autowired
     private RevisionService entityRevisionService;
 
+    @Override
+    public <T extends Entity> void saveAll(List<T> entities, Repository<T> repository) {
+
+        boolean revisionEnabled = entityRevisionService.isRevisionEnabled(EntityUtils.getEntityIdAnnotation(repository.getEntityType()));
+
+        List<T> toInsert = null;
+
+        List<T> toEdit = null;
+
+        List<T> toEditPrevious;
+
+        if (revisionEnabled) {
+            toInsert = entities.stream().filter(e -> e.getId() == null).collect(Collectors.toList());
+            toEdit = entities.stream().filter(e -> e.getId() != null).collect(Collectors.toList());
+            toEditPrevious = repository.getMultiple(toEdit.stream().map(t -> t.getId()).collect(Collectors.toList()));
+        } else {
+            toEditPrevious = null;
+        }
+
+
+        super.saveAll(entities, repository);
+
+        if (revisionEnabled) {
+            List revisions = new ArrayList<>();
+            User user = Security.withMe().getLoggedUser();
+            revisions.addAll(toInsert.stream().map(t -> entityRevisionService.createRevision(user, t, null)).collect(Collectors.toList()));
+            revisions.addAll(toEdit.stream().map(t -> entityRevisionService.createRevision(user, t, toEditPrevious.stream().filter(previous -> Objects.equals(previous.getId(), t.getId())).findFirst().orElse(null))).collect(Collectors.toList()));
+
+            Runnable runnable = () -> Repo.of(entityRevisionService.getRevisionClass()).saveAll(revisions);
+            executeRevisionAction(runnable);
+           ;
+        }
+
+
+
+    }
 
     @Override
     public <T extends Entity> void save(T entity, Repository<T> repository) {
@@ -45,17 +85,17 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
 
     @Override
     public <T extends Entity> void deleteMany(Query query, Repository<T> repository) {
-        List<Entity> previous = (List<Entity>) repository.find(query).getRows();
+        String entityName = EntityUtils.getEntityIdAnnotation(repository.getEntityType());
+        boolean revisionEnabled = entityRevisionService.isRevisionEnabled(entityName);
+        List<Entity> previous = revisionEnabled ? (List<Entity>) repository.find(query).getRows() : new ArrayList<>();
         super.deleteMany(query, repository);
-        if (previous.size() > 0) {
-            String entityName = EntityUtils.getEntityIdAnnotation(previous.get(0).getClass());
-            if (entityRevisionService.isRevisionEnabled(entityName)) {
-                User user = Security.withMe().getLoggedUser();
-                Runnable runnable = () -> {
-                    previous.forEach(p ->  entityRevisionService.createAndSaveRevision(user, null, p));
-                };
-                executeRevisionAction(runnable);
-            }
+        if (previous.size() > 0 && revisionEnabled) {
+            User user = Security.withMe().getLoggedUser();
+            Runnable runnable = () -> {
+                List revisions = previous.stream().map(p -> entityRevisionService.createRevision(user, null, p)).filter(r -> r.canSave()).collect(Collectors.toList());
+                Repo.of(entityRevisionService.getRevisionClass()).saveAll(revisions);
+            };
+            executeRevisionAction(runnable);
         }
     }
 
