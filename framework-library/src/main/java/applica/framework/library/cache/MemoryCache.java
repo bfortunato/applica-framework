@@ -76,7 +76,13 @@ public class MemoryCache extends Cache {
     @Override
     public void invalidate(final String path) {
         List<CacheItem> invalid = generateItemsToInvalidate(path);
-        invalid.forEach(i -> data.remove(i.getPath()));
+
+        try {
+            invalid.forEach(i -> data.remove(i.getPath()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 
