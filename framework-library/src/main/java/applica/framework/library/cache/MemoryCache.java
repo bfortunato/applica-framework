@@ -80,7 +80,7 @@ public class MemoryCache extends Cache {
         try {
             invalid.forEach(i -> data.remove(i.getPath()));
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }
