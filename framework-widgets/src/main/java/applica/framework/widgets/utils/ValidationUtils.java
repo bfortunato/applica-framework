@@ -56,8 +56,8 @@ public class ValidationUtils {
     }
 
     //TODO: utilizzarla al posto di ogni reject del metodo "validate"
-    public static void reject(ValidationResult validationResult, Validation annotation, Field field, String message) {
-        validationResult.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): message);
+    public static void reject(ValidationResult validationResult, Validation annotation, Field field, String message, boolean onlyWarning) {
+        validationResult.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): message, onlyWarning);
     }
 
     public static void validate(Entity entity, ValidationResult result, List<String> excludedProperties) {
@@ -78,12 +78,13 @@ public class ValidationUtils {
                             if (!canValidate(entity, annotation, field))
                                 return ;
 
+                            boolean onlyWarning = annotation.isOnlyOnTheFly() && result.isOnTheFly();
 
                             if (annotation.maxLength() >= 0){
                                 if (String.class.isAssignableFrom(field.getType()) && value != null)
                                     //TODO attualmente supportato solo per le stringhe, prevedere un futuro le liste
                                     if (((String) value).length() > annotation.maxLength())
-                                        reject(result, annotation, field, String.format(LocalizationUtils.getInstance().getMessage("validation.field.maxLength"), annotation.maxLength()));
+                                        reject(result, annotation, field, String.format(LocalizationUtils.getInstance().getMessage("validation.field.maxLength"), annotation.maxLength()), onlyWarning);
 
                             }
 
@@ -98,7 +99,7 @@ public class ValidationUtils {
                                     else if (e.getCause() != null && e.getCause() instanceof CustomValidationException)
                                         validationException = ((CustomValidationException) e.getCause());
                                     if (validationException != null)
-                                        reject(result, annotation, field, validationException.getMessage());
+                                        reject(result, annotation, field, validationException.getMessage(), onlyWarning);
                                 }
 
                             }
@@ -106,7 +107,7 @@ public class ValidationUtils {
 
                             //Validazione "required": il campo deve essere presente e valorizato
                             if (annotation.required() && (Objects.isNull(value) || (value instanceof String && value.equals("")) || (value instanceof List && ((List) value).size() == 0))) {
-                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  "validation.field.required");
+                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  "validation.field.required", onlyWarning);
                             } else {
 
                             }
@@ -116,7 +117,7 @@ public class ValidationUtils {
                             if (annotation.unique()) {
                                 Query uniqueQuery = generateUniqueQuery(entity, annotation);
                                 if (!entityService.isUnique(annotation.uniqueClass().length > 0 ? annotation.uniqueClass()[0] : entity.getClass(), field.getName(), null, entity, uniqueQuery))
-                                    result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed");
+                                    result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage(): "validation.field.alreadyUsed", onlyWarning);
                             }
 
                             if (annotation.validateSubObject() && !Objects.isNull(value)) {
@@ -126,7 +127,7 @@ public class ValidationUtils {
                                         validate(((Entity)value), subValidationResult, true);
                                     } catch (ValidationException e) {
                                         e.getValidationResult().getErrors().forEach(subError -> {
-                                            result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage());
+                                            result.reject(String.format("%s_%s", field.getName(), subError.getProperty()), subError.getMessage(), onlyWarning);
                                         });
                                     }
                                 } else if (List.class.isAssignableFrom(value.getClass())) {
@@ -143,7 +144,7 @@ public class ValidationUtils {
                                                 } else
                                                     property = String.format("%s_%s_%s", field.getName(), i.get(), subError.getProperty());
 
-                                                result.reject(property, subError.getMessage());
+                                                result.reject(property, subError.getMessage(), onlyWarning);
                                             });
                                         }
                                         i.incrementAndGet();
