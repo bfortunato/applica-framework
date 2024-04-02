@@ -145,6 +145,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             case Filter.EQ:
                 mongoQuery.eq(filter.getProperty(), filter.getValue());
                 break;
+            case Filter.REGEX:
+                mongoQuery.regex(filter.getProperty(), filter.getValue());
+                break;
             case Filter.NE:
                 mongoQuery.ne(filter.getProperty(), filter.getValue());
                 break;

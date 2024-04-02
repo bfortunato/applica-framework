@@ -230,6 +230,11 @@ public class MongoQuery extends Document {
 		return this;
 	}
 
+	public MongoQuery regex(String key, Object value) {
+		this.put(key, new BasicDBObject("$regex", value));
+		return this;
+	}
+
     public class AndExpression extends BinaryExpression {
 		public AndExpression(MongoQuery parent) {
 			super(parent);
