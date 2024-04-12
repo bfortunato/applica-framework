@@ -32,13 +32,13 @@ public class EntitiesRegistry implements EntitiesScanner.ScanHandler {
     }
 
     public List<String> getAllRevisionEnabledEntities() {
-        return definitions.stream().filter(d -> d.getType().getAnnotation(EntityId.class).allowRevision()).map(d -> d.getType().getAnnotation(EntityId.class).value()).collect(Collectors.toList());
+        return definitions.parallelStream().filter(d -> d.getType().getAnnotation(EntityId.class).allowRevision()).map(d -> d.getType().getAnnotation(EntityId.class).value()).collect(Collectors.toList());
     }
 
     private List<EntityDefinition> definitions = new ArrayList<>();
 
     public void register(String id, Class<? extends Entity> type) {
-        if (definitions.stream().anyMatch(d -> d.getId().equals(id))) {
+        if (definitions.parallelStream().anyMatch(d -> d.getId().equals(id))) {
             throw new RuntimeException(String.format("Entity with id %s already registered", id));
         }
 
@@ -48,11 +48,11 @@ public class EntitiesRegistry implements EntitiesScanner.ScanHandler {
     }
 
     public Optional<EntityDefinition> get(String id) {
-        return definitions.stream().filter(d -> d.getId().equals(id)).findFirst();
+        return definitions.parallelStream().filter(d -> d.getId().equals(id)).findFirst();
     }
 
     public Optional<EntityDefinition> get(Class<? extends Entity> type) {
-        return definitions.stream().filter(d -> d.getType().equals(type)).findFirst();
+        return definitions.parallelStream().filter(d -> d.getType().equals(type)).findFirst();
     }
 
     @Override
@@ -63,7 +63,7 @@ public class EntitiesRegistry implements EntitiesScanner.ScanHandler {
             String id = entityId.value();
             definition = new EntityDefinition(id, (Class<? extends Entity>) entityType);
 
-            if (definitions.stream().anyMatch(d -> d.getId().equals(id))) {
+            if (definitions.parallelStream().anyMatch(d -> d.getId().equals(id))) {
                 throw new RuntimeException(String.format("Entity with id %s already exists", definition.getId()));
             }
 

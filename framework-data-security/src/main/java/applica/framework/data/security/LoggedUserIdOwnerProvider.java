@@ -16,8 +16,7 @@ public class LoggedUserIdOwnerProvider implements OwnerProvider {
     @Override
     public Object provide() {
         Entity user = ((Entity) security.withMe().getLoggedUser());
-        Assert.notNull(user, "User must be logged in and must be an entity");
 
-        return user.getId();
+        return user != null? user.getId(): null;
     }
 }
