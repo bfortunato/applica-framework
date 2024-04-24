@@ -111,7 +111,7 @@ public class Security {
         return authorizationService;
     }
 
-    protected static AuthenticationManager getAuthenticationManager() {
+    public static AuthenticationManager getAuthenticationManager() {
         if (authenticationManager == null) {
             authenticationManager = ApplicationContextProvider.provide().getBean("authenticationManager", AuthenticationManager.class);
 
@@ -217,5 +217,4 @@ public class Security {
             throw new AuthenticationException("bad username or password");
         }
     }
-
 }
