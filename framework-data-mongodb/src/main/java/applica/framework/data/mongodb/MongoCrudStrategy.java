@@ -95,7 +95,7 @@ public class MongoCrudStrategy implements CrudStrategy {
         return response;
     }
 
-    private MappingContext generateMappingConfigFromQuery(Query loadRequest) {
+    public MappingContext generateMappingConfigFromQuery(Query loadRequest) {
         MappingContext config = new MappingContext();
         config.setAlwaysIgnoreNestedReferences(loadRequest.isIgnoreNestedReferences());
         return config;
@@ -218,6 +218,10 @@ public class MongoCrudStrategy implements CrudStrategy {
         }
 
         return avg;
+    }
+
+    public MongoMapper getMongoMapper() {
+        return mongoMapper;
     }
 
 }
