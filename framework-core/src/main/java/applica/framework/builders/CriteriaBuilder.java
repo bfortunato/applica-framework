@@ -159,4 +159,11 @@ public class CriteriaBuilder extends Filter {
         return this;
     }
 
+    public CriteriaBuilder exists(String property, Object value) {
+        if(value != null) {
+            getChildren().add(new Filter(property, value, Filter.EXISTS));
+        }
+        return this;
+    }
+
 }
