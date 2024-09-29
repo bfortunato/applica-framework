@@ -7,9 +7,13 @@ import applica.framework.library.utils.Strings;
 import applica.framework.library.utils.SystemOptionsUtils;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.DisposableBean;
@@ -17,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +101,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
 	@Override
-	public Result find(applica.framework.Query query) {
+	public Result find(Query query) {
         init();
 
         if(db == null) {
@@ -104,7 +109,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return null;
         }
 
-		if(query == null) query = new applica.framework.Query();
+		if(query == null) query = new Query();
 
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
             query = this.keywordQuery(query);
@@ -179,6 +184,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             case Filter.GEO_WHITHIN:
                 mongoQuery.geo(filter.getProperty(), (GeoFilter) filter.getValue());
                 break;
+            case Filter.TEXT:
+                mongoQuery.put("$text", new Document("$search", filter.getValue()));
+
+                break;
             case Filter.AND:
                 List<Filter> ands = (List<Filter>) filter.getValue();
 
@@ -201,7 +210,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return m.replaceAll("\\\\$0");
     }
 
-    public MongoQuery createQuery(applica.framework.Query loadRequest) {
+    public MongoQuery createQuery(Query loadRequest) {
 		MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
@@ -332,17 +341,24 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     public Document createProjection(Query loadRequest) {
+        Document proj = null;
         if (loadRequest.getProjections() != null && (loadRequest.getProjections().size() > 0)) {
-            Document proj = new Document();
+
+            proj = new Document();
 
             for (Projection projection : loadRequest.getProjections()) {
                 proj.put(projection.getProperty(), projection.isVisible());
             }
-
-            return proj;
         }
 
-        return null;
+
+        if (loadRequest.getFilters().stream().anyMatch(f -> Objects.equals(f.getType(), Filter.TEXT))) {
+            if (proj == null)
+                proj = new Document();
+            proj.put("score", new BsonDocument("$meta", new BsonString("textScore")));
+        }
+
+        return proj;
     }
 
     private MongoQuery generateMongoQueryWithOr(List<Filter> ors) {

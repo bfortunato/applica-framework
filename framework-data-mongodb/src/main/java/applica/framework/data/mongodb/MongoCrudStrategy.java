@@ -7,6 +7,9 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -14,6 +17,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Sorts.*;
@@ -76,6 +80,10 @@ public class MongoCrudStrategy implements CrudStrategy {
 
         if (sorts != null) {
             find.sort(orderBy(sorts.stream().map(s -> s.isDescending() ? descending(s.getProperty()) : ascending(s.getProperty())).collect(Collectors.toList())));
+        }
+
+        if (loadRequest.getFilters().stream().anyMatch(f -> Objects.equals(f.getType(), Filter.TEXT))) {
+            find.sort(Sorts.metaTextScore("score"));
         }
 
         var cursor = find.iterator();

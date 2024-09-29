@@ -28,6 +28,7 @@ public class Filter {
     @JsonIgnore public static final String NIN = "nin";
     @JsonIgnore public static final String LNIN = "lnin";
     @JsonIgnore public static final String ID = "id";
+    @JsonIgnore public static final String TEXT = "text";
     @JsonIgnore public static final String OR = "or";
     @JsonIgnore public static final String AND = "and";
     @JsonIgnore public static final String CUSTOM = "custom";

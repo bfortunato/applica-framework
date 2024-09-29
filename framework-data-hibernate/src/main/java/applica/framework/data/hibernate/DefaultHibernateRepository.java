@@ -2,6 +2,10 @@ package applica.framework.data.hibernate;
 
 import applica.framework.DefaultRepository;
 import applica.framework.Entity;
+import applica.framework.Query;
+import applica.framework.Sort;
+
+import java.util.List;
 
 /**
  * Applica (www.applica.guru)
