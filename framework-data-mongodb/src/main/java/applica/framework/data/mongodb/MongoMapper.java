@@ -279,7 +279,7 @@ public class MongoMapper {
 
 						}
 					} catch (NoSuchFieldException e) {
-						logger.warn("Field in database " + key + " isn't available on class");
+						//logger.warn("Field in database " + key + " isn't available on class");
 					} catch (Exception e) {
 						logger.warn("Error in field " + key);
 						e.printStackTrace();
