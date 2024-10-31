@@ -10,6 +10,7 @@ import java.util.List;
  */
 public class CriteriaBuilder extends Filter {
 
+    private boolean nullCheck = true;
 
     protected final QueryBuilder loadRequestBuilder;
     //campo per individuare il criterio padre
@@ -23,6 +24,11 @@ public class CriteriaBuilder extends Filter {
         this.loadRequestBuilder = loadRequestBuilder;
         this.parentBuilder = parentBuilder;
 
+    }
+
+    public CriteriaBuilder nullCheck(boolean nullCheck) {
+        this.nullCheck = nullCheck;
+        return this;
     }
 
     public List<Filter> getChildren() {
@@ -55,112 +61,112 @@ public class CriteriaBuilder extends Filter {
     }
 
     public CriteriaBuilder filter(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value));
         }
         return this;
     }
 
     public CriteriaBuilder filter(String property, Object value, String type) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, type));
         }
         return this;
     }
 
     public CriteriaBuilder like(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.LIKE));
         }
         return this;
     }
 
     public CriteriaBuilder gt(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.GT));
         }
         return this;
     }
 
     public CriteriaBuilder gte(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.GTE));
         }
         return this;
     }
 
     public CriteriaBuilder lt(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.LT));
         }
         return this;
     }
 
     public CriteriaBuilder lte(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.LTE));
         }
         return this;
     }
 
     public CriteriaBuilder eq(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.EQ));
         }
         return this;
     }
 
     public CriteriaBuilder ne(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.NE));
         }
         return this;
     }
 
     public CriteriaBuilder in(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.IN));
         }
         return this;
     }
 
     public CriteriaBuilder lin(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.LIN));
         }
         return this;
     }
 
     public CriteriaBuilder nin(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.NIN));
         }
         return this;
     }
 
     public CriteriaBuilder lnin(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.LNIN));
         }
         return this;
     }
 
     public CriteriaBuilder id(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.ID));
         }
         return this;
     }
 
     public CriteriaBuilder id(Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(null, value, Filter.ID));
         }
         return this;
     }
 
     public CriteriaBuilder exists(String property, Object value) {
-        if(value != null) {
+        if(!nullCheck || value != null) {
             getChildren().add(new Filter(property, value, Filter.EXISTS));
         }
         return this;
