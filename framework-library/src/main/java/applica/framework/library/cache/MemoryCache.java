@@ -95,4 +95,8 @@ public class MemoryCache extends Cache {
     public String dump() {
         return data.values().stream().map(item -> item.dump()).collect(Collectors.joining(", "));
     }
+
+    public Object getData() {
+        return data;
+    }
 }
