@@ -35,6 +35,7 @@ public class Filter {
     @JsonIgnore public static final String RANGE = "range";
     @JsonIgnore public static final String EXISTS = "exists";
     @JsonIgnore public static final String EXACT = "exact";
+    @JsonIgnore public static final String ELEM_MATCH = "elemMatch";
 
     //GEO-FILTERS: used to apply geometric relationships between geographical coordinates
     @JsonIgnore public static final String GEO_CONTAINS =   "geocontains";

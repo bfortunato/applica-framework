@@ -141,18 +141,18 @@ public class MongoQuery extends Document {
 
 
 
-    /**
-     * Use in to find elements not in values list
-     */
-    public MongoQuery nin(String key, List<?> values) {
+	/**
+	 * Use in to find elements not in values list
+	 */
+	public MongoQuery nin(String key, List<?> values) {
 		if (key.equals("id")) {
 			this.put("_id", new BasicDBObject("$nin", values.stream().map(v -> new ObjectId(v.toString())).collect(Collectors.toList())));
 		} else {
 			this.put(key, new BasicDBObject("$nin", values));
 		}
 
-        return this;
-    }
+		return this;
+	}
 
 	public OrExpression or() {
 		OrExpression or = new OrExpression(this);
@@ -190,6 +190,16 @@ public class MongoQuery extends Document {
 	}
 
 	/**
+	 * Use and to make elemMatch logic for queries
+	 * @param query
+	 * @return
+	 */
+	public MongoQuery elemMatch(String key, MongoQuery query) {
+		this.put(key, new Document("$elemMatch", query));
+		return this;
+	}
+
+	/**
 	 * Use js to make complex queries using js language
 	 */
 	public MongoQuery js(String js) {
@@ -213,11 +223,11 @@ public class MongoQuery extends Document {
 		}
 
 		public MongoQuery finish() {
-            if(expressions.size() == 1) {
-			    parent.putAll((Map)expressions.get(0));
-            } else if(expressions.size() > 1) {
-                flushParent();
-            }
+			if(expressions.size() == 1) {
+				parent.putAll((Map)expressions.get(0));
+			} else if(expressions.size() > 1) {
+				flushParent();
+			}
 			return parent;
 		}
 	}
@@ -235,7 +245,7 @@ public class MongoQuery extends Document {
 		return this;
 	}
 
-    public class AndExpression extends BinaryExpression {
+	public class AndExpression extends BinaryExpression {
 		public AndExpression(MongoQuery parent) {
 			super(parent);
 		}
@@ -246,7 +256,7 @@ public class MongoQuery extends Document {
 		}
 	}
 
-    public class OrExpression extends BinaryExpression {
+	public class OrExpression extends BinaryExpression {
 		public OrExpression(MongoQuery parent) {
 			super(parent);
 		}

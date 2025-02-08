@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
 
 public abstract class MongoRepository<T extends Entity> implements Repository<T>, DisposableBean {
 
-	@Autowired
-	private MongoHelper mongoHelper;
+    @Autowired
+    private MongoHelper mongoHelper;
 
     @Autowired
     private CrudStrategy crudStrategy;
 
-	private Log logger = LogFactory.getLog(getClass());
+    private Log logger = LogFactory.getLog(getClass());
 
     private MongoDatabase db;
     private MappingContext mappingContext;
@@ -51,35 +51,35 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         }
 
         repositoryLogEnabled = SystemOptionsUtils.isEnabled("log.repository");
-	}
+    }
 
 
-	@Override
-	public void destroy() {
-		mongoHelper.close(getDataSource());
-	}
+    @Override
+    public void destroy() {
+        mongoHelper.close(getDataSource());
+    }
 
     public String getCollectionName() {
         return Strings.pluralize(StringUtils.uncapitalize(getEntityType().getSimpleName()));
     }
 
-	@Override
-	public Optional<T> get(Object id) {
+    @Override
+    public Optional<T> get(Object id) {
         init();
 
-		if(db == null) {
-			logger.warn("Mongo DB is null");
-			return null;
-		}
+        if(db == null) {
+            logger.warn("Mongo DB is null");
+            return null;
+        }
 
-		T entity = crudStrategy.get(id, this);
+        T entity = crudStrategy.get(id, this);
 
-		if (repositoryLogEnabled) {
+        if (repositoryLogEnabled) {
             logger.info(String.format("REPOSITORY - GET - ID: %s - ENTITY: %s", id, entity));
         }
 
-		return Optional.ofNullable(entity);
-	}
+        return Optional.ofNullable(entity);
+    }
 
     public Optional<T> get(Object id, MappingContext mappingContext) {
         init();
@@ -100,8 +100,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         return Optional.ofNullable(entity);
     }
 
-	@Override
-	public Result find(Query query) {
+    @Override
+    public Result find(Query query) {
         init();
 
         if(db == null) {
@@ -109,20 +109,20 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             return null;
         }
 
-		if(query == null) query = new Query();
+        if(query == null) query = new Query();
 
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(query.getKeyword())) {
             query = this.keywordQuery(query);
         }
 
-		Result response = crudStrategy.find(query, this);
+        Result response = crudStrategy.find(query, this);
 
         if (repositoryLogEnabled) {
             logger.info(String.format("REPOSITORY - FIND - QUERY: %s", query.toString()));
         }
 
-		return response;
-	}
+        return response;
+    }
 
     @Override
     public Statement<T> find(Filter... filters) {
@@ -201,6 +201,18 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
 
                 mongoQuery.and(allAnds);
                 break;
+            case Filter.ELEM_MATCH:
+                // Supponiamo che filter.getValue() sia una lista di altri filtri che devono essere applicati con elemMatch
+                List<Filter> elemMatchFilters = (List<Filter>) filter.getValue();
+
+                MongoQuery elemMatchQuery = query();
+                for (Filter subFilter : elemMatchFilters) {
+                    pushFilter(elemMatchQuery, subFilter);
+                }
+
+                mongoQuery.elemMatch(filter.getProperty(), elemMatchQuery);
+                break;
+
         }
     }
 
@@ -211,13 +223,13 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     public MongoQuery createQuery(Query loadRequest) {
-		MongoQuery mongoQuery = query();
+        MongoQuery mongoQuery = query();
 
         for (Filter filter : loadRequest.getFilters()) {
             pushFilter(mongoQuery, filter);
         }
         return mongoQuery;
-	}
+    }
 
 
     @Override
@@ -267,7 +279,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     @Override
-	public void delete(Object id) {
+    public void delete(Object id) {
         init();
 
         if(db == null) {
@@ -279,11 +291,11 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
             logger.info(String.format("REPOSITORY - DELETE - ID: %s", id));
         }
 
-		crudStrategy.delete(id, this);
-	}
+        crudStrategy.delete(id, this);
+    }
 
-	@Override
-	public void save(T entity) {
+    @Override
+    public void save(T entity) {
         boolean create = entity.getId() == null;
 
         init();
@@ -298,7 +310,7 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         if (repositoryLogEnabled) {
             logger.info(String.format("REPOSITORY - %s - ID: %s ENTITY: %s", create? "CREATE" : "SAVE", entity.getId(), entity.toString()));
         }
-	}
+    }
 
     @Override
     public void saveAll(List<T> entity) {
@@ -314,8 +326,8 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
     }
 
     public List<Sort> getDefaultSorts() {
-		return null;
-	}
+        return null;
+    }
 
     public MongoQuery query() {
         return MongoQuery.mk();

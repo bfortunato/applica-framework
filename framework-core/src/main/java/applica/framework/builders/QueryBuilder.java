@@ -5,6 +5,8 @@ import applica.framework.Projection;
 import applica.framework.Query;
 import applica.framework.Sort;
 
+import java.util.List;
+
 public class QueryBuilder extends Query {
 
     private boolean nullCheck = true;
@@ -173,6 +175,13 @@ public class QueryBuilder extends Query {
     public QueryBuilder id(Object value) {
         if(!nullCheck || value != null) {
             getFilters().add(new Filter(null, value, Filter.ID));
+        }
+        return this;
+    }
+
+    public QueryBuilder elemMatch(String property, List<Filter> filters) {
+        if (!nullCheck || (filters != null && filters.size() > 0)) {
+            getFilters().add(new Filter(property, filters, Filter.ELEM_MATCH));
         }
         return this;
     }
