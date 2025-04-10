@@ -155,7 +155,7 @@ public class ValidationUtils {
 
                             //Validazione greaterThanZero: il campo deve essere maggiore STRETTO di zero
                             if (annotation.greaterThanZero() && Double.valueOf(String.valueOf(field.get(entity))).compareTo(0D) <= 0)
-                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getLocalizedMessage("validation.field.greaterThan"), "0"));
+                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  LocalizationUtils.getInstance().getLocalizedMessage("validation.field.greaterThan.zero"));
 
                             //Validazione "positive": il campo deve essere MAGGIORE O UGUALE a zero
                             if (annotation.positive() && Double.valueOf(String.valueOf(field.get(entity))).compareTo(0D) < 0)
