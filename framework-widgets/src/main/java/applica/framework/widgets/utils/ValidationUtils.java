@@ -155,7 +155,7 @@ public class ValidationUtils {
 
                             //Validazione greaterThanZero: il campo deve essere maggiore STRETTO di zero
                             if (annotation.greaterThanZero() && Double.valueOf(String.valueOf(field.get(entity))).compareTo(0D) <= 0)
-                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  LocalizationUtils.getInstance().getLocalizedMessage("validation.field.greaterThan.zero"));
+                                result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  LocalizationUtils.getInstance().getMessage("validation.field.greaterThan.zero"));
 
                             //Validazione "positive": il campo deve essere MAGGIORE O UGUALE a zero
                             if (annotation.positive() && Double.valueOf(String.valueOf(field.get(entity))).compareTo(0D) < 0)
@@ -185,8 +185,18 @@ public class ValidationUtils {
 
                                                 break;
                                             case Validation.LTE:
-                                                if (((Comparable<Object>) value).compareTo(otherValue) > 0)
-                                                    result.reject(StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName(), StringUtils.hasLength(annotation.rejectMessage())? annotation.rejectMessage():  String.format(LocalizationUtils.getInstance().getLocalizedMessage("validation.field.lowerThanOrEqual"), LocalizationUtils.getInstance().getMessage(otherValueField.getName())));
+                                                if (((Comparable<Object>) value).compareTo(otherValue) > 0) {
+
+                                                    String fieldName = StringUtils.hasLength(annotation.rejectField()) ? annotation.rejectField() : field.getName();
+
+                                                    String message = StringUtils.hasLength(annotation.rejectMessage()) ? annotation.rejectMessage() : null;
+                                                    if (message == null) {
+                                                        message = String.format(LocalizationUtils.getInstance().getMessage("validation.field.lowerThanOrEqual"), LocalizationUtils.getInstance().getMessage(otherValueField.getName()));
+                                                    }
+
+
+                                                    result.reject(fieldName, message);
+                                                }
                                                 break;
                                         }
                                     }
