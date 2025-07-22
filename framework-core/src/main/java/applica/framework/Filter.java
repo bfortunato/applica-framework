@@ -17,6 +17,7 @@ public class Filter {
 
     @JsonIgnore public static final String REGEX = "regex";
     @JsonIgnore public static final String LIKE = "like";
+    @JsonIgnore public static final String NOT_LIKE = "notLike";
     @JsonIgnore public static final String GT = "gt";
     @JsonIgnore public static final String NE = "ne";
     @JsonIgnore public static final String GTE = "gte";

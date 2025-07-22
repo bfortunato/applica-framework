@@ -135,6 +135,9 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
                 String value = filter.getValue() != null ? generateRegexFilterValue(filter.getValue().toString()) : null;
                 mongoQuery.like(filter.getProperty(), value);
                 break;
+            case Filter.NOT_LIKE:
+                mongoQuery.put(filter.getProperty(), new Document("$not", new Document("$regex", generateRegexNotLikeFilterValue(filter.getValue().toString()))));
+                break;
             case Filter.GT:
                 mongoQuery.gt(filter.getProperty(), filter.getValue());
                 break;
@@ -220,6 +223,10 @@ public abstract class MongoRepository<T extends Entity> implements Repository<T>
         Pattern p = Pattern.compile("[\\.\\*\\+\\?\\^\\${}\\(\\)|\\]\\[\\\\]");
         Matcher m = p.matcher(toString);
         return m.replaceAll("\\\\$0");
+    }
+
+    private Pattern generateRegexNotLikeFilterValue(String toString) {
+        return Pattern.compile(toString, Pattern.CASE_INSENSITIVE);
     }
 
     public MongoQuery createQuery(Query loadRequest) {
