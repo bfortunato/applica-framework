@@ -297,8 +297,8 @@ public class BaseRevisionService implements RevisionService {
     }
 
     @Override
-    public void isRevisionEnabledOnCurrentThread() {
-        enabled.get();
+    public boolean isRevisionEnabledOnCurrentThread() {
+        return enabled.get();
     }
 
     @Override
