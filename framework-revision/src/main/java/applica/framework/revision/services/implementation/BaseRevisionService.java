@@ -13,16 +13,13 @@ import applica.framework.revisions.AvoidRevision;
 import applica.framework.revisions.RevisionId;
 import applica.framework.security.User;
 import applica.framework.widgets.entities.EntitiesRegistry;
-import applica.framework.widgets.entities.EntityUtils;
 import applica.framework.widgets.factory.OperationsFactory;
 import applica.framework.widgets.operations.OperationException;
-import applica.framework.widgets.utils.ClassUtils.*;
 import org.jsoup.helper.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -297,6 +294,11 @@ public class BaseRevisionService implements RevisionService {
     @Override
     public void enableRevisionForCurrentThread() {
         enabled.set(true);
+    }
+
+    @Override
+    public void isRevisionEnabledOnCurrentThread() {
+        enabled.get();
     }
 
     @Override

@@ -23,6 +23,8 @@ public interface RevisionService {
 
     void enableRevisionForCurrentThread();
 
+    void isRevisionEnabledOnCurrentThread();
+
     void disableRevisionForCurrentThread();
 
     boolean executeRevisionInOtherThread();
