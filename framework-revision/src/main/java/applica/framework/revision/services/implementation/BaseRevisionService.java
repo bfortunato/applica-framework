@@ -3,6 +3,7 @@ package applica.framework.revision.services.implementation;
 import applica.framework.Entity;
 import applica.framework.Query;
 import applica.framework.Repo;
+import applica.framework.Repository;
 import applica.framework.annotations.ManyToMany;
 import applica.framework.annotations.ManyToOne;
 import applica.framework.annotations.OneToMany;

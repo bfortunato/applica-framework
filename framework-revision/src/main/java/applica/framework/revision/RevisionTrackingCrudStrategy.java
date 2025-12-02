@@ -47,8 +47,15 @@ public class RevisionTrackingCrudStrategy extends ChainedCrudStrategy {
             revisions.addAll(toInsert.stream().map(t -> entityRevisionService.createRevision(user, t, null)).collect(Collectors.toList()));
             revisions.addAll(toEdit.stream().map(t -> entityRevisionService.createRevision(user, t, toEditPrevious.stream().filter(previous -> Objects.equals(previous.getId(), t.getId())).findFirst().orElse(null))).collect(Collectors.toList()));
 
-            Runnable runnable = () -> Repo.of(entityRevisionService.getRevisionClass()).saveAll(revisions);
-            executeRevisionAction(runnable);
+            List revisionsToSave = (List) revisions.stream().filter(r -> ((Revision) r).canSave()).collect(Collectors.toList());
+
+            if (revisionsToSave.size() > 0) {
+                Runnable runnable = () -> {
+                    Repo.of(entityRevisionService.getRevisionClass()).saveAll(revisionsToSave);
+                };
+                executeRevisionAction(runnable);
+            }
+
            ;
         }
 
