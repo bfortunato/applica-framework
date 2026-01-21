@@ -15,6 +15,12 @@ public class MailUtils {
         String smtpPort = options.get("smtp.port");
         properties.put("mail.smtp.port", StringUtils.hasLength(smtpPort) ? Integer.parseInt(smtpPort) : 25);
         properties.put("mail.smtp.auth", "true");
+        String starttlsEnable = options.get("smtp.starttls.enable");
+        if(starttlsEnable!=null) properties.put("mail.smtp.starttls.enable", starttlsEnable);
+        String sslSocketFactorPort = options.get("smtp.socketFactory.port");
+        if(sslSocketFactorPort!=null) properties.put("mail.smtp.socketFactory.port", sslSocketFactorPort);
+        String sslSocketFactorClass = options.get("smtp.socketFactory.class");
+        if(sslSocketFactorClass!=null) properties.put("mail.smtp.socketFactory.class", sslSocketFactorClass);
 
         return Session.getInstance(properties, new OptionsMailAuthenticator(options));
     }
